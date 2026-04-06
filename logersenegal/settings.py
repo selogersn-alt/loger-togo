@@ -29,6 +29,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*', '.logersn.com', 'solvable-sn.onrender.com']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://solvable.logersn.com',
+    'https://solvable-sn.onrender.com',
+]
+
 
 # Application definition
 

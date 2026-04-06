@@ -16,6 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.sitemaps.views import sitemap
+from logersn.sitemaps import StaticViewSitemap, PropertySitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+    'properties': PropertySitemap,
+}
 from .views import (
     home_view, properties_list_view, property_detail_view, 
     login_view, register_view, logout_view, 
@@ -98,6 +105,9 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    
+    # Sitemap XML pour Google
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

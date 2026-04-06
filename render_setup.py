@@ -7,7 +7,17 @@ django.setup()
 from users.models import User
 from django.core.management import call_command
 
-# 1. Création de votre Super-Administrateur (si n'existe pas)
+from django.contrib.sites.models import Site
+
+# 1. Configuration du Domaine pour le Sitemap
+domain = 'solvable.logersn.com'
+site, created = Site.objects.get_or_create(id=1)
+site.domain = domain
+site.name = 'Solvable SN'
+site.save()
+print(f"Site configuré sur le domaine : {domain}")
+
+# 2. Création de votre Super-Administrateur (si n'existe pas)
 # Remplacez '+221770000000' et 'admin123' par ce que vous voulez ci-dessous
 ADMIN_PHONE = os.getenv('ADMIN_PHONE', '+221770000000')
 ADMIN_PASS = os.getenv('ADMIN_PASS', 'admin123')

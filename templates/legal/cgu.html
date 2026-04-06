@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Conditions Générales d'Utilisation | Logersenegal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm p-4 p-md-5" style="background-color: var(--bg-card); border-radius: 15px;">
+                <h1 class="fw-bold mb-4" style="color: var(--text-main);">Conditions Générales d'Utilisation (CGU)</h1>
+                <p class="text-muted small">Dernière mise à jour : Avril 2026</p>
+                
+                <hr class="my-4" style="border-color: var(--border-color);">
+
+                <div class="legal-content" style="color: var(--text-main); line-height: 1.8;">
+                    <h4 class="fw-bold mt-4">1. Objet de la plateforme</h4>
+                    <p>Logersenegal est une plateforme immobilière opérée par DigitalH. Elle propose un système de notation (NILS) et de gestion de confiance (Solvable) visant à sécuriser les relations entre bailleurs et locataires au Sénégal.</p>
+
+                    <h4 class="fw-bold mt-4">2. Système de Confiance NILS</h4>
+                    <p>L'Indice Locatif Solvable (NILS) est un score basé sur l'historique de paiement et de comportement. Les utilisateurs acceptent que leurs incidents de paiement ou comportements signalés impactent leur score public.</p>
+
+                    <h4 class="fw-bold mt-4">3. Monétisation et Paiements</h4>
+                    <p>Les frais de publication (100F), de boost (100F/jour) et de pop-up (500F/jour) sont gérés via FedaPay. Tout paiement effectué est définitif et lié à l'annonce spécifique.</p>
+
+                    <h4 class="fw-bold mt-4">4. Responsabilité</h4>
+                    <p>Logersenegal agit en tant qu'intermédiaire technique. Nous ne sommes pas responsables des litiges contractuels entre bailleurs et locataires, bien que nous fournissions un salon de médiation pour faciliter le dialogue.</p>
+
+                    <h4 class="fw-bold mt-4">5. Données Personnelles</h4>
+                    <p>Conformément aux lois sénégalaises sur la protection des données (CDP), vos informations de KYC sont stockées de façon cryptée et ne servent qu'à la certification de votre profil.</p>
+                </div>
+                
+                <div class="mt-5">
+                    <a href="{% url 'home' %}" class="btn btn-outline-success">Retour à l'accueil</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

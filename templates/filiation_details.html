@@ -77,18 +77,22 @@
                     {% if incidents %}
                         <div class="list-group list-group-flush">
                         {% for incident in incidents %}
-                            <div class="list-group-item px-0" style="background-color: transparent; border-color: var(--border-color);">
+                            <div class="list-group-item px-0 {% if incident.status == 'RESOLVED' %}opacity-50{% endif %}" style="background-color: transparent; border-color: var(--border-color);">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ incident.get_incident_type_display }}</h6>
-                                    <span class="badge bg-secondary">{{ incident.get_status_display }}</span>
+                                    <span class="badge {% if incident.status == 'RESOLVED' %}bg-success{% elif incident.status == 'IN_MEDIATION' %}bg-info text-dark{% else %}bg-danger{% endif %}">{{ incident.get_status_display }}</span>
                                 </div>
                                 <p class="mb-1 small text-muted">{{ incident.description|truncatechars:100 }}</p>
                                 <p class="mb-1 small text-muted">Déclaré le {{ incident.created_at|date:"d/m/Y" }}</p>
-                                {% if incident.is_contested %}
-                                    <span class="badge bg-danger mb-2"><i class="fa-solid fa-gavel"></i> Contesté</span>
-                                {% elif is_tenant %}
-                                    <a href="{% url 'contest_item' 'incident' incident.id %}" class="btn btn-sm btn-outline-danger mt-1">Contester ce signalement</a>
-                                {% endif %}
+                                
+                                <div class="mt-2 d-flex gap-2 align-items-center">
+                                    {% if incident.is_contested %}
+                                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-scale-balanced me-1"></i> Médiation Active</span>
+                                        <a href="{% url 'mediation_room' 'incident' incident.id %}" class="btn btn-sm btn-outline-primary ms-auto" style="font-size: 0.7rem;">Discussion Médiation</a>
+                                    {% elif is_tenant and incident.status != 'RESOLVED' %}
+                                        <a href="{% url 'contest_item' 'incident' incident.id %}" class="btn btn-sm btn-outline-danger mt-1">Contester ce signalement</a>
+                                    {% endif %}
+                                </div>
                             </div>
                         {% endfor %}
                         </div>

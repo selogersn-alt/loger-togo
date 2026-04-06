@@ -33,6 +33,10 @@ class Property(models.Model):
     tv_cable = models.BooleanField(default=False, verbose_name="TV par câble")
     generator = models.BooleanField(default=False, verbose_name="Groupe électrogène")
     water_tank = models.BooleanField(default=False, verbose_name="Réservoir d'eau")
+    
+    # Géolocalisation (Optionnel)
+    latitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True)
 
     # Statistiques et Performance
     views_count = models.PositiveIntegerField(default=0, verbose_name="Nombre de vues")
@@ -80,24 +84,19 @@ class PropertyImage(models.Model):
         return f"Image for {self.property.title}"
 
 class Transaction(models.Model):
-    TRANSACTION_TYPES = [
-        ('PUBLICATION', 'Frais de publication (100F)'),
-        ('BOOST', 'Boost Annonce (100F/j)'),
-        ('POPUP', 'Mise en avant Pop-up (500F/j)'),
-    ]
-    STATUS_CHOICES = [
-        ('PENDING', 'En attente'),
-        ('SUCCESS', 'Réussite'),
-        ('FAILED', 'Échec'),
-    ]
+    class TypeEnum(models.TextChoices):
+        PUBLICATION = 'PUBLICATION', 'Frais de Publication'
+        BOOST = 'BOOST', 'Boost d\'Annonce'
+        POPUP = 'POPUP', 'Mise en avant Pop-up'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     property = models.ForeignKey(Property, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    transaction_type = models.CharField(max_length=20, choices=TypeEnum.choices)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     reference = models.CharField(max_length=100, unique=True, verbose_name="Référence FedaPay / Interne")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(max_length=20, choices=[('PENDING', 'En attente'), ('SUCCESS', 'Réussite'), ('FAILED', 'Échec')], default='PENDING')
+    days = models.IntegerField(default=1, verbose_name="Nombre de jours")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -118,3 +117,14 @@ class PricingConfig(models.Model):
 
     def __str__(self):
         return "Configuration des tarifs DigitalH"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'property')
+
+    def __str__(self):
+        return f"{self.user} favorited {self.property}"

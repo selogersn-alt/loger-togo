@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Politique de Confidentialité | Logersenegal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm p-4 p-md-5" style="background-color: var(--bg-card); border-radius: 15px;">
+                <h1 class="fw-bold mb-4" style="color: var(--text-main);">Politique de Confidentialité</h1>
+                <p class="text-muted small">Dernière mise à jour : Avril 2026</p>
+                
+                <hr class="my-4" style="border-color: var(--border-color);">
+
+                <div class="legal-content" style="color: var(--text-main); line-height: 1.8;">
+                    <h4 class="fw-bold mt-4">1. Collecte des Données</h4>
+                    <p>Nous collectons les données suivantes :
+                    <ul>
+                        <li>Identité (CNI, Passeport via le processus KYC).</li>
+                        <li>Numéros de téléphone pour les identifications NILS.</li>
+                        <li>Journalisation des transactions immobilières et paiements (PÉAGE).</li>
+                    </ul>
+                    </p>
+
+                    <h4 class="fw-bold mt-4">2. Utilisation des Données</h4>
+                    <p>Vos données servent à créer votre indice de confiance (NILS). Un score réputationnel est calculé sur la base de vos paiements mensuels enregistrés par les bailleurs sur la plateforme.</p>
+
+                    <h4 class="fw-bold mt-4">3. Sécurité</h4>
+                    <p>Toutes les données sensibles (documents KYC) sont cryptées. L'accès est strictement réservé aux administrateurs de Logersenegal pour validation.</p>
+
+                    <h4 class="fw-bold mt-4">4. Partage de Données</h4>
+                    <p>Aucune donnée personnelle n'est vendue à des tiers. Seul votre score NILS (vert, jaune ou rouge) est public pour rassurer les futurs bailleurs ou locataires.</p>
+
+                    <h4 class="fw-bold mt-4">5. Droits des Utilisateurs</h4>
+                    <p>Conformément à la loi sénégalaise sur les données personnelles (Loi n°2008-12), vous avez un droit d'accès, de rectification et d'opposition sur vos données personnelles.</p>
+                </div>
+                
+                <div class="mt-5">
+                    <a href="{% url 'home' %}" class="btn btn-outline-success">Retour à l'accueil</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

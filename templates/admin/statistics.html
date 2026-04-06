@@ -91,6 +91,35 @@
                 </div>
             </div>
         </div>
+        
+        <!-- FINANCE WIDGETS (Point 6: Monétisation) -->
+        <h4 class="mt-4 mb-3 fw-bold text-muted px-2">📊 Performance Financière (DigitalH PÉAGE)</h4>
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box shadow text-white" style="background: linear-gradient(135deg, #2d5a27 0%, #083820 100%) !important;">
+                    <div class="inner"><h3>{{ total_revenue|floatformat:0 }} F</h3><p>Revenu Total (Brut)</p></div>
+                    <div class="icon"><i class="fas fa-wallet"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success shadow">
+                    <div class="inner"><h3>{{ month_revenue|floatformat:0 }} F</h3><p>Revenu ce Mois</p></div>
+                    <div class="icon"><i class="fas fa-calendar-check"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info shadow">
+                    <div class="inner"><h3>{{ revenue_boost|floatformat:0 }} F</h3><p>Revenu Boosts</p></div>
+                    <div class="icon"><i class="fas fa-bolt"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-12">
+                <div class="small-box bg-maroon shadow" style="background-color: #d81b60 !important; color: white;">
+                    <div class="inner"><h3>{{ revenue_popup|floatformat:0 }} F</h3><p>Revenu Pop-ups</p></div>
+                    <div class="icon"><i class="fas fa-external-link-alt"></i></div>
+                </div>
+            </div>
+        </div>
 
         <div class="row">
             <!-- Growth Chart -->

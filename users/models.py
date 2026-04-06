@@ -186,9 +186,11 @@ class NILS_Profile(models.Model):
             elif payment.status in [PaymentHistory.StatusEnum.UNPAID, PaymentHistory.StatusEnum.REPORTED]:
                 penalties = penalties + 30
 
-        # Fetch incidents where this user is the reported tenant and status is IMPACTED
-        incidents_count = IncidentReport.objects.filter(reported_tenant=self.user, status=IncidentReport.StatusEnum.IMPACTED).count()
-        penalties = penalties + (incidents_count * 30)
+        # Fetch incidents: IMPACTED (-30) and RESOLVED (-1)
+        impacted_incidents_count = IncidentReport.objects.filter(reported_tenant=self.user, status=IncidentReport.StatusEnum.IMPACTED).count()
+        resolved_incidents_count = IncidentReport.objects.filter(reported_tenant=self.user, status=IncidentReport.StatusEnum.RESOLVED).count()
+        
+        penalties = penalties + (impacted_incidents_count * 30) + (resolved_incidents_count * 1)
 
         # Integration of star ratings into the 100-point score
         # High ratings provide bonuses, low ratings provide penalties

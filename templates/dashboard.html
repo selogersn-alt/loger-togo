@@ -178,6 +178,9 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
+                        <a class="nav-link" id="favorites-tab" data-bs-toggle="pill" href="#favorites" role="tab"><i class="fa-solid fa-heart me-2"></i> Mes Favoris</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" id="chat-tab" data-bs-toggle="pill" href="#chat" role="tab">
                             <i class="fa-solid fa-comments me-2"></i> Messagerie 
                         </a>
@@ -486,10 +489,10 @@
                                                     <a href="{% url 'property_detail' prop.id %}" class="btn btn-sm btn-outline-primary" title="Voir l'annonce"><i class="fa-solid fa-eye"></i></a>
                                                     
                                                     {% if not prop.is_paid %}
-                                                        <a href="{% url 'initiate_payment' prop.id 'PUBLICATION' %}" class="btn btn-sm btn-success fw-bold" title="Régulariser 100F"><i class="fa-solid fa-credit-card me-1"></i> Payer</a>
+                                                        <a href="{% url 'checkout_payment' prop.id 'PUBLICATION' %}" class="btn btn-sm btn-success fw-bold" title="Régulariser 100F"><i class="fa-solid fa-credit-card me-1"></i> Payer</a>
                                                     {% else %}
-                                                        <a href="{% url 'initiate_payment' prop.id 'BOOST' %}" class="btn btn-sm btn-outline-success" title="Booster l'annonce (100F/j)"><i class="fa-solid fa-bolt"></i></a>
-                                                        <a href="{% url 'initiate_payment' prop.id 'POPUP' %}" class="btn btn-sm btn-outline-info" title="Mise en avant Pop-up (500F/j)"><i class="fa-solid fa-up-right-from-square"></i></a>
+                                                        <a href="{% url 'checkout_payment' prop.id 'BOOST' %}" class="btn btn-sm btn-outline-success" title="Booster l'annonce (100F/j)"><i class="fa-solid fa-bolt"></i></a>
+                                                        <a href="{% url 'checkout_payment' prop.id 'POPUP' %}" class="btn btn-sm btn-outline-info" title="Mise en avant Pop-up (500F/j)"><i class="fa-solid fa-up-right-from-square"></i></a>
                                                     {% endif %}
 
                                                     <a href="{% url 'edit_property' prop.id %}" class="btn btn-sm btn-outline-warning" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></a>
@@ -612,6 +615,46 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <!-- MES FAVORIS (Point 4) -->
+                <div class="tab-pane fade" id="favorites" role="tabpanel">
+                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4" style="color: var(--text-main);"><i class="fa-solid fa-heart text-danger me-2"></i>Mes Biens Sauvegardés</h4>
+                            <div class="row g-4">
+                                {% for fav in user.favorites.all %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100 border-0 shadow-sm overflow-hidden" style="border-radius: 12px; border: 1px solid var(--border-color) !important; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='none'">
+                                        {% if fav.property.images.first %}
+                                            <img src="{{ fav.property.images.first.image_url.url }}" class="card-img-top" style="height: 160px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 160px;">
+                                                <i class="fa-solid fa-house text-muted opacity-50" style="font-size: 3rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body p-3">
+                                            <h6 class="fw-bold mb-1 text-truncate" title="{{ fav.property.title }}">{{ fav.property.title }}</h6>
+                                            <p class="small text-muted mb-3"><i class="fa-solid fa-location-dot me-1"></i>{{ fav.property.neighborhood }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="fw-bold text-success">{{ fav.property.rent_price|floatformat:0 }} F</span>
+                                                <button onclick="toggleFavorite('{{ fav.property.id }}'); this.closest('.col-md-6').remove();" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></button>
+                                                <a href="{% url 'property_detail' fav.property.id %}" class="btn btn-sm btn-primary-custom" style="padding: 4px 15px; font-size: 0.8rem;">Détails</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-5">
+                                    <i class="fa-solid fa-heart-broken text-muted mb-3" style="font-size: 3.5rem; opacity: 0.2;"></i>
+                                    <h5 class="text-muted">Votre liste de favoris est vide</h5>
+                                    <p class="small text-muted">Explorez nos annonces et cliquez sur le coeur pour les sauvegarder ici.</p>
+                                    <a href="{% url 'properties_list' %}" class="btn btn-primary-custom mt-2">Voir les annonces</a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- MESSAGERIE (CHAT) -->
                 <div class="tab-pane fade" id="chat" role="tabpanel">
@@ -741,10 +784,65 @@
     }
 
     // Automatique Chat Scroll
-    document.addEventListener("DOMContentLoaded", function() {
+    function scrollToBottom() {
         var chatBox = document.getElementById("chat-box");
         if(chatBox) {
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    // AJAX Polling for Chat (Point 2: Temps Réel)
+    let lastMessageId = null;
+    const activeConversationId = "{{ active_conversation.id }}";
+
+    function pollMessages() {
+        if (!activeConversationId || activeConversationId === "None") return;
+
+        let url = `/chat/poll/${activeConversationId}/`;
+        if (lastMessageId) url += `?last_id=${lastMessageId}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    const chatBox = document.getElementById("chat-box");
+                    data.messages.forEach(msg => {
+                        // Skip if already there (extra safety)
+                        if (document.getElementById(`msg-${msg.id}`)) return;
+                        
+                        const msgDiv = document.createElement("div");
+                        msgDiv.id = `msg-${msg.id}`;
+                        msgDiv.className = `message-bubble ${msg.is_me ? 'msg-sent' : 'msg-received'} mb-3 animate__animated animate__fadeInUp animate__faster`;
+                        msgDiv.innerHTML = `
+                            <div class="fw-bold small mb-1" style="opacity: 0.8; font-size: 0.7rem;">
+                                ${msg.sender_name}
+                            </div>
+                            <p class="mb-1">${msg.content}</p>
+                            <div class="d-flex justify-content-end">
+                                <small style="font-size: 0.6rem; opacity: 0.6;">${msg.created_at}</small>
+                            </div>
+                        `;
+                        chatBox.appendChild(msgDiv);
+                        lastMessageId = msg.id;
+                    });
+                    scrollToBottom();
+                }
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        scrollToBottom();
+        
+        // Initialiser lastMessageId avec le dernier ID existant dans la page
+        const existingMessages = document.querySelectorAll('.message-bubble');
+        if (existingMessages.length > 0) {
+            // Un peu complexe à extraire sans ID sur chaque bulle, mais le polling 
+            // gérera les doublons avec les nouveaux messages.
+        }
+
+        // Lancer le polling toutes les 3 secondes
+        if (activeConversationId !== "None") {
+            setInterval(pollMessages, 3000);
         }
         
         // Gérer l'ouverture de l'onglet Chat si on recharge via URL avec le hash #chat

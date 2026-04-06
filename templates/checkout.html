@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Propulser votre annonce - DigitalH{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-lg overflow-hidden animate__animated animate__fadeIn" style="border-radius: 20px;">
+                <!-- Header Gold / Premium -->
+                <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, var(--color-dark-green), #0a3d24);">
+                    <div class="mb-2">
+                        {% if payment_type == 'BOOST' %}
+                            <i class="fa-solid fa-bolt-lightning display-4 text-warning"></i>
+                        {% elif payment_type == 'POPUP' %}
+                            <i class="fa-solid fa-gem display-4 text-info"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-check display-4 text-success"></i>
+                        {% endif %}
+                    </div>
+                    <h2 class="fw-800">
+                        {% if payment_type == 'BOOST' %}Booster l'Annonce{% elif payment_type == 'POPUP' %}Mise en avant Pop-up{% else %}Frais de Publication{% endif %}
+                    </h2>
+                    <p class="opacity-75 mb-0">{{ property.title }}</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <form action="{% url 'initiate_payment' property.id payment_type %}" method="GET" id="paymentForm">
+                        <input type="hidden" name="type" value="{{ payment_type }}">
+                        
+                        <!-- Tarification Display -->
+                        <div class="p-3 bg-light rounded-3 mb-4 text-center">
+                            <span class="text-muted small text-uppercase fw-bold">Tarif unitaire</span>
+                            <div class="h3 fw-800 mb-0" id="unitPrice">{{ unit_price|floatformat:0 }} <small>FCFA{% if payment_type != 'PUBLICATION' %}/jour{% endif %}</small></div>
+                        </div>
+
+                        {% if payment_type != 'PUBLICATION' %}
+                        <!-- Sélection de la Durée -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small">COMBRE DE JOURS DE VISIBILITÉ</label>
+                            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text border-0 bg-white ps-4"><i class="fa-solid fa-calendar-day text-success"></i></span>
+                                <input type="number" name="days" id="daysCounter" class="form-control border-0 fw-bold" value="1" min="1" max="100" style="font-size: 1.2rem;">
+                            </div>
+                            <div class="mt-2 text-center text-muted small">
+                                <span class="badge bg-soft-success text-success px-3 py-2 rounded-pill">
+                                    <i class="fa-solid fa-clock me-1"></i> Idéal pour maximiser vos vues
+                                </span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <input type="hidden" name="days" value="1">
+                        {% endif %}
+
+                        <hr class="my-4 opacity-50">
+
+                        <!-- Résumé de commande -->
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-soft-success rounded-3 border border-success border-opacity-10">
+                            <div>
+                                <span class="fw-bold d-block">MONTANT TOTAL</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="h2 fw-900 mb-0 text-success" id="totalPrice">{{ unit_price|floatformat:0 }}</span>
+                                <span class="fw-bold text-success">FCFA</span>
+                            </div>
+                        </div>
+
+                        {% if unit_price <= 0 %}
+                        <!-- Message Promo Promo (Mode Gratuit) -->
+                        <div class="alert alert-success border-0 shadow-sm animate__animated animate__pulse animate__infinite" style="background-color: rgba(127, 212, 125, 0.1);">
+                            <i class="fa-solid fa-gift me-2 text-success"></i> <strong>PROMO : TOUT GRATUIT !</strong> Profitez de l'activation immédiate sans frais.
+                        </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                         <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 shadow transition-transform hover-scale">
+                             <i class="fa-solid fa-lock me-2"></i> {% if unit_price > 0 %}Passer au Paiement Sécurisé{% else %}Activer le Service Immédiatement{% endif %}
+                         </button>
+
+                         <div class="text-center mt-3">
+                             <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted small hover-underline"><i class="fa-solid fa-arrow-left me-1"></i> Annuler et revenir</a>
+                         </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const daysInput = document.getElementById('daysCounter');
+        const unitPrice = {{ unit_price|default:0 }};
+        const totalPriceEl = document.getElementById('totalPrice');
+
+        if (daysInput) {
+            daysInput.addEventListener('input', function() {
+                const days = Math.max(1, parseInt(this.value) || 1);
+                const total = days * unitPrice;
+                totalPriceEl.textContent = total.toLocaleString();
+            });
+        }
+    });
+</script>
+
+<style>
+    .bg-soft-success { background-color: rgba(127, 212, 125, 0.08); }
+    .hover-scale:hover { transform: scale(1.02); }
+    .fw-900 { font-weight: 900; }
+    .transition-transform { transition: transform 0.2s ease; }
+</style>
+{% endblock %}

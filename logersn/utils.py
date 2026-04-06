@@ -48,7 +48,8 @@ class FedaPayBridge:
             transaction_type=transaction_type,
             amount=amount,
             reference=reference,
-            status='PENDING'
+            status='PENDING',
+            days=days
         )
         
         return transaction

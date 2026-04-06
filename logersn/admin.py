@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import Property, PropertyImage, Transaction, PricingConfig
+from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite
 
 class PropertyImageInline(admin.TabularInline):
     model = PropertyImage
@@ -75,3 +75,9 @@ class PropertyImageAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="max-height: 50px; border-radius: 5px;" />', obj.image_url.url)
         return "-"
     image_preview.short_description = "Aperçu"
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'property', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__email', 'user__phone_number', 'property__title')

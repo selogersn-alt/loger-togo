@@ -73,6 +73,7 @@ class PaymentHistory(models.Model):
         PAID = 'PAID', 'Payé à temps'
         LATE = 'LATE', 'Payé en retard'
         UNPAID = 'UNPAID', 'Impayé'
+        REPORTED = 'REPORTED', 'Signalé (Litige en cours)'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     rental_filiation = models.ForeignKey(RentalFiliation, on_delete=models.CASCADE, related_name='payments')
@@ -104,5 +105,17 @@ class PropertyApplication(models.Model):
     status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+class MediationMessage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Target can be an IncidentReport or a PaymentHistory
+    incident = models.ForeignKey(IncidentReport, on_delete=models.CASCADE, related_name='mediation_messages', null=True, blank=True)
+    payment = models.ForeignKey(PaymentHistory, on_delete=models.CASCADE, related_name='mediation_messages', null=True, blank=True)
+    
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mediation_sent_messages')
+    content = models.TextField()
+    is_from_mediator = models.BooleanField(default=False, verbose_name="Envoyé par le médiateur DigitalH")
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"Application by {self.applicant.phone_number} for {self.property.title}"
+        return f"Mediation message from {self.sender} at {self.created_at}"

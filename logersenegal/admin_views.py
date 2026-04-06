@@ -6,9 +6,9 @@ from django.http import HttpResponse
 from django.db.models import Count, Q
 from users.models import User, KYCProfile
 from solvable.models import RentalFiliation, IncidentReport, PaymentHistory
-from logersn.models import Property
-from django.utils import timezone
 import datetime
+from django.db.models import Sum
+from logersn.models import Property, Transaction
 
 @staff_member_required
 def admin_statistics_view(request):
@@ -53,6 +53,16 @@ def admin_statistics_view(request):
     
     total_pros = User.objects.exclude(role='TENANT').count()
     pro_verification_rate = (verified_pros / total_pros * 100) if total_pros > 0 else 0
+    
+    # 7. FINANCIAL STATS (DigitalH PÉAGE)
+    total_revenue = Transaction.objects.filter(status='SUCCESS').aggregate(total=Sum('amount'))['total'] or 0
+    revenue_publication = Transaction.objects.filter(status='SUCCESS', transaction_type='PUBLICATION').aggregate(total=Sum('amount'))['total'] or 0
+    revenue_boost = Transaction.objects.filter(status='SUCCESS', transaction_type='BOOST').aggregate(total=Sum('amount'))['total'] or 0
+    revenue_popup = Transaction.objects.filter(status='SUCCESS', transaction_type='POPUP').aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Revenue this month
+    this_month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_revenue = Transaction.objects.filter(status='SUCCESS', created_at__gte=this_month_start).aggregate(total=Sum('amount'))['total'] or 0
     
     # 6. Time Series (Last 6 months)
     today = timezone.now()
@@ -121,6 +131,11 @@ def admin_statistics_view(request):
         'late_payments': late_payments,
         'unpaid_payments': unpaid_payments,
         'labels_months': months,
+        'total_revenue': total_revenue,
+        'revenue_publication': revenue_publication,
+        'revenue_boost': revenue_boost,
+        'revenue_popup': revenue_popup,
+        'month_revenue': month_revenue,
         'data_users': user_growth,
         'data_contracts': contract_growth,
     }

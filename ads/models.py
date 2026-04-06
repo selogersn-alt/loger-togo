@@ -44,5 +44,17 @@ class AdsConfig(models.Model):
         verbose_name = "Configuration AdSense (ads.txt)"
         verbose_name_plural = "Configuration AdSense (ads.txt)"
 
+class SEOSetting(models.Model):
+    title = models.CharField(max_length=255, default="Paramètres SEO Globaux")
+    header_scripts = models.TextField(blank=True, verbose_name="Scripts de l'en-tête (Head)", help_text="Google Analytics, Pixel Facebook, etc.")
+    footer_scripts = models.TextField(blank=True, verbose_name="Scripts de pied de page (Body)", help_text="Scripts de chat, tracking, etc.")
+    
+    meta_description = models.TextField(blank=True, verbose_name="Méta Description par défaut")
+    meta_keywords = models.CharField(max_length=500, blank=True, verbose_name="Méta Keywords")
+
+    class Meta:
+        verbose_name = "Paramètres SEO & Scripts"
+        verbose_name_plural = "Paramètres SEO & Scripts"
+
     def __str__(self):
-        return "Paramètres ads.txt"
+        return self.title

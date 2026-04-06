@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Salle de Médiation | Solvable{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3" style="color: var(--color-dark-green);">Détails du Litige</h5>
+                    <p class="text-muted mb-1"><strong>Type :</strong> {{ item.get_incident_type_display|default:item.get_status_display }}</p>
+                    <p class="text-muted mb-1"><strong>Contrat :</strong> {{ filiation.property.title }}</p>
+                    <hr>
+                    <h6 class="fw-bold">Motif de Contestation :</h6>
+                    <p class="small bg-light p-2 rounded">{{ item.contestation_reason }}</p>
+                    {% if is_mediator %}
+                        <div class="mt-4">
+                            <h6 class="fw-bold">Actions Médiateur :</h6>
+                            <form method="POST" action="{% url 'update_incident_status' %}" class="d-grid gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="role" value="mediator">
+                                <button name="action" value="resolve" class="btn btn-success btn-sm">Marquer comme RÉSOLU</button>
+                                <button name="action" value="impact" class="btn btn-danger btn-sm">Confirmer SIGNALEMENT</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'filiation_details' filiation.id %}" class="btn btn-link mt-3"><i class="fa-solid fa-arrow-left"></i> Retour au contrat</a>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm overflow-hidden" style="background-color: var(--bg-card); border-radius: 12px; height: 600px; display: flex; flex-direction: column;">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <div class="bg-warning text-dark px-2 py-1 rounded small me-2 font-weight-bold">MÉDIATION ACTIVE</div>
+                    <h5 class="mb-0 fw-bold" style="color: var(--text-main);">Espace de Communication</h5>
+                </div>
+                
+                <div class="card-body p-0 d-flex flex-column" style="flex: 1; overflow-y: auto;">
+                    <div class="p-4" id="chat-messages">
+                        {% for msg in mediation_messages %}
+                            <div class="mb-3 d-flex {% if msg.sender == request.user %}justify-content-end{% endif %}">
+                                <div class="p-3 rounded shadow-sm" style="max-width: 80%; {% if msg.is_from_mediator %}background-color: #fff3cd; border-left: 4px solid #ffc107;{% elif msg.sender == request.user %}background-color: #e2f3f5; color: #055160;{% else %}background-color: #f8f9fa;{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold small">
+                                            {% if msg.is_from_mediator %}
+                                                <i class="fa-solid fa-scale-balanced text-warning"></i> Médiateur DigitalH
+                                            {% else %}
+                                                {{ msg.sender.first_name|default:msg.sender.phone_number }}
+                                            {% endif %}
+                                        </span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">{{ msg.created_at|date:"H:i" }}</span>
+                                    </div>
+                                    <div class="message-content">{{ msg.content }}</div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-comments fa-3x mb-3 opacity-25"></i>
+                                <p>Aucun message. Commencez la discussion ici pour résoudre le différend.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-top p-3">
+                    <form method="POST" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="text" name="content" class="form-control" placeholder="Entrez votre message de médiation..." required>
+                        <button type="submit" class="btn btn-primary px-4">Envoyer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #chat-messages {
+        display: flex;
+        flex-direction: column;
+    }
+    .grayscale {
+        filter: grayscale(100%);
+    }
+</style>
+<script>
+    // Scroll to bottom of chat
+    const chatBody = document.querySelector('.card-body');
+    chatBody.scrollTop = chatBody.scrollHeight;
+</script>
+{% endblock %}

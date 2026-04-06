@@ -10,11 +10,17 @@ from logersn.models import Property
 from logersn.forms import PropertyForm
 from users.models import User, NILS_Profile
 from chat.models import Conversation, Message
-from solvable.models import PropertyApplication
+from solvable.models import PropertyApplication, RentalFiliation, PaymentHistory
+from logersn.models import Favorite
+from django.http import JsonResponse
 
 def home_view(request):
     featured_properties = Property.objects.filter(is_published=True).order_by('-created_at')[:3]
-    return render(request, 'home.html', {'featured_properties': featured_properties})
+    boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('?')[:12]
+    return render(request, 'home.html', {
+        'featured_properties': featured_properties,
+        'boosted_properties': boosted_properties
+    })
 
 def about_view(request):
     return render(request, 'about.html')
@@ -210,12 +216,11 @@ def dashboard_view(request):
     return render(request, 'dashboard.html', context)
 
 from logersn.utils import FedaPayBridge
-from logersn.models import Property, Transaction
+from logersn.models import Property, PropertyImage, Transaction
+from logersn.forms import PropertyForm
 
 @login_required
 def create_property_view(request):
-    from logersn.models import PropertyImage
-    
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES)
         if form.is_valid():
@@ -244,13 +249,36 @@ def create_property_view(request):
 @login_required
 def initiate_payment_view(request, property_id, payment_type):
     property_obj = get_object_or_404(Property, id=property_id, owner=request.user)
-    days = int(request.GET.get('days', 1)) # Par défaut 1 jour pour le boost
+    days = int(request.GET.get('days', 1)) 
     
     transaction = FedaPayBridge.initiate_transaction(request.user, payment_type, property_obj, days)
-    payment_url = FedaPayBridge.generate_payment_url(transaction)
     
-    # Redirection vers FedaPay (pont simulé pour le moment)
+    # Gestion de la promotion "TOUT GRATUIT" (Démo/Promo Admin)
+    if transaction.amount <= 0:
+        # On simule un succès immédiat si c'est gratuit
+        return redirect(f"/payments/callback/?ref={transaction.reference}&status=success")
+        
+    payment_url = FedaPayBridge.generate_payment_url(transaction)
     return redirect(payment_url)
+
+@login_required
+def checkout_payment_view(request, property_id, payment_type):
+    property_obj = get_object_or_404(Property, id=property_id, owner=request.user)
+    pricing = FedaPayBridge.get_pricing()
+    
+    # Récupération du prix unitaire selon le type
+    unit_price = 0
+    if payment_type == 'PUBLICATION': unit_price = pricing['publication']
+    elif payment_type == 'BOOST': unit_price = pricing['boost']
+    elif payment_type == 'POPUP': unit_price = pricing['popup']
+    
+    context = {
+        'property': property_obj,
+        'payment_type': payment_type,
+        'unit_price': unit_price,
+        'config': pricing
+    }
+    return render(request, 'checkout.html', context)
 
 def payment_callback_view(request):
     ref = request.GET.get('ref')
@@ -270,9 +298,17 @@ def payment_callback_view(request):
             
         elif transaction.transaction_type == 'BOOST' and transaction.property:
             transaction.property.is_boosted = True
-            transaction.property.boost_until = timezone.now() + datetime.timedelta(days=7) # Boost de 7j par défaut pour tester
+            # Activation pour la durée payée
+            transaction.property.boost_until = timezone.now() + datetime.timedelta(days=transaction.days)
             transaction.property.save()
-            messages.success(request, "Félicitations ! Votre annonce est maintenant boostée.")
+            messages.success(request, f"Félicitations ! Votre annonce est maintenant boostée pour {transaction.days} jour(s).")
+            
+        elif transaction.transaction_type == 'POPUP' and transaction.property:
+            transaction.property.is_featured_popup = True
+            # Activation pour la durée payée
+            transaction.property.popup_until = timezone.now() + datetime.timedelta(days=transaction.days)
+            transaction.property.save()
+            messages.success(request, f"Félicitations ! Votre annonce apparaîtra désormais dans les pop-ups pour {transaction.days} jour(s).")
             
         return redirect('payment_success', transaction_id=transaction.id)
     
@@ -289,7 +325,6 @@ def password_recovery_view(request):
 
 @login_required
 def edit_property_view(request, property_id):
-    from logersn.models import Property, PropertyImage
     property_obj = get_object_or_404(Property, id=property_id, owner=request.user)
     
     if request.method == 'POST':
@@ -627,13 +662,98 @@ def contest_item_view(request, item_type, item_id):
         if reason:
             item.is_contested = True
             item.contestation_reason = reason
+            
+            # If it's an incident, automatically set status to IN_MEDIATION
+            if item_type == 'incident':
+                item.status = IncidentReport.StatusEnum.IN_MEDIATION
+                
             item.save()
-            messages.success(request, "Votre contestation a été envoyée avec succès à notre équipe de médiation.")
-            return redirect('filiation_details', filiation_id=filiation.id)
+            messages.success(request, "Votre contestation a été envoyée avec succès à notre équipe de médiation. Vous pouvez maintenant discuter avec le médiateur.")
+            return redirect('mediation_room', item_type=item_type, item_id=item_id)
         else:
             messages.error(request, "Veuillez fournir un motif de contestation valide.")
             
     return render(request, 'dispute_form.html', {'item': item, 'item_type': item_type, 'filiation': filiation})
+
+@login_required
+def update_incident_status_view(request):
+    from solvable.models import IncidentReport
+    
+    if request.method == 'POST' and request.user.is_staff:
+        item_id = request.POST.get('item_id')
+        action = request.POST.get('action')
+        
+        incident = get_object_or_404(IncidentReport, id=item_id)
+        
+        if action == 'resolve':
+            incident.status = IncidentReport.StatusEnum.RESOLVED
+            messages.success(request, "L'incident a été marqué comme RÉSOLU. Le score du locataire a été mis à jour (+29% récupérés).")
+        elif action == 'impact':
+            incident.status = IncidentReport.StatusEnum.IMPACTED
+            messages.warning(request, "Le signalement a été confirmé comme IMPACTANT. Le score du locataire reste bas.")
+            
+        incident.save()
+        
+        # Update user score
+        if hasattr(incident.reported_tenant, 'nils_profiles'):
+             for profile in incident.reported_tenant.nils_profiles.all():
+                 profile.update_score()
+                 
+        return redirect('mediation_room', item_type='incident', item_id=item_id)
+        
+    messages.error(request, "Action non autorisée.")
+    return redirect('dashboard')
+
+@login_required
+def mediation_room_view(request, item_type, item_id):
+    from solvable.models import PaymentHistory, IncidentReport, MediationMessage
+    
+    if item_type == 'payment':
+        item = get_object_or_404(PaymentHistory, id=item_id)
+        filiation = item.rental_filiation
+    elif item_type == 'incident':
+        item = get_object_or_404(IncidentReport, id=item_id)
+        filiation = item.rental_filiation
+    else:
+        messages.error(request, "Type invalide.")
+        return redirect('dashboard')
+        
+    # Security: only parties involved can see the mediation (Tenant, Landlord, or Staff/Mediator)
+    if request.user != filiation.tenant and request.user != filiation.landlord and not request.user.is_staff:
+        messages.error(request, "Accès refusé.")
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if content:
+            msg = MediationMessage(
+                sender=request.user,
+                content=content,
+                is_from_mediator=request.user.is_staff
+            )
+            if item_type == 'payment':
+                msg.payment = item
+            else:
+                msg.incident = item
+            msg.save()
+            
+            # Re-calculate score in case the status was changed in the mean time
+            if hasattr(request.user, 'nils_profile'):
+                request.user.nils_profile.update_score()
+                
+            messages.success(request, "Message envoyé.")
+            return redirect('mediation_room', item_type=item_type, item_id=item_id)
+            
+    messages_list = item.mediation_messages.all().order_by('created_at') if hasattr(item, 'mediation_messages') else []
+    
+    context = {
+        'item': item,
+        'item_type': item_type,
+        'filiation': filiation,
+        'mediation_messages': messages_list,
+        'is_mediator': request.user.is_staff
+    }
+    return render(request, 'mediation_room.html', context)
 
 from django.http import HttpResponse
 
@@ -870,3 +990,50 @@ def public_profile_view(request, user_id):
         'properties': properties,
         'stats': stats
     })
+
+def cgu_view(request):
+    return render(request, 'legal/cgu.html')
+
+def privacy_view(request):
+    return render(request, 'legal/privacy.html')
+
+@login_required
+def toggle_favorite_view(request, property_id):
+    property_obj = get_object_or_404(Property, id=property_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, property=property_obj)
+    
+    if not created:
+        favorite.delete()
+        status = 'removed'
+    else:
+        status = 'added'
+        
+    return JsonResponse({'status': status, 'count': property_obj.favorited_by.count()})
+
+@login_required
+def chat_poll_view(request, conversation_id):
+    from chat.models import Conversation, Message
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    
+    # Ensure user is part of the conversation
+    if request.user not in conversation.participants.all() and not request.user.is_staff:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+    last_id = request.GET.get('last_id')
+    messages_query = conversation.messages.all()
+    
+    if last_id:
+        messages_query = messages_query.filter(id__gt=last_id)
+        
+    data = []
+    for m in messages_query:
+        data.append({
+            'id': m.id,
+            'sender_id': m.sender.id,
+            'sender_name': "Support Logersenegal" if m.sender.is_staff else str(m.sender.phone_number),
+            'content': m.content,
+            'created_at': m.created_at.strftime('%H:%M'),
+            'is_me': m.sender == request.user
+        })
+        
+    return JsonResponse({'messages': data})

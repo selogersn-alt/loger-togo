@@ -9,15 +9,17 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     model = User
     
-    list_display = ('phone_number', 'email', 'role', 'is_verified_pro', 'company_name', 'is_active')
-    search_fields = ('email', 'phone_number', 'company_name')
-    list_filter = ('role', 'is_verified_pro', 'is_active', 'is_staff')
-    actions = ['verify_professionals', 'revoke_professionals', 'generate_recovery_code']
+    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'phone_otp', 'is_phone_verified', 'is_verified_pro', 'is_active')
+    search_fields = ('email', 'phone_number', 'company_name', 'first_name', 'last_name', 'phone_otp')
+    list_filter = ('role', 'is_verified_pro', 'is_active', 'is_staff', 'is_phone_verified')
+    actions = ['verify_professionals', 'revoke_professionals', 'generate_recovery_code', 'send_otp_whatsapp']
     ordering = ('-date_joined',)
     
     fieldsets = (
         ('Informations de Connexion', {'fields': ('phone_number', 'email', 'password')}),
-        ('Statut', {'fields': ('role', 'is_verified_pro', 'company_name', 'coverage_area')}),
+        ('Vérification & Sécurité', {'fields': ('phone_otp', 'is_phone_verified')}),
+        ('Identité', {'fields': ('first_name', 'last_name', 'cni_number', 'profile_picture')}),
+        ('Statut Professionnel', {'fields': ('role', 'is_verified_pro', 'company_name', 'coverage_area')}),
         ('Délégation : Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'), 'classes': ('collapse',)}),
     )
     add_fieldsets = (
@@ -46,8 +48,27 @@ class UserAdmin(BaseUserAdmin):
             wa_url = f"https://wa.me/{clean_phone}?text={wa_msg.replace(' ', '%20')}"
             
             self.message_user(request, format_html(
-                'Code généré pour {}: <strong>{}</strong>. <a href="{}" target="_blank" style="background-color: #25D366; color: white; padding: 5px 12px; border-radius: 5px; text-decoration: none; margin-left: 10px; font-weight: bold;"><i class="fa-brands fa-whatsapp"></i> Envoyer via WhatsApp</a>',
+                'Code de secours généré pour {}: <strong>{}</strong>. <a href="{}" target="_blank" style="background-color: #25D366; color: white; padding: 5px 12px; border-radius: 5px; text-decoration: none; margin-left: 10px; font-weight: bold;"><i class="fa-brands fa-whatsapp"></i> Envoyer via WhatsApp</a>',
                 user.phone_number, temp_pass, wa_url
+            ))
+
+    @admin.action(description="📲 Envoyer le Code OTP actuel via WhatsApp")
+    def send_otp_whatsapp(self, request, queryset):
+        from django.utils.html import format_html
+        
+        for user in queryset:
+            if not user.phone_otp:
+                import random
+                user.phone_otp = str(random.randint(100000, 999999))
+                user.save()
+            
+            clean_phone = user.phone_number.replace('+', '').replace(' ', '').replace('-', '')
+            wa_msg = f"Bonjour, votre code de confirmation Logersenegal est : {user.phone_otp}. Merci de le saisir pour valider votre compte. L'équipe DigitalH."
+            wa_url = f"https://wa.me/{clean_phone}?text={wa_msg.replace(' ', '%20')}"
+            
+            self.message_user(request, format_html(
+                'Code OTP ({}) prêt pour {}. <a href="{}" target="_blank" style="background-color: #25D366; color: white; padding: 5px 12px; border-radius: 5px; text-decoration: none; margin-left: 10px; font-weight: bold;"><i class="fa-brands fa-whatsapp"></i> Envoyer le code</a>',
+                user.phone_otp, user.phone_number, wa_url
             ))
 
     @admin.action(description="Accorder le badge de Professionnel Vérifié")

@@ -99,6 +99,36 @@
         margin: 0 auto 15px auto;
     }
 
+    #propertyMap {
+        height: 300px;
+        border-radius: 15px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 30px;
+    }
+
+    .btn-favorite {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+    .btn-favorite:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+    .btn-favorite.active {
+        color: #ff4757;
+        background-color: white;
+    }
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
 </style>
 {% endblock %}
 
@@ -118,8 +148,13 @@
                 <h1 class="fw-bold mb-2">{{ property.title }}</h1>
                 <p class="mb-0 opacity-75"><i class="fa-solid fa-location-dot me-2 text-warning"></i>{{ property.neighborhood }}, {{ property.city }}</p>
             </div>
-            <div class="text-end text-white opacity-75 small">
-                Publié il y a {{ property.created_at|timesince }}
+            <div class="d-flex align-items-center gap-3">
+                <button id="favoriteBtn" class="btn-favorite {% if user.is_authenticated and property in user.favorites.all %}active{% endif %}" onclick="toggleFavorite('{{ property.id }}')">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+                <div class="text-end text-white opacity-75 small">
+                    Publié il y a {{ property.created_at|timesince }}
+                </div>
             </div>
         </div>
     </div>
@@ -238,6 +273,12 @@
                     <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-faucet-drip text-success me-2"></i> Réservoir d'eau</div></div>
                     {% endif %}
                 </div>
+
+                <h4 class="fw-bold mb-4" style="color: var(--text-main);">Emplacement sur la carte</h4>
+                <div id="propertyMap"></div>
+                {% if not property.latitude %}
+                <p class="text-muted small text-center"><i class="fa-solid fa-info-circle me-1"></i> Coordonnées non précisées, affichage approximatif basé sur {{ property.neighborhood }}.</p>
+                {% endif %}
                 
                 <hr style="border-color: var(--border-color); margin: 30px 0;">
                 
@@ -377,6 +418,49 @@
         const thumbnails = document.querySelectorAll(".thumbnail-img");
         thumbnails.forEach(thumb => thumb.classList.remove("active"));
         element.classList.add("active");
+    }
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // Initialize Map
+    document.addEventListener('DOMContentLoaded', function() {
+        const lat = parseFloat("{{ property.latitude|default:14.7167 }}");
+        const lng = parseFloat("{{ property.longitude|default:-17.4677 }}");
+        const map = L.map('propertyMap').setView([lat, lng], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup("<b>{{ property.title }}</b><br>{{ property.neighborhood }}")
+            .openPopup();
+    });
+
+    // Favorite Toggle Logic
+    function toggleFavorite(propertyId) {
+        if ("{{ user.is_authenticated }}" === "False") {
+            window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
+            return;
+        }
+
+        fetch(`/favori/basculer/${propertyId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}",
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const btn = document.getElementById("favoriteBtn");
+            if (data.status === 'added') {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 </script>
 {% endblock %}

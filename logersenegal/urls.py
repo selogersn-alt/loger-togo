@@ -23,14 +23,16 @@ from .views import (
     initiate_chat_view, start_support_view, verify_phone_view,
     kyc_submit_view, nils_search_view, create_filiation_view,
     report_incident_view, record_payment_view,
-    filiation_details_view, contest_item_view, about_view, verified_professionals_view,
+    filiation_details_view, contest_item_view, mediation_room_view, update_incident_status_view, about_view, verified_professionals_view,
     download_receipt_view, apply_to_property_view, start_filiation_view,
     approve_filiation_view, terminate_filiation_view, update_application_status_view,
     verify_phone_view, public_profile_view,
     edit_property_view, delete_property_view,  # Gestion pro
-    initiate_payment_view, payment_callback_view, payment_success_view, 
+    initiate_payment_view, checkout_payment_view, payment_callback_view, payment_success_view, 
     password_recovery_view, # DigitalH Recovery
+    cgu_view, privacy_view, toggle_favorite_view, chat_poll_view
 )
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from ads.views import ads_txt_view  # Certification Google
 from .admin_views import admin_statistics_view
 
@@ -46,6 +48,7 @@ urlpatterns = [
     path('annonces/nouvelle/', create_property_view, name='create_property'),
     path('annonces/', properties_list_view, name='properties_list'),
     path('annonces/<uuid:property_id>/', property_detail_view, name='property_detail'),
+    path('annonces/<uuid:property_id>/modifier/', edit_property_view, name='edit_property'),
     path('annonces/<uuid:property_id>/supprimer/', delete_property_view, name='delete_property'),
     
     # Certification Ads (Google AdSense)
@@ -65,6 +68,8 @@ urlpatterns = [
     path('contrat/<uuid:filiation_id>/', filiation_details_view, name='filiation_details'),
     path('contrat/paiement/<uuid:payment_id>/quittance/', download_receipt_view, name='download_receipt'),
     path('contrat/contester/<str:item_type>/<uuid:item_id>/', contest_item_view, name='contest_item'),
+    path('contrat/mediation/<str:item_type>/<uuid:item_id>/', mediation_room_view, name='mediation_room'),
+    path('audit/mediation/update-status/', update_incident_status_view, name='update_incident_status'),
     path('contrat/demarrer/<uuid:application_id>/', start_filiation_view, name='start_filiation'),
     path('contrat/approuver/<uuid:filiation_id>/', approve_filiation_view, name='approve_filiation'),
     path('contrat/resilier/<uuid:filiation_id>/', terminate_filiation_view, name='terminate_filiation'),
@@ -76,10 +81,23 @@ urlpatterns = [
     path('profil-public/<uuid:user_id>/', public_profile_view, name='public_profile'),
     path('recuperation-compte/', password_recovery_view, name='password_recovery'),
 
-    # DigitalH Payment Engine
+    # Moteur de Paiement DigitalH
+    path('paiement/configurer/<uuid:property_id>/<str:payment_type>/', checkout_payment_view, name='checkout_payment'),
     path('paiement/initier/<uuid:property_id>/<str:payment_type>/', initiate_payment_view, name='initiate_payment'),
     path('paiement/callback/', payment_callback_view, name='payment_callback'),
+    path('payments/callback/', payment_callback_view), # Alias international pour éviter les 404
     path('paiement/succes/<uuid:transaction_id>/', payment_success_view, name='payment_success'),
+    
+    # Nouvelles Routes UX & Légal
+    path('cgu/', cgu_view, name='cgu'),
+    path('confidentialite/', privacy_view, name='privacy'),
+    path('favori/basculer/<uuid:property_id>/', toggle_favorite_view, name='toggle_favorite'),
+    path('chat/poll/<uuid:conversation_id>/', chat_poll_view, name='chat-poll'),
+    
+    # API Documentation (Point 8)
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

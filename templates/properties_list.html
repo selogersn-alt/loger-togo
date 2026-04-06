@@ -108,25 +108,78 @@
         font-weight: 800;
     }
 
-    /* Carousel Custom Styling */
-    .carousel-indicators [data-bs-target] {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin: 0 4px;
-        background-color: white;
+    /* Multi-item Horizontal Scroller for Boosted Ads */
+    .boosted-scroller-container {
+        overflow: hidden;
+        padding: 40px 0;
+        position: relative;
+        background: linear-gradient(135deg, var(--color-dark-green), #053b21);
+        border-radius: 24px;
+        margin-top: -30px;
+        z-index: 10;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
     }
-    .carousel-indicators .active {
-        background-color: var(--color-yellow);
+    
+    .boosted-track {
+        display: flex;
+        gap: 20px;
+        width: max-content;
+        animation: scroll 40s linear infinite;
     }
-    .carousel-control-prev, .carousel-control-next {
-        width: 15%;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+    
+    .boosted-track:hover {
+        animation-play-state: paused;
     }
-    .property-card:hover .carousel-control-prev,
-    .property-card:hover .carousel-control-next {
-        opacity: 0.8;
+    
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    
+    .boosted-item {
+        width: 340px; /* Slightly larger than standard */
+        background: var(--bg-card);
+        border-radius: 16px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 2px solid var(--color-yellow);
+        transition: transform 0.3s ease;
+        position: relative;
+    }
+    
+    .boosted-item:hover {
+        transform: translateY(-5px);
+    }
+    
+    .boosted-img-wrapper {
+        height: 220px;
+        position: relative;
+    }
+    
+    .boosted-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .boosted-info {
+        padding: 15px;
+        color: var(--text-main);
+    }
+    
+    .boosted-price {
+        color: var(--color-dark-green);
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .boosted-item {
+            width: 280px;
+        }
+        .boosted-track {
+            animation-duration: 25s;
+        }
     }
 </style>
 {% endblock %}
@@ -135,48 +188,69 @@
 <div class="page-header mt-4 text-center text-md-start">
     <div class="container py-4">
         <h1 class="fw-800 display-5" style="color: var(--text-main);">Nos Annonces Immobilières</h1>
-        <p class="lead fw-bold mb-0" style="color: var(--color-yellow);">Trouvez l'appartement ou la villa idéale au Sénégal</p>
+        <p class="lead fw-bold mb-0" style="color: var(--color-light-green);">Trouvez l'appartement ou la villa idéale au Sénégal</p>
     </div>
 </div>
 
 {% if boosted_slider %}
-<!-- Bandeau Défilant Premium DigitalH -->
-<div class="container mb-5 mt-n3">
-    <div class="card border-0 shadow-lg overflow-hidden animate__animated animate__slideInLeft" style="border-radius: 20px; background: linear-gradient(135deg, var(--color-dark-green), #053b21); transition: all 0.5s ease-in-out;">
-        <div class="row g-0 align-items-center">
-            <div class="col-md-5 p-5 text-white">
-                <div class="badge bg-yellow text-dark mb-4 text-uppercase fw-bold p-2 px-3 rounded-pill animate__animated animate__fadeInDown" style="font-size: 0.7rem; letter-spacing: 2px;"> <i class="fa-solid fa-bolt me-1 text-danger"></i> Sélection Premium</div>
-                <h2 class="display-6 fw-800 mb-3 text-shadow">Nos Exclusivités du Jour</h2>
-                <p class="opacity-75 mb-4 d-none d-md-block">Découvrez les meilleures opportunités immobilières certifiées par DigitalH pour votre confort.</p>
-                <a href="#all-properties" class="btn btn-outline-yellow rounded-pill px-4 fw-bold shadow-sm">Explorer tout <i class="fa-solid fa-arrow-right ms-1"></i></a>
-            </div>
-            <div class="col-md-7">
-                <div id="boostedCarousel" class="carousel slide h-100" data-bs-ride="carousel">
-                    <div class="carousel-inner h-100">
-                        {% for boost_prop in boosted_slider %}
-                        <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}" data-bs-interval="5000">
-                            <div class="position-relative h-100" style="min-height: 400px; height: 100%;">
-                                {% if boost_prop.images.first %}
-                                    <img src="{{ boost_prop.images.first.image_url.url }}" class="d-block w-100 h-100" alt="{{ boost_prop.title }}" style="object-fit: cover;">
-                                {% endif %}
-                                <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.9));">
-                                    <div class="d-flex justify-content-between align-items-end">
-                                        <div class="text-white">
-                                            <h4 class="fw-bold mb-1 text-white">{{ boost_prop.title }}</h4>
-                                            <p class="opacity-75 small mb-0"><i class="fa-solid fa-location-dot me-1"></i> {{ boost_prop.neighborhood }}, {{ boost_prop.city }}</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="fw-800 mb-0" style="color: var(--color-yellow);">{{ boost_prop.rent_price|floatformat:0 }} <small class="fw-normal" style="font-size: 1rem;">FCFA</small></h3>
-                                            <a href="{% url 'property_detail' boost_prop.id %}" class="btn btn-sm btn-yellow text-dark fw-bold rounded-pill px-3 mt-2">Détails <i class="fa-solid fa-chevron-right ms-1"></i></a>
-                                        </div>
-                                    </div>
+<!-- Bandeau Défilant Premium DigitalH - Nouvelle Version Multi-item Continue -->
+<div class="container mb-5">
+    <div class="boosted-scroller-container animate__animated animate__fadeIn">
+        <div class="px-4 mb-3 d-flex justify-content-between align-items-center">
+            <h5 class="text-white fw-800 m-0"><i class="fa-solid fa-bolt text-warning me-2"></i>SÉLECTION PREMIUM DU JOUR</h5>
+            <span class="badge bg-white text-dark rounded-pill small">Top {{ boosted_slider.count }}</span>
+        </div>
+        <div class="boosted-track">
+            {% for boost_prop in boosted_slider %}
+                <div class="boosted-item shadow-sm">
+                    <a href="{% url 'property_detail' boost_prop.id %}" class="text-decoration-none">
+                        <div class="boosted-img-wrapper">
+                            {% if boost_prop.images.first %}
+                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}">
+                            {% else %}
+                                <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                    <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
                                 </div>
+                            {% endif %}
+                            <div class="position-absolute top-0 start-0 m-2">
+                                <span class="badge bg-success small py-1 px-2">Certifié</span>
                             </div>
                         </div>
-                        {% endfor %}
-                    </div>
+                        <div class="boosted-info bg-white">
+                            <h6 class="fw-bold mb-1 text-truncate" style="color: var(--color-dark-green);">{{ boost_prop.title }}</h6>
+                            <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-1"></i> {{ boost_prop.neighborhood }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="boosted-price">{{ boost_prop.rent_price|floatformat:0 }} F</span>
+                                <span class="btn btn-xs btn-outline-success rounded-pill p-1 px-2" style="font-size: 0.6rem;">Voir +</span>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
+            {% endfor %}
+            <!-- Doubler les items pour l'effet infini -->
+            {% for boost_prop in boosted_slider %}
+                <div class="boosted-item shadow-sm">
+                    <a href="{% url 'property_detail' boost_prop.id %}" class="text-decoration-none">
+                        <div class="boosted-img-wrapper">
+                            {% if boost_prop.images.first %}
+                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}">
+                            {% else %}
+                                <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                    <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="boosted-info bg-white">
+                            <h6 class="fw-bold mb-1 text-truncate" style="color: var(--color-dark-green);">{{ boost_prop.title }}</h6>
+                            <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-1"></i> {{ boost_prop.neighborhood }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="boosted-price">{{ boost_prop.rent_price|floatformat:0 }} F</span>
+                                <span class="btn btn-xs btn-outline-success rounded-pill p-1 px-2" style="font-size: 0.6rem;">Voir +</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
         </div>
     </div>
 </div>

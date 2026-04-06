@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'solvable',
     'chat',
     'ads',
+    'drf_spectacular',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -193,4 +194,15 @@ JAZZMIN_UI_TWEAKS = {
         "danger": "btn-danger",
         "success": "btn-success"
     }
+}
+# REST Framework Config
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Solvable Loger Sénégal API',
+    'DESCRIPTION': 'Documentation technique des services immobiliers de prestige par DigitalH.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }

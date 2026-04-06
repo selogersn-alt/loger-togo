@@ -1,4 +1,4 @@
-from .models import Advertisement
+from .models import Advertisement, SEOSetting
 from logersn.models import Property
 
 def ads_processor(request):
@@ -19,4 +19,5 @@ def ads_processor(request):
         'ads_sidebar': sidebar_ads,
         'ads_in_feed': in_feed_ads,
         'property_popup': property_popup,
+        'seo_settings': SEOSetting.objects.first(),
     }

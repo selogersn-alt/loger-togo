@@ -63,16 +63,31 @@
 
             <div class="card shadow-sm border-0 mb-5 overflow-hidden" style="background-color: var(--bg-card); border-radius: 20px; border: 1px solid var(--border-color) !important;">
                 <div class="card-body p-4 p-md-5">
-                    <form method="get" class="row g-3 items-center">
-                        <div class="col-md-9">
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color);"><i class="fa-solid fa-search text-muted"></i></span>
-                                <input type="text" name="query" class="form-control form-control-lg border-start-0" placeholder="Nom, Téléphone, CNI ou Pays..." value="{{ query }}" required style="background-color: transparent; color: var(--text-main); border-color: var(--border-color); border-radius: 0 10px 10px 0;">
-                            </div>
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Nom ou Prénoms</label>
+                            <input type="text" name="name_query" class="form-control" placeholder="Ex: Mamadou Diop" value="{{ request.GET.name_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
                         </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-5" style="border-radius: 10px; font-weight: 700;">
-                                Rechercher <i class="fa-solid fa-shield-check ms-1"></i>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Téléphone</label>
+                            <input type="text" name="phone_query" class="form-control" placeholder="Ex: 77..." value="{{ request.GET.phone_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small text-uppercase text-muted">N° CNI / Passeport</label>
+                            <input type="text" name="doc_query" class="form-control" placeholder="Recherche par pièce" value="{{ request.GET.doc_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Pays du document</label>
+                            <select name="country_query" class="form-select" style="border-radius:10px; border: 1px solid var(--border-color);">
+                                <option value="">Toutes nationalités</option>
+                                {% for code, name in countries %}
+                                    <option value="{{ code }}" {% if request.GET.country_query == code %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold" style="border-radius: 10px;">
+                                ANALYSER <i class="fa-solid fa-bolt ms-1"></i>
                             </button>
                         </div>
                     </form>
@@ -89,7 +104,12 @@
 
             {% if profiles %}
             <div class="mb-4 d-flex justify-content-between align-items-center">
-                <h4 class="fw-bold m-0">{{ profiles|length }} résultat(s) pour "{{ query }}"</h4>
+                <h4 class="fw-bold m-0">
+                    {{ profiles|length }} résultat(s) identifié(s) 
+                    {% if request.GET.name_query or request.GET.phone_query %}
+                        pour : <span class="text-primary">{{ request.GET.name_query }} {{ request.GET.phone_query }}</span>
+                    {% endif %}
+                </h4>
             </div>
             
             {% for profile in profiles %}

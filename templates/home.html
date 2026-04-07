@@ -304,11 +304,11 @@
         </div>
 
         <!-- RÉSULTATS DE RECHERCHE NILS (INLINE) -->
-        {% if query %}
+        {% if results is not None %}
         <div id="nils_results_anchor" class="mt-4 mb-5 pt-4">
             <div class="card border-0 shadow-lg" style="border-radius: 20px; background: var(--bg-card); overflow: hidden; border: 1px solid var(--border-color) !important;">
                 <div class="card-header bg-dark text-white p-4 border-0">
-                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-clipboard-list me-2"></i> Audit de Solvabilité pour : "{{ query }}"</h5>
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-clipboard-list me-2"></i> Audit de Solvabilité pour : 🖋️ {{ request.GET.name_query }} {{ request.GET.phone_query }}</h5>
                 </div>
                 <div class="card-body p-4 p-md-5">
                     {% if results %}

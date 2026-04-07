@@ -581,65 +581,66 @@ def kyc_submit_view(request):
 
 @login_required
 def nils_search_view(request):
-    from users.models import NILS_Profile
-    from solvable.models import IncidentReport
     from django.db.models import Sum, Q
-    
+    from solvable.models import IncidentReport
+    from users.models import NILS_Profile, SearchLog
+    from logersn.constants import COUNTRY_CHOICES
+
     # SECURITY: Only allowed for Pros!
     if request.user.role == 'TENANT' and not request.user.is_staff:
         messages.error(request, "Accès réservé aux bailleurs et agences professionnels.")
         return redirect('dashboard')
-        
-    query = request.GET.get('query', '').strip()
-    profiles = []
+
+    # Multi-critères
+    name_q = request.GET.get('name_query', '').strip()
+    phone_q = request.GET.get('phone_query', '').strip()
+    doc_q = request.GET.get('doc_query', '').strip()
+    country_q = request.GET.get('country_query', '').strip()
+    
+    profiles = None
     error = None
     
     # Statistiques Globales Solvable
     stats = {
-        'total_signaled': NILS_Profile.objects.filter(reputation_status__in=['YELLOW', 'RED']).count(),
-        'dialogues_en_cours': IncidentReport.objects.filter(status='IN_MEDIATION').count(),
-        'dialogues_regle': IncidentReport.objects.filter(status='RESOLVED').count(),
-        'total_impaye': IncidentReport.objects.aggregate(Sum('amount_due'))['amount_due__sum'] or 0
+        'total_signaled': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IMPACTED, is_validated=True).values('reported_tenant').distinct().count(),
+        'dialogues_en_cours': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IN_MEDIATION).count(),
+        'dialogues_regle': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.RESOLVED).count(),
+        'total_impaye': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IMPACTED, is_validated=True).aggregate(Sum('amount_due'))['amount_due__sum'] or 0
     }
     
-    # Derniers signalements (pour la bande passante/ticker)
-    recent_incidents = IncidentReport.objects.all().order_by('-created_at')[:10]
+    recent_incidents = IncidentReport.objects.filter(is_validated=True).order_by('-created_at')[:10]
     
-    if query:
-        from users.models import SearchLog
-        try:
-            # Recherche ultra-large pour identifier les mauvais payeurs
-            profiles = NILS_Profile.objects.filter(
-                Q(nils_number__iexact=query) | 
-                Q(user__phone_number__contains=query) |
-                Q(user__first_name__icontains=query) |
-                Q(user__last_name__icontains=query) |
-                Q(user__cni_number__iexact=query) |
-                Q(user__employer__icontains=query) |
-                Q(user__spouse_name__icontains=query) |
-                Q(user__document_country__icontains=query)
-            ).distinct()
+    if name_q or phone_q or doc_q:
+        filters = Q()
+        if name_q:
+            filters &= (Q(user__first_name__icontains=name_q) | Q(user__last_name__icontains=name_q))
+        if phone_q:
+            filters &= Q(user__phone_number__icontains=phone_q)
+        if doc_q:
+            filters &= Q(user__cni_number__icontains=doc_q)
+        if country_q:
+            filters &= Q(user__document_country=country_q)
             
-            # --- SECURITY LOGGING ---
-            SearchLog.objects.create(
-                searcher=request.user,
-                query=query,
-                results_found=profiles.count(),
-                ip_address=request.META.get('REMOTE_ADDR')
-            )
-            # ------------------------
-            
-            if not profiles.exists():
-                error = f"Aucun profil Solvable n'a été trouvé pour '{query}'."
-        except Exception as e:
-            error = f"Erreur lors de la recherche : {str(e)}"
+        profiles = NILS_Profile.objects.filter(filters).distinct()
+        
+        # --- SECURITY LOGGING ---
+        SearchLog.objects.create(
+            searcher=request.user,
+            query=f"N:{name_q}|T:{phone_q}|D:{doc_q}|C:{country_q}",
+            results_found=profiles.count() if profiles else 0,
+            ip_address=request.META.get('REMOTE_ADDR')
+        )
+        # ------------------------
+        
+        if profiles and not profiles.exists():
+            error = "Aucun profil Solvable n'a été trouvé avec ces critères précis."
             
     return render(request, 'nils_search.html', {
-        'query': query, 
         'profiles': profiles, 
         'error': error,
         'stats': stats,
-        'recent_incidents': recent_incidents
+        'recent_incidents': recent_incidents,
+        'countries': COUNTRY_CHOICES
     })
 
 @login_required

@@ -9,30 +9,41 @@
             <div class="card border-0 shadow-lg animate__animated animate__fadeInUp" style="border-radius: 25px; background-color: var(--bg-card);">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <div class="bg-light-green rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; background-color: rgba(127, 212, 125, 0.1);">
-                            <i class="fa-solid fa-user-shield" style="color: var(--color-light-green); font-size: 2.5rem;"></i>
+                        <div class="bg-light-green rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; background-color: rgba(251, 191, 36, 0.1);">
+                            <i class="fa-solid fa-key" style="color: var(--color-yellow); font-size: 2.5rem;"></i>
                         </div>
-                        <h2 class="fw-bold" style="color: var(--text-main);">H-Recovery</h2>
-                        <p class="text-muted">Récupération assistée par un technicien DigitalH.</p>
+                        <h2 class="fw-bold" style="color: var(--text-main);">Solvable Recovery</h2>
+                        <p class="text-muted small">Retrouvez l'accès à votre compte en 1 minute.</p>
                     </div>
 
-                    <div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: rgba(127, 212, 125, 0.05); color: var(--color-dark-green);">
-                        <i class="fa-solid fa-circle-info me-2"></i>
-                        Par mesure de sécurité, la récupération de mot de passe se fait manuellement via notre canal WhatsApp officiel.
+                    <div id="check_area" class="mb-4">
+                        <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">Votre numéro au Sénégal</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-2 border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);"><i class="fa-solid fa-phone"></i></span>
+                            <input type="tel" id="recovery_phone" class="form-control py-3 border-2" placeholder="77XXXXXXX" style="border-radius: 0 12px 12px 0; border-color: var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
+                        </div>
+                        <div id="phone_feedback" class="mt-2 small text-center"></div>
                     </div>
 
-                    <div class="mb-4">
-                        <label for="recovery_phone" class="form-label fw-bold small text-uppercase">Votre numéro de téléphone</label>
-                        <input type="tel" id="recovery_phone" class="form-control py-3" placeholder="+221 77 000 00 00" style="border-radius: 12px; border: 2px solid var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
-                        <div class="form-text mt-2 small">Saisissez le numéro rattaché à votre compte Logersenegal.</div>
+                    <div id="action_area" class="d-none animate__animated animate__fadeIn">
+                        <div class="alert alert-success border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: rgba(40, 167, 69, 0.05); color: #28a745;">
+                            <i class="fa-solid fa-check-circle me-2"></i> Compte identifié ! Cliquez ci-dessous pour confirmer sur WhatsApp.
+                        </div>
+                        
+                        <button onclick="startRecovery()" class="btn w-100 py-3 rounded-pill fw-bold" style="background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
+                            <i class="fa-brands fa-whatsapp me-2"></i> Réinitialiser via WhatsApp
+                        </button>
                     </div>
 
-                    <button onclick="startRecovery()" class="btn btn-primary-custom w-100 py-3 rounded-pill fw-bold" style="font-size: 1.1rem;">
-                        <i class="fa-brands fa-whatsapp me-2"></i> Contacter l'Assistant
-                    </button>
+                    <div id="error_area" class="d-none animate__animated animate__shakeX">
+                        <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: rgba(220, 53, 69, 0.05); color: #dc3545;">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> Ce numéro n'est pas reconnu sur Solvable.
+                        </div>
+                        <a href="{% url 'register' %}" class="btn btn-outline-secondary w-100 py-3 rounded-pill fw-bold">Créer un nouveau compte</a>
+                    </div>
 
-                    <div class="text-center mt-4 pt-3 border-top">
-                        <a href="{% url 'login' %}" class="text-decoration-none small" style="color: var(--color-yellow);">
+                    <div class="text-center mt-4">
+                        <a href="{% url 'login' %}" class="text-decoration-none small text-muted">
                             <i class="fa-solid fa-arrow-left me-1"></i> Retour à la connexion
                         </a>
                     </div>
@@ -43,19 +54,56 @@
 </div>
 
 <script>
-    function startRecovery() {
-        const phone = document.getElementById('recovery_phone').value;
-        if (!phone) {
-            alert('Veuillez saisir votre numéro de téléphone.');
-            return;
-        }
+    const phoneInput = document.getElementById('recovery_phone');
+    const phoneFeedback = document.getElementById('phone_feedback');
+    const actionArea = document.getElementById('action_area');
+    const errorArea = document.getElementById('error_area');
+    const checkArea = document.getElementById('check_area');
 
-        // Message pré-rempli pour l'admin
-        const message = `Bonjour DigitalH Support, j'ai perdu mon mot de passe sur Logersenegal. Mon numéro de compte est : ${phone}. Merci de m'assister avec un nouveau code de secours par WhatsApp.`;
+    // Détection auto-validation (après 7-9 chiffres)
+    phoneInput.addEventListener('input', function() {
+        const val = this.value.replace(/\s/g, '');
+        if (val.length >= 7) {
+            validatePhone(val);
+        } else {
+            resetUI();
+        }
+    });
+
+    function resetUI() {
+        actionArea.classList.add('d-none');
+        errorArea.classList.add('d-none');
+        phoneFeedback.innerHTML = '';
+        phoneInput.style.borderColor = 'var(--border-color)';
+    }
+
+    function validatePhone(phone) {
+        fetch(`?phone=${phone}`, {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exists) {
+                actionArea.classList.remove('d-none');
+                errorArea.classList.add('d-none');
+                phoneInput.style.borderColor = '#28a745';
+                phoneFeedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Numéro trouvé !</span>';
+            } else {
+                errorArea.classList.remove('d-none');
+                actionArea.classList.add('d-none');
+                phoneInput.style.borderColor = '#dc3545';
+                phoneFeedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-xmark"></i> Inconnu.</span>';
+            }
+        });
+    }
+
+    function startRecovery() {
+        const phone = phoneInput.value.trim();
+        const siteUrl = window.location.origin;
+        const message = `SOLVABLE RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nSource : ${siteUrl}\n\nMerci de m'envoyer un nouveau code de connexion DigitalH.`;
         
-        // Numéro de support (à configurer par l'admin via la plateforme plus tard)
-        // On utilise un numéro placeholder ou le numéro de l'agence DigitalH
-        const supportWhatsApp = "221770000000"; // EXEMPLE: Modifier par le numéro de l'admin réel
+        // MODIFIER ICI : Numéro de support officiel de votre Agence
+        const supportWhatsApp = "221708848419"; // Numéro support réel ou DigitalH (placeholder)
         
         const waUrl = `https://wa.me/${supportWhatsApp}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');

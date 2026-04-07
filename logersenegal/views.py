@@ -329,6 +329,11 @@ def payment_success_view(request, transaction_id):
     return render(request, 'payment_success.html', {'transaction': transaction})
 
 def password_recovery_view(request):
+    phone = request.GET.get('phone', '').strip()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' and phone:
+        user_exists = User.objects.filter(phone_number__icontains=phone).exists()
+        return JsonResponse({'exists': user_exists})
+        
     return render(request, 'recovery.html')
 
 @login_required

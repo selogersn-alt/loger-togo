@@ -70,6 +70,8 @@ def home_view(request):
             ip_address=request.META.get('REMOTE_ADDR')
         )
 
+    query = name_q or phone_q or doc_q # Pour l'affichage dans le template
+
     # 4. Annonces Classiques
     featured_properties = Property.objects.filter(is_published=True).order_by('-created_at')[:3]
     boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('?')[:12]
@@ -1037,7 +1039,7 @@ def start_filiation_view(request, application_id):
                 property=application.property,
                 landlord=landlord,
                 tenant=request.user,
-                monthly_rent=application.property.rent_price,
+                monthly_rent=application.property.price,
                 start_date=timezone.now().date(),
                 status=RentalFiliation.StatusEnum.PENDING_APPROVAL
             )
@@ -1149,13 +1151,10 @@ def verify_phone_view(request):
             
     return render(request, 'verify_phone.html')
 
-    return redirect('dashboard')
-
 @login_required
 def public_profile_view(request, user_id):
     from users.models import User
     from logersn.models import Property
-    from django.shortcuts import get_object_or_404
     
     viewed_user = get_object_or_404(User, id=user_id)
     properties = Property.objects.filter(owner=viewed_user, is_published=True)

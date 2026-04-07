@@ -242,16 +242,32 @@
                 <!-- LE MOTEUR NILS -->
                 <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 30px; background-color: var(--bg-card); border: 1px solid var(--border-color) !important;">
                     <form method="get" action="{% url 'home' %}">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-uppercase text-muted">Moteur de Recherche Multi-critères</label>
-                            <div class="input-group shadow-sm" style="border-radius: 15px; overflow: hidden; border: 1px solid var(--border-color);">
-                                <span class="input-group-text bg-transparent border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                                <input type="text" name="nils_query" class="form-control border-0 py-3" 
-                                       placeholder="Nom, Tél, CNI ou Passeport..." value="{{ query }}" style="background: transparent; color: var(--text-main);">
-                                <button class="btn btn-primary px-4 py-3 fw-bold" type="submit">VÉRIFIER</button>
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Nom ou Prénoms</label>
+                                <input type="text" name="name_query" class="form-control py-2 shadow-sm" placeholder="Ex: Mamadou Diop" value="{{ request.GET.name_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
                             </div>
-                            <div class="form-text mt-2 small">
-                                <i class="fa-solid fa-circle-check text-success me-1"></i> Résultats certifiés par Solvable Sénégal.
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Téléphone</label>
+                                <input type="text" name="phone_query" class="form-control py-2 shadow-sm" placeholder="Ex: 77123..." value="{{ request.GET.phone_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
+                            </div>
+                            <div class="col-md-5 mb-2">
+                                <label class="form-label fw-bold small text-uppercase text-muted">CNI / Passeport</label>
+                                <input type="text" name="doc_query" class="form-control py-2 shadow-sm" placeholder="N° de document" value="{{ request.GET.doc_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Pays du document</label>
+                                <select name="country_query" class="form-select py-2 shadow-sm" style="border-radius:10px; border: 1px solid var(--border-color);">
+                                    <option value="">Tous les pays</option>
+                                    {% for code, name in countries %}
+                                        <option value="{{ code }}" {% if request.GET.country_query == code %}selected{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-2 d-flex align-items-end">
+                                <button class="btn btn-primary w-100 py-2 fw-bold shadow" type="submit" style="border-radius:10px;">
+                                    <i class="fa-solid fa-bolt me-1"></i> ANALYSER
+                                </button>
                             </div>
                         </div>
                     </form>

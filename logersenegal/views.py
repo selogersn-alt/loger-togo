@@ -34,19 +34,28 @@ def home_view(request):
     # 2. Bande passante (Ticker) des nouveaux signalements
     recent_incidents = IncidentReport.objects.filter(is_validated=True).order_by('-created_at')[:10]
 
-    # 3. Logique de Recherche Multi-Critères (Si POST ou GET search)
-    query = request.GET.get('nils_query', '').strip()
+    # 3. Logique de Recherche Chirurgicale (Multi-critères pour précision 100%)
+    name_q = request.GET.get('name_query', '').strip()
+    phone_q = request.GET.get('phone_query', '').strip()
+    doc_q = request.GET.get('doc_query', '').strip()
+    country_q = request.GET.get('country_query', '').strip()
+    
     results = None
-    if query:
-        # Recherche élargie : Nom, Prénom, Tél, CNI, Pays
-        results = NILS_Profile.objects.filter(
-            Q(nils_number__icontains=query) |
-            Q(user__phone_number__icontains=query) |
-            Q(user__first_name__icontains=query) |
-            Q(user__last_name__icontains=query) |
-            Q(user__cni_number__icontains=query) |
-            Q(user__document_country__icontains=query)
-        ).distinct()
+    # On déclenche la recherche si au moins un champ d'identification est rempli
+    if name_q or phone_q or doc_q:
+        filters = Q()
+        if name_q:
+            filters &= (Q(user__first_name__icontains=name_q) | Q(user__last_name__icontains=name_q))
+        if phone_q:
+            filters &= Q(user__phone_number__icontains=phone_q)
+        if doc_q:
+            filters &= Q(user__cni_number__icontains=doc_q)
+        if country_q:
+            filters &= Q(user__document_country=country_q)
+            
+        results = NILS_Profile.objects.filter(filters).distinct()
+
+    query = name_q or phone_q or doc_q # Pour l'affichage dans le template
 
     # 4. Annonces Classiques
     featured_properties = Property.objects.filter(is_published=True).order_by('-created_at')[:3]

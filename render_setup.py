@@ -19,7 +19,7 @@ print(f"Site configuré sur le domaine : {domain}")
 
 # 2. Création de votre Super-Administrateur (si n'existe pas)
 # Remplacez '+221770000000' et 'admin123' par ce que vous voulez ci-dessous
-ADMIN_PHONE = os.getenv('ADMIN_PHONE', '+221770000000')
+ADMIN_PHONE = os.getenv('ADMIN_PHONE', '+221778578979')
 ADMIN_PASS = os.getenv('ADMIN_PASS', 'admin123')
 
 if not User.objects.filter(phone_number=ADMIN_PHONE).exists():

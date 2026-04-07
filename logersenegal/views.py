@@ -483,6 +483,8 @@ def kyc_submit_view(request):
 @login_required
 def nils_search_view(request):
     from users.models import NILS_Profile
+    from solvable.models import IncidentReport
+    from django.db.models import Sum, Q
     
     # SECURITY: Only allowed for Pros!
     if request.user.role == 'TENANT' and not request.user.is_staff:
@@ -493,8 +495,18 @@ def nils_search_view(request):
     profiles = []
     error = None
     
+    # Statistiques Globales Solvable
+    stats = {
+        'total_signaled': NILS_Profile.objects.filter(reputation_status__in=['YELLOW', 'RED']).count(),
+        'dialogues_en_cours': IncidentReport.objects.filter(status='IN_MEDIATION').count(),
+        'dialogues_regle': IncidentReport.objects.filter(status='RESOLVED').count(),
+        'total_impaye': IncidentReport.objects.aggregate(Sum('amount_due'))['amount_due__sum'] or 0
+    }
+    
+    # Derniers signalements (pour la bande passante/ticker)
+    recent_incidents = IncidentReport.objects.all().order_by('-created_at')[:10]
+    
     if query:
-        from django.db.models import Q
         from users.models import SearchLog
         try:
             # Recherche ultra-large pour identifier les mauvais payeurs
@@ -505,7 +517,8 @@ def nils_search_view(request):
                 Q(user__last_name__icontains=query) |
                 Q(user__cni_number__iexact=query) |
                 Q(user__employer__icontains=query) |
-                Q(user__spouse_name__icontains=query)
+                Q(user__spouse_name__icontains=query) |
+                Q(user__document_country__icontains=query)
             ).distinct()
             
             # --- SECURITY LOGGING ---
@@ -522,7 +535,13 @@ def nils_search_view(request):
         except Exception as e:
             error = f"Erreur lors de la recherche : {str(e)}"
             
-    return render(request, 'nils_search.html', {'query': query, 'profiles': profiles, 'error': error})
+    return render(request, 'nils_search.html', {
+        'query': query, 
+        'profiles': profiles, 
+        'error': error,
+        'stats': stats,
+        'recent_incidents': recent_incidents
+    })
 
 @login_required
 def create_filiation_view(request):
@@ -577,18 +596,36 @@ def create_filiation_view(request):
 def report_incident_view(request):
     from solvable.forms import IncidentReportForm
     from solvable.models import RentalFiliation
+    from users.models import NILS_Profile
     
     filiation_id = request.GET.get('filiation', None)
     
     if request.method == 'POST':
-        form = IncidentReportForm(request.POST, landlord=request.user)
+        # DigitalH : Ajout de request.FILES pour les preuves obligatoires
+        form = IncidentReportForm(request.POST, request.FILES, landlord=request.user)
         if form.is_valid():
             incident = form.save(commit=False)
             incident.reporter = request.user
             incident.reported_tenant = incident.rental_filiation.tenant
-            # Default status is IN_MEDIATION
+            
+            # Logique de bénéficiaire via NILS (Procuration Agence/Courtier)
+            beneficiary_nils = form.cleaned_data.get('landlord_nils_beneficiary')
+            if beneficiary_nils:
+                try:
+                    prof = NILS_Profile.objects.get(nils_number__iexact=beneficiary_nils)
+                    incident.beneficiary = prof.user
+                except NILS_Profile.DoesNotExist:
+                    messages.warning(request, f"Le numéro NILS bénéficiaire '{beneficiary_nils}' est inconnu. Le bailleur du contrat sera utilisé par défaut.")
+                    incident.beneficiary = incident.rental_filiation.landlord
+            else:
+                # Par défaut, le propriétaire du contrat est le bénéficiaire
+                incident.beneficiary = incident.rental_filiation.landlord
+                
+            # Par sécurité, un incident doit être validé par un admin avant d'impacter lourdement le NILS
+            incident.is_validated = False
             incident.save()
-            messages.success(request, f"L'incident a été déclaré avec succès. Il est en cours de médiation pour le locataire au profil NILS associé.")
+            
+            messages.success(request, f"L'incident a été déclaré et soumis à validation administrateur. Les preuves sont en cours d'examen.")
             return redirect('dashboard')
     else:
         initial_data = {}

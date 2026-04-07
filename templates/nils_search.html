@@ -4,11 +4,61 @@
 
 {% block content %}
 <div class="container py-5">
+    <!-- BARRE DE STATISTIQUES GLOBALES -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center" style="border-radius: 15px; background-color: var(--bg-card);">
+                <div class="text-muted small text-uppercase fw-bold mb-1">Profils Signalés</div>
+                <div class="h3 fw-bold mb-0 text-danger">{{ stats.total_signaled }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center" style="border-radius: 15px; background-color: var(--bg-card);">
+                <div class="text-muted small text-uppercase fw-bold mb-1">Litiges en cours</div>
+                <div class="h3 fw-bold mb-0 text-warning">{{ stats.dialogues_en_cours }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center" style="border-radius: 15px; background-color: var(--bg-card);">
+                <div class="text-muted small text-uppercase fw-bold mb-1">Dossiers Résolus</div>
+                <div class="h3 fw-bold mb-0 text-success">{{ stats.dialogues_regle }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center" style="border-radius: 15px; background-color: var(--bg-card);">
+                <div class="text-muted small text-uppercase fw-bold mb-1">Total Impayés Réseau</div>
+                <div class="h3 fw-bold mb-0 text-danger" style="font-size: 1.4rem;">{{ stats.total_impaye|floatformat:0 }} FCFA</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BANDE PASSANTE (TICKER) DES NOUVEAUX SIGNALEMENTS -->
+    {% if recent_incidents %}
+    <div class="bg-dark text-white p-2 mb-5 overflow-hidden position-relative" style="border-radius: 10px; height: 45px;">
+        <div class="d-flex align-items-center h-100 nw-ticker animate__ticker">
+            <span class="badge bg-danger ms-3 me-4">ALERTES RÉCENTES</span>
+            {% for inc in recent_incidents %}
+                <span class="me-5 small">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>
+                    {{ inc.get_incident_type_display }} : 
+                    <strong class="text-danger">{{ inc.amount_due|floatformat:0 }} FCFA</strong> 
+                    ({{ inc.rental_filiation.property.city|default:"Sénégal" }})
+                </span>
+            {% endfor %}
+        </div>
+    </div>
+    <style>
+        .nw-ticker { display: flex; white-space: nowrap; animation: ticker 40s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .nw-ticker:hover { animation-play-state: paused; }
+    </style>
+    {% endif %}
+
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
             <div class="text-center mb-5">
-                <h1 class="fw-bold" style="color: var(--text-main);">Vérifiez la fiabilité d'un candidat</h1>
-                <p class="text-muted">Entrez le **Numéro NILS** ou le **Téléphone** de votre futur locataire. Accédez instantanément à son historique de paiement et son score de solvabilité.</p>
+                <h1 class="fw-bold" style="color: var(--text-main);">Identité Locative Solvable</h1>
+                <p class="text-muted">Recherchez par NILS, Téléphone, CNI/Passeport ou pays. Accédez à l'historique complet des dettes et litiges.</p>
             </div>
 
             <div class="card shadow-sm border-0 mb-5 overflow-hidden" style="background-color: var(--bg-card); border-radius: 20px; border: 1px solid var(--border-color) !important;">
@@ -17,12 +67,12 @@
                         <div class="col-md-9">
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color);"><i class="fa-solid fa-search text-muted"></i></span>
-                                <input type="text" name="query" class="form-control form-control-lg border-start-0" placeholder="N° NILS ou Téléphone (77...)..." value="{{ query }}" required style="background-color: transparent; color: var(--text-main); border-color: var(--border-color); border-radius: 0 10px 10px 0;">
+                                <input type="text" name="query" class="form-control form-control-lg border-start-0" placeholder="Nom, Téléphone, CNI ou Pays..." value="{{ query }}" required style="background-color: transparent; color: var(--text-main); border-color: var(--border-color); border-radius: 0 10px 10px 0;">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-5" style="border-radius: 10px; font-weight: 700;">
-                                Vérifier <i class="fa-solid fa-shield-check ms-1"></i>
+                                Rechercher <i class="fa-solid fa-shield-check ms-1"></i>
                             </button>
                         </div>
                     </form>
@@ -33,13 +83,13 @@
             <div class="alert border-0 text-center shadow-sm p-4 animate__animated animate__shakeX" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; border-radius: 15px; border: 1px solid rgba(220, 53, 69, 0.2) !important;">
                 <i class="fa-solid fa-user-slash fs-2 mb-2 d-block"></i>
                 <div class="fw-bold fs-5">{{ error }}</div>
-                <p class="small mb-0 mt-2">Le candidat n'est peut-être pas encore certifié sur la plateforme Solvable.</p>
+                <p class="small mb-0 mt-2">Le candidat n'est peut-être pas encore certifié ou le profil n'a pas été trouvé.</p>
             </div>
             {% endif %}
 
             {% if profiles %}
-            <div class="mb-4">
-                <h4 class="fw-bold">{{ profiles|length }} résultat(s) trouvé(s) pour "{{ query }}"</h4>
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <h4 class="fw-bold m-0">{{ profiles|length }} résultat(s) pour "{{ query }}"</h4>
             </div>
             
             {% for profile in profiles %}
@@ -47,44 +97,72 @@
                 <div class="card-header text-center text-white py-4" 
                      style="background: linear-gradient(135deg, {% if profile.reputation_status == 'GREEN' %}#198754, #28a745{% elif profile.reputation_status == 'YELLOW' %}#f1c40f, #f39c12{% else %}#c0392b, #dc3545{% endif %});">
                     <div class="d-flex justify-content-between align-items-center px-4">
-                        <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold">{{ profile.nils_number }}</span>
+                        <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold text-uppercase">{{ profile.user.document_country }} | {{ profile.nils_number }}</span>
                         <i class="fa-solid {% if profile.reputation_status == 'GREEN' %}fa-circle-check{% elif profile.reputation_status == 'YELLOW' %}fa-triangle-exclamation{% else %}fa-circle-xmark{% endif %} fs-3"></i>
                     </div>
                 </div>
                 <div class="card-body p-4 p-md-5">
-                    <div class="row items-center">
-                        <div class="col-md-5 text-center border-end-md pb-4 pb-md-0">
+                    <div class="row items-center border-bottom pb-4 mb-4">
+                        <div class="col-md-5 text-center border-end-md">
                             <h1 style="font-size: 5rem; font-weight: 900; color: var(--text-main); line-height: 1;" class="m-0">
                                 {{ profile.score }}<span style="font-size: 1.5rem; color: var(--text-muted); font-weight: normal;">/100</span>
                             </h1>
-                            <div class="mt-2 fw-800 text-uppercase tracking-wider" style="color: {% if profile.reputation_status == 'GREEN' %}#198754{% elif profile.reputation_status == 'YELLOW' %}#f39c12{% else %}#dc3545{% endif %};">
+                            <div class="mt-2 fw-800 text-uppercase" style="color: {% if profile.reputation_status == 'GREEN' %}#198754{% elif profile.reputation_status == 'YELLOW' %}#f39c12{% else %}#dc3545{% endif %};">
                                 {{ profile.get_reputation_status_display }}
                             </div>
                         </div>
                         <div class="col-md-7 ps-md-5">
-                            <h4 class="fw-bold mb-3">{{ profile.user.first_name|default:"Nom non renseigné" }} {{ profile.user.last_name|slice:":1" }}.</h4>
+                            <h4 class="fw-bold mb-3">{{ profile.user.first_name }} {{ profile.user.last_name|slice:":1" }}.</h4>
                             <div class="row g-3">
                                 <div class="col-6">
-                                    <label class="text-muted small text-uppercase fw-bold">CNI / Pièce</label>
+                                    <label class="text-muted small text-uppercase fw-bold">ID / Passeport</label>
                                     <div class="fw-bold fs-6">{{ profile.user.cni_number|default:"Non renseigné" }}</div>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small text-uppercase fw-bold">Téléphone</label>
+                                    <label class="text-muted small text-uppercase fw-bold">Mobile</label>
                                     <div class="fw-bold fs-6">{{ profile.user.phone_number }}</div>
                                 </div>
-                                <div class="col-12 py-2">
-                                    <hr class="m-0" style="opacity: 0.1;">
-                                </div>
                                 <div class="col-12">
-                                    <label class="text-muted small text-uppercase fw-bold">Employeur / Titre</label>
+                                    <label class="text-muted small text-uppercase fw-bold">Employeur</label>
                                     <div class="fw-bold fs-6 text-truncate">{{ profile.user.employer|default:"Profession Libérale / Inconnu" }}</div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="text-muted small text-uppercase fw-bold">Statut Matrimonial{% if profile.user.spouse_name %} (Époux: {{ profile.user.spouse_name }}){% endif %}</label>
-                                    <div class="fw-bold fs-6">{{ profile.user.marital_status|default:"Inconnu" }}</div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- SECTION DETTES ET INCIDENTS -->
+                    <div>
+                        <h6 class="text-uppercase fw-bold text-muted small mb-3">Historique des Signalements (Validés par Admin)</h6>
+                        {% with incidents=profile.user.incidents_against_me.all %}
+                        {% if incidents %}
+                            <div class="list-group list-group-flush">
+                                {% for inc in incidents %}
+                                {% if inc.is_validated %}
+                                <div class="list-group-item px-0 bg-transparent border-0 mb-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="fw-bold {% if inc.status == 'RESOLVED' %}text-success{% else %}text-danger{% endif %}">
+                                                {{ inc.get_incident_type_display }}
+                                                {% if inc.status == 'RESOLVED' %}<span class="badge bg-success ms-1">RÉGLÉ</span>{% endif %}
+                                            </div>
+                                            <div class="small text-muted">{{ inc.description|truncatewords:15 }}</div>
+                                            <div class="small fw-bold">Par : {{ inc.reporter.company_name|default:inc.reporter.phone_number }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold text-danger">{{ inc.amount_due|floatformat:0 }} FCFA</div>
+                                            <div class="small text-muted">{{ inc.created_at|date:"d/m/Y" }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert bg-success bg-opacity-10 text-success border-0 small m-0">
+                                <i class="fa-solid fa-shield-check me-2"></i> Aucun impayé ou incident validé n'a été trouvé pour ce profil.
+                            </div>
+                        {% endif %}
+                        {% endwith %}
                     </div>
                 </div>
                 <div class="card-footer bg-light p-3 text-center border-0">
@@ -93,7 +171,7 @@
                             <i class="fa-solid fa-file-contract me-2"></i> Lier un Contrat
                         </a>
                         <a href="#" class="btn btn-outline-dark px-3" style="border-radius: 50px;">
-                            <i class="fa-solid fa-info-circle"></i>
+                            <i class="fa-solid fa-circle-info"></i>
                         </a>
                     </div>
                 </div>

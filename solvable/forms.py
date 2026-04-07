@@ -26,27 +26,44 @@ class RentalFiliationForm(forms.ModelForm):
             self.fields['property'].queryset = Property.objects.filter(owner=landlord)
 
 class IncidentReportForm(forms.ModelForm):
+    landlord_nils_beneficiary = forms.CharField(
+        required=False, 
+        label="N° NILS du Bailleur Bénéficiaire (Optionnel)",
+        help_text="À remplir par les agences/courtiers pour désigner le propriétaire qui doit recevoir l'argent.",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: NIL-123456', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'})
+    )
+
     class Meta:
         model = IncidentReport
-        fields = ['rental_filiation', 'incident_type', 'amount_due', 'description']
+        fields = ['rental_filiation', 'incident_type', 'amount_due', 'description', 'evidence_file']
         labels = {
             'rental_filiation': 'Sélectionnez le Contrat (Locataire)',
             'incident_type': "Type d'incident",
-            'amount_due': 'Montant dû (si applicable, en FCFA)',
-            'description': 'Description détaillée (preuves, dates, etc.)'
+            'amount_due': 'Montant dû (en FCFA)',
+            'description': 'Détails du litige',
+            'evidence_file': 'Preuve du litige (PDF, Image, Contrat)'
         }
         widgets = {
             'rental_filiation': forms.Select(attrs={'class': 'form-select', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'incident_type': forms.Select(attrs={'class': 'form-select', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'amount_due': forms.NumberInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Expliquez la situation en détail...', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'evidence_file': forms.FileInput(attrs={'class': 'form-control', 'required': 'true', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
         }
 
     def __init__(self, *args, landlord=None, **kwargs):
         super().__init__(*args, **kwargs)
         if landlord:
-            # Le bailleur ne peut signaler que les locataires de ses contrats actifs
-            self.fields['rental_filiation'].queryset = RentalFiliation.objects.filter(landlord=landlord, status=RentalFiliation.StatusEnum.ACTIVE)
+            # Un Pro peut signaler sur ses contrats, ou pour n'importe quel locataire s'il a un NILS
+            from solvable.models import RentalFiliation
+            # Si c'est une agence/courtier, on élargit un peu (ils peuvent avoir des contrats partout)
+            if landlord.role in ['AGENCY', 'BROKER', 'AGENT']:
+                self.fields['rental_filiation'].queryset = RentalFiliation.objects.filter(status=RentalFiliation.StatusEnum.ACTIVE)
+            else:
+                self.fields['rental_filiation'].queryset = RentalFiliation.objects.filter(landlord=landlord, status=RentalFiliation.StatusEnum.ACTIVE)
+        
+        # Le fichier de preuve est rendu explicitement obligatoire via Django
+        self.fields['evidence_file'].required = True
 
 class PaymentHistoryForm(forms.ModelForm):
     class Meta:

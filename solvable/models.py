@@ -62,6 +62,11 @@ class IncidentReport(models.Model):
     is_contested = models.BooleanField(default=False)
     contestation_reason = models.TextField(null=True, blank=True, verbose_name="Motif de contestation")
     
+    # Preuves et Validation Admin
+    evidence_file = models.FileField(upload_to='incident_evidence/', null=True, blank=True, verbose_name="Document de preuve (Obligatoire)")
+    is_validated = models.BooleanField(default=False, verbose_name="Validé par l'Admin")
+    beneficiary = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='received_incident_claims', verbose_name="Bénéficiaire final de la dette")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     mediation_end_date = models.DateTimeField(default=default_mediation_end)
 

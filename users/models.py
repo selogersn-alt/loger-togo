@@ -54,6 +54,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     employer = models.CharField(max_length=150, null=True, blank=True, verbose_name="Employeur / Titre d'emploi")
     marital_status = models.CharField(max_length=50, null=True, blank=True, verbose_name="Statut matrimonial")
     spouse_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Nom de l'épouse/époux")
+    document_country = models.CharField(max_length=100, default='Sénégal', verbose_name="Pays de délivrance du document")
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

@@ -39,3 +39,7 @@ class CustomUserChangeForm(UserChangeForm):
         super().__init__(*args, **kwargs)
         if 'username' in self.fields:
             self.fields.pop('username')
+        
+        # Personnalisation de l'aide pour le mot de passe en français
+        if 'password' in self.fields:
+            self.fields['password'].help_text = "Le mot de passe est encrypté pour votre sécurité et n'est pas lisible en clair."

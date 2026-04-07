@@ -310,7 +310,12 @@ def create_property_view(request):
                     is_primary=(i == 0)
                 )
                 
-            messages.info(request, "Annonce enregistrée ! Veuillez procéder au paiement des frais de publication (100F) pour l'activer.")
+            pricing = FedaPayBridge.get_pricing()
+            fee = pricing['publication_rent']
+            if property_obj.listing_category == 'SALE': fee = pricing['publication_sale']
+            elif property_obj.listing_category == 'FURNISHED': fee = pricing['publication_furnished']
+            
+            messages.info(request, f"Annonce enregistrée ! Veuillez procéder au paiement des frais de publication ({int(fee)}F) pour l'activer.")
             return redirect('initiate_payment', property_id=property_obj.id, payment_type='PUBLICATION')
     else:
         form = PropertyForm()
@@ -339,7 +344,12 @@ def checkout_payment_view(request, property_id, payment_type):
     
     # Récupération du prix unitaire selon le type
     unit_price = 0
-    if payment_type == 'PUBLICATION': unit_price = pricing['publication']
+    if payment_type == 'PUBLICATION':
+        cat = property_obj.listing_category
+        if cat == 'RENT': unit_price = pricing['publication_rent']
+        elif cat == 'SALE': unit_price = pricing['publication_sale']
+        elif cat == 'FURNISHED': unit_price = pricing['publication_furnished']
+        else: unit_price = pricing['publication_rent']
     elif payment_type == 'BOOST': unit_price = pricing['boost']
     elif payment_type == 'POPUP': unit_price = pricing['popup']
     

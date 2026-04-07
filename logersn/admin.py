@@ -71,7 +71,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(PricingConfig)
 class PricingConfigAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'publication_fee', 'boost_daily_fee', 'popup_daily_fee')
+    list_display = ('__str__', 'publication_fee_rent', 'publication_fee_sale', 'publication_fee_furnished', 'boost_daily_fee', 'popup_daily_fee')
     
     def has_add_permission(self, request):
         return not PricingConfig.objects.exists()

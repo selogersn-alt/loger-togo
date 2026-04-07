@@ -116,7 +116,10 @@ class Transaction(models.Model):
         return f"{self.user} - {self.transaction_type} - {self.amount}F"
 
 class PricingConfig(models.Model):
-    publication_fee = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, verbose_name="Prix Publication")
+    publication_fee_rent = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, verbose_name="Prix Publication (Location)")
+    publication_fee_sale = models.DecimalField(max_digits=10, decimal_places=2, default=500.00, verbose_name="Prix Publication (Vente)")
+    publication_fee_furnished = models.DecimalField(max_digits=10, decimal_places=2, default=300.00, verbose_name="Prix Publication (Meublé)")
+    
     boost_daily_fee = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, verbose_name="Prix Boost par jour")
     popup_daily_fee = models.DecimalField(max_digits=10, decimal_places=2, default=500.00, verbose_name="Prix Pop-up par jour")
 

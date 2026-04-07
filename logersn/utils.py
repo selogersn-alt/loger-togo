@@ -12,14 +12,17 @@ class FedaPayBridge:
     def get_pricing():
         config = PricingConfig.objects.first()
         if not config:
-            # Sécurité si l'admin n'a pas encore créé la config
             return {
-                'publication': 100.00,
+                'publication_rent': 100.00,
+                'publication_sale': 500.00,
+                'publication_furnished': 300.00,
                 'boost': 100.00,
                 'popup': 500.00
             }
         return {
-            'publication': float(config.publication_fee),
+            'publication_rent': float(config.publication_fee_rent),
+            'publication_sale': float(config.publication_fee_sale),
+            'publication_furnished': float(config.publication_fee_furnished),
             'boost': float(config.boost_daily_fee),
             'popup': float(config.popup_daily_fee)
         }
@@ -27,13 +30,25 @@ class FedaPayBridge:
     @staticmethod
     def initiate_transaction(user, transaction_type, property_obj=None, days=1):
         """
-        Calcule le montant et prépare la transaction dans la base de données.
+        Calcule le montant et prépare la transaction en fonction de la catégorie du bien.
         """
         pricing = FedaPayBridge.get_pricing()
         amount = 0
         
         if transaction_type == 'PUBLICATION':
-            amount = pricing['publication']
+            if property_obj:
+                cat = property_obj.listing_category
+                if cat == 'RENT':
+                    amount = pricing['publication_rent']
+                elif cat == 'SALE':
+                    amount = pricing['publication_sale']
+                elif cat == 'FURNISHED':
+                    amount = pricing['publication_furnished']
+                else:
+                    amount = pricing['publication_rent']
+            else:
+                amount = pricing['publication_rent']
+
         elif transaction_type == 'BOOST':
             amount = pricing['boost'] * days
         elif transaction_type == 'POPUP':

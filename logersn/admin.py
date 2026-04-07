@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite
+from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite, PropertyEquipment
 
 class PropertyImageInline(admin.TabularInline):
     model = PropertyImage
@@ -14,12 +14,16 @@ class PropertyImageInline(admin.TabularInline):
         return "-"
     image_preview.short_description = "Aperçu"
 
+class PropertyEquipmentInline(admin.TabularInline):
+    model = PropertyEquipment
+    extra = 1
+
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ('get_thumbnail', 'title', 'owner', 'rent_price', 'is_paid', 'is_boosted', 'is_featured_popup', 'is_published')
-    list_filter = ('property_type', 'is_published', 'is_paid', 'is_boosted', 'is_featured_popup', 'city', 'created_at')
+    list_display = ('get_thumbnail', 'title', 'owner', 'listing_category', 'price', 'is_paid', 'is_boosted', 'is_published')
+    list_filter = ('listing_category', 'property_type', 'is_published', 'is_paid', 'is_boosted', 'is_featured_popup', 'city', 'created_at')
     search_fields = ('title', 'description', 'city', 'neighborhood')
-    inlines = [PropertyImageInline]
+    inlines = [PropertyImageInline, PropertyEquipmentInline]
     actions = ['publish_properties', 'unpublish_properties', 'mark_as_paid', 'boost_selected']
     date_hierarchy = 'created_at'
 
@@ -50,7 +54,14 @@ class PropertyAdmin(admin.ModelAdmin):
         from django.utils import timezone
         import datetime
         queryset.update(is_boosted=True, boost_until=timezone.now() + datetime.timedelta(days=7))
+        queryset.update(is_boosted=True, boost_until=timezone.now() + datetime.timedelta(days=7))
         self.message_user(request, f"{queryset.count()} annonce(s) boostées pour 7 jours.")
+
+@admin.register(PropertyEquipment)
+class PropertyEquipmentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'brand', 'property', 'icon_class')
+    list_filter = ('name', 'brand')
+    search_fields = ('name', 'brand', 'property__title')
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):

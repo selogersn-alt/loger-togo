@@ -39,13 +39,21 @@ def properties_list_view(request):
     city = request.GET.get('city')
     neighborhood = request.GET.get('neighborhood')
     property_type = request.GET.get('property_type')
+    listing_category = request.GET.get('listing_category')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    owner_id = request.GET.get('owner')
     
     # Base Queryset
     properties = Property.objects.filter(is_published=True)
     
+    # Filtrage par propriétaire
+    if owner_id:
+        properties = properties.filter(owner_id=owner_id)
+        
     # Filtrage
+    if listing_category and listing_category != 'ALL':
+        properties = properties.filter(listing_category=listing_category)
     if city and city != 'ALL':
         properties = properties.filter(city=city)
     if neighborhood and neighborhood != 'ALL':
@@ -53,9 +61,9 @@ def properties_list_view(request):
     if property_type and property_type != 'ALL':
         properties = properties.filter(property_type=property_type)
     if min_price:
-        properties = properties.filter(rent_price__gte=min_price)
+        properties = properties.filter(price__gte=min_price)
     if max_price:
-        properties = properties.filter(rent_price__lte=max_price)
+        properties = properties.filter(price__lte=max_price)
         
     # Filtrage Amenities
     if request.GET.get('wifi') == 'on':
@@ -72,9 +80,9 @@ def properties_list_view(request):
     # Tris : Boosté en premier, puis le tri choisi par l'utilisateur
     sort = request.GET.get('sort')
     if sort == 'price_asc':
-        properties = properties.order_by('-is_boosted', 'rent_price')
+        properties = properties.order_by('-is_boosted', 'price')
     elif sort == 'price_desc':
-        properties = properties.order_by('-is_boosted', '-rent_price')
+        properties = properties.order_by('-is_boosted', '-price')
     else:
         properties = properties.order_by('-is_boosted', '-created_at')
         

@@ -26,6 +26,12 @@
             <div class="property-type-tag" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); color: var(--color-dark-green); padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-shadow: 0 1px 1px rgba(255,255,255,1);">
                 {{ property.get_property_type_display }}
             </div>
+            
+            {% if property.listing_category == 'SALE' %}
+            <div class="category-tag-buy" style="background: var(--color-yellow); color: var(--color-dark-green); padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">A VENDRE</div>
+            {% elif property.listing_category == 'FURNISHED' %}
+            <div class="category-tag-furnished" style="background: #BB2D3B; color: white; padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">MEUBLÉ</div>
+            {% endif %}
             {% if property.is_boosted %}
             <div class="ads-tag" style="background: var(--color-yellow); color: var(--color-dark-green); padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 PREMIUM
@@ -41,7 +47,13 @@
         
         <!-- Prix avec Lisibilité Critique (Fond sombre + Ombre) -->
         <div class="property-price-tag" style="position: absolute; bottom: 12px; right: 12px; background: var(--color-dark-green); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; z-index: 5; box-shadow: 0 8px 20px rgba(0,0,0,0.3); text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-            {{ property.rent_price|floatformat:0 }} <small style="font-size: 0.65rem; font-weight: 400; opacity: 0.8;">FCFA</small>
+            {% if property.listing_category == 'SALE' %}
+                {{ property.price|floatformat:0 }} <small style="font-size: 0.65rem; font-weight: 400; opacity: 0.8;">FCFA</small>
+            {% elif property.listing_category == 'FURNISHED' %}
+                {{ property.price_per_night|floatformat:0 }} <small style="font-size: 0.65rem; font-weight: 400; opacity: 0.8;">FCFA/Nuit</small>
+            {% else %}
+                {{ property.price|floatformat:0 }} <small style="font-size: 0.65rem; font-weight: 400; opacity: 0.8;">FCFA/Mois</small>
+            {% endif %}
         </div>
 
         <!-- Fade dégradé bas pour lisibilité texte -->
@@ -69,7 +81,7 @@
         <!-- Contact et Bouton (Z-index élevé pour rester interactifs) -->
         <div class="d-flex justify-content-between align-items-center" style="position: relative; z-index: 10;">
             <div class="d-flex gap-1">
-                <a href="https://wa.me/{{ property.owner.phone_number }}" target="_blank" class="btn btn-sm btn-outline-success border-0 px-2" style="background: rgba(25, 135, 84, 0.05);" title="WhatsApp">
+                <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Solvable LogerSN : {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{% url 'property_detail' property.id %})" target="_blank" class="btn btn-sm btn-outline-success border-0 px-2" style="background: rgba(25, 135, 84, 0.05);" title="WhatsApp">
                     <i class="fa-brands fa-whatsapp fs-5"></i>
                 </a>
                 <a href="tel:{{ property.owner.phone_number }}" class="btn btn-sm btn-outline-primary border-0 px-2" style="background: rgba(13, 110, 253, 0.05);" title="Appeler">

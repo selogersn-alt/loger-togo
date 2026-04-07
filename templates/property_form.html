@@ -39,16 +39,29 @@
                             </div>
                             
                             <div class="col-md-6">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.property_type.label }}</label>
-                                {{ form.property_type }}
+                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.listing_category.label }}</label>
+                                {{ form.listing_category }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold" id="price_label" style="color: var(--text-main);">{{ form.price.label }}</label>
+                                <div class="input-group">
+                                    {{ form.price }}
+                                    <span class="input-group-text border-0" style="background-color: var(--color-light-green); color: var(--color-dark-green); font-weight: bold; border-radius: 0 10px 10px 0;">FCFA</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6" id="price_per_night_container" style="display: none;">
+                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.price_per_night.label }}</label>
+                                <div class="input-group">
+                                    {{ form.price_per_night }}
+                                    <span class="input-group-text border-0" style="background-color: var(--color-yellow); color: var(--color-dark-green); font-weight: bold; border-radius: 0 10px 10px 0;">/ Nuitée</span>
+                                </div>
                             </div>
                             
                             <div class="col-md-6">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.rent_price.label }}</label>
-                                <div class="input-group">
-                                    {{ form.rent_price }}
-                                    <span class="input-group-text border-0" style="background-color: var(--color-light-green); color: var(--color-dark-green); font-weight: bold; border-radius: 0 10px 10px 0;">FCFA</span>
-                                </div>
+                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.property_type.label }}</label>
+                                {{ form.property_type }}
                             </div>
                             
                             <div class="col-md-6">
@@ -107,6 +120,40 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.getElementById('id_listing_category');
+        const priceLabel = document.getElementById('price_label');
+        const pricePerNightContainer = document.getElementById('price_per_night_container');
+
+        function updateFields() {
+            const category = categorySelect.value;
+            
+            // Toggle Price per Night for Furnished
+            if (category === 'FURNISHED') {
+                pricePerNightContainer.style.display = 'block';
+                priceLabel.innerText = "Loyer mensuel (si applicable)";
+            } else {
+                pricePerNightContainer.style.display = 'none';
+                
+                if (category === 'SALE') {
+                    priceLabel.innerText = "Prix de vente total";
+                } else {
+                    priceLabel.innerText = "Loyer mensuel";
+                }
+            }
+        }
+
+        categorySelect.addEventListener('change', updateFields);
+        updateFields(); // Initial call
+    });
+</script>
                 </div>
             </div>
         </div>

@@ -33,18 +33,20 @@ class PropertyForm(forms.ModelForm):
     class Meta:
         model = Property
         fields = [
-            'title', 'property_type', 'city', 'neighborhood', 'rent_price', 
-            'surface', 'bedrooms', 'toilets', 'total_rooms', 'has_garage', 
+            'title', 'listing_category', 'property_type', 'city', 'neighborhood', 'price', 
+            'price_per_night', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'has_garage', 
             'description', 'wifi', 'swimming_pool', 'gym', 'air_conditioning',
             'refrigerator', 'washing_machine', 'microwave', 'tv_cable',
             'generator', 'water_tank'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Superbe appartement F4 vue mer...'}),
+            'listing_category': forms.Select(attrs={'class': 'form-select'}),
             'property_type': forms.Select(attrs={'class': 'form-select'}),
             'city': forms.Select(attrs={'class': 'form-select'}),
             'neighborhood': forms.Select(attrs={'class': 'form-select'}),
-            'rent_price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 350000'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 350000'}),
+            'price_per_night': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 45000'}),
             'surface': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'm2'}),
             'bedrooms': forms.NumberInput(attrs={'class': 'form-control'}),
             'toilets': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -64,10 +66,12 @@ class PropertyForm(forms.ModelForm):
         }
         labels = {
             'title': 'Titre de l\'annonce',
+            'listing_category': 'Nature de l\'annonce',
             'property_type': 'Type de bien',
             'city': 'Ville',
             'neighborhood': 'Quartier',
-            'rent_price': 'Loyer mensuel (FCFA)',
+            'price': 'Prix / Loyer mensuel (FCFA)',
+            'price_per_night': 'Prix par nuitée (Meublé)',
             'description': 'Description détaillée',
             'wifi': 'WiFi',
             'swimming_pool': 'Piscine',

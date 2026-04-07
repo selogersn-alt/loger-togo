@@ -272,6 +272,10 @@
                     {% if property.water_tank %}
                     <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-faucet-drip text-success me-2"></i> Réservoir d'eau</div></div>
                     {% endif %}
+                    
+                    {% for equip in property.interior_equipments.all %}
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid {{ equip.icon_class }} text-success me-2"></i> {{ equip.name }}{% if equip.brand %} <small class="text-muted">({{ equip.brand }})</small>{% endif %}</div></div>
+                    {% endfor %}
                 </div>
 
                 <h4 class="fw-bold mb-4" style="color: var(--text-main);">Emplacement sur la carte</h4>
@@ -352,7 +356,13 @@
                 </span>
                 
                 <div class="price-tag">
-                    {{ property.rent_price|floatformat:0 }} FCFA<span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;"> /mois</span>
+                    {% if property.listing_category == 'SALE' %}
+                        {{ property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">(Vente)</span>
+                    {% elif property.listing_category == 'FURNISHED' %}
+                        {{ property.price_per_night|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/nuitée</span>
+                    {% else %}
+                        {{ property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/mois</span>
+                    {% endif %}
                 </div>
                 
                 <a href="{% url 'apply_to_property' property.id %}" class="btn btn-primary-custom w-100 mb-3 py-3 fs-5">
@@ -385,7 +395,7 @@
                 </div>
 
                 <div class="d-grid gap-2 mb-3">
-                    <a href="https://wa.me/{{ property.owner.phone_number }}" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
+                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Solvable LogerSN : {{ property.title }} ({{ request.build_absolute_uri }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
                         <i class="fa-brands fa-whatsapp me-2"></i> WhatsApp
                     </a>
                     

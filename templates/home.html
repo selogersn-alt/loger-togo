@@ -219,7 +219,13 @@
                     </div>
                     <div class="position-absolute bottom-0 end-0 m-2">
                         <div class="bg-white px-2 py-1 rounded shadow-sm fw-bold text-success small">
-                            {{ prop.rent_price|floatformat:0 }} F
+                            {% if prop.listing_category == 'SALE' %}
+                                {{ prop.price|floatformat:0 }} F
+                            {% elif prop.listing_category == 'FURNISHED' %}
+                                {{ prop.price_per_night|floatformat:0 }} F/Nuit
+                            {% else %}
+                                {{ prop.price|floatformat:0 }} F
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -343,7 +349,13 @@
                         {% endif %}
                         <div class="position-absolute top-0 end-0 m-3">
                             <span class="badge bg-white text-dark shadow-sm px-3 py-2 rounded-pill fw-bold">
-                                {{ prop.rent_price|floatformat:0 }} FCFA
+                                {% if prop.listing_category == 'SALE' %}
+                                    {{ prop.price|floatformat:0 }} FCFA
+                                {% elif prop.listing_category == 'FURNISHED' %}
+                                    {{ prop.price_per_night|floatformat:0 }} FCFA/N
+                                {% else %}
+                                    {{ prop.price|floatformat:0 }} FCFA
+                                {% endif %}
                             </span>
                         </div>
                         <div class="position-absolute bottom-0 start-0 m-3">

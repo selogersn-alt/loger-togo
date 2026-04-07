@@ -7,14 +7,23 @@ User = settings.AUTH_USER_MODEL
 from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES, NEIGHBORHOOD_CHOICES
 
 class Property(models.Model):
+    class CategoryEnum(models.TextChoices):
+        RENT = 'RENT', 'A louer'
+        SALE = 'SALE', 'A vendre'
+        FURNISHED = 'FURNISHED', 'Meublé'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')
     title = models.CharField(max_length=255)
     description = models.TextField()
+    listing_category = models.CharField(max_length=20, choices=CategoryEnum.choices, default=CategoryEnum.RENT)
     property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)
     city = models.CharField(max_length=100, choices=CITY_CHOICES, default='DAKAR')
     neighborhood = models.CharField(max_length=100, choices=NEIGHBORHOOD_CHOICES)
-    rent_price = models.DecimalField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Prix (CFA)")
+    
+    # Pour les meublés uniquement
+    price_per_night = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Prix par nuitée (Meublé)")
     surface = models.IntegerField(default=0, blank=True, verbose_name="Surface (m2)")
     bedrooms = models.IntegerField(default=0, blank=True, verbose_name="Nombre de chambres")
     toilets = models.IntegerField(default=0, blank=True, verbose_name="Nombre de toilettes")
@@ -128,3 +137,13 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user} favorited {self.property}"
+
+class PropertyEquipment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='interior_equipments')
+    name = models.CharField(max_length=100, help_text="Ex: Réfrigérateur, Climatiseur, TV...")
+    brand = models.CharField(max_length=100, blank=True, null=True, help_text="Marque optionnelle")
+    icon_class = models.CharField(max_length=50, default='fa-plug', help_text="Icône FontAwesome (ex: fa-tv, fa-snowflake)")
+    
+    def __str__(self):
+        return f"{self.name} for {self.property.title}"

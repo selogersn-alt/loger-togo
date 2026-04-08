@@ -31,8 +31,16 @@
                     </div>
                     
                     <ul class="list-unstyled small mb-3">
-                        <li class="mb-1"><i class="fa-solid fa-phone me-2 opacity-50"></i>{{ fraud.reported_pro_phone|default:"Non communiqué" }}</li>
-                        <li class="mb-1"><i class="fa-solid fa-envelope me-2 opacity-50"></i>{{ fraud.reported_pro_email|default:"Non communiqué" }}</li>
+                        <li class="mb-1"><i class="fa-solid fa-phone me-2 opacity-50"></i> 
+                            {% if fraud.reported_pro_phone %}
+                                {{ fraud.reported_pro_phone|slice:":4" }} XX XX {{ fraud.reported_pro_phone|slice:"-2:" }}
+                            {% else %}Non communiqué{% endif %}
+                        </li>
+                        <li class="mb-1"><i class="fa-solid fa-envelope me-2 opacity-50"></i>
+                            {% if fraud.reported_pro_email %}
+                                {{ fraud.reported_pro_email|slice:":3" }}... (Masqué)
+                            {% else %}Non communiqué{% endif %}
+                        </li>
                         <li><i class="fa-solid fa-calendar-day me-2 opacity-50"></i>Signalé le {{ fraud.created_at|date:"d M Y" }}</li>
                     </ul>
 

@@ -45,7 +45,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     coverage_area = models.CharField(max_length=255, null=True, blank=True, verbose_name="Zone de couverture")
     role = models.CharField(max_length=20, choices=RoleEnum.choices, default=RoleEnum.TENANT, verbose_name="Statut du compte")
     is_verified_pro = models.BooleanField(default=False, verbose_name="Professionnel Vérifié (Badge)")
-    is_solvable = models.BooleanField(default=False, verbose_name="Locataire Solvable (Badge)")
+    # Solvabilité dynamique
+    is_solvable = models.BooleanField(default=False)
+    solvency_income_avg = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    solvency_max_rent = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    solvency_expiry_date = models.DateField(null=True, blank=True)
+
+    def is_solvency_active(self):
+        from django.utils import timezone
+        if not self.is_solvable or not self.solvency_expiry_date:
+            return False
+        return self.solvency_expiry_date >= timezone.now().date()
+    
     profile_picture = models.FileField(upload_to='profile_pics/', null=True, blank=True, verbose_name="Photo de profil ou Logo")
     is_phone_verified = models.BooleanField(default=False, verbose_name="Téléphone vérifié")
     phone_otp = models.CharField(max_length=6, null=True, blank=True, verbose_name="Code OTP")

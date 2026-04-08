@@ -160,3 +160,16 @@ class ProfessionalFraudReport(models.Model):
     class Meta:
         verbose_name = "Signalement de Fraude Pro"
         verbose_name_plural = "Signalements de Fraude Pro"
+
+class PlatformPricing(models.Model):
+    service_name = models.CharField(max_length=100, unique=True, verbose_name="Nom du service")
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Prix (FCFA)")
+    description = models.TextField(blank=True, verbose_name="Description pour l'utilisateur")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+
+    def __str__(self):
+        return f"{self.service_name} - {self.price} FCFA"
+
+    class Meta:
+        verbose_name = "Paramétrage Tarif"
+        verbose_name_plural = "Paramétrage Tarifs"

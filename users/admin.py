@@ -20,6 +20,7 @@ class UserAdmin(BaseUserAdmin):
         ('Vérification & Sécurité', {'fields': ('phone_otp', 'is_phone_verified')}),
         ('Identité', {'fields': ('first_name', 'last_name', 'cni_number', 'profile_picture')}),
         ('Statut Professionnel', {'fields': ('role', 'is_verified_pro', 'company_name', 'coverage_area')}),
+        ('Badge Solvable & Capacité Financière', {'fields': ('is_solvable', 'solvency_income_avg', 'solvency_max_rent', 'solvency_expiry_date')}),
         ('Délégation : Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'), 'classes': ('collapse',)}),
     )
     add_fieldsets = (
@@ -186,16 +187,27 @@ class SolvencyDocumentAdmin(admin.ModelAdmin):
     list_filter = ('status', 'doc_type')
     actions = ['verify_and_badge', 'reject_document']
     
-    @admin.action(description="✅ Valider et accorder le Badge Solvable (Supprime le fichier)")
+    @admin.action(description="✅ Valider et accorder le Badge Solvable (Calcul auto 70% et 3 mois)")
     def verify_and_badge(self, request, queryset):
+        from datetime import timedelta
         for doc in queryset:
             doc.status = 'VERIFIED'
             doc.verified_at = timezone.now()
-            doc.user.is_solvable = True
-            doc.user.save()
+            
+            # Mise à jour du profil utilisateur
+            user = doc.user
+            user.is_solvable = True
+            
+            # Logique DigitalH : Si l'admin a pré-rempli le salaire moyen sur le profil user
+            # On calcule 70% pour le loyer max et on met 3 mois d'expiration
+            if user.solvency_income_avg > 0:
+                user.solvency_max_rent = user.solvency_income_avg * 70 / 100
+                user.solvency_expiry_date = timezone.now().date() + timedelta(days=90)
+            
+            user.save()
             doc.save()
             
-            # Sécurité DigitalH : Suppression physique du document sensible après validation
+            # Sécurité : Suppression physique du document après validation
             if doc.file:
                 import os
                 try:
@@ -205,7 +217,7 @@ class SolvencyDocumentAdmin(admin.ModelAdmin):
                     doc.save()
                 except:
                     pass
-        self.message_user(request, "Documents validés. Les badges ont été accordés et les fichiers supprimés pour confidentialité.")
+        self.message_user(request, "Documents validés. Les badges sont actifs pour 3 mois avec calcul auto de capacité.")
 
     @admin.action(description="❌ Rejeter le document")
     def reject_document(self, request, queryset):

@@ -279,13 +279,27 @@
                     {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="annuaireDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-user-tie me-1"></i>Annuaires Vérifié
+                            <i class="fa-solid fa-user-tie me-1"></i>Annuaires
                         </a>
                         <ul class="dropdown-menu shadow border-0" aria-labelledby="annuaireDropdown" style="background-color: var(--bg-card);">
                             <li><a class="dropdown-item" href="{% url 'professionals_list' %}" style="color: var(--text-main);">Tous les professionnels</a></li>
                             <li><a class="dropdown-item" href="{% url 'professionals_list' %}?role=AGENCY" style="color: var(--text-main);">Agences Immobilières</a></li>
                             <li><a class="dropdown-item" href="{% url 'professionals_list' %}?role=BROKER" style="color: var(--text-main);">Courtiers</a></li>
-                            <li><a class="dropdown-item" href="{% url 'professionals_list' %}?role=AGENT" style="color: var(--text-main);">Agents Indépendants</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Menu Sécurité DigitalH -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-bold text-danger" href="#" id="securityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-shield-halved me-1"></i>Sécurité
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="securityDropdown" style="background-color: var(--bg-card);">
+                            <li><a class="dropdown-item" href="{% url 'fraud_list' %}" style="color: var(--text-main);"><i class="fa-solid fa-mask me-2 text-danger"></i>Liste Noire (Fraudes)</a></li>
+                            <li><a class="dropdown-item" href="{% url 'report_pro_fraud' %}" style="color: var(--text-main);"><i class="fa-solid fa-bullhorn me-2"></i>Signaler un Pro</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% if user.role == 'TENANT' %}
+                            <li><a class="dropdown-item" href="{% url 'submit_solvency_docs' %}" style="color: var(--text-main);"><i class="fa-solid fa-medal me-2 text-success"></i>Badge Solvable</a></li>
+                            {% endif %}
                         </ul>
                     </li>
                     <li class="nav-item">

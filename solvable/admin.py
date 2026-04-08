@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils import timezone
-from .models import RentalFiliation, IncidentReport, PaymentHistory, PropertyApplication, ProfessionalFraudReport
+from .models import RentalFiliation, IncidentReport, PaymentHistory, PropertyApplication, ProfessionalFraudReport, PlatformPricing
 
 @admin.register(RentalFiliation)
 class RentalFiliationAdmin(admin.ModelAdmin):
@@ -133,3 +133,8 @@ class ProfessionalFraudReportAdmin(admin.ModelAdmin):
                     report.save()
                     count += 1
         self.message_user(request, f"{count} signalements ont été liés à des comptes utilisateurs.")
+
+@admin.register(PlatformPricing)
+class PlatformPricingAdmin(admin.ModelAdmin):
+    list_display = ('service_name', 'price', 'is_active')
+    list_editable = ('price', 'is_active')

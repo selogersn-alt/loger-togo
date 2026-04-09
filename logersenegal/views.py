@@ -822,10 +822,10 @@ def public_profile_view(request, user_id=None, slug=None):
     from users.models import User
     from logersn.models import Property
     
-    if slug:
-        viewed_user = get_object_or_404(User, slug=slug)
-    else:
-        viewed_user = get_object_or_404(User, id=user_id)
+    # if slug:
+    #     viewed_user = get_object_or_404(User, slug=slug)
+    # else:
+    viewed_user = get_object_or_404(User, id=user_id)
 
     properties = Property.objects.filter(owner=viewed_user, is_published=True)
     

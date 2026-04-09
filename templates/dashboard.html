@@ -160,11 +160,11 @@
                         <a href="{% url 'update_profile' %}" class="btn btn-sm btn-outline-success rounded-pill fw-bold">
                             <i class="fa-solid fa-user-pen me-1"></i> Modifier le profil
                         </a>
-                        {% if user.slug %}
+                        {# {% if user.slug %}
                         <a href="{% url 'public_profile_slug' user.slug %}" target="_blank" class="btn btn-sm btn-light rounded-pill fw-bold border">
                             <i class="fa-solid fa-eye me-1"></i> Voir mon profil public
                         </a>
-                        {% endif %}
+                        {% endif %} #}
                     </div>
                     <div class="mt-3 text-warning d-flex align-items-center justify-content-center">
                         {% for i in "1234567891"|make_list %}{# Workaround for range 10 #}

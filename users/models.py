@@ -42,7 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=20, unique=True, db_index=True, verbose_name="Numéro de téléphone")
     email = models.EmailField(unique=True, null=True, blank=True, verbose_name="Adresse email")
     company_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Nom de l'agence ou de l'entreprise")
-    slug = models.SlugField(max_length=200, unique=True, null=True, blank=True, verbose_name="Lien personnalisé")
+    # slug = models.SlugField(max_length=200, unique=True, null=True, blank=True, verbose_name="Lien personnalisé")
     coverage_area = models.CharField(max_length=255, null=True, blank=True, verbose_name="Zone de couverture")
     role = models.CharField(max_length=20, choices=RoleEnum.choices, default=RoleEnum.TENANT, verbose_name="Statut du compte")
     is_verified_pro = models.BooleanField(default=False, verbose_name="Professionnel Vérifié (Badge)")

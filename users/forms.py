@@ -60,11 +60,11 @@ class CustomUserChangeForm(UserChangeForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['company_name', 'email', 'profile_picture', 'slug', 'first_name', 'last_name', 'coverage_area']
+        fields = ['company_name', 'email', 'profile_picture', 'first_name', 'last_name', 'coverage_area']
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
-            'slug': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'placeholder': 'votre-nom-personnalise'}),
+            # 'slug': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'placeholder': 'votre-nom-personnalise'}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'accept': 'image/*'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),

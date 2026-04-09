@@ -81,6 +81,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.phone_number})"
 
+    def get_full_name(self):
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.company_name or self.phone_number
+
+    def get_short_name(self):
+        return self.first_name or self.company_name or self.phone_number
+
     def save(self, *args, **kwargs):
         # Génération du slug pour les liens personnalisés
         if not self.slug:

@@ -5,11 +5,77 @@
 
 {% block content %}
 <div class="container py-5">
-    <!-- Test Simplifié -->
-    <div class="card p-5 mb-5 shadow">
-        <h1>{{ viewed_user.company_name|default:"Agent Professionnel" }}</h1>
-        <p>Téléphone : {{ viewed_user.phone_number }}</p>
-        <p>Statut : {{ viewed_user.get_role_display }}</p>
+    <!-- Header Profil -->
+    <div class="card border-0 shadow-lg overflow-hidden mb-5" style="border-radius: 30px; background: var(--bg-card);">
+        <div class="row g-0">
+            <div class="col-md-4 bg-light d-flex align-items-center justify-content-center p-5 border-end" style="border-color: var(--border-color) !important;">
+                <div class="text-center">
+                    <div class="position-relative d-inline-block mb-4">
+                        {% if viewed_user.profile_picture %}
+                            <img src="{{ viewed_user.profile_picture.url }}" alt="Logo" class="rounded-circle shadow" style="width: 180px; height: 180px; object-fit: cover; border: 5px solid white;">
+                        {% else %}
+                            <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow" style="width: 180px; height: 180px; border: 5px solid white;">
+                                <i class="fa-solid fa-building fs-1 text-muted opacity-50"></i>
+                            </div>
+                        {% endif %}
+                        {% if viewed_user.is_verified_pro %}
+                        <div class="position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px; border: 3px solid white;">
+                            <i class="fa-solid fa-check fs-5"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h3 class="fw-bold mb-1">{{ viewed_user.company_name|default:viewed_user.get_full_name }}</h3>
+                    <p class="text-success fw-bold text-uppercase small letter-spacing-1">{{ viewed_user.get_role_display }} Certifié</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-star text-warning me-1"></i> 4.9/5</span>
+                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-shield-halved text-success me-1"></i> Vérifié</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8 p-5">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase fw-bold mb-1">Zone d'activité</label>
+                        <p class="fs-5 fw-600"><i class="fa-solid fa-location-dot me-2 text-success"></i> {{ viewed_user.coverage_area|default:"Sénégal (National)" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted text-uppercase fw-bold mb-1">Inscrit depuis</label>
+                        <p class="fs-5 fw-600"><i class="fa-solid fa-calendar-check me-2 text-success"></i> {{ viewed_user.date_joined|date:"M Y" }}</p>
+                    </div>
+                    <div class="col-12 py-2">
+                        <hr class="opacity-10">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 text-center">
+                            <div class="fs-2 fw-bold text-success">{{ stats.total_properties }}</div>
+                            <div class="small text-muted text-uppercase fw-bold">Annonces</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 text-center">
+                            <div class="fs-2 fw-bold text-success">{{ stats.experience_years|add:"1" }}</div>
+                            <div class="small text-muted text-uppercase fw-bold">Années d'Exp.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 text-center">
+                            <div class="fs-2 fw-bold text-success">100%</div>
+                            <div class="small text-muted text-uppercase fw-bold">Réactivité</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <a href="tel:{{ viewed_user.phone_number }}" class="btn btn-primary-custom px-5 py-3 fs-5 me-2">
+                        <i class="fa-solid fa-phone me-2"></i> Contacter
+                    </a>
+                    <button class="btn btn-outline-dark px-4 py-3 rounded-pill fw-bold" onclick="shareProfile()">
+                        <i class="fa-solid fa-share-nodes me-2"></i> Partager
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -41,11 +107,10 @@
     <div class="row align-items-end mb-4">
         <div class="col">
             <h2 class="fw-bold m-0"><i class="fa-solid fa-house-user text-success me-2"></i> Catalogue de ce professionnel</h2>
-            <p class="text-muted">Consultez tous les biens actuellement gérés par {{ viewed_user.first_name }}.</p>
+            <p class="text-muted">Consultez tous les biens actuellement gérés par {{ viewed_user.first_name|default:"ce professionnel" }}.</p>
         </div>
     </div>
 
-    {# 
     <div class="row g-4">
         {% for prop in properties %}
         <div class="col-md-4">
@@ -77,7 +142,6 @@
             <p class="text-muted">Aucune annonce disponible en ce moment.</p>
         </div>
         {% endfor %}
-    </div> 
-    #}
+    </div>
 </div>
 {% endblock %}

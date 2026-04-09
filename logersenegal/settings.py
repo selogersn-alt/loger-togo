@@ -231,3 +231,10 @@ SPECTACULAR_SETTINGS = {
 
 # Sitemap & Domain
 SITE_ID = 1
+
+# --- CONFIGURATION LOCALE (ZÉRO CONFLIT) ---
+# Ce bloc permet de surcharger les réglages (comme la BDD) sur le serveur
+try:
+    from .local_settings import *
+except ImportError:
+    pass

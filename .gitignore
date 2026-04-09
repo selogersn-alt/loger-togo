@@ -10,3 +10,4 @@ static/
 # O2switch / cPanel config files (NEVER PUSH TO GIT)
 .htaccess
 passenger_wsgi.py
+local_settings.py

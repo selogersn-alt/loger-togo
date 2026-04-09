@@ -249,96 +249,80 @@
             100% { transform: translate(-100%, 0); }
         }
         /* Ajustement dynamique si l'alerte est présente */
-        .fraud-marquee + .navbar-custom { top: 0; }
-    </style>
-    {% endif %}
-
-    <!-- Navigation Bar -->
+        .fraud-marquee + .navbar-custom { top: 0    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
-        <div class="container d-flex align-items-center justify-content-between">
-            <a class="navbar-brand animate__animated animate__fadeInLeft m-0 d-flex align-items-center" href="{% url 'home' %}">
+        <div class="container">
+            <a class="navbar-brand animate__animated animate__fadeInLeft" href="{% url 'home' %}">
                 <i class="fa-solid fa-house-circle-check" style="color: var(--color-light-green); font-size: 1.8rem; margin-right: 10px;"></i>
                 <span class="fw-bold">LOGERSENEGAL</span>
             </a>
             
-            <div class="d-flex align-items-center">
-                <!-- Bouton Publier (Visible sur mobile avant le menu) -->
-                <a href="{% url 'create_property' %}" class="btn btn-outline-success btn-sm rounded-pill me-2 d-lg-none">
-                    <i class="fa-solid fa-plus"></i>
-                </a>
-                
-                <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                    <i class="fa-solid fa-bars-staggered fs-3" style="color: var(--text-main);"></i>
-                </button>
-            </div>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars fs-3" style="color: var(--text-main);"></i>
+            </button>
 
-            <!-- Menu Offcanvas (De gauche à droite) -->
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="width: 280px;">
-                <div class="offcanvas-header border-bottom bg-light">
-                    <h5 class="offcanvas-title fw-bold" id="offcanvasNavbarLabel" style="color: #000;">LOGERSENEGAL</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body p-0" style="background-color: #fff;">
-                    <div class="p-3">
-                        <!-- Navigation Mobile Simple -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <a href="{% url 'home' %}" style="text-decoration: none; color: #333; font-weight: 600; padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center;">
-                                <i class="fa-solid fa-house me-3" style="color: #198754;"></i> Accueil
-                            </a>
-                            <a href="{% url 'properties_list' %}" style="text-decoration: none; color: #333; font-weight: 600; padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center;">
-                                <i class="fa-solid fa-building me-3" style="color: #198754;"></i> Annonces immo.
-                            </a>
-                            <a href="{% url 'nils_search' %}" style="text-decoration: none; color: #333; font-weight: 600; padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center;">
-                                <i class="fa-solid fa-shield-check me-3" style="color: #198754;"></i> Vérifier candidat
-                            </a>
-                            
-                            <div style="padding: 20px 15px 10px; font-size: 0.8rem; color: #999; font-weight: bold; text-transform: uppercase;">Guides & Aide</div>
-                            <a href="{% url 'guide_locataires' %}" style="text-decoration: none; color: #555; padding: 10px 15px; display: block;">Guide Locataires</a>
-                            <a href="{% url 'guide_bailleurs' %}" style="text-decoration: none; color: #555; padding: 10px 15px; display: block;">Guide Bailleurs</a>
-                            <a href="{% url 'guide_agences' %}" style="text-decoration: none; color: #555; padding: 10px 15px; display: block;">Guide Agences</a>
-                            <a href="{% url 'guide_courtiers' %}" style="text-decoration: none; color: #555; padding: 10px 15px; display: block;">Guide Courtiers</a>
-
-                            <div style="padding: 20px 15px 10px; font-size: 0.8rem; color: #999; font-weight: bold; text-transform: uppercase;">Compte</div>
-                            {% if user.is_authenticated %}
-                                <a href="{% url 'dashboard' %}" style="text-decoration: none; color: #333; padding: 15px; border-bottom: 1px solid #eee; display: block;">
-                                    <i class="fa-solid fa-gauge me-3"></i> Mon Tableau de bord
-                                </a>
-                                <a href="{% url 'logout' %}" style="text-decoration: none; color: #dc3545; padding: 15px; display: block;">
-                                    <i class="fa-solid fa-power-off me-3"></i> Déconnexion
-                                </a>
-                            {% else %}
-                                <div style="padding: 15px;">
-                                    <a href="{% url 'login' %}" class="btn btn-success w-100 py-3 fw-bold" style="border-radius: 10px;">SE CONNECTER</a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Menu PC (Toujours en ligne) -->
-            <div class="collapse navbar-collapse d-none d-lg-block" id="navbarDesktop">
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Accueil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'properties_list' %}">Annonces</a></li>
-                    <li class="nav-item"><a class="nav-link fw-bold text-success" href="{% url 'nils_search' %}">Vérifier</a></li>
-                    <li class="nav-item ms-lg-3">
-                        <a href="{% url 'create_property' %}" class="btn btn-outline-success btn-sm rounded-pill px-3">Publier</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Accueil</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'properties_list' %}">Annonces immo.</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nils_search' %}">Vérifier candidat</a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="guidesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Guides
+                        </a>
+                        <ul class="dropdown-menu shadow border-0 p-2" aria-labelledby="guidesDropdown">
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_locataires' %}">Guide Locataires</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_bailleurs' %}">Guide Bailleurs</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_agences' %}">Guide Agences</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_courtiers' %}">Guide Courtiers</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-bold text-danger" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Sécurité
+                        </a>
+                        <ul class="dropdown-menu shadow border-0 p-2">
+                            <li><a class="dropdown-item rounded" href="{% url 'fraud_list' %}"><i class="fa-solid fa-mask me-2 text-danger"></i>Liste Noire</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'report_pro_fraud' %}"><i class="fa-solid fa-bullhorn me-2"></i>Signaler un Pro</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item ms-lg-3">
+                         <a href="{% url 'create_property' %}" class="btn btn-outline-success btn-sm rounded-pill px-3 mt-2 mt-lg-0 w-100">
+                            <i class="fa-solid fa-plus me-1"></i> Publier
+                        </a>
+                    </li>
+
                     {% if user.is_authenticated %}
-                        <li class="nav-item ms-lg-3 dropdown">
-                             <a class="btn btn-secondary-custom btn-sm dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Mon Compte</a>
-                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                <li><a class="dropdown-item" href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li class="nav-item dropdown ms-lg-3">
+                            <a class="btn btn-secondary-custom btn-sm dropdown-toggle mt-2 mt-lg-0 w-100" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-user me-2"></i> Mon Compte
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+                                <li><a class="dropdown-item rounded" href="{% url 'dashboard' %}">Dashboard</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Déconnexion</a></li>
-                             </ul>
+                            </ul>
                         </li>
                     {% else %}
                         <li class="nav-item ms-lg-3">
-                            <a href="{% url 'login' %}" class="btn btn-primary-custom btn-sm">Connexion</a>
+                            <a href="{% url 'login' %}" class="btn btn-primary-custom btn-sm mt-2 mt-lg-0 w-100">Se connecter</a>
                         </li>
                     {% endif %}
+
+                    <li class="nav-item ms-lg-2">
+			<button class="theme-toggle-btn border-0 bg-transparent mt-2 mt-lg-0" id="themeToggle" title="Changer de thème">
+			    <i class="fa-solid fa-moon"></i>
+			</button>
+                    </li>
                 </ul>
             </div>
         </div>

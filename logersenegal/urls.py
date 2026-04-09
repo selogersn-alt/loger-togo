@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
-from logersn.sitemaps import StaticViewSitemap
+from logersn.sitemaps import StaticViewSitemap, PropertySitemap
 from solvable.views import (
     filiation_details_view, report_incident_view, update_incident_status_view,
     record_payment_view, mediation_room_view, download_receipt_view,
@@ -27,6 +27,7 @@ from solvable.views import (
 
 sitemaps = {
     'static': StaticViewSitemap,
+    'properties': PropertySitemap,
 }
 from .views import (
     home_view, properties_list_view, property_detail_view, 

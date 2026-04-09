@@ -11,6 +11,7 @@ def fix_site():
     try:
         # On récupère le site avec l'ID configuré dans settings.py (SITE_ID = 1)
         site = Site.objects.get(id=1)
+        # On force le domaine PROPRE (sans https://)
         site.domain = 'logersenegal.com'
         site.name = 'Loger Sénégal'
         site.save()

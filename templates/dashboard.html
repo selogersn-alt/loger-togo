@@ -501,7 +501,7 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>{{ prop.rent_price|floatformat:0 }} <small>FCFA</small></td>
+                                            <td>{{ prop.price|floatformat:0 }} <small>FCFA</small></td>
                                             <td class="text-center fw-bold"><span class="badge bg-light text-dark border">{{ prop.views_count }}</span></td>
                                             <td class="text-center fw-bold"><span class="badge bg-light text-success border">{{ prop.clicks_count }}</span></td>
                                             <td>
@@ -672,7 +672,7 @@
                                             <h6 class="fw-bold mb-1 text-truncate" title="{{ fav.property.title }}">{{ fav.property.title }}</h6>
                                             <p class="small text-muted mb-3"><i class="fa-solid fa-location-dot me-1"></i>{{ fav.property.neighborhood }}</p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="fw-bold text-success">{{ fav.property.rent_price|floatformat:0 }} F</span>
+                                                <span class="fw-bold text-success">{{ fav.property.price|floatformat:0 }} F</span>
                                                 <button onclick="toggleFavorite('{{ fav.property.id }}'); this.closest('.col-md-6').remove();" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></button>
                                                 <a href="{% url 'property_detail' fav.property.id %}" class="btn btn-sm btn-primary-custom" style="padding: 4px 15px; font-size: 0.8rem;">Détails</a>
                                             </div>

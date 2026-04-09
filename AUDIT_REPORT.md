@@ -136,3 +136,30 @@ touch tmp/restart.txt
 *Alternative : Vous pouvez aussi simplement cliquer sur **RESTART** dans *Setup Python App* sur cPanel.*
 
 Votre site affichera immédiatement la mise à jour tant attendue !
+
+---
+
+## 7. AUDIT COMPLET (NAVIGATION LIVE & LOGIQUES MÉTIER)
+*Date de l'audit robotisé : 08 Avril 2026*
+
+J'ai utilisé un agent robotisé pour naviguer sur le site en production (`logersenegal.com`) comme un utilisateur normal, et analysé la logique métier sous-jacente côté serveur.
+
+### 🧭 A. Expérience Utilisateur (UI/UX) & Navigation Front-end
+1. **Fluidité Générale** : L'interface est moderne et réactive. Les thèmes s'adaptent bien.
+2. **Liens Cassés (404)** : 
+   * Le lien du menu principal vers l'annuaire pointe vers `/agences/` ce qui provoque une **Erreur 404**. Il devrait cibler `/professionnels/` (qui lui, fonctionne et affiche le profil "Loger Sénégal ™").
+3. **Ergonomie de Connexion** : La page de connexion `/login/` ne propose aucun bouton "Créer un compte". L'utilisateur doit deviner l'URL `/inscription/` ou retourner à l'accueil pour s'inscrire.
+4. **Recherche NILS (Accueil)** : Intuitive. Le fait que l'accès au détail d'un candidat redirige vers la connexion est une **excellente pratique de sécurité des données**.
+
+### ⚙️ B. Logiques Métier (Back-end)
+1. **Cœur NILS (Notation de Solvabilité)** : La logique gérant les scores est bien structurée. L'imputation des malus/bonus est cohérente pour les "Paiements réguliers" vs "Signalements".
+2. **Processus KYC** : Le parcours d'identification (Locataire / Bailleur / Agence) offre des contrôles natifs forts sur les documents (Pièces d'identité).
+3. **Transactions (FedaPay)** : Bien intégré, mais requiert une évolution vers l'écoute des évènements automatiques via **Webhooks** pour automatiser sereinement l'activation des boosts d'annonces 24h/7j sans validation manuelle.
+
+### 📈 C. Scalabilité (Croissance du passage à l'échelle)
+1. **Dette d'Architecture Monolithique** : Presque **toutes les logiques** de tous les modules (Médiation, Contrats, Annonces, Utilisateurs, FedaPay) sont écrites dans **le seul fichier `logersenegal/views.py` (près de 1200 lignes)**. 
+   * *Risque en scalabilité* : Si l'équipe grandit, les conflits de code sur ce fichier unique seront constants. Il faut séparer les views dans leurs apps respectives (`logersn/views.py`, `solvable/views.py`, etc.).
+2. **Base de données (N+1 Queries)** : Le serveur va ramer quand vous aurez 500+ annonces. La cause est classique en Django : lors de l'affichage des annonces, le code récupère les images une par une ("Lazy Loading") au lieu d'utiliser `prefetch_related()`.
+3. **Stockage Médias (Photos)** : Actuellement, les photos de profils et d'annonces sont stockées sur le serveur hébergeur. Pour tenir une forte charge (plusieurs milliers d'annonces), il faudra coupler la plateforme avec un "Bucket S3" (AWS, Google Cloud ou Cloudflare R2).
+
+**Conclusion de l'audit** : L'application est structurellement viable pour son lancement officiel. Ses "défauts" ne sont pas des freins au lancement, mais des points d'optimisation (dette technique) à programmer pour la **v1.2** afin d'affronter sereinement la montée en charge.

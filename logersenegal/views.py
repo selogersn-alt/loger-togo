@@ -107,8 +107,8 @@ def properties_list_view(request):
     max_price = request.GET.get('max_price')
     owner_id = request.GET.get('owner')
     
-    # Base Queryset
-    properties = Property.objects.filter(is_published=True)
+    # Base Queryset optimisé avec prefetch_related et select_related (Analytics N+1 fixes)
+    properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
     
     # Filtrage par propriétaire
     if owner_id:

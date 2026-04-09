@@ -1,4 +1,7 @@
 import uuid
+import io
+from PIL import Image
+from django.core.files.base import ContentFile
 from django.db import models
 from django.conf import settings
 
@@ -88,6 +91,29 @@ class PropertyImage(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
     image_url = models.FileField(upload_to='properties/')
     is_primary = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if is_new and self.image_url:
+            try:
+                img = Image.open(self.image_url)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                    
+                # Redimensionnement max 1920x1080
+                max_size = (1920, 1080)
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+                
+                output = io.BytesIO()
+                img.save(output, format='JPEG', quality=85, optimize=True)
+                output.seek(0)
+                
+                # Remplacer le nom par un .jpg propre
+                base_name = self.image_url.name.rsplit('.', 1)[0].split('/')[-1]
+                self.image_url.save(f"{base_name}.jpg", ContentFile(output.read()), save=False)
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Image for {self.property.title}"

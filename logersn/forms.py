@@ -30,6 +30,16 @@ class PropertyForm(forms.ModelForm):
     total_rooms = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     has_garage = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     
+    def clean(self):
+        cleaned_data = super().clean()
+        # Remplacer None par 0 pour les champs Integer qui n'acceptent pas NULL en BDD
+        integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms']
+        for field in integer_fields:
+            if cleaned_data.get(field) is None:
+                cleaned_data[field] = 0
+        return cleaned_data
+
+    
     class Meta:
         model = Property
         fields = [

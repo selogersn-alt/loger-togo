@@ -7,24 +7,43 @@ class PropertySitemap(Sitemap):
     priority = 0.9
 
     def items(self):
-        # On indexe tous les biens immobiliers
         return Property.objects.all().order_by('-created_at')
 
     def lastmod(self, obj):
         return obj.updated_at
 
     def location(self, obj):
-        # URL vers la page de détails du bien
-        return f"/properties/{obj.id}/"
+        return reverse('property_detail', args=[obj.id])
 
 class StaticViewSitemap(Sitemap):
-    priority = 0.5
-    changefreq = 'weekly'
-
     def items(self):
-        # On peut ajouter ici les noms de vos URLs de base
-        # Assurez-vous qu'elles existent dans vos urls.py
-        return ['home'] 
+        return [
+            'home', 
+            'about', 
+            'properties_list', 
+            'professionals_list',
+            'cgu',
+            'privacy',
+            'guide_locataires',
+            'guide_bailleurs',
+            'guide_agences',
+            'guide_courtiers',
+            'fraud_list'
+        ]
+
+    def priority(self, item):
+        return {
+            'home': 1.0,
+            'properties_list': 0.8,
+            'guide_locataires': 0.7,
+            'guide_bailleurs': 0.7,
+        }.get(item, 0.5)
+
+    def changefreq(self, item):
+        return {
+            'home': 'daily',
+            'properties_list': 'daily',
+        }.get(item, 'weekly')
 
     def location(self, item):
         return reverse(item)

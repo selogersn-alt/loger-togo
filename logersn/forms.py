@@ -32,11 +32,22 @@ class PropertyForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        
+        # Bloquer les emojis (caractères 4-bytes) pour éviter l'erreur MySQL 1366
+        desc = cleaned_data.get('description', '')
+        if desc and any(ord(c) > 0xFFFF for c in desc):
+            self.add_error('description', "⚠️ Veuillez retirer les Emojis de votre description pour pouvoir soumettre (non supportés).")
+            
+        title = cleaned_data.get('title', '')
+        if title and any(ord(c) > 0xFFFF for c in title):
+            self.add_error('title', "⚠️ Veuillez retirer les Emojis du titre.")
+
         # Remplacer None par 0 pour les champs Integer qui n'acceptent pas NULL en BDD
         integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms']
         for field in integer_fields:
             if cleaned_data.get(field) is None:
                 cleaned_data[field] = 0
+                
         return cleaned_data
 
     

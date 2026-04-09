@@ -42,7 +42,8 @@ from .views import (
     initiate_payment_view, checkout_payment_view, payment_callback_view, payment_success_view, 
     password_recovery_view, password_reset_confirm_view, admin_generate_reset_link, # DigitalH Recovery
     cgu_view, privacy_view, toggle_favorite_view, chat_poll_view,
-    report_pro_fraud_view, fraud_list_view, submit_solvency_docs_view
+    report_pro_fraud_view, fraud_list_view, submit_solvency_docs_view,
+    guide_locataires_view, guide_bailleurs_view, guide_agences_view, guide_courtiers_view
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from ads.views import ads_txt_view  # Certification Google
@@ -113,6 +114,12 @@ urlpatterns = [
     path('signalement/professionnel/nouveau/', report_pro_fraud_view, name='report_pro_fraud'),
     path('liste-noire-pros/', fraud_list_view, name='fraud_list'),
     path('locataire/solvabilite/soumettre/', submit_solvency_docs_view, name='submit_solvency_docs'),
+    
+    # Guides d'utilisation
+    path('guide/locataires/', guide_locataires_view, name='guide_locataires'),
+    path('guide/bailleurs/', guide_bailleurs_view, name='guide_bailleurs'),
+    path('guide/agences/', guide_agences_view, name='guide_agences'),
+    path('guide/courtiers/', guide_courtiers_view, name='guide_courtiers'),
     
     # API Documentation (Point 8)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

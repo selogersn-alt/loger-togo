@@ -920,3 +920,18 @@ def submit_solvency_docs_view(request):
     existing_docs = request.user.solvency_docs.all().order_by('-uploaded_at')
     
     return render(request, 'solvency_docs_submit.html', {'form': form, 'existing_docs': existing_docs})
+
+# --- GUIDES D'UTILISATION (PAR PERSONA) ---
+
+def guide_locataires_view(request):
+    return render(request, 'guides/locataires.html')
+
+def guide_bailleurs_view(request):
+    return render(request, 'guides/bailleurs.html')
+
+def guide_agences_view(request):
+    return render(request, 'guides/agences.html')
+
+def guide_courtiers_view(request):
+    return render(request, 'guides/courtiers.html')
+

@@ -110,17 +110,17 @@
             letter-spacing: -0.5px;
         }
 
-        /* Compensation pour la navbar fixe */
+        /* Compensation pour la navbar fixe - SUPPRIMÉ POUR ÉVITER LE VIDE BLANC */
         body {
-            padding-top: 85px; /* Ajustement précis DigitalH */
+            padding-top: 0; 
         }
 
         @media (max-width: 768px) {
             body {
-                padding-top: 75px;
+                padding-top: 0;
             }
             .navbar-brand {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
         }
 
@@ -248,98 +248,105 @@
             0% { transform: translate(0, 0); }
             100% { transform: translate(-100%, 0); }
         }
-        /* Ajustement de la navbar si l'alerte est présente */
-        body { padding-top: 125px !important; }
-        @media (max-width: 768px) { body { padding-top: 115px !important; } }
+        /* Ajustement dynamique si l'alerte est présente */
+        .fraud-marquee + .navbar-custom { top: 0; }
     </style>
     {% endif %}
 
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
-        <div class="container">
-            <a class="navbar-brand animate__animated animate__fadeInLeft" href="{% url 'home' %}">
-                <i class="fa-solid fa-house-circle-check" style="color: var(--color-light-green); font-size: 2rem; margin-right: 12px;"></i>
-                LOGERSENEGAL
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a class="navbar-brand animate__animated animate__fadeInLeft m-0 d-flex align-items-center" href="{% url 'home' %}">
+                <i class="fa-solid fa-house-circle-check" style="color: var(--color-light-green); font-size: 1.8rem; margin-right: 10px;"></i>
+                <span class="fw-bold">LOGERSENEGAL</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: var(--border-color);">
-                <i class="fa-solid fa-bars" style="color: var(--text-main);"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center mt-3 mt-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Accueil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'properties_list' %}">Annonces immo.</a>
-                    </li>
-                    {% if not user.is_authenticated or user.role != 'TENANT' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'nils_search' %}"><i class="fa-solid fa-magnifying-glass me-1"></i>Vérifier candidat</a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="annuaireDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-user-tie me-1"></i>Annuaires
-                        </a>
-                        <ul class="dropdown-menu shadow border-0" aria-labelledby="annuaireDropdown" style="background-color: var(--bg-card);">
-                            <li><a class="dropdown-item" href="{% url 'professionals_list' %}" style="color: var(--text-main);">Tous les professionnels</a></li>
-                            <li><a class="dropdown-item" href="{% url 'professionals_list' %}?role=AGENCY" style="color: var(--text-main);">Agences Immobilières</a></li>
-                            <li><a class="dropdown-item" href="{% url 'professionals_list' %}?role=BROKER" style="color: var(--text-main);">Courtiers</a></li>
-                        </ul>
-                    </li>
+            
+            <div class="d-flex align-items-center">
+                <!-- Bouton Publier (Visible sur mobile avant le menu) -->
+                <a href="{% url 'create_property' %}" class="btn btn-outline-success btn-sm rounded-pill me-2 d-lg-none">
+                    <i class="fa-solid fa-plus"></i>
+                </a>
+                
+                <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    <i class="fa-solid fa-bars-staggered fs-3" style="color: var(--text-main);"></i>
+                </button>
+            </div>
 
-                    <!-- Menu Sécurité DigitalH -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle fw-bold text-danger" href="#" id="securityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-shield-halved me-1"></i>Sécurité
-                        </a>
-                        <ul class="dropdown-menu shadow border-0" aria-labelledby="securityDropdown" style="background-color: var(--bg-card);">
-                            <li><a class="dropdown-item" href="{% url 'fraud_list' %}" style="color: var(--text-main);"><i class="fa-solid fa-mask me-2 text-danger"></i>Liste Noire (Fraudes)</a></li>
-                            <li><a class="dropdown-item" href="{% url 'report_pro_fraud' %}" style="color: var(--text-main);"><i class="fa-solid fa-bullhorn me-2"></i>Signaler un Pro</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            {% if user.role == 'TENANT' %}
-                            <li><a class="dropdown-item" href="{% url 'submit_solvency_docs' %}" style="color: var(--text-main);"><i class="fa-solid fa-medal me-2 text-success"></i>Badge Solvable</a></li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'about' %}">A propos</a>
-                    </li>
-                    <li class="nav-item ms-lg-3">
-                        <a href="{% url 'create_property' %}" class="btn btn-sm mt-2 mt-lg-0 w-100" style="background-color: transparent; border: 1px solid var(--color-light-green); color: var(--color-light-green); border-radius: 50px; padding: 8px 15px;">
-                            <i class="fa-solid fa-plus me-1"></i> Publier
-                        </a>
-                    </li>
-                    
-                    {% if user.is_authenticated %}
-                        <li class="nav-item ms-lg-3 dropdown">
-                            <a class="btn btn-secondary-custom btn-sm mt-2 mt-lg-0 dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% if user.profile_picture %}
-                                    <img src="{{ user.profile_picture.url }}" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" class="me-2">
-                                {% else %}
-                                    <i class="fa-solid fa-user me-2"></i>
-                                {% endif %}
-                                <span>Mon Compte</span>
+            <!-- Menu Offcanvas (De gauche à droite) -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="background-color: var(--bg-body); width: 280px;">
+                <div class="offcanvas-header border-bottom">
+                    <h5 class="offcanvas-title fw-bold" id="offcanvasNavbarLabel">MENU</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                        <li class="nav-item">
+                            <a class="nav-link py-3 py-lg-0" href="{% url 'home' %}">Accueil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-3 py-lg-0" href="{% url 'properties_list' %}">Annonces immo.</a>
+                        </li>
+                        {% if not user.is_authenticated or user.role != 'TENANT' %}
+                        <li class="nav-item">
+                            <a class="nav-link py-3 py-lg-0" href="{% url 'nils_search' %}">Vérifier candidat</a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle py-3 py-lg-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Annuaires
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown" style="background-color: var(--bg-card);">
-                                <li><a class="dropdown-item" href="{% url 'dashboard' %}" style="color: var(--text-main);"><i class="fa-solid fa-gauge me-2"></i>Tableau de Bord</a></li>
-                                <li><hr class="dropdown-divider" style="border-color: var(--border-color);"></li>
-                                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Déconnexion</a></li>
+                            <ul class="dropdown-menu shadow border-0 p-3">
+                                <li><a class="dropdown-item rounded" href="{% url 'professionals_list' %}">Tous les pros</a></li>
+                                <li><a class="dropdown-item rounded" href="{% url 'professionals_list' %}?role=AGENCY">Agences</a></li>
+                                <li><a class="dropdown-item rounded" href="{% url 'professionals_list' %}?role=BROKER">Courtiers</a></li>
                             </ul>
                         </li>
-                    {% else %}
-                        <li class="nav-item ms-lg-3">
-                            <a href="{% url 'login' %}" class="btn btn-primary-custom btn-sm mt-2 mt-lg-0 w-100">Se connecter</a>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle py-3 py-lg-0 fw-bold text-danger" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Sécurité
+                            </a>
+                            <ul class="dropdown-menu shadow border-0 p-3">
+                                <li><a class="dropdown-item rounded" href="{% url 'fraud_list' %}"><i class="fa-solid fa-mask me-2 text-danger"></i>Liste Noire</a></li>
+                                <li><a class="dropdown-item rounded" href="{% url 'report_pro_fraud' %}"><i class="fa-solid fa-bullhorn me-2"></i>Signaler un Pro</a></li>
+                            </ul>
                         </li>
-                    {% endif %}
-                    
-                    <li class="nav-item">
-                        <button class="theme-toggle-btn mt-3 mt-lg-0" id="themeToggle" title="Changer de thème">
-                            <i class="fa-solid fa-moon d-none d-lg-block"></i>
-                            <span class="d-lg-none ms-2">Thème Clair/Sombre</span>
-                        </button>
-                    </li>
-                </ul>
+
+                        <li class="nav-item">
+                            <a class="nav-link py-3 py-lg-0" href="{% url 'about' %}">A propos</a>
+                        </li>
+
+                        <li class="nav-item d-none d-lg-block ms-lg-2">
+                             <a href="{% url 'create_property' %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                <i class="fa-solid fa-plus me-1"></i> Publier
+                            </a>
+                        </li>
+
+                        {% if user.is_authenticated %}
+                            <li class="nav-item dropdown mt-3 mt-lg-0 ms-lg-3">
+                                <a class="btn btn-secondary-custom btn-sm dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-user me-2"></i> Mon Compte
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-3">
+                                    <li><a class="dropdown-item rounded" href="{% url 'dashboard' %}">Tableau de Bord</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Déconnexion</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item mt-3 mt-lg-0 ms-lg-3">
+                                <a href="{% url 'login' %}" class="btn btn-primary-custom btn-sm w-100">Se connecter</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <button class="theme-toggle-btn mt-3 mt-lg-0 p-0 border-0 bg-transparent" id="themeToggle" title="Changer de thème">
+                                <i class="fa-solid fa-moon d-none d-lg-block"></i>
+                                <span class="d-lg-none py-3 nav-link"><i class="fa-solid fa-circle-half-stroke me-2"></i>Changer de thème</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -404,16 +411,23 @@
                         Trouvez le logement idéal au Sénégal, certifiez vos locataires et louez l'esprit tranquille.
                     </p>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Liens Utiles</h5>
+                <div class="col-md-3 mb-4">
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Guides & Aide</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'guide_locataires' %}" class="footer-link">Guide Locataires</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_bailleurs' %}" class="footer-link">Guide Bailleurs</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_agences' %}" class="footer-link">Guide Agences</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_courtiers' %}" class="footer-link">Guide Courtiers</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Lien Utiles</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="{% url 'about' %}" class="footer-link">À propos de nous</a></li>
                         <li class="mb-2"><a href="{% url 'professionals_list' %}" class="footer-link">Annuaire des Professionnels</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}" class="footer-link">Toutes les propriétés</a></li>
-                        <li class="mb-2"><a href="{% url 'home' %}#comment-ca-marche" class="footer-link">Garantie NILS</a></li>
                         <li class="mb-2"><a href="{% url 'cgu' %}" class="footer-link">CGU & Conditions</a></li>
                         <li class="mb-2"><a href="{% url 'privacy' %}" class="footer-link">Confidentialité</a></li>
-                        <li class="mb-2"><a href="{% url 'home' %}" class="footer-link">Contact</a></li>
+                        <li class="mb-2"><a href="mailto:serviceclient@logersenegal.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@logersenegal.com</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">

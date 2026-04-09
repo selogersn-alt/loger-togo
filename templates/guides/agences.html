@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Guide Agences Immobilières | Solvable LogerSN{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 80px 0 60px;
+        text-align: center;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 50px;
+    }
+    .step-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        height: 100%;
+        transition: transform 0.3s ease;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    .step-icon {
+        width: 70px;
+        height: 70px;
+        background: #e3f2fd;
+        color: #1976d2;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-header">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Solution pour Agences</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">Digitalisez vos mises en relation et trouvez des locataires fiables instantanément.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4 py-5 font-inter text-center">
+        <!-- Step 1 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-icon mx-auto"><i class="fa-solid fa-building-user"></i></div>
+                <h4 class="fw-bold mb-3">Enregistrement Pro</h4>
+                <p class="text-muted">Créez votre compte sur /inscription/. Renseignez les informations de votre structure (adresse, description).</p>
+            </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-icon mx-auto"><i class="fa-solid fa-file-shield"></i></div>
+                <h4 class="fw-bold mb-3">Crédibilité & Visibilité</h4>
+                <p class="text-muted">Fournissez vos documents officiels pour obtenir le badge certifié et gagner en visibilité auprès des clients.</p>
+            </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-icon mx-auto"><i class="fa-solid fa-house-medical-circle-check"></i></div>
+                <h4 class="fw-bold mb-3">Publication</h4>
+                <p class="text-muted">Mettez vos annonces en ligne et commencez à recevoir des demandes de locataires au profil de confiance vérifié.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-5 text-center mt-5 bg-light" style="border-radius: 30px;">
+        <h2 class="fw-bold mb-4">Gagnez en crédibilité</h2>
+        <p class="lead mb-4">Loger Sénégal accompagne les agences modernes pour sécuriser leurs parcs locatifs.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 py-3 fs-5" style="border-radius: 50px;">Inscrire mon Agence</a>
+        </div>
+        <div class="mt-4">
+            <small class="text-muted">Support dédié aux agences : <a href="mailto:serviceclient@logersenegal.com" class="fw-bold">serviceclient@logersenegal.com</a></small>
+        </div>
+    </div>
+</div>
+{% endblock %}

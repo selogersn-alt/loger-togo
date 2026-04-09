@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Guide Bailleurs | Solvable LogerSN{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-header {
+        background: linear-gradient(135deg, #0d2b0d 0%, var(--color-dark-green) 100%);
+        color: white;
+        padding: 80px 0 60px;
+        text-align: center;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 50px;
+    }
+    .step-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        height: 100%;
+        transition: transform 0.3s ease;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    .step-card:hover {
+        transform: translateY(-10px);
+    }
+    .step-number {
+        font-size: 5rem;
+        font-weight: 900;
+        color: rgba(127, 212, 125, 0.1);
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        line-height: 1;
+    }
+    .step-icon {
+        width: 70px;
+        height: 70px;
+        background: var(--color-light-green);
+        color: var(--color-dark-green);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-header">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Guide du Bailleur</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">La confiance au service de vos locations. Trouvez des locataires fiables sans risque.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4 py-5 font-inter text-center">
+        <!-- Step 1 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon mx-auto"><i class="fa-solid fa-user-gear"></i></div>
+                <h4 class="fw-bold mb-3">Créez votre compte</h4>
+                <p class="text-muted">Inscrivez-vous sur /inscription/ et choisissez le profil <strong>Bailleur (particulier ou professionnel)</strong>.</p>
+            </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon mx-auto"><i class="fa-solid fa-id-card-clip"></i></div>
+                <h4 class="fw-bold mb-3">Vérifiez votre identité</h4>
+                <p class="text-muted">CNI, passeport et selfie de vérification. Un bailleur certifié attire des locataires plus sérieux.</p>
+            </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon mx-auto"><i class="fa-solid fa-house-circle-check"></i></div>
+                <h4 class="fw-bold mb-3">Publiez vos biens</h4>
+                <p class="text-muted">Ajoutez vos annonces immobilières en quelques clics et commencez à recevoir des demandes qualifiées.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="row mt-5 align-items-center bg-dark text-white rounded-5 p-5 g-5">
+        <div class="col-lg-6">
+            <h2 class="fw-bold mb-4 text-white">Louez en toute sérénité</h2>
+            <div class="d-flex mb-4">
+                <div class="me-3 text-success fs-4"><i class="fa-solid fa-shield-check"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1 text-white">Profil de confiance</h5>
+                    <p class="opacity-75 mb-0">Un niveau de fiabilité est associé à votre compte pour garantir votre crédibilité.</p>
+                </div>
+            </div>
+            <div class="d-flex mb-4">
+                <div class="me-3 text-success fs-4"><i class="fa-solid fa-users-check"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1 text-white">Locataires fiables</h5>
+                    <p class="opacity-75 mb-0">Échangez avec des profils pré-vérifiés par nos services de solvabilité.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+             <div class="p-5 bg-white bg-opacity-10 border border-secondary rounded-4 shadow-sm">
+                <h3 class="fw-bold mb-4 text-white">Sécurisez vos revenus</h3>
+                <p class="mb-4 opacity-75">Rejoignez le réseau de confiance Loger Sénégal.</p>
+                <a href="{% url 'register' %}" class="btn btn-primary-custom btn-lg px-5 py-3 fs-5">Devenir Bailleur Certifié</a>
+             </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="text-center mt-5">
+        <p class="text-muted">Des questions sur la garantie de fiabilité ? <a href="mailto:serviceclient@logersenegal.com" class="text-success fw-bold">serviceclient@logersenegal.com</a></p>
+    </div>
+</div>
+{% endblock %}

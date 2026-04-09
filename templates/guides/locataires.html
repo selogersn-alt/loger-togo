@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Guide Locataires | Solvable LogerSN{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-header {
+        background: linear-gradient(135deg, var(--color-dark-green) 0%, #1a4d1a 100%);
+        color: white;
+        padding: 80px 0 60px;
+        text-align: center;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 50px;
+    }
+    .step-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        height: 100%;
+        transition: transform 0.3s ease;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    .step-card:hover {
+        transform: translateY(-10px);
+    }
+    .step-number {
+        font-size: 5rem;
+        font-weight: 900;
+        color: rgba(127, 212, 125, 0.1);
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        line-height: 1;
+    }
+    .step-icon {
+        width: 70px;
+        height: 70px;
+        background: var(--color-light-green);
+        color: var(--color-dark-green);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-header">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Guide du Locataire</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">La confiance au service de vos locations. Trouvez votre logement en toute sérénité.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4 py-5 font-inter">
+        <!-- Step 1 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <h4 class="fw-bold mb-3">Créez votre compte</h4>
+                <p class="text-muted">Inscrivez-vous avec votre numéro de téléphone (votre identifiant sécurisé) et un mot de passe sur la page /inscription/.</p>
+            </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fa-solid fa-id-card"></i></div>
+                <h4 class="fw-bold mb-3">Vérifiez votre identité</h4>
+                <p class="text-muted">Ajoutez votre pièce d’identité (CNI ou passeport) et prenez un selfie de vérification pour garantir un environnement de confiance.</p>
+            </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h4 class="fw-bold mb-3">Activez votre confiance</h4>
+                <p class="text-muted">Après validation, un <strong>niveau de fiabilité</strong> est associé à votre compte, vous rendant crédible aux yeux des bailleurs.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="row mt-5 align-items-center bg-light rounded-5 p-5 g-5">
+        <div class="col-lg-6">
+            <h2 class="fw-bold mb-4">Pourquoi louer via Loger Sénégal ?</h2>
+            <div class="d-flex mb-4">
+                <div class="me-3 text-success fs-4"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1">Dossier Certifié</h5>
+                    <p class="text-muted mb-0">Votre profil de confiance remplace les dossiers papiers interminables.</p>
+                </div>
+            </div>
+            <div class="d-flex mb-4">
+                <div class="me-3 text-success fs-4"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1">Mises en relation sécurisées</h5>
+                    <p class="text-muted mb-0">Vous échangez avec des bailleurs et agences dont l'identité est également vérifiée.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+             <div class="p-5 bg-white rounded-4 shadow-sm">
+                <h3 class="fw-bold mb-4">Prêt à emménager ?</h3>
+                <p class="mb-4">Commencez votre parcours de fiabilité dès maintenant.</p>
+                <a href="{% url 'register' %}" class="btn btn-primary-custom btn-lg px-5 py-3 fs-5">Créer mon compte Locataire</a>
+             </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="text-center mt-5">
+        <p class="text-muted">Une question ? Contactez notre support : <a href="mailto:serviceclient@logersenegal.com" class="text-success fw-bold">serviceclient@logersenegal.com</a></p>
+    </div>
+</div>
+{% endblock %}

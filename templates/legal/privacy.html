@@ -3,40 +3,47 @@
 {% block title %}Politique de Confidentialité | Logersenegal{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-5 font-inter">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="card border-0 shadow-sm p-4 p-md-5" style="background-color: var(--bg-card); border-radius: 15px;">
+            <div class="card border-0 shadow-sm p-4 p-md-5" style="background-color: var(--bg-card); border-radius: 20px;">
                 <h1 class="fw-bold mb-4" style="color: var(--text-main);">Politique de Confidentialité</h1>
                 <p class="text-muted small">Dernière mise à jour : Avril 2026</p>
                 
                 <hr class="my-4" style="border-color: var(--border-color);">
 
                 <div class="legal-content" style="color: var(--text-main); line-height: 1.8;">
-                    <h4 class="fw-bold mt-4">1. Collecte des Données</h4>
-                    <p>Nous collectons les données suivantes :
+                    <h4 class="fw-bold mt-4">1. Collecte des Données de Confiance</h4>
+                    <p>Dans le cadre de notre mission de sécurisation immobilière, nous collectons les données suivantes :
                     <ul>
-                        <li>Identité (CNI, Passeport via le processus KYC).</li>
-                        <li>Numéros de téléphone pour les identifications NILS.</li>
-                        <li>Journalisation des transactions immobilières et paiements (PÉAGE).</li>
+                        <li><strong>Identité Officielle :</strong> Copie de CNI ou Passeport (parcours KYC).</li>
+                        <li><strong>Vérification Biométrique :</strong> Selfie de vérification pour confirmer que vous êtes bien le titulaire du document fourni.</li>
+                        <li><strong>Coordonnées :</strong> Numéro de téléphone (identifiant unique sécurisé).</li>
+                        <li><strong>Informations Professionnelles :</strong> Documents officiels pour les agences et courtiers (NINEA, adresse, etc.).</li>
                     </ul>
                     </p>
 
-                    <h4 class="fw-bold mt-4">2. Utilisation des Données</h4>
-                    <p>Vos données servent à créer votre indice de confiance (NILS). Un score réputationnel est calculé sur la base de vos paiements mensuels enregistrés par les bailleurs sur la plateforme.</p>
+                    <h4 class="fw-bold mt-4">2. Utilisation et Niveau de Fiabilité</h4>
+                    <p>Vos données servent exclusivement à :
+                    <ul>
+                        <li>Activer votre <strong>Profil de Confiance</strong>.</li>
+                        <li>Calculer votre <strong>Niveau de Fiabilité</strong> qui rassure vos interlocuteurs.</li>
+                        <li>Générer votre indice locatif (NILS) pour vos futures locations.</li>
+                    </ul>
+                    </p>
 
-                    <h4 class="fw-bold mt-4">3. Sécurité</h4>
-                    <p>Toutes les données sensibles (documents KYC) sont cryptées. L'accès est strictement réservé aux administrateurs de Logersenegal pour validation.</p>
+                    <h4 class="fw-bold mt-4">3. Sécurité et Chiffrement</h4>
+                    <p>Toutes les données sensibles (documents KYC et selfies) sont stockées de façon cryptée sur nos serveurs. L'accès à ces pièces est strictement réservé à nos équipes de conformité pour validation.</p>
 
-                    <h4 class="fw-bold mt-4">4. Partage de Données</h4>
-                    <p>Aucune donnée personnelle n'est vendue à des tiers. Seul votre score NILS (vert, jaune ou rouge) est public pour rassurer les futurs bailleurs ou locataires.</p>
+                    <h4 class="fw-bold mt-4">4. Pas de Commercialisation</h4>
+                    <p>Logersenegal ne vend aucune donnée personnelle à des tiers. Seul votre score de confiance (vert, jaune ou rouge) peut être rendu public pour crédibiliser votre profil auprès des autres membres du réseau.</p>
 
-                    <h4 class="fw-bold mt-4">5. Droits des Utilisateurs</h4>
-                    <p>Conformément à la loi sénégalaise sur les données personnelles (Loi n°2008-12), vous avez un droit d'accès, de rectification et d'opposition sur vos données personnelles.</p>
+                    <h4 class="fw-bold mt-4">5. Vos Droits (CDP Sénégal)</h4>
+                    <p>Conformément à la Loi n°2008-12 relative à la protection des données à caractère personnel au Sénégal, vous disposez d'un droit complet d'accès, de rectification et de suppression de vos informations.</p>
                 </div>
                 
-                <div class="mt-5">
-                    <a href="{% url 'home' %}" class="btn btn-outline-success">Retour à l'accueil</a>
+                <div class="mt-5 text-center">
+                    <a href="{% url 'home' %}" class="btn btn-primary-custom px-5">Fermer</a>
                 </div>
             </div>
         </div>

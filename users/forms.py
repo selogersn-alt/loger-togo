@@ -57,3 +57,31 @@ class CustomUserChangeForm(UserChangeForm):
         # Personnalisation de l'aide pour le mot de passe en français
         if 'password' in self.fields:
             self.fields['password'].help_text = "Le mot de passe est encrypté pour votre sécurité et n'est pas lisible en clair."
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['company_name', 'email', 'profile_picture', 'slug', 'first_name', 'last_name', 'coverage_area']
+        widgets = {
+            'company_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'placeholder': 'votre-nom-personnalise'}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'accept': 'image/*'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'coverage_area': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+        }
+        labels = {
+            'company_name': 'Nom de l\'agence ou Entreprise',
+            'profile_picture': 'Logo ou Photo de profil',
+            'slug': 'Lien personnalisé (ex: logersenegal.com/p/votre-nom)',
+        }
+
+    def clean_slug(self):
+        slug = self.cleaned_data.get('slug')
+        if slug:
+            from django.utils.text import slugify
+            slug = slugify(slug)
+            # Vérifier l'unicité en excluant l'utilisateur actuel
+            if User.objects.filter(slug=slug).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError("Ce lien personnalisé est déjà utilisé par un autre professionnel.")
+        return slug

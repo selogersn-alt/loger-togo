@@ -42,6 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=20, unique=True, db_index=True, verbose_name="Numéro de téléphone")
     email = models.EmailField(unique=True, null=True, blank=True, verbose_name="Adresse email")
     company_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Nom de l'agence ou de l'entreprise")
+    slug = models.SlugField(max_length=200, unique=True, null=True, blank=True, verbose_name="Lien personnalisé")
     coverage_area = models.CharField(max_length=255, null=True, blank=True, verbose_name="Zone de couverture")
     role = models.CharField(max_length=20, choices=RoleEnum.choices, default=RoleEnum.TENANT, verbose_name="Statut du compte")
     is_verified_pro = models.BooleanField(default=False, verbose_name="Professionnel Vérifié (Badge)")
@@ -81,6 +82,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name} ({self.phone_number})"
 
     def save(self, *args, **kwargs):
+        # Génération du slug pour les liens personnalisés
+        if not self.slug:
+            from django.utils.text import slugify
+            base_name = self.company_name or f"{self.first_name}-{self.last_name}"
+            if not base_name or base_name == "None-None":
+                base_name = str(self.id).split('-')[0]
+            
+            new_slug = slugify(base_name)
+            # Vérifier l'unicité
+            if User.objects.filter(slug=new_slug).exists():
+                new_slug = f"{new_slug}-{str(self.id).split('-')[0]}"
+            self.slug = new_slug
+
         # Automatisation DigitalH : Les admins et conseillers ont un accès staff automatique
         if self.role in [self.RoleEnum.SUB_ADMIN, self.RoleEnum.CUSTOMER_SUPPORT]:
             self.is_staff = True

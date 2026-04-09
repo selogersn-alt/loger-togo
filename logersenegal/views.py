@@ -805,11 +805,28 @@ def verify_phone_view(request):
     return render(request, 'verify_phone.html')
 
 @login_required
-def public_profile_view(request, user_id):
+def update_profile_view(request):
+    from users.forms import UserProfileForm
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Votre profil a été mis à jour avec succès !")
+            return redirect('dashboard')
+    else:
+        form = UserProfileForm(instance=request.user)
+    return render(request, 'profile_update.html', {'form': form})
+
+@login_required
+def public_profile_view(request, user_id=None, slug=None):
     from users.models import User
     from logersn.models import Property
     
-    viewed_user = get_object_or_404(User, id=user_id)
+    if slug:
+        viewed_user = get_object_or_404(User, slug=slug)
+    else:
+        viewed_user = get_object_or_404(User, id=user_id)
+
     properties = Property.objects.filter(owner=viewed_user, is_published=True)
     
     # Statistiques basiques d'activité
@@ -818,10 +835,14 @@ def public_profile_view(request, user_id):
         'experience_years': (timezone.now() - viewed_user.date_joined).days // 365,
     }
     
+    # Lien de partage personnalisé
+    share_url = request.build_absolute_uri(reverse('public_profile_slug', kwargs={'slug': viewed_user.slug})) if viewed_user.slug else request.build_absolute_uri()
+    
     return render(request, 'public_profile.html', {
         'viewed_user': viewed_user,
         'properties': properties,
-        'stats': stats
+        'stats': stats,
+        'share_url': share_url
     })
 
 def cgu_view(request):

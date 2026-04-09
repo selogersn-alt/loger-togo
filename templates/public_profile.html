@@ -70,13 +70,38 @@
                     <a href="tel:{{ viewed_user.phone_number }}" class="btn btn-primary-custom px-5 py-3 fs-5 me-2">
                         <i class="fa-solid fa-phone me-2"></i> Contacter
                     </a>
-                    <button class="btn btn-outline-dark px-4 py-3 rounded-pill fw-bold">
-                        <i class="fa-solid fa-share-nodes"></i>
+                    <button class="btn btn-outline-dark px-4 py-3 rounded-pill fw-bold" onclick="shareProfile()">
+                        <i class="fa-solid fa-share-nodes me-2"></i> Partager
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function shareProfile() {
+            const shareData = {
+                title: "{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Loger Sénégal",
+                text: "Découvrez le catalogue de ce professionnel certifié sur Loger Sénégal.",
+                url: "{{ share_url|safe }}"
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .then(() => console.log('Profil partagé avec succès'))
+                    .catch((error) => console.log('Erreur de partage:', error));
+            } else {
+                // Fallback : Copier dans le presse-papier
+                const el = document.createElement('textarea');
+                el.value = shareData.url;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                alert('Lien du profil copié dans le presse-papier !');
+            }
+        }
+    </script>
 
     <!-- Annonces de ce professionnel -->
     <div class="row align-items-end mb-4">

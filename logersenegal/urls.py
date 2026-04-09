@@ -38,7 +38,7 @@ from .views import (
     kyc_submit_view, nils_search_view, create_filiation_view,
     contest_item_view, about_view, verified_professionals_view,
     generate_lease_pdf_view,
-    public_profile_view,
+    public_profile_view, update_profile_view,
     edit_property_view, delete_property_view,  # Gestion pro
     initiate_payment_view, checkout_payment_view, payment_callback_view, payment_success_view, 
     password_recovery_view, password_reset_confirm_view, admin_generate_reset_link, # DigitalH Recovery
@@ -94,6 +94,8 @@ urlpatterns = [
     path('application/<uuid:application_id>/update/', update_application_status_view, name='update_application_status'),
     path('verifier-telephone/', verify_phone_view, name='verify_phone'),
     path('profil-public/<uuid:user_id>/', public_profile_view, name='public_profile'),
+    path('p/<slug:slug>/', public_profile_view, name='public_profile_slug'),
+    path('mon-compte/profil/modifier/', update_profile_view, name='update_profile'),
     path('recuperation-compte/', password_recovery_view, name='password_recovery'),
     path('reinitialiser-mot-de-passe/<uidb64>/<token>/', password_reset_confirm_view, name='password_reset_confirm_public'),
     path('admin/generer-lien-reset/<uuid:user_id>/', admin_generate_reset_link, name='admin_generate_reset_link'),

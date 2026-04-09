@@ -821,38 +821,34 @@ def update_profile_view(request):
 def public_profile_view(request, user_id=None, slug=None):
     from users.models import User
     from logersn.models import Property
+    from django.http import HttpResponse
     
-    if slug:
-        viewed_user = get_object_or_404(User, slug=slug)
-    else:
-        viewed_user = get_object_or_404(User, id=user_id)
-
-    properties = Property.objects.filter(owner=viewed_user, is_published=True)
-    
-    # Statistiques basiques d'activité
-    # Sécurité : vérifier si date_joined existe
-    days_joined = (timezone.now() - viewed_user.date_joined).days if viewed_user.date_joined else 0
-    
-    stats = {
-        'total_properties': properties.count(),
-        'experience_years': max(0, days_joined // 365),
-    }
-    
-    # Lien de partage personnalisé (Sécurisé)
     try:
-        if viewed_user.slug:
-            share_url = request.build_absolute_uri(reverse('public_profile_slug', kwargs={'slug': viewed_user.slug}))
+        if slug:
+            viewed_user = get_object_or_404(User, slug=slug)
         else:
-            share_url = request.build_absolute_uri(reverse('public_profile', kwargs={'user_id': viewed_user.id}))
-    except:
+            viewed_user = get_object_or_404(User, id=user_id)
+
+        properties = Property.objects.filter(owner=viewed_user, is_published=True)
+        
+        # Statistiques
+        days_joined = (timezone.now() - viewed_user.date_joined).days if viewed_user.date_joined else 0
+        stats = {
+            'total_properties': properties.count(),
+            'experience_years': max(0, days_joined // 365),
+        }
+        
+        # Lien de partage (Format simple pour éviter les erreurs de reverse)
         share_url = request.build_absolute_uri()
-    
-    return render(request, 'public_profile.html', {
-        'viewed_user': viewed_user,
-        'properties': properties,
-        'stats': stats,
-        'share_url': share_url
-    })
+
+        return render(request, 'public_profile.html', {
+            'viewed_user': viewed_user,
+            'properties': properties,
+            'stats': stats,
+            'share_url': share_url
+        })
+    except Exception as e:
+        return HttpResponse(f"Erreur technique sur le profil : {str(e)}")
 
 def cgu_view(request):
     return render(request, 'legal/cgu.html')

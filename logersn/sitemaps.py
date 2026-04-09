@@ -10,7 +10,7 @@ class PropertySitemap(Sitemap):
         return Property.objects.all().order_by('-created_at')
 
     def lastmod(self, obj):
-        return obj.updated_at if obj.updated_at else obj.created_at
+        return obj.created_at
 
     def location(self, obj):
         return reverse('property_detail', kwargs={'property_id': str(obj.id)})

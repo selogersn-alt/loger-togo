@@ -25,7 +25,6 @@ class PropertyAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'city', 'neighborhood')
     inlines = [PropertyImageInline, PropertyEquipmentInline]
     actions = ['publish_properties', 'unpublish_properties', 'mark_as_paid', 'boost_selected']
-    date_hierarchy = 'created_at'
 
     def get_thumbnail(self, obj):
         first_img = obj.images.filter(is_primary=True).first() or obj.images.first()

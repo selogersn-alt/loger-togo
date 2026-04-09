@@ -28,34 +28,43 @@ class PropertyForm(forms.ModelForm):
     bedrooms = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     toilets = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     total_rooms = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    salons = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    kitchens = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     has_garage = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_balcony = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_terrace = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_courtyard = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_garden = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     
     def clean(self):
         cleaned_data = super().clean()
         
-        # Bloquer les emojis (caractères 4-bytes) pour éviter l'erreur MySQL 1366
+        # NETTOYAGE LASER STRICT ABSOLU : On liste explicitement a-z et 0-9. Le \w est banni car il laissait passer les "sélecteurs de variations" invisibles.
+        import re
+        safe_chars_regex = r'[^a-zA-Z0-9\s.,;:!?\'"()\-@€$£%+=/\\&*_°ÂÀÄÇÉÈÊËÎÏÔÖÙÛÜâàäçéèêëîïôöùûü\r\n]'
+        
         desc = cleaned_data.get('description', '')
-        if desc and any(ord(c) > 0xFFFF for c in desc):
-            self.add_error('description', "⚠️ Veuillez retirer les Emojis de votre description pour pouvoir soumettre (non supportés).")
+        if desc:
+            cleaned_data['description'] = re.sub(safe_chars_regex, '', desc)
             
         title = cleaned_data.get('title', '')
-        if title and any(ord(c) > 0xFFFF for c in title):
-            self.add_error('title', "⚠️ Veuillez retirer les Emojis du titre.")
+        if title:
+            cleaned_data['title'] = re.sub(safe_chars_regex, '', title)
 
-        # Remplacer None par 0 pour les champs Integer qui n'acceptent pas NULL en BDD
-        integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms']
+        # Remplacer None par 0 pour les champs Integer
+        integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens']
         for field in integer_fields:
             if cleaned_data.get(field) is None:
                 cleaned_data[field] = 0
                 
         return cleaned_data
-
     
     class Meta:
         model = Property
         fields = [
             'title', 'listing_category', 'property_type', 'city', 'neighborhood', 'price', 
-            'price_per_night', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'has_garage', 
+            'price_per_night', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens',
+            'has_garage', 'has_balcony', 'has_terrace', 'has_courtyard', 'has_garden',
             'description', 'wifi', 'swimming_pool', 'gym', 'air_conditioning',
             'refrigerator', 'washing_machine', 'microwave', 'tv_cable',
             'generator', 'water_tank'

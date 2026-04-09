@@ -113,10 +113,44 @@
                                         <label class="form-label text-muted small fw-bold">Pièces totales</label>
                                         {{ form.total_rooms }}
                                     </div>
-                                    <div class="col-12">
-                                        <div class="form-check form-switch mt-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold">Salons</label>
+                                        {{ form.salons }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold">Cuisines</label>
+                                        {{ form.kitchens }}
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-3">
+                                        <div class="form-check mt-3">
+                                            {{ form.has_balcony }}
+                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_balcony.id_for_label }}">Balcon</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check mt-3">
+                                            {{ form.has_terrace }}
+                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_terrace.id_for_label }}">Terrasse</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check mt-3">
+                                            {{ form.has_courtyard }}
+                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_courtyard.id_for_label }}">Cour</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check mt-3">
+                                            {{ form.has_garden }}
+                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_garden.id_for_label }}">Jardin</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <div class="form-check form-switch border p-3 rounded" style="background-color: var(--bg-card);">
                                             {{ form.has_garage }}
-                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_garage.id_for_label }}">Disponibilité d'un Garage / Parking</label>
+                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_garage.id_for_label }}">Disponibilité d'un Garage / Parking privé</label>
                                         </div>
                                     </div>
                                 </div>

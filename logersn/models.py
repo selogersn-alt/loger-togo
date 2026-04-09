@@ -32,6 +32,16 @@ class Property(models.Model):
     toilets = models.IntegerField(default=0, blank=True, verbose_name="Nombre de toilettes")
     total_rooms = models.IntegerField(default=1, blank=True, verbose_name="Nombre total de pièces")
     has_garage = models.BooleanField(default=False, blank=True, verbose_name="Garage disponible")
+    # Nouvelles pièces
+    salons = models.IntegerField(default=0, blank=True, verbose_name="Nombre de salons")
+    kitchens = models.IntegerField(default=0, blank=True, verbose_name="Nombre de cuisines")
+    
+    # Nouveaux extérieurs
+    has_balcony = models.BooleanField(default=False, blank=True, verbose_name="Balcon")
+    has_terrace = models.BooleanField(default=False, blank=True, verbose_name="Terrasse")
+    has_courtyard = models.BooleanField(default=False, blank=True, verbose_name="Cour")
+    has_garden = models.BooleanField(default=False, blank=True, verbose_name="Jardin")
+    
     is_published = models.BooleanField(default=False)
     
     # Équipements et caractéristiques (Amenities)

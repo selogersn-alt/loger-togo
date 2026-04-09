@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Balises SEO Essentielles -->
-    <title>{% block title %}Solvable - Logersenegal | L'Immobilier de Confiance au Sénégal{% endblock %}</title>
-    <meta name="description" content="{% if seo_settings and seo_settings.meta_description %}{{ seo_settings.meta_description }}{% else %}Solvable par Logersenegal : Plateforme N°1 de l'immobilier sécurisé au Sénégal. Trouvez votre appartement ou villa avec garantie de loyer et profil NILS.{% endif %}">
-    <meta name="keywords" content="{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Sénégal, Location appartement Dakar, Gestion locative Sénégal, NILS, Solvable, Logersenegal, DigitalH, Immobilier Prestige{% endif %}">
+    <!-- Balises SEO Stratégiques (Market-Driven) -->
+    <title>{% block title %}Loger Sénégal | Location & Vente Immobilière de Confiance à Dakar{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{% if seo_settings and seo_settings.meta_description %}{{ seo_settings.meta_description }}{% else %}Trouvez votre appartement, villa ou terrain au Sénégal sur Loger Sénégal. Location sécurisée, vérification de profil NILS et annonces immobilières vérifiées à Dakar et en province.{% endif %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Sénégal, Location appartement Dakar, Louer maison Sénégal, Vendre terrain Sénégal, Agence immobilière Dakar, F3 location Dakar, Haut standing Almadies, Titre foncier Sénégal, Loger Sénégal, Solvable NILS{% endif %}{% endblock %}">
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
-    <meta name="author" content="DigitalH - Logersenegal & Solvable">
+    <meta name="author" content="Loger Sénégal - DigitalH Group">
 
     {% if seo_settings and seo_settings.header_scripts %}
         {{ seo_settings.header_scripts|safe }}
@@ -411,12 +411,22 @@
                         <li class="mb-2"><a href="mailto:serviceclient@logersenegal.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@logersenegal.com</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-4">
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Secteurs Prisés</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=ALMADIES" class="footer-link">Immobilier Almadies</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=MERMOZ" class="footer-link">Location Mermoz</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=PLATEAU" class="footer-link">Appartements Dakar Plateau</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=POINT_E" class="footer-link">Villas Point E</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=OUAKAM" class="footer-link">Annonces Ouakam</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
                     <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Suivez-nous</h5>
-                    <div>
+                    <div class="d-flex">
                         <a href="#" class="text-white me-3 fs-4"><i class="fa-brands fa-facebook"></i></a>
                         <a href="#" class="text-white me-3 fs-4"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#" class="text-white me-3 fs-4"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="fa-brands fa-linkedin"></i></a>
                     </div>
                 </div>
             </div>

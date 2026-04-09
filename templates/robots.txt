@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /mon-compte/
+Disallow: /deconnexion/
+Disallow: /connexion/
+
+# Lien direct vers le plan du site pour Google
+Sitemap: https://logersenegal.com/sitemap.xml

@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ property.title }} | Solvable - LogerSN{% endblock %}
+{% block title %}{{ property.title }} à louer à {{ property.neighborhood }} | Loger Sénégal{% endblock %}
 
-{% block og_title %}{{ property.title }} - Solvable LogerSN{% endblock %}
-{% block og_description %}{{ property.city }} - {{ property.neighborhood }} | {{ property.price|floatformat:0 }} FCFA{% endblock %}
+{% block meta_description %}{{ property.get_property_type_display }} à {{ property.neighborhood }}, {{ property.city }}. {{ property.price|floatformat:0 }} FCFA par mois. Découvrez cette annonce immo vérifiée sur Loger Sénégal.{% endblock %}
+
+{% block og_title %}{{ property.title }} - Annonce immo à {{ property.neighborhood }}{% endblock %}
+{% block og_description %}{{ property.property_type }} à {{ property.neighborhood }} ({{ property.city }}) | {{ property.price|floatformat:0 }} FCFA{% endblock %}
 {% block og_image %}
     {% if property.images.first %}
         {{ request.scheme }}://{{ request.get_host }}{{ property.images.first.image_url.url }}

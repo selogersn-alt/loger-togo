@@ -77,6 +77,12 @@ class Property(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_main_image(self):
+        primary_image = self.images.filter(is_primary=True).first()
+        if primary_image:
+            return primary_image
+        return self.images.first()
         
     def get_icon_class(self):
         t = self.property_type

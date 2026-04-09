@@ -3,6 +3,23 @@
 
 {% block title %}{{ property.title }} | Solvable - LogerSN{% endblock %}
 
+{% block og_title %}{{ property.title }} - Solvable LogerSN{% endblock %}
+{% block og_description %}{{ property.city }} - {{ property.neighborhood }} | {{ property.price|floatformat:0 }} FCFA{% endblock %}
+{% block og_image %}
+    {% if property.images.first %}
+        {{ request.scheme }}://{{ request.get_host }}{{ property.images.first.image_url.url }}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+{% block twitter_image %}
+    {% if property.images.first %}
+        {{ request.scheme }}://{{ request.get_host }}{{ property.images.first.image_url.url }}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
 {% block extra_css %}
 <style>
     /* Specific CSS for the Property Details Page */
@@ -168,22 +185,15 @@
             <div class="gallery-container">
                 <!-- Main Image -->
                 <div>
-                    {% if property.images.all %}
-                        {% for image in property.images.all %}
-                            {% if image.is_primary %}
-                                <img src="{{ image.image_url.url }}" alt="{{ property.title }}" class="main-image" id="expandedImg" onerror="this.onerror=null; this.outerHTML='<div class=\'main-image d-flex align-items-center justify-content-center bg-light\' style=\'height:400px;\'><i class=\'fa-solid {{ property.get_icon_class }} text-muted\' style=\'font-size: 8rem; opacity: 0.3;\'></i></div>';">
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <!-- Fallback si aucune image primaire mais d'autres existantes -->
-                        {% if not property.images.first.is_primary %}
-                            <img src="{{ property.images.first.image_url.url }}" alt="{{ property.title }}" class="main-image" id="expandedImg" onerror="this.onerror=null; this.outerHTML='<div class=\'main-image d-flex align-items-center justify-content-center bg-light\' style=\'height:400px;\'><i class=\'fa-solid {{ property.get_icon_class }} text-muted\' style=\'font-size: 8rem; opacity: 0.3;\'></i></div>';">
+                    {% with main_image=property.get_main_image %}
+                        {% if main_image %}
+                            <img src="{{ main_image.image_url.url }}" alt="{{ property.title }}" class="main-image" id="expandedImg" onerror="this.onerror=null; this.outerHTML='<div class=\'main-image d-flex align-items-center justify-content-center bg-light\' style=\'height:400px;\'><i class=\'fa-solid {{ property.get_icon_class }} text-muted\' style=\'font-size: 8rem; opacity: 0.3;\'></i></div>';">
+                        {% else %}
+                            <div class="main-image d-flex align-items-center justify-content-center bg-light" id="expandedImg" style="height: 400px;">
+                                <i class="fa-solid {{ property.get_icon_class }} text-muted" style="font-size: 8rem; opacity: 0.3;"></i>
+                            </div>
                         {% endif %}
-                    {% else %}
-                        <div class="main-image d-flex align-items-center justify-content-center bg-light" id="expandedImg" style="height: 400px;">
-                            <i class="fa-solid {{ property.get_icon_class }} text-muted" style="font-size: 8rem; opacity: 0.3;"></i>
-                        </div>
-                    {% endif %}
+                    {% endwith %}
                 </div>
                 
                 <!-- Thumbnails -->

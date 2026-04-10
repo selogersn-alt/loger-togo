@@ -1,0 +1,13 @@
+<IfModule mod_passenger.c>
+  PassengerAppRoot /home/gaak4328/logersenegal.com
+  PassengerAppType wsgi
+  PassengerStartupFile passenger_wsgi.py
+  PassengerPython /home/gaak4328/virtualenv/logersenegal.com/3.11/bin/python
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ passenger_wsgi.py/$1 [QSA,L]
+</IfModule>

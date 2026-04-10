@@ -52,7 +52,7 @@ from ads.views import ads_txt_view  # Certification Google
 from .admin_views import admin_statistics_view, admin_marketing_email_view
 
 urlpatterns = [
-    path('', debug_view, name='home'),
+    path('', home_view, name='home'),
     path('a-propos/', about_view, name='about'),
     path('professionnels/', verified_professionals_view, name='professionals_list'),
     path('admin/statistiques/', admin_statistics_view, name='admin_statistics'), # Custom Admin Route

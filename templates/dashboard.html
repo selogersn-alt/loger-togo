@@ -224,6 +224,26 @@
                 
                 <!-- VUE D'ENSEMBLE -->
                 <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    
+                    {% if not user.email %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm animate__animated animate__pulse animate__infinite" style="background: linear-gradient(135deg, var(--color-dark-green), #084d2a); color: white; border-radius: 15px;">
+                                <div class="card-body p-4 d-flex align-items-center">
+                                    <div class="me-4 d-none d-md-block">
+                                        <i class="fa-solid fa-envelope-circle-check fs-1 text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-1">Restez informé en temps réel !</h5>
+                                        <p class="mb-0 opacity-75">Connectez votre adresse e-mail pour recevoir vos codes OTP, vos alertes d'annonces et vos baux numériques sans frais.</p>
+                                        <a href="{% url 'profile_update' %}" class="btn btn-warning btn-sm mt-3 fw-bold rounded-pill px-4" style="color: var(--color-dark-green);">Ajouter mon e-mail maintenant</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <div class="card border-0 shadow-sm h-100" style="background-color: var(--bg-card); border-radius: 15px;">

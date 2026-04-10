@@ -60,7 +60,7 @@ class CustomUserChangeForm(UserChangeForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['company_name', 'email', 'profile_picture', 'slug', 'first_name', 'last_name', 'coverage_area']
+        fields = ['company_name', 'email', 'profile_picture', 'slug', 'first_name', 'last_name', 'coverage_area', 'notification_preference']
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
@@ -69,11 +69,13 @@ class UserProfileForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'coverage_area': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'notification_preference': forms.Select(attrs={'class': 'form-select', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
         }
         labels = {
             'company_name': 'Nom de l\'agence ou Entreprise',
             'profile_picture': 'Logo ou Photo de profil',
             'slug': 'Lien personnalisé (ex: logersenegal.com/p/votre-nom)',
+            'notification_preference': 'Mode de réception des notifications',
         }
 
     def clean_slug(self):

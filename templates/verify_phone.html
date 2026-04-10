@@ -36,11 +36,21 @@
                         </form>
 
                         <div class="mt-4 pt-4 border-top">
+                            {% if user.email %}
+                            <form method="POST" class="mb-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resend_otp">
+                                <button type="submit" class="btn btn-link text-success text-decoration-none small">
+                                    <i class="fa-solid fa-envelope me-1"></i> Recevoir le code par E-mail
+                                </button>
+                            </form>
+                            {% endif %}
+                            
                             <p class="small text-muted mb-0">
                                 Vous n'avez pas encore reçu votre code ? <br>
-                                Contactez-nous sur WhatsApp pour obtenir votre validation immédiate.
+                                Réclamez-le sur WhatsApp pour une validation manuelle.
                             </p>
-                            <a href="https://wa.me/221778578979" target="_blank" class="btn btn-link text-decoration-none mt-2" style="color: #25D366;">
+                            <a href="https://wa.me/221764443313" target="_blank" class="btn btn-link text-decoration-none mt-2" style="color: #25D366;">
                                 <i class="fa-brands fa-whatsapp me-2"></i>Contacter l'administrateur
                             </a>
                         </div>

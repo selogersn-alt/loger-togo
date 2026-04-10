@@ -21,6 +21,8 @@ class UserManager(BaseUserManager):
         user.phone_otp = str(random.randint(100000, 999999))
         
         user.save(using=self._db)
+        # Envoi automatique si email présent
+        user.send_otp()
         return user
 
     def create_superuser(self, phone_number, password=None, **extra_fields):
@@ -44,7 +46,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     company_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Nom de l'agence ou de l'entreprise")
     slug = models.SlugField(max_length=200, unique=True, null=True, blank=True, verbose_name="Lien personnalisé")
     coverage_area = models.CharField(max_length=255, null=True, blank=True, verbose_name="Zone de couverture")
+    class NotificationMode(models.TextChoices):
+        SMS = 'SMS', 'SMS uniquement'
+        EMAIL = 'EMAIL', 'E-mail uniquement'
+        BOTH = 'BOTH', 'SMS & E-mail'
+
     role = models.CharField(max_length=20, choices=RoleEnum.choices, default=RoleEnum.TENANT, verbose_name="Statut du compte")
+    notification_preference = models.CharField(max_length=10, choices=NotificationMode.choices, default=NotificationMode.BOTH, verbose_name="Préférence de notification")
     is_verified_pro = models.BooleanField(default=False, verbose_name="Professionnel Vérifié (Badge)")
     # Solvabilité dynamique
     is_solvable = models.BooleanField(default=False)
@@ -88,6 +96,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name or self.company_name or self.phone_number
+
+    def send_otp(self):
+        """Déclenche l'envoi du code OTP selon les préférences."""
+        from logersenegal.emails import send_otp_email
+        if self.phone_otp:
+            # Envoi par Email si configuré
+            if self.notification_preference in ['EMAIL', 'BOTH'] and self.email:
+                send_otp_email(self, self.phone_otp)
+            
+            # Ici on pourrait ajouter l'API SMS plus tard
+            return True
+        return False
 
     def save(self, *args, **kwargs):
         # Génération du slug pour les liens personnalisés

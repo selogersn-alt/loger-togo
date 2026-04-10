@@ -793,6 +793,16 @@ def verify_phone_view(request):
         return redirect('dashboard')
         
     if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'resend_otp':
+            if request.user.email:
+                request.user.send_otp()
+                messages.success(request, f"Un nouveau code a été envoyé à {request.user.email}")
+            else:
+                messages.warning(request, "Veuillez d'abord ajouter un e-mail à votre profil pour recevoir le code automatiquement.")
+            return redirect('verify_phone')
+
         user_code = request.POST.get('otp_code')
         if user_code == request.user.phone_otp:
             request.user.is_phone_verified = True

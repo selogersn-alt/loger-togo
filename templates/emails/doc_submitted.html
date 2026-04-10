@@ -1,0 +1,21 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+    <h2 style="color: #0b4629; margin-bottom: 20px;">Accusé de réception de vos documents</h2>
+    <p>Bonjour {{ user.get_full_name }},</p>
+    <p>Nous vous confirmons la bonne réception de vos documents de solvabilité sur la plateforme Solvable.</p>
+    
+    <p>Nos équipes vont procéder à la vérification de vos pièces sous un délai de 24h à 48h ouvrés. Une fois validés, votre certificat de solvabilité sera activé sur votre profil.</p>
+    
+    <div style="background-color: #fff3cd; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #ffeeba; color: #856404;">
+        <strong>Important :</strong> Ce certificat augmentera considérablement vos chances de validation de dossier auprès des agences immobilières partenaires.
+    </div>
+    
+    <div style="text-align: center;">
+        <a href="{{ site_url }}{% url 'dashboard' %}" class="button">Suivre l'état de mon dossier</a>
+    </div>
+    
+    <p style="margin-top: 30px;">Nous vous contacterons par e-mail ou WhatsApp dès que la vérification sera terminée.</p>
+    
+    <p>Bien cordialement,<br>Le département sécurité Solvable LogerSN.</p>
+{% endblock %}

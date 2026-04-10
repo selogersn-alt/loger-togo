@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Outfit', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .header {
+            background-color: #0b4629;
+            padding: 30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .logo-loger { color: #ffffff; }
+        .logo-senegal { color: #7fd47d; }
+        
+        .content {
+            padding: 40px 30px;
+            line-height: 1.6;
+        }
+        .footer {
+            background-color: #f1f3f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #7fd47d;
+            color: #0b4629 !important;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+        .otp-code {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 5px;
+            color: #0b4629;
+            background-color: #e9f7e9;
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <span class="logo-loger">LOGER</span><span class="logo-senegal">SÉNÉGAL</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div class="footer">
+            &copy; {% now "Y" %} Loger Sénégal - Plateforme de Confiance Immobilière.<br>
+            Vous recevez cet e-mail car vous êtes inscrit sur logersenegal.com.<br>
+            Besoin d'aide ? Contactez-nous sur WhatsApp : +221 76 444 33 13
+        </div>
+    </div>
+</body>
+</html>

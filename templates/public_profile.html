@@ -3,7 +3,17 @@
 
 {% block title %}{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Professionnel Certifié{% endblock %}
 
-{% block content %}
+{% block extra_meta %}
+    <meta property="og:title" content="{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Certifié Loger Sénégal">
+    <meta property="og:description" content="{{ viewed_user.get_role_display }} vérifié sur Solvable. Consultez mes annonces et ma réputation NILS.">
+    {% if viewed_user.profile_picture %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
+        <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
+        <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
+    {% else %}
+        <meta property="og:image" content="https://logersenegal.com/static/img/og_banner.png">
+    {% endif %}
+{% endblock %}
 <div class="container py-5">
     <!-- Header Profil -->
     <div class="card border-0 shadow-lg overflow-hidden mb-5" style="border-radius: 30px; background: var(--bg-card);">

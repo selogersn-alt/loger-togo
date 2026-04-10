@@ -7,19 +7,17 @@
 
 {% block og_title %}{{ property.title }} - Annonce immo à {{ property.neighborhood }}{% endblock %}
 {% block og_description %}{{ property.property_type }} à {{ property.neighborhood }} ({{ property.city }}) | {{ property.price|floatformat:0 }} FCFA{% endblock %}
-{% block og_image %}
-    {% if property.images.first %}
-        {{ request.scheme }}://{{ request.get_host }}{{ property.images.first.image_url.url }}
-    {% else %}
-        {{ block.super }}
-    {% endif %}
-{% endblock %}
-{% block twitter_image %}
-    {% if property.images.first %}
-        {{ request.scheme }}://{{ request.get_host }}{{ property.images.first.image_url.url }}
-    {% else %}
-        {{ block.super }}
-    {% endif %}
+{% block extra_meta %}
+    {% with main_image=property.images.first %}
+        {% if main_image %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
+            <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
+            <meta property="og:image:type" content="image/webp">
+            <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
+        {% else %}
+            <meta property="og:image" content="https://logersenegal.com/static/img/og_banner.png">
+        {% endif %}
+    {% endwith %}
 {% endblock %}
 
 {% block extra_css %}

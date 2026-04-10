@@ -72,8 +72,8 @@ def home_view(request):
         )
 
     # 4. Annonces Classiques
-    featured_properties = Property.objects.filter(is_published=True).order_by('-created_at')[:3]
-    boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('?')[:12]
+    featured_properties = Property.objects.filter(is_published=True).order_by('-created_at')[:6]
+    boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at')[:12]
     
     return render(request, 'home.html', {
         'featured_properties': featured_properties,

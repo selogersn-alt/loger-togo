@@ -15,7 +15,9 @@
             <meta property="og:image:type" content="image/webp">
             <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
         {% else %}
-            <meta property="og:image" content="https://logersenegal.com/static/img/og_banner.png">
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
+            <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
+            <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
         {% endif %}
     {% endwith %}
 {% endblock %}

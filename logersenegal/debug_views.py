@@ -1,4 +1,10 @@
 from django.http import HttpResponse
+from solvable.models import IncidentReport
 
 def debug_view(request):
-    return HttpResponse("<h1>Debug Mode: OK</h1><p>Si vous voyez ceci, Django fonctionne. Le probleme est dans la vue Home ou la base de données.</p>")
+    try:
+        count = IncidentReport.objects.count()
+        return HttpResponse(f"<h1>Debug Mode: OK</h1><p>Connexion BDD OK. Nombre d'incidents : {count}</p>")
+    except Exception as e:
+        import traceback
+        return HttpResponse(f"<h1>Erreur BDD</h1><pre>{traceback.format_exc()}</pre>")

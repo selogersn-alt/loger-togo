@@ -18,6 +18,7 @@ from logersn.constants import COUNTRY_CHOICES
 from users.models import User, NILS_Profile, SearchLog
 from chat.models import Conversation, Message
 from solvable.models import PropertyApplication, RentalFiliation, PaymentHistory, IncidentReport
+from django.core.paginator import Paginator
 
 def home_view(request):
     # 1. Statistiques Globales Solvable (Pour tous les visiteurs)
@@ -73,7 +74,6 @@ def home_view(request):
 
     # 5. Annonces Classiques (PAGINÉES)
     regular_ads_list = Property.objects.filter(is_published=True).exclude(is_boosted=True).order_by('-created_at', '-id')
-    from django.core.paginator import Paginator
     paginator = Paginator(regular_ads_list, 12) # 12 annonces par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

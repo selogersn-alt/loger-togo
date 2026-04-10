@@ -17,12 +17,12 @@ import dj_database_url
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-sentry_sdk.init(
-    dsn="https://placeholder@sentry.io/12345", # À remplacer par le vrai DSN Sentry
-    integrations=[DjangoIntegration()],
-    traces_sample_rate=0.2,
-    send_default_pii=True
-)
+# sentry_sdk.init(
+#     dsn="https://placeholder@sentry.io/12345", # À remplacer par le vrai DSN Sentry
+#     integrations=[DjangoIntegration()],
+#     traces_sample_rate=0.2,
+#     send_default_pii=True
+# )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'chat',
     'ads',
     'drf_spectacular',
+    'pwa',
 ]
 
 SITE_ID = 1
@@ -264,16 +265,16 @@ except ImportError:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- SECURITY & HSTS (SEO & Trust) ---
+# Désactivé temporairement pour débugger l'Erreur 500 sur O2switch
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000 # 1 an
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 0 # 31536000 # 1 an
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False # True
+    SECURE_HSTS_PRELOAD = False # True
+    SECURE_SSL_REDIRECT = False # True
+    SESSION_COOKIE_SECURE = False # True
+    CSRF_COOKIE_SECURE = False # True
 
 # --- PWA CONFIGURATION ---
-INSTALLED_APPS += ['pwa']
 PWA_APP_NAME = 'Solvable Sénégal'
 PWA_APP_SHORT_NAME = 'Solvable'
 PWA_APP_DESCRIPTION = "Plateforme d'Immobilier de Confiance au Sénégal"

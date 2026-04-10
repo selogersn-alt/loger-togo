@@ -25,15 +25,28 @@ except ImportError:
     COUNTRY_CHOICES = []
 
 def home_view(request):
-    # Stats de base ultra-stables
-    stats = {'total_unpaid': 0, 'profiles_flagged': 0, 'resolved_cases': 0, 'active_mediation': 0}
-    recent_incidents = []
+    # Stats de base réelles
+    try:
+        from django.db.models import Sum
+        total_unpaid = IncidentReport.objects.filter(is_validated=True).aggregate(Sum('amount_due'))['amount_due__sum'] or 0
+        stats = {
+            'total_unpaid': total_unpaid,
+            'profiles_flagged': NILS_Profile.objects.count(),
+            'resolved_cases': IncidentReport.objects.filter(status='RESOLVED').count(),
+            'active_mediation': IncidentReport.objects.filter(status='IN_MEDIATION').count(),
+        }
+        recent_incidents = IncidentReport.objects.filter(is_validated=True).order_by('-id')[:5]
+    except:
+        stats = {'total_unpaid': 0, 'profiles_flagged': 0, 'resolved_cases': 0, 'active_mediation': 0}
+        recent_incidents = []
+
     results = None
     
     # Recherche
     name_q = request.GET.get('name_query', '')
     phone_q = request.GET.get('phone_query', '')
     doc_q = request.GET.get('doc_query', '')
+    query_str = name_q or phone_q or doc_q
     
     # Annonces (La correction demandée)
     boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('-id')[:6]
@@ -45,7 +58,7 @@ def home_view(request):
         'stats': stats,
         'recent_incidents': recent_incidents,
         'results': results,
-        'query': name_q or phone_q or doc_q,
+        'query': query_str,
         'countries': COUNTRY_CHOICES
     })
 

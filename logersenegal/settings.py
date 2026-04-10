@@ -165,7 +165,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# Optimisation WhiteNoise (Version souple pour éviter l'erreur 500)
+# Optimisation WhiteNoise (Version souple pour O2switch)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -174,6 +174,10 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
+
+# Forcer WhiteNoise à servir aussi les photos (MEDIA)
+WHITENOISE_ROOT = str(MEDIA_ROOT)
+WHITENOISE_INDEX_FILE = False
 
 # STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 

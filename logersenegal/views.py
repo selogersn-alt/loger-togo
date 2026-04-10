@@ -448,16 +448,18 @@ def password_recovery_view(request):
 def password_reset_confirm_view(request, uidb64, token):
     """Interface Frontend pour définir un nouveau mot de passe."""
     from users.models import User
+    from django.utils.encoding import force_str
+    from django.utils.http import urlsafe_base64_decode
+    from django.contrib.auth.tokens import default_token_generator
+    
     try:
-        from django.utils.encoding import force_str
-        from django.utils.http import urlsafe_base64_decode
-        from django.contrib.auth.tokens import default_token_generator
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist, Exception):
+        messages.error(request, "Lien de réinitialisation invalide.")
+        return redirect('password_recovery')
 
-    if user is not None and default_token_generator.check_token(user, token):
+    if default_token_generator.check_token(user, token):
         if request.method == 'POST':
             new_password = request.POST.get('password')
             confirm_password = request.POST.get('confirm_password')
@@ -471,9 +473,13 @@ def password_reset_confirm_view(request, uidb64, token):
             else:
                 messages.error(request, "Les mots de passe ne correspondent pas.")
         
-        return render(request, 'password_reset_confirm_public.html', {'uidb64': uidb64, 'token': token})
+        return render(request, 'password_reset_confirm_public.html', {
+            'uidb64': uidb64, 
+            'token': token,
+            'reset_user': user
+        })
     else:
-        messages.error(request, "Lien invalide ou expiré.")
+        messages.error(request, "Lien de réinitialisation expiré ou déjà utilisé.")
         return redirect('password_recovery')
 
 @login_required

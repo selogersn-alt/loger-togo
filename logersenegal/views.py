@@ -67,13 +67,19 @@ def home_view(request):
             results_found=results.count() if results else 0,
             ip_address=request.META.get('REMOTE_ADDR')
         )
-
-    # 4. Annonces Classiques
-    featured_properties = Property.objects.filter(is_published=True).order_by('-created_at', '-id')[:6]
+    
+    # 4. Annonces Boostées (Toujours en haut)
     boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:12]
+
+    # 5. Annonces Classiques (PAGINÉES)
+    regular_ads_list = Property.objects.filter(is_published=True).exclude(is_boosted=True).order_by('-created_at', '-id')
+    from django.core.paginator import Paginator
+    paginator = Paginator(regular_ads_list, 12) # 12 annonces par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     return render(request, 'home.html', {
-        'featured_properties': featured_properties,
+        'page_obj': page_obj,
         'boosted_properties': boosted_properties,
         'stats': stats,
         'recent_incidents': recent_incidents,

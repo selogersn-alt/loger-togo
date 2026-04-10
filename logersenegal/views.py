@@ -20,34 +20,41 @@ from chat.models import Conversation, Message
 from solvable.models import PropertyApplication, RentalFiliation, PaymentHistory, IncidentReport
 
 def home_view(request):
-    # 1. Statistiques Globales Solvable (Pour tous les visiteurs)
-    stats = {
-        'total_unpaid': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IMPACTED, is_validated=True).aggregate(Sum('amount_due'))['amount_due__sum'] or 0,
-        'profiles_flagged': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IMPACTED, is_validated=True).values('reported_tenant').distinct().count(),
-        'resolved_cases': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.RESOLVED).count(),
-        'active_mediation': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IN_MEDIATION).count(),
-    }
-    
-    # 2. Bande passante (Ticker) des nouveaux signalements (Anonymisé pour le public)
-    recent_incidents = IncidentReport.objects.filter(is_validated=True).order_by('-created_at')[:10]
+    # Stats groupées pour minimiser les requêtes
+    try:
+        stats = {
+            'total_unpaid': IncidentReport.objects.filter(
+                status=IncidentReport.StatusEnum.IMPACTED, is_validated=True
+            ).aggregate(Sum('amount_due'))['amount_due__sum'] or 0,
+            'profiles_flagged': IncidentReport.objects.filter(
+                status=IncidentReport.StatusEnum.IMPACTED, is_validated=True
+            ).values('reported_tenant').distinct().count(),
+            'resolved_cases': IncidentReport.objects.filter(
+                status=IncidentReport.StatusEnum.RESOLVED
+            ).count(),
+            'active_mediation': IncidentReport.objects.filter(
+                status=IncidentReport.StatusEnum.IN_MEDIATION
+            ).count(),
+        }
+        recent_incidents = IncidentReport.objects.filter(
+            is_validated=True
+        ).only('id', 'amount_due', 'status', 'created_at').order_by('-created_at')[:5]
+    except Exception:
+        stats = {'total_unpaid': 0, 'profiles_flagged': 0, 'resolved_cases': 0, 'active_mediation': 0}
+        recent_incidents = []
 
-    # 3. Logique de Recherche Chirurgicale (Sécurisée : Uniquement pour Pros connectés)
+    # Recherche NILS (uniquement si paramètres présents)
     name_q = request.GET.get('name_query', '').strip()
     phone_q = request.GET.get('phone_query', '').strip()
     doc_q = request.GET.get('doc_query', '').strip()
     country_q = request.GET.get('country_query', '').strip()
-    
-    query = name_q or phone_q or doc_q # Toujours défini pour le template
+    query = name_q or phone_q or doc_q
     results = None
-    query_triggered = False
-    
+
     if name_q or phone_q or doc_q:
-        query_triggered = True
-        # SECURITE AUDIT : Vérifier si l'utilisateur est un pro
         if not request.user.is_authenticated or (request.user.role == 'TENANT' and not request.user.is_staff):
-            messages.warning(request, "L'accès aux données de solvabilité NILS est réservé aux bailleurs et agences identifiés. Veuillez vous connecter.")
+            messages.warning(request, "L'accès aux données de solvabilité NILS est réservé aux bailleurs et agences identifiés.")
             return redirect('login')
-            
         filters = Q()
         if name_q:
             filters &= (Q(user__first_name__icontains=name_q) | Q(user__last_name__icontains=name_q))
@@ -57,23 +64,33 @@ def home_view(request):
             filters &= Q(user__cni_number__icontains=doc_q)
         if country_q:
             filters &= Q(user__document_country=country_q)
-            
-        results = NILS_Profile.objects.filter(filters).distinct()
-        
-        # --- SECURITY LOGGING ---
-        SearchLog.objects.create(
-            searcher=request.user,
-            query=f"HOME|N:{name_q}|T:{phone_q}|D:{doc_q}|C:{country_q}",
-            results_found=results.count() if results else 0,
-            ip_address=request.META.get('REMOTE_ADDR')
-        )
-    
-    # 4. Annonces Boostées
-    boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:12]
+        results = NILS_Profile.objects.filter(filters).distinct()[:20]
+        try:
+            SearchLog.objects.create(
+                searcher=request.user,
+                query=f"HOME|N:{name_q}|T:{phone_q}|D:{doc_q}|C:{country_q}",
+                results_found=results.count() if results else 0,
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+        except Exception:
+            pass
 
-    # 5. Annonces Classiques
-    properties = Property.objects.filter(is_published=True).exclude(is_boosted=True).order_by('-created_at', '-id')[:24]
-    
+    # Annonces — limites strictes pour O2switch
+    try:
+        boosted_properties = Property.objects.filter(
+            is_published=True, is_boosted=True
+        ).only('id', 'title', 'price', 'city', 'slug', 'property_type', 'transaction_type'
+        ).order_by('-id')[:6]
+
+        properties = Property.objects.filter(
+            is_published=True
+        ).exclude(is_boosted=True).only(
+            'id', 'title', 'price', 'city', 'slug', 'property_type', 'transaction_type'
+        ).order_by('-id')[:12]
+    except Exception:
+        boosted_properties = []
+        properties = []
+
     return render(request, 'home.html', {
         'properties': properties,
         'boosted_properties': boosted_properties,

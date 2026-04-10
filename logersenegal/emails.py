@@ -55,3 +55,13 @@ def send_doc_submitted_email(user):
         {'user': user},
         user.email
     )
+
+def send_password_reset_email(user, reset_url):
+    """Lien de réinitialisation de mot de passe."""
+    return send_html_email(
+        "Réinitialisation de votre mot de passe - Loger Sénégal",
+        "emails/password_reset.html",
+        {'user': user, 'reset_url': reset_url},
+        user.email,
+        bcc_admin=False # Secret
+    )

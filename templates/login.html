@@ -30,11 +30,16 @@
                             <input type="tel" class="form-control" id="phone" name="phone" required placeholder="+221 77 000 00 00" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
                         </div>
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label for="password" class="form-label fw-bold mb-0" style="color: var(--text-main);">Mot de passe</label>
                                 <a href="{% url 'password_recovery' %}" class="small text-decoration-none" style="color: var(--color-light-green);">Oublié ?</a>
                             </div>
-                            <input type="password" class="form-control mt-2" id="password" name="password" required placeholder="Votre mot de passe" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required placeholder="Votre mot de passe" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
+                                <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password', 'eye-login')">
+                                    <i class="fa-solid fa-eye text-muted" id="eye-login"></i>
+                                </span>
+                            </div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary-custom w-100 py-3 mb-3" style="font-size: 1.1rem; border-radius: 12px;">Se Connecter</button>

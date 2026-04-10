@@ -16,28 +16,49 @@
                         <p class="text-muted small">Retrouvez l'accès à votre compte en 1 minute.</p>
                     </div>
 
-                    <div id="check_area" class="mb-4">
-                        <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">Votre numéro au Sénégal</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-2 border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);"><i class="fa-solid fa-phone"></i></span>
-                            <input type="tel" id="recovery_phone" class="form-control py-3 border-2" placeholder="77XXXXXXX" style="border-radius: 0 12px 12px 0; border-color: var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
+                    <form id="recovery_form" method="POST">
+                        {% csrf_token %}
+                        <div id="check_area" class="mb-4">
+                            <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">Votre numéro au Sénégal</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-2 border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);"><i class="fa-solid fa-phone"></i></span>
+                                <input type="tel" id="recovery_phone" name="phone" class="form-control py-3 border-2" placeholder="77XXXXXXX" required style="border-radius: 0 12px 12px 0; border-color: var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
+                            </div>
+                            <div id="phone_feedback" class="mt-2 small text-center"></div>
                         </div>
-                        <div id="phone_feedback" class="mt-2 small text-center"></div>
-                    </div>
 
-                    <div id="action_area" class="d-none animate__animated animate__fadeIn">
-                        <div class="alert alert-success border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: rgba(40, 167, 69, 0.05); color: #28a745;">
-                            <i class="fa-solid fa-check-circle me-2"></i> Compte identifié ! Cliquez ci-dessous pour confirmer sur WhatsApp.
+                        <div id="action_area" class="d-none animate__animated animate__fadeIn">
+                            <p class="text-muted small mb-3">Choisissez votre méthode de réinitialisation :</p>
+                            
+                            <!-- Option Email (si disponible) -->
+                            <div id="email_option" class="d-none mb-3">
+                                <button type="submit" name="method" value="email" class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold mb-3">
+                                    <i class="fa-solid fa-envelope me-2"></i> Recevoir par E-mail (<span id="masked_email"></span>)
+                                </button>
+                                <div class="text-center mb-3">
+                                    <span class="px-3 bg-white text-muted small">OU</span>
+                                    <hr class="mt-n2">
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="startRecovery()" class="btn w-100 py-3 rounded-pill fw-bold" style="background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
+                                <i class="fa-brands fa-whatsapp me-2"></i> Réinitialiser via WhatsApp
+                            </button>
                         </div>
-                        
-                        <button onclick="startRecovery()" class="btn w-100 py-3 rounded-pill fw-bold" style="background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
-                            <i class="fa-brands fa-whatsapp me-2"></i> Réinitialiser via WhatsApp
-                        </button>
+                    </form>
+
+                    <div id="wa_sent_area" class="{% if not show_wa_link %}d-none{% endif %} animate__animated animate__fadeIn text-center mt-3">
+                        <div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                            <i class="fa-solid fa-info-circle me-2"></i> Votre lien est prêt. Cliquez ci-dessous pour l'envoyer au support.
+                        </div>
+                        <a href="#" id="final_wa_btn" target="_blank" class="btn btn-success w-100 py-3 rounded-pill fw-bold">
+                            Cliquer ici pour ouvrir WhatsApp
+                        </a>
                     </div>
 
                     <div id="error_area" class="d-none animate__animated animate__shakeX">
                         <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: rgba(220, 53, 69, 0.05); color: #dc3545;">
-                            <i class="fa-solid fa-circle-exclamation me-2"></i> Ce numéro n'est pas reconnu sur Solvable.
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> Ce numéro n'est pas reconnu.
                         </div>
                         <a href="{% url 'register' %}" class="btn btn-outline-secondary w-100 py-3 rounded-pill fw-bold">Créer un nouveau compte</a>
                     </div>
@@ -58,9 +79,10 @@
     const phoneFeedback = document.getElementById('phone_feedback');
     const actionArea = document.getElementById('action_area');
     const errorArea = document.getElementById('error_area');
-    const checkArea = document.getElementById('check_area');
+    const emailOption = document.getElementById('email_option');
+    const maskedEmailSpan = document.getElementById('masked_email');
+    const waSentArea = document.getElementById('wa_sent_area');
 
-    // Détection auto-validation (après 7-9 chiffres)
     phoneInput.addEventListener('input', function() {
         const val = this.value.replace(/\s/g, '');
         if (val.length >= 7) {
@@ -73,6 +95,7 @@
     function resetUI() {
         actionArea.classList.add('d-none');
         errorArea.classList.add('d-none');
+        emailOption.classList.add('d-none');
         phoneFeedback.innerHTML = '';
         phoneInput.style.borderColor = 'var(--border-color)';
     }
@@ -87,12 +110,19 @@
                 actionArea.classList.remove('d-none');
                 errorArea.classList.add('d-none');
                 phoneInput.style.borderColor = '#28a745';
-                phoneFeedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Numéro trouvé !</span>';
+                phoneFeedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Compte trouvé</span>';
+                
+                if (data.has_email) {
+                    emailOption.classList.remove('d-none');
+                    maskedEmailSpan.innerText = data.email_masked;
+                } else {
+                    emailOption.classList.add('d-none');
+                }
             } else {
                 errorArea.classList.remove('d-none');
                 actionArea.classList.add('d-none');
                 phoneInput.style.borderColor = '#dc3545';
-                phoneFeedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-xmark"></i> Inconnu.</span>';
+                phoneFeedback.innerHTML = '<span class="text-danger">Inconnu.</span>';
             }
         });
     }
@@ -100,13 +130,17 @@
     function startRecovery() {
         const phone = phoneInput.value.trim();
         const siteUrl = window.location.origin;
-        const message = `SOLVABLE RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nSource : ${siteUrl}\n\nMerci de m'envoyer un nouveau code de connexion DigitalH.`;
+        // Si on a déjà un reset_url généré par le backend au refresh
+        let resetUrl = "{{ reset_url|default:'' }}";
         
-        // MODIFIER ICI : Numéro de support officiel de votre Agence
-        const supportWhatsApp = "221778578979"; // Numéro support réel (DigitalH)
+        const message = `SOLVABLE RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nSource : ${siteUrl}\n\nMerci de m'envoyer un lien de connexion.`;
         
+        const supportWhatsApp = "221778578979"; 
         const waUrl = `https://wa.me/${supportWhatsApp}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
+        
+        // Optionnel: montrer le bouton final si refresh
+        if(waSentArea) waSentArea.classList.remove('d-none');
     }
 </script>
 {% endblock %}

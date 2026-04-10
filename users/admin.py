@@ -12,7 +12,7 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('phone_number', 'first_name', 'last_name', 'role', 'phone_otp', 'is_phone_verified', 'is_verified_pro', 'is_active')
     search_fields = ('email', 'phone_number', 'company_name', 'first_name', 'last_name', 'phone_otp')
     list_filter = ('role', 'is_verified_pro', 'is_active', 'is_staff', 'is_phone_verified')
-    actions = ['verify_professionals', 'revoke_professionals', 'generate_recovery_code', 'send_otp_whatsapp', 'generate_frontend_reset_link']
+    actions = ['verify_professionals', 'revoke_professionals', 'generate_recovery_code', 'send_otp_whatsapp', 'send_otp_email', 'generate_frontend_reset_link', 'send_reset_link_email']
     ordering = ('-date_joined',)
     
     fieldsets = (
@@ -97,6 +97,49 @@ class UserAdmin(BaseUserAdmin):
                 'Code OTP ({}) prêt pour {}. <a href="{}" target="_blank" style="background-color: #25D366; color: white; padding: 5px 12px; border-radius: 5px; text-decoration: none; margin-left: 10px; font-weight: bold;"><i class="fa-brands fa-whatsapp"></i> Envoyer le code</a>',
                 user.phone_otp, user.phone_number, wa_url
             ))
+
+    @admin.action(description="📩 Envoyer le Code OTP actuel via E-mail")
+    def send_otp_email(self, request, queryset):
+        count = 0
+        for user in queryset:
+            if user.email:
+                if not user.phone_otp:
+                    import random
+                    user.phone_otp = str(random.randint(100000, 999999))
+                    user.save()
+                
+                from logersenegal.emails import send_otp_email
+                send_otp_email(user, user.phone_otp)
+                count += 1
+            else:
+                self.message_user(request, f"L'utilisateur {user.phone_number} n'a pas d'adresse e-mail.", level='warning')
+        
+        if count:
+            self.message_user(request, f"{count} codes OTP envoyés par e-mail.")
+
+    @admin.action(description="📧 Envoyer Lien de Réinitialisation par E-mail (Auto)")
+    def send_reset_link_email(self, request, queryset):
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        from django.urls import reverse
+        from logersenegal.emails import send_password_reset_email
+        
+        count = 0
+        for user in queryset:
+            if user.email:
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                reset_url = request.build_absolute_uri(
+                    reverse('password_reset_confirm_public', kwargs={'uidb64': uid, 'token': token})
+                )
+                send_password_reset_email(user, reset_url)
+                count += 1
+            else:
+                self.message_user(request, f"L'utilisateur {user.phone_number} n'a pas d'adresse e-mail.", level='warning')
+        
+        if count:
+            self.message_user(request, f"{count} liens de réinitialisation envoyés par e-mail.")
 
     @admin.action(description="Accorder le badge de Professionnel Vérifié")
     def verify_professionals(self, request, queryset):

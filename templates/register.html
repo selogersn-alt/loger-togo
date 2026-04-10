@@ -70,11 +70,21 @@
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3 mb-md-0">
                                 <label for="password" class="form-label fw-bold" style="color: var(--text-main);">Mot de passe</label>
-                                <input type="password" class="form-control" id="password" name="password" required placeholder="Minimum 8 caractères" minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required placeholder="Min. 8 car." minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
+                                    <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password', 'eye-reg')">
+                                        <i class="fa-solid fa-eye text-muted" id="eye-reg"></i>
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="password_confirm" class="form-label fw-bold" style="color: var(--text-main);">Confirmer le mot de passe</label>
-                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" required placeholder="Répéter le mot de passe" minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                                <label for="password_confirm" class="form-label fw-bold" style="color: var(--text-main);">Confirmation</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password_confirm" name="password_confirm" required placeholder="Répéter" minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
+                                    <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password_confirm', 'eye-reg-conf')">
+                                        <i class="fa-solid fa-eye text-muted" id="eye-reg-conf"></i>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         

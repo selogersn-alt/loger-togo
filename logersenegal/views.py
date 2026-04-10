@@ -404,13 +404,50 @@ def payment_success_view(request, transaction_id):
 def password_recovery_view(request):
     phone = request.GET.get('phone', '').strip()
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and phone:
-        user_exists = User.objects.filter(phone_number__icontains=phone).exists()
-        return JsonResponse({'exists': user_exists})
+        from users.models import User
+        user = User.objects.filter(phone_number__icontains=phone).first()
+        if user:
+            return JsonResponse({
+                'exists': True, 
+                'has_email': bool(user.email),
+                'email_masked': (user.email[:3] + '****' + user.email[user.email.find('@'):]) if user.email else ''
+            })
+        return JsonResponse({'exists': False})
+
+    if request.method == 'POST':
+        phone = request.POST.get('phone', '').strip()
+        method = request.POST.get('method', 'whatsapp') 
         
+        from users.models import User
+        user = User.objects.filter(phone_number__icontains=phone).first()
+        
+        if user:
+            from django.utils.http import urlsafe_base64_encode
+            from django.utils.encoding import force_bytes
+            from django.contrib.auth.tokens import default_token_generator
+            from .emails import send_password_reset_email
+            
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = request.build_absolute_uri(
+                reverse('password_reset_confirm_public', kwargs={'uidb64': uid, 'token': token})
+            )
+
+            if method == 'email' and user.email:
+                send_password_reset_email(user, reset_url)
+                messages.success(request, f"Un lien de réinitialisation sécurisé a été envoyé à l'adresse {user.email}")
+                return redirect('login')
+            else:
+                # On prépare pour le template
+                return render(request, 'recovery.html', {'phone': phone, 'show_wa_link': True, 'reset_url': reset_url})
+        else:
+            messages.error(request, "Numéro de téléphone inconnu.")
+            
     return render(request, 'recovery.html')
 
 def password_reset_confirm_view(request, uidb64, token):
-    """Interface Frontend pour définir un nouveau mot de passe après réception du lien WhatsApp."""
+    """Interface Frontend pour définir un nouveau mot de passe."""
+    from users.models import User
     try:
         from django.utils.encoding import force_str
         from django.utils.http import urlsafe_base64_decode
@@ -427,36 +464,45 @@ def password_reset_confirm_view(request, uidb64, token):
             
             if new_password and new_password == confirm_password:
                 user.set_password(new_password)
+                user.is_phone_verified = True
                 user.save()
-                messages.success(request, "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.")
+                messages.success(request, "Mot de passe réinitialisé ! Vous pouvez vous connecter.")
                 return redirect('login')
             else:
-                messages.error(request, "Les mots de passe ne correspondent pas ou sont invalides.")
+                messages.error(request, "Les mots de passe ne correspondent pas.")
         
-        return render(request, 'password_reset_confirm_public.html', {'user': user})
+        return render(request, 'password_reset_confirm_public.html', {'uidb64': uidb64, 'token': token})
     else:
-        messages.error(request, "Le lien de réinitialisation est invalide ou a expiré.")
-        return redirect('recovery')
+        messages.error(request, "Lien invalide ou expiré.")
+        return redirect('password_recovery')
 
 @login_required
 def admin_generate_reset_link(request, user_id):
-    """Génère un lien de réinitialisation pour l'administrateur à envoyer manuellement via WhatsApp."""
+    """Génère un lien de réinitialisation. Option email=1 pour envoi direct."""
     from django.utils.http import urlsafe_base64_encode
     from django.utils.encoding import force_bytes
     from django.contrib.auth.tokens import default_token_generator
+    from .emails import send_password_reset_email
     
     if not request.user.is_staff:
         return JsonResponse({'error': 'Accès interdit'}, status=403)
         
+    from users.models import User
     user = get_object_or_404(User, pk=user_id)
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     
-    # Construire l'URL absolue
+    # Construire l'URL absolue (en utilisant le nom public pour les utilisateurs)
     reset_url = request.build_absolute_uri(
         reverse('password_reset_confirm_public', kwargs={'uidb64': uid, 'token': token})
     )
     
+    # Option Envoi Direct par Email
+    if request.GET.get('email') == '1' and user.email:
+        send_password_reset_email(user, reset_url)
+        messages.success(request, f"Lien de réinitialisation envoyé par e-mail à {user.email}")
+        return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
     return JsonResponse({'reset_url': reset_url, 'phone': user.phone_number})
 
 @login_required

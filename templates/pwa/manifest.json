@@ -1,6 +1,5 @@
-{
   "name": "Loger Sénégal",
-  "short_name": "LogerSN",
+  "short_name": "Loger Sén",
   "description": "Trouvez votre logement idéal au Sénégal. Annonces certifiées et vérification NILS.",
   "start_url": "/",
   "display": "standalone",

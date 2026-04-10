@@ -265,27 +265,18 @@
     <div class="hero-shape"></div>
     <div class="container">
         <div class="row align-items-center mb-5">
-            <div class="col-lg-7 text-center text-lg-start">
+            <div class="col-lg-12 text-center text-lg-start">
                 <div class="hero-content position-relative">
                     <span class="badge bg-danger rounded-pill px-3 py-2 mb-3 shadow-sm animate__animated animate__fadeInDown">
                         <i class="fa-solid fa-shield-halved me-1"></i> Système National de Solvabilité
                     </span>
                     <h1 class="hero-title">Vérifiez la <span>Solvabilité</span> de vos futurs locataires.</h1>
                     <p class="hero-subtitle mb-4">Recherchez instantanément dans la base NILS par Nom, Téléphone, CNI ou Passeport pour sécuriser vos revenus locatifs.</p>
-                    
-                    <!-- Illustration de marque -->
-                    <div class="d-none d-lg-block position-absolute" style="right: -100px; top: -50px; opacity: 0.15; z-index: -1;">
-                        <img src="{% static 'img/og_banner.png' %}" alt="" style="width: 400px; filter: grayscale(1);">
-                    </div>
                 </div>
             </div>
             
-            <div class="col-lg-5">
+            <div class="col-lg-12">
                 <div class="position-relative">
-                    <!-- Image Flottante Premium -->
-                    <img src="{% static 'img/og_banner.png' %}" alt="NILS Protection" 
-                         class="img-fluid d-none d-lg-block floating-banner animate__animated animate__fadeInRight"
-                         style="width: 250px; position: absolute; top: -120px; right: -20px; z-index: 10;">
                 <!-- LE MOTEUR NILS -->
                 <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 30px; background-color: var(--bg-card); border: 1px solid var(--border-color) !important;">
                     <form method="get" action="{% url 'home' %}">
@@ -617,12 +608,8 @@
     </div>
 </section>
 
-<section class="py-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--color-dark-green), #000); color: white;">
-    <!-- Filigrane de marque -->
-    <img src="{% static 'img/logo_nils.png' %}" alt="" 
-         style="position: absolute; right: -50px; bottom: -50px; width: 400px; opacity: 0.1; transform: rotate(-15deg); pointer-events: none;">
-    
-    <div class="container py-4 position-relative" style="z-index: 2;">
+<section class="py-5" style="background: linear-gradient(135deg, var(--color-dark-green), #083820); color: white;">
+    <div class="container py-4">
         <div class="row align-items-center">
             <div class="col-lg-6 mb-5 mb-lg-0">
                 <span class="badge mb-3 px-3 py-2 rounded-pill" style="background: rgba(127, 212, 125, 0.2); color: var(--color-light-green); border: 1px solid rgba(127, 212, 125, 0.3);">PORTAIL DE CONFIANCE</span>

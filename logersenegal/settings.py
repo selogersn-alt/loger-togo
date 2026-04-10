@@ -161,6 +161,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Email Configuration (O2switch SMTP gratuit)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

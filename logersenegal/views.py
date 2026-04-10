@@ -1,28 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
+from django.db.models import Sum, Count, Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 import datetime
-from logersn.models import Property
-from logersn.forms import PropertyForm
-from users.models import User, NILS_Profile
-from chat.models import Conversation, Message
-from solvable.models import PropertyApplication, RentalFiliation, PaymentHistory
-from logersn.models import Favorite
 from django.http import JsonResponse
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 
+from logersn.models import Property, Favorite
+from logersn.forms import PropertyForm
+from logersn.constants import COUNTRY_CHOICES
+from users.models import User, NILS_Profile, SearchLog
+from chat.models import Conversation, Message
+from solvable.models import PropertyApplication, RentalFiliation, PaymentHistory, IncidentReport
+
 def home_view(request):
-    from django.db.models import Sum, Count, Q
-    from solvable.models import IncidentReport
-    from users.models import NILS_Profile, SearchLog
-    from logersn.constants import COUNTRY_CHOICES  # On aura besoin des pays pour le moteur
-    
     # 1. Statistiques Globales Solvable (Pour tous les visiteurs)
     stats = {
         'total_unpaid': IncidentReport.objects.filter(status=IncidentReport.StatusEnum.IMPACTED, is_validated=True).aggregate(Sum('amount_due'))['amount_due__sum'] or 0,

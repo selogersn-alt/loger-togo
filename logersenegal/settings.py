@@ -168,7 +168,7 @@ EMAIL_HOST = 'mail.logersenegal.com'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'solvable@logersenegal.com'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'aCxWSttmi5cf7-5')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '-P7GvVHJ2RmjnTG')
 DEFAULT_FROM_EMAIL = 'Solvable Loger Sénégal <solvable@logersenegal.com>'
 SERVER_EMAIL = 'solvable@logersenegal.com'
 

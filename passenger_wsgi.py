@@ -2,27 +2,34 @@ import os
 import sys
 import traceback
 
+# RESET DU LOG POUR ETRE SUR DE CE QU'ON VOIT
+with open(os.path.join(os.path.dirname(__file__), 'debug_global.log'), 'w') as f:
+    f.write(f"--- RESTART LOG {os.getcwd()} ---\n")
+
 def log_debug(msg):
     with open(os.path.join(os.path.dirname(__file__), 'debug_global.log'), 'a') as f:
         f.write(f"--- {msg} ---\n")
 
 try:
+    log_debug("GLOBAL: Setting up sys.path")
     sys.path.insert(0, os.path.dirname(__file__))
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'logersenegal.settings')
+    
+    log_debug("GLOBAL: django.setup()")
     import django
     django.setup()
+    
+    log_debug("GLOBAL: get_wsgi_application()")
     from django.core.wsgi import get_wsgi_application
     django_instance = get_wsgi_application()
-    log_debug("GLOBAL: Django instance created")
+    log_debug("GLOBAL: Instance OK")
 except Exception as e:
     log_debug(f"GLOBAL ERROR: {traceback.format_exc()}")
 
 def application(environ, start_response):
     log_debug("APP: application() called")
     try:
-        log_debug("APP: Calling django_instance")
         response = django_instance(environ, start_response)
-        log_debug("APP: Iterating response")
         return [chunk for chunk in response]
     except Exception:
         error_info = traceback.format_exc()

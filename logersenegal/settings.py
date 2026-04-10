@@ -35,7 +35,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^gda*3#uhe6a6$lb#l23y*=_m-9%c&54(!pp*(rp_v%pn@^%gx'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['logersenegal.com', 'www.logersenegal.com', 'solvable-sn.onrender.com']
 SITE_URL = 'https://logersenegal.com'
@@ -172,7 +172,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Email Configuration (O2switch SMTP gratuit)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

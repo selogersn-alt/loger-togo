@@ -14,24 +14,26 @@ from django.utils.encoding import force_bytes, force_str
 
 from logersn.models import Property, Favorite
 from logersn.forms import PropertyForm
-from logersn.constants import COUNTRY_CHOICES
 from users.models import User, NILS_Profile, SearchLog
 from chat.models import Conversation, Message
 from solvable.models import PropertyApplication, RentalFiliation, PaymentHistory, IncidentReport
-from django_countries import countries as COUNTRY_CHOICES
+
+# Import sécurisé de django-countries
+try:
+    from django_countries import countries as COUNTRY_CHOICES
+except ImportError:
+    COUNTRY_CHOICES = []
 
 def home_view(request):
-    # Les modèles sont déjà importés au-dessus
-    
-    # Stats de base
+    # Stats de base ultra-stables
     stats = {'total_unpaid': 0, 'profiles_flagged': 0, 'resolved_cases': 0, 'active_mediation': 0}
     recent_incidents = []
+    results = None
     
-    # Recherche NILS simplifiée
+    # Recherche
     name_q = request.GET.get('name_query', '')
     phone_q = request.GET.get('phone_query', '')
     doc_q = request.GET.get('doc_query', '')
-    results = None
     
     # Annonces (La correction demandée)
     boosted_properties = Property.objects.filter(is_published=True, is_boosted=True).order_by('-id')[:6]

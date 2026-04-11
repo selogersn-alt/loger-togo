@@ -92,7 +92,7 @@ def generate_receipt_pdf(payment):
     c.setStrokeColor(colors.lightgrey)
     c.line(2 * cm, 2 * cm, width - 2 * cm, 2 * cm)
     c.setFont("Helvetica-Oblique", 8)
-    c.drawCentredString(width / 2.0, 1.5 * cm, "Document généré électroniquement par Solvable (www.solvable.sn)")
+    c.drawCentredString(width / 2.0, 1.5 * cm, "Document généré électroniquement par Solvable - Loger Sénégal")
     
     c.showPage()
     c.save()

@@ -109,26 +109,7 @@ class PropertyImage(models.Model):
     is_primary = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        if is_new and self.image_url:
-            try:
-                img = Image.open(self.image_url)
-                if img.mode in ("RGBA", "P"):
-                    img = img.convert("RGB")
-                    
-                # Redimensionnement max 1920x1080
-                max_size = (1920, 1080)
-                img.thumbnail(max_size, Image.Resampling.LANCZOS)
-                
-                output = io.BytesIO()
-                img.save(output, format='WEBP', quality=80, method=6)
-                output.seek(0)
-                
-                # Remplacer le nom par un .webp propre
-                base_name = self.image_url.name.rsplit('.', 1)[0].split('/')[-1]
-                self.image_url.save(f"{base_name}.webp", ContentFile(output.read()), save=False)
-            except Exception:
-                pass
+        """Standard save to ensure reliability on O2switch."""
         super().save(*args, **kwargs)
 
     def __str__(self):

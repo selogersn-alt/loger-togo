@@ -50,13 +50,15 @@ def home_view(request):
     
     from django.core.paginator import Paginator
 
-    # Slider : Toutes les annonces boostées (sans filtre is_published)
+    # Slider : Uniquement les annonces boostées ET VALIDÉES
     boosted_properties = Property.objects.filter(
-        is_boosted=True
+        is_boosted=True,
+        is_published=True
     ).select_related('owner').prefetch_related('images').order_by('-created_at')
 
-    # Liste paginée : TOUTES les annonces du plus récent au plus ancien
-    all_properties = Property.objects.all(
+    # Liste paginée : Uniquement les annonces VALIDÉES
+    all_properties = Property.objects.filter(
+        is_published=True
     ).select_related('owner').prefetch_related('images').order_by('-created_at')
 
     paginator = Paginator(all_properties, 12)
@@ -161,9 +163,14 @@ def properties_list_view(request):
     
     return render(request, 'properties_list.html', context)
 
-def property_detail_view(request, property_id):
-    # Récupère l'annonce par son ID unique de base de données (UUID)
-    property_obj = get_object_or_404(Property, id=property_id, is_published=True)
+    # Récupère l'annonce par son ID unique
+    property_obj = get_object_or_404(Property, id=property_id)
+    
+    # Sécurité : Si l'annonce n'est pas publiée, SEUL l'admin ou le propriétaire peut la voir
+    if not property_obj.is_published:
+        if not (request.user.is_authenticated and (request.user == property_obj.owner or request.user.is_staff)):
+            from django.http import Http404
+            raise Http404("Cette annonce est en attente de validation par l'administrateur.")
     
     # Incrémentation des statistiques de vue (Analytics)
     property_obj.views_count += 1

@@ -66,9 +66,14 @@ def home_view(request):
     except Exception:
         page_obj = paginator.page(1)
 
+    # Professionnels à la Une
+    from users.models import User
+    featured_pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('?')[:10]
+
     return render(request, 'home.html', {
         'page_obj': page_obj,
         'boosted_properties': boosted_properties,
+        'featured_pros': featured_pros,
         'stats': stats,
         'recent_incidents': recent_incidents,
         'results': results,

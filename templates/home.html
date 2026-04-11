@@ -260,18 +260,19 @@
     </div>
 </div>
 
-<!-- NILS SEARCH HUB (HERO) -->
-<section class="hero-section py-5" style="background: linear-gradient(180deg, var(--bg-body) 0%, var(--bg-card) 100%);">
-    <div class="hero-shape"></div>
-    <div class="container">
+<section class="hero-section py-5 position-relative" style="background: url('{% static 'img/og_banner.png' %}') center/cover no-repeat; min-height: 500px; display: flex; align-items: center;">
+    <!-- Overlay pour lisibilité -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8));"></div>
+    
+    <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center mb-5">
             <div class="col-lg-12 text-center text-lg-start">
-                <div class="hero-content position-relative">
+                <div class="hero-content">
                     <span class="badge bg-danger rounded-pill px-3 py-2 mb-3 shadow-sm animate__animated animate__fadeInDown">
                         <i class="fa-solid fa-shield-halved me-1"></i> Système National de Solvabilité
                     </span>
-                    <h1 class="hero-title">Vérifiez la <span>Solvabilité</span> de vos futurs locataires.</h1>
-                    <p class="hero-subtitle mb-4">Recherchez instantanément dans la base NILS par Nom, Téléphone, CNI ou Passeport pour sécuriser vos revenus locatifs.</p>
+                    <h1 class="hero-title text-white">Vérifiez la <span>Solvabilité</span> de vos futurs locataires.</h1>
+                    <p class="hero-subtitle text-white opacity-75 mb-4">Recherchez instantanément dans la base NILS par Nom, Téléphone, CNI ou Passeport pour sécuriser vos revenus locatifs.</p>
                 </div>
             </div>
             
@@ -425,14 +426,14 @@
         </div>
         <div class="marquee-wrapper">
             <div class="marquee-track">
-                {# Premier passage #}
+                {# Double boucle pour effet infini parfait #}
                 {% for prop in boosted_properties %}
-                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-sm" title="{{ prop.title }}">
-                    <div class="position-relative" style="height:190px; overflow:hidden;">
+                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-lg" title="{{ prop.title }}">
+                    <div class="position-relative" style="height:210px; overflow:hidden;">
                         {% with img=prop.images.first %}
                         {% if img %}
                             <img src="{{ img.image_url.url }}" alt="{{ prop.title }}" loading="lazy"
-                                 style="width:100%; height:100%; object-fit:cover;">
+                                 style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
                         {% else %}
                             <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
                                 <i class="fa-solid fa-house-chimney opacity-25" style="font-size:3rem;"></i>
@@ -499,11 +500,62 @@
                     </div>
                 </a>
                 {% endfor %}
+                {# Répétition pour la fluidité infinie #}
+                {% for prop in boosted_properties %}
+                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-lg">
+                    <div class="position-relative" style="height:210px; overflow:hidden;">
+                        {% with img=prop.images.first %}
+                        {% if img %}
+                            <img src="{{ img.image_url.url }}" alt="{{ prop.title }}" loading="lazy"
+                                 style="width:100%; height:100%; object-fit:cover;">
+                        {% endif %}
+                        {% endwith %}
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="badge bg-warning text-dark rounded-pill small fw-bold">⚡ BOOSTÉ</span>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h6 class="fw-bold text-truncate mb-1">{{ prop.title }}</h6>
+                        <div class="text-success fw-bold small">Voir l'offre <i class="fa-solid fa-arrow-right ms-1"></i></div>
+                    </div>
+                </a>
+                {% endfor %}
             </div>
         </div>
     </div>
 </section>
 {% endif %}
+
+<!-- FEATURED PROFESSIONALS SECTION -->
+<section class="py-5 bg-light">
+    <div class="container overflow-hidden">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Professionnels de Confiance</h2>
+            <p class="text-muted">Des agents et agences certifiés par le réseau Loger Sénégal.</p>
+        </div>
+        <div class="d-flex justify-content-center gap-4 flex-wrap">
+            {% for pro in featured_pros|slice:":6" %}
+            <div class="text-center animate__animated animate__fadeInUp" style="width: 120px;">
+                <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
+                    <div class="position-relative mb-2 mx-auto" style="width: 100px; height: 100px;">
+                        {% if pro.profile_picture %}
+                            <img src="{{ pro.profile_picture.url }}" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100" style="object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
+                                <i class="fa-solid fa-user-tie text-muted opacity-25 fs-2"></i>
+                            </div>
+                        {% endif %}
+                        <div class="position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 25px; height: 25px; border: 2px solid white;">
+                            <i class="fa-solid fa-check" style="font-size: 0.6rem;"></i>
+                        </div>
+                    </div>
+                    <div class="small fw-bold text-dark text-truncate">{{ pro.company_name|default:pro.get_full_name }}</div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 
 <section id="annonces" class="py-5" style="background-color: var(--bg-body);">
     <div class="container py-4">

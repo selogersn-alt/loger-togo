@@ -169,18 +169,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# Optimisation WhiteNoise (Version Manifest pour O2switch)
+# Optimisation WhiteNoise (Version Sécurisée pour O2switch)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
 
 # Paramètres WhiteNoise
-WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_INDEX_FILE = False
 WHITENOISE_MAX_AGE = 31536000 # 1 an
 
 # WhiteNoise sert les fichiers statiques (JS, CSS). 

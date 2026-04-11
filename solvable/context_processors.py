@@ -9,7 +9,14 @@ def fraud_alerts_processor(request):
 
 def system_alerts_processor(request):
     """Injecte les alertes système actives (Urgence, Info, etc.) dans toutes les pages."""
-    active_alerts = SystemAlert.objects.filter(is_active=True).order_by('-created_at')
-    return {
-        'active_system_alerts': active_alerts
-    }
+    try:
+        active_alerts = SystemAlert.objects.filter(is_active=True).order_by('-created_at')
+        return {
+            'active_system_alerts': active_alerts
+        }
+    except Exception:
+        # Sécurité DigitalH : Si la table n'existe pas encore (migration non faite), 
+        # on évite de faire planter tout le site.
+        return {
+            'active_system_alerts': []
+        }

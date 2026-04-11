@@ -163,6 +163,7 @@ def properties_list_view(request):
     
     return render(request, 'properties_list.html', context)
 
+def property_detail_view(request, property_id):
     # Récupère l'annonce par son ID unique
     property_obj = get_object_or_404(Property, id=property_id)
     

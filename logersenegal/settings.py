@@ -68,6 +68,7 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -179,6 +180,10 @@ STORAGES = {
     },
 }
 
+# Paramètres WhiteNoise avancés (Rapidité)
+WHITENOISE_KEEP_ONLY_HASHED_FILES = True
+WHITENOISE_MAX_AGE = 31536000 # 1 an de cache navigateur pour les statiques
+
 # WhiteNoise sert les fichiers statiques (JS, CSS). 
 # Pour un déploiement souple sur O2switch avec LiteSpeed, 
 # on laisse Apache servir le dossier media physique directement.
@@ -277,25 +282,26 @@ except ImportError:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- CACHE CONFIGURATION (Optimisation shared hosting O2switch) ---
+# Nous utilisons le système de fichiers pour un cache persistant et rapide.
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'tmp', 'django_cache'),
+        'TIMEOUT': 3600,
     }
 }
 
 # --- SECURITY & HSTS (SEO & Trust) ---
 if not DEBUG:
-    # Rappel : SSL est géré par O2switch Apache en amont.
-    # Pour éviter les erreurs 500/Boucles, on désactive la redirection Django.
+    # La redirection SSL est gérée par Apache (.htaccess) pour plus de stabilité.
     SECURE_SSL_REDIRECT = False 
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # Sécurité supplémentaire
-    SECURE_HSTS_SECONDS = 0 # Désactivé temporairement pour test
+    # HSTS : Informe le navigateur de toujours utiliser HTTPS
+    SECURE_HSTS_SECONDS = 31536000 # 1 an (Standard SEO)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = False
+    SECURE_HSTS_PRELOAD = True
     
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True

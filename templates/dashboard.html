@@ -809,7 +809,7 @@
                                             <button onclick="setChatMessage('Pouvez-vous valider mon annonce immobilière ?')" class="quick-aid-btn text-warning"><i class="fa-solid fa-house-circle-check me-1"></i>Validation Annonce</button>
                                         </div>
                                     {% endif %}
-                                    <form method="POST" action="{% if active_conversation %}{% url 'send-message' active_conversation.id %}{% else %}{% url 'send-message-new' %}{% endif %}">
+                                    <form id="chat-form" method="POST" action="{% if active_conversation %}{% url 'send-message' active_conversation.id %}{% else %}{% url 'send-message-new' %}{% endif %}">
                                         {% csrf_token %}
                                         <div class="d-flex align-items-center">
                                             <div class="me-2">
@@ -898,6 +898,49 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         scrollToBottom();
+        
+        // --- NOUVEAU : Envoi de message sans rechargement ---
+        const chatForm = document.getElementById('chat-form');
+        if (chatForm) {
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const contentInput = document.getElementById('chat-input');
+                const content = contentInput.value.trim();
+                if (!content) return;
+
+                const formData = new FormData(chatForm);
+                formData.append('ajax', 'true'); // Sécurité DigitalH pour le backend
+
+                fetch(chatForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Ajout instantané à l'interface
+                        const chatBox = document.getElementById("chat-box");
+                        const msgDiv = document.createElement("div");
+                        msgDiv.className = `message-bubble msg-sent mb-3 animate__animated animate__fadeInUp animate__faster`;
+                        msgDiv.innerHTML = `
+                            <div class="fw-bold small mb-1" style="opacity: 0.8; font-size: 0.7rem;">Vous</div>
+                            <p class="mb-1">${data.content}</p>
+                            <div class="d-flex justify-content-end">
+                                <small style="font-size: 0.6rem; opacity: 0.6;">${data.created_at}</small>
+                            </div>
+                        `;
+                        chatBox.appendChild(msgDiv);
+                        contentInput.value = ''; // Vider le champ
+                        scrollToBottom();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur Chat:', error);
+                    chatForm.submit(); // Fallback si le fetch échoue (vieux navigateur)
+                });
+            });
+        }
         
         // Initialiser lastMessageId avec le dernier ID existant dans la page
         const existingMessages = document.querySelectorAll('.message-bubble');

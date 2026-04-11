@@ -254,6 +254,12 @@ def dashboard_view(request):
     # Retrieve conversations for the logged in user to display in the chat tab
     conversations = request.user.conversations.prefetch_related('messages').all()
     
+    # Règle DigitH : Si l'utilisateur est Staff/Superuser, il doit voir TOUTES les conversations Support
+    if request.user.is_staff:
+        from chat.models import Conversation
+        support_convs = Conversation.objects.filter(topic=Conversation.TopicEnum.SUPPORT).prefetch_related('messages')
+        conversations = (conversations | support_convs).distinct().order_by('-updated_at')
+    
     # Gerer le chat actif via l'URL (ex: ?conv=ID_DE_LA_CONV)
     active_conv_id = request.GET.get('conv')
     active_conversation = None
@@ -629,11 +635,23 @@ def send_message_view(request, conversation_id=None):
                 conversation.participants.add(admin_user)
                 
         # Créer le message en base de données
-        Message.objects.create(
+        new_msg = Message.objects.create(
             conversation=conversation,
             sender=request.user,
             content=content
         )
+        
+        # Support AJAX : Si l'envoi est fait via script, on répond en JSON
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == 'true':
+            from django.http import JsonResponse
+            return JsonResponse({
+                'status': 'success',
+                'message_id': str(new_msg.id),
+                'content': new_msg.content,
+                'created_at': new_msg.created_at.strftime('%H:%M'),
+                'sender_name': "Support Logersenegal" if request.user.is_staff else request.user.email or request.user.phone_number
+            })
+            
         return redirect(f"/mon-compte/?conv={conversation.id}#chat")
     
     return redirect('dashboard')
@@ -1037,4 +1055,13 @@ def guide_agences_view(request):
 
 def guide_courtiers_view(request):
     return render(request, 'guides/courtiers.html')
+
+
+def custom_404_view(request, exception=None):
+    """Gestionnaire d'erreur 404 (Page Introuvable)."""
+    return render(request, '404.html', status=404)
+
+def custom_500_view(request):
+    """Gestionnaire d'erreur 500 (Erreur Serveur)."""
+    return render(request, '500.html', status=500)
 

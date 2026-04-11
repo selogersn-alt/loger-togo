@@ -15,9 +15,13 @@
     SetHandler application/x-httpd-wsgi
 </Files>
 
-# Routage des requêtes vers le moteur Django
+# Forcer HTTPS (Sécurité SSL)
 RewriteEngine On
 RewriteBase /
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Routage des requêtes vers le moteur Django
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_URI} !^/static/
 RewriteCond %{REQUEST_URI} !^/media/

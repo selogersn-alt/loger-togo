@@ -49,6 +49,10 @@ from .views import (
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from ads.views import ads_txt_view  # Certification Google
 from .admin_views import admin_statistics_view, admin_marketing_email_view
+from django.conf.urls import handler404, handler500
+
+handler404 = 'logersenegal.views.custom_404_view'
+handler500 = 'logersenegal.views.custom_500_view'
 
 urlpatterns = [
     path('', home_view, name='home'),

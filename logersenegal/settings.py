@@ -68,8 +68,6 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.middleware.gzip.GZipMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -281,13 +279,10 @@ except ImportError:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- CACHE CONFIGURATION (Optimisation shared hosting O2switch) ---
-# Nous utilisons le système de fichiers pour un cache persistant et rapide.
+# --- CACHE CONFIGURATION (Désactiver pour stabilité production) ---
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR, 'tmp', 'django_cache'),
-        'TIMEOUT': 3600,
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
 

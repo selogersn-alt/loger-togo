@@ -61,7 +61,6 @@ urlpatterns = [
     path('admin/statistiques/', admin_statistics_view, name='admin_statistics'), # Custom Admin Route
     path('admin/campagne-email/', admin_marketing_email_view, name='admin_marketing_email'),
     path('admin/', admin.site.urls),
-    path('404-error/', custom_404_view, name='404_error'),
     path('api/users/', include('users.urls')),
     path('api/logersn/', include('logersn.urls')),
     path('api/solvable/', include('solvable.urls')),

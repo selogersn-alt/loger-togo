@@ -1,6 +1,13 @@
 from django.contrib import admin
 from django.utils import timezone
-from .models import RentalFiliation, IncidentReport, PaymentHistory, PropertyApplication, ProfessionalFraudReport, PlatformPricing
+from .models import RentalFiliation, IncidentReport, PaymentHistory, PropertyApplication, ProfessionalFraudReport, PlatformPricing, SystemAlert
+
+@admin.register(SystemAlert)
+class SystemAlertAdmin(admin.ModelAdmin):
+    list_display = ('display_type', 'theme', 'is_active', 'message', 'created_at')
+    list_filter = ('display_type', 'theme', 'is_active')
+    search_fields = ('message',)
+    list_editable = ('is_active',)
 
 @admin.register(RentalFiliation)
 class RentalFiliationAdmin(admin.ModelAdmin):

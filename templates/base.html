@@ -225,25 +225,94 @@
             color: var(--color-yellow);
         }
 
-        /* Ads Styling */
-        .ad-container {
-            max-width: 100%;
-            overflow: hidden;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .ad-container img {
+        /* System Alerts Styling */
+        .system-alert {
             width: 100%;
-            height: auto;
-            transition: opacity 0.3s ease;
+            z-index: 1100;
+            position: relative;
         }
-        .ad-container img:hover {
-            opacity: 0.9;
+        .alert-theme-URGENCY { background-color: #dc3545; color: white; }
+        .alert-theme-WARNING { background-color: #fd7e14; color: white; }
+        .alert-theme-INFO { background-color: #0dcaf0; color: white; }
+        .alert-theme-SUCCESS { background-color: #198754; color: white; }
+        
+        .alert-marquee-wrap {
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 8px 0;
+            font-weight: 600;
+        }
+        .alert-marquee {
+            display: inline-block;
+            padding-left: 100%;
+            animation: alert-marquee 25s linear infinite;
+        }
+        @keyframes alert-marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        /* Toast / Notification "Push" Style */
+        #system-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            max-width: 350px;
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Alertes Système DigitalH -->
+    {% if active_system_alerts %}
+        {% for alert in active_system_alerts %}
+            {% if alert.display_type == 'BANNER' %}
+                <div class="system-alert alert-theme-{{ alert.theme }} py-3 text-center fw-bold animate__animated animate__slideInDown">
+                    <div class="container">
+                        <i class="fa-solid fa-circle-info me-2"></i> {{ alert.message }}
+                    </div>
+                </div>
+            {% elif alert.display_type == 'MARQUEE' %}
+                <div class="system-alert alert-theme-{{ alert.theme }} alert-marquee-wrap">
+                    <div class="alert-marquee">
+                        <i class="fa-solid fa-bullhorn me-2"></i> {{ alert.message }} &nbsp;&nbsp;&nbsp;&nbsp; 
+                        <i class="fa-solid fa-bullhorn me-2"></i> {{ alert.message }}
+                    </div>
+                </div>
+            {% elif alert.display_type == 'POPUP' %}
+                <div class="modal fade system-alert-modal" id="alertModal{{ alert.id|cut:"-" }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg alert-theme-{{ alert.theme }}">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> ALERTE SYSTÈME</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body py-4 text-center">
+                                <p class="fs-5 mb-0">{{ alert.message }}</p>
+                            </div>
+                            <div class="modal-footer border-0 pb-3">
+                                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Compris</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% elif alert.display_type == 'TOAST' %}
+                <div id="system-toast-container">
+                    <div class="toast show animate__animated animate__fadeInRight alert-theme-{{ alert.theme }} border-0" id="toast{{ alert.id|cut:"-" }}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header alert-theme-{{ alert.theme }} border-0 text-white">
+                            <strong class="me-auto"><i class="fa-solid fa-bell me-2"></i> Notification</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body fw-bold">
+                            {{ alert.message }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <!-- Alerte Fraude Dynamique DigitalH -->
     {% if critical_fraud_alerts %}
     <div class="fraud-marquee container-fluid bg-danger text-white py-2" style="font-size: 0.9rem; overflow: hidden; white-space: nowrap; position: relative; z-index: 1060;">
@@ -273,9 +342,11 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
         <div class="container">
-            <a class="navbar-brand animate__animated animate__fadeInLeft" href="{% url 'home' %}">
-                <img src="{% static 'img/icon-512x512.png' %}" alt="Logo" style="height: 48px; width: auto; margin-right: 12px; border-radius: 8px;">
-                <span class="fw-bold text-uppercase">Loger Sénégal</span>
+            <a class="navbar-brand animate__animated animate__fadeInLeft d-flex align-items-center" href="{% url 'home' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="height: 38px; width: auto; margin-right: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                    <path fill="#7fd47d" d="M543.8 287.6c17 0 32-14 32-32.1c1-9-3-17-11-24L512 185V64c0-17.7-14.3-32-32-32H448c-17.7 0-32 14.3-32 32v36.7L305.8 3.4C297.1-4.8 279-4.8 270.2 3.4L8.4 246.4c-9.1 8-11.7 21.6-6 32.5s18.8 14.3 32 12.3L48 288.7v175.4c0 26.5 21.5 48 48 48h48v-112c0-26.5 21.5-48 48-48h64c26.5 0 48 21.5 48 48v112h80c26.5 0 48-21.5 48-48V289.8l10.8 1.4c2.6 .3 5.2-.6 7.6-1.5zM224 432c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24zm48-24a48 48 0 1 1-96 0 48 48 0 1 1 96 0zM352 144a64 64 0 1 1-128 0 64 64 0 1 1 128 0zm-64-16a16 16 0 1 0 0-32 16 16 0 1 0 0 32zm80 80c0-44.2-35.8-80-80-80s-80 35.8-80 80v32h160v-32z"/>
+                </svg>
+                <span class="fw-bold text-uppercase" style="font-size: 1.2rem; letter-spacing: 0.5px;">Loger Sénégal</span>
             </a>
             
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -411,7 +482,9 @@
     </div>
     {% endif %}
 
-    <!-- Pied de Page -->
+    <!-- Pied de Page (Caché pendant 1h) -->
+    {% load cache %}
+    {% cache 3600 footer_fragment %}
     <footer>
         <div class="container">
             <div class="row">
@@ -467,6 +540,7 @@
             </div>
         </div>
     </footer>
+    {% endcache %}
 
     <!-- Bootstrap JS -->
     {% if user.is_authenticated %}
@@ -666,6 +740,33 @@
         window.addEventListener('appinstalled', function() {
             if (installBtn) installBtn.style.display = 'none';
             deferredPrompt = null;
+        });
+
+        // 5. Gestion des Alertes Système (Une seule fois par session)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Pour les Popups
+            const modals = document.querySelectorAll('.system-alert-modal');
+            modals.forEach(m => {
+                const modalId = m.id;
+                if (!sessionStorage.getItem('seen_' + modalId)) {
+                    const bsModal = new bootstrap.Modal(m);
+                    bsModal.show();
+                    sessionStorage.setItem('seen_' + modalId, 'true');
+                }
+            });
+
+            // Pour les Toasts
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(t => {
+                const toastId = t.id;
+                if (!sessionStorage.getItem('seen_' + toastId)) {
+                    // Les toasts bootstrap s'affichent déjà avec la classe 'show', 
+                    // on gère juste la persistance ici si on veut les cacher après
+                    sessionStorage.setItem('seen_' + toastId, 'true');
+                } else {
+                    t.style.display = 'none';
+                }
+            });
         });
     })();
     </script>

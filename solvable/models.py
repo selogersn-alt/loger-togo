@@ -173,3 +173,30 @@ class PlatformPricing(models.Model):
     class Meta:
         verbose_name = "Paramétrage Tarif"
         verbose_name_plural = "Paramétrage Tarifs"
+
+class SystemAlert(models.Model):
+    class DisplayType(models.TextChoices):
+        BANNER = 'BANNER', 'Bandeau Fixe (Haut)'
+        MARQUEE = 'MARQUEE', 'Message Défilant'
+        POPUP = 'POPUP', 'Pop-up (Centre)'
+        TOAST = 'TOAST', 'Notification "Push" (Style)'
+
+    class Theme(models.TextChoices):
+        URGENCY = 'URGENCY', 'Urgence (Rouge)'
+        WARNING = 'WARNING', 'Attention (Orange)'
+        INFO = 'INFO', 'Information (Bleu)'
+        SUCCESS = 'SUCCESS', 'Succès (Vert)'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.TextField(verbose_name="Message de l'alerte")
+    display_type = models.CharField(max_length=20, choices=DisplayType.choices, default=DisplayType.BANNER)
+    theme = models.CharField(max_length=20, choices=Theme.choices, default=Theme.URGENCY)
+    is_active = models.BooleanField(default=True, verbose_name="Activer l'alerte")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Alerte {self.display_type} ({self.theme}) - {self.created_at.strftime('%d/%m/%Y')}"
+
+    class Meta:
+        verbose_name = "Alerte Système"
+        verbose_name_plural = "Alertes Système"

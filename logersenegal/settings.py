@@ -22,10 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^gda*3#uhe6a6$lb#l23y*=_m-9%c&54(!pp*(rp_v%pn@^%gx'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^gda*3#uhe6a6$lb#l23y*=_m-9%c&54(!pp*(rp_v%pn@^%gx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['logersenegal.com', 'www.logersenegal.com', 'localhost', '127.0.0.1']
 SITE_URL = 'https://logersenegal.com'
@@ -91,6 +91,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'ads.context_processors.ads_processor',
                 'solvable.context_processors.fraud_alerts_processor',
+                'solvable.context_processors.system_alerts_processor',
             ],
         },
     },
@@ -105,11 +106,11 @@ WSGI_APPLICATION = 'logersenegal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gaak4328_loger_app',
-        'USER': 'gaak4328_loger_app', 
-        'PASSWORD': '5KMtFH-8kz3PgtJ', 
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', 'gaak4328_loger_app'),
+        'USER': os.environ.get('DB_USER', 'gaak4328_loger_app'), 
+        'PASSWORD': os.environ.get('DB_PASSWORD', '5KMtFH-8kz3PgtJ'), 
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES 'utf8mb4'",
             'charset': 'utf8mb4',
@@ -275,15 +276,30 @@ except ImportError:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# --- CACHE CONFIGURATION (Optimisation shared hosting O2switch) ---
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'tmp', 'django_cache'),
+        'TIMEOUT': 3600, # 1 heure par défaut
+    }
+}
+
 # --- SECURITY & HSTS (SEO & Trust) ---
-# Désactivé temporairement pour débugger l'Erreur 500 sur O2switch
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 0 # 31536000 # 1 an
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False # True
-    SECURE_HSTS_PRELOAD = False # True
-    SECURE_SSL_REDIRECT = False # True
-    SESSION_COOKIE_SECURE = False # True
-    CSRF_COOKIE_SECURE = False # True
+    # Rappel : SSL est actif sur le serveur (Cadenas OK)
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Sécurité supplémentaire
+    SECURE_HSTS_SECONDS = 15768000 # 6 mois
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # --- PWA CONFIGURATION ---
 # PWA_APP_NAME = 'Solvable Sénégal'

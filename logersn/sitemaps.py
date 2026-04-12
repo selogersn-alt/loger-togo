@@ -5,6 +5,7 @@ from .models import Property
 class PropertySitemap(Sitemap):
     changefreq = "daily"
     priority = 0.9
+    protocol = 'https'
 
     def items(self):
         return Property.objects.all().order_by('-created_at')
@@ -16,6 +17,7 @@ class PropertySitemap(Sitemap):
         return reverse('property_detail', kwargs={'property_id': str(obj.id)})
 
 class StaticViewSitemap(Sitemap):
+    protocol = 'https'
     def items(self):
         return [
             'home', 

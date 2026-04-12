@@ -150,6 +150,8 @@ def properties_list_view(request):
     # Extraire les annonces pour le bandeau défilant du haut (Boostées uniquement)
     boosted_slider = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:10]
     
+    from logersn.constants import CITY_CHOICES, PROPERTY_TYPE_CHOICES, NEIGHBORHOOD_CHOICES
+    
     # Génération dynamique de la description SEO (Phase 4)
     seo_market_description = ""
     if city and city != 'ALL':

@@ -256,7 +256,6 @@
                     <img src="{{ image.image_url.url }}" 
                          alt="{{ property.title }} - Photo {{ forloop.counter }}" 
                          class="thumbnail-img {% if forloop.first %}active{% endif %}" 
-                         loading="lazy"
                          onclick="changeImage(this)">
                     {% endfor %}
                 </div>

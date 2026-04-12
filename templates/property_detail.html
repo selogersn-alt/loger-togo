@@ -490,9 +490,9 @@
             </h3>
             <p class="text-muted">Découvrez d'autres opportunités à {{ property.city }} ou de type {{ property.get_property_type_display }}</p>
         </div>
-        {% for相关 in related_properties %}
+        {% for related in related_properties %}
         <div class="col-md-4 mb-4">
-            {% with property=相关 %}
+            {% with property=related %}
                 {% include 'partials/property_card.html' %}
             {% endwith %}
         </div>

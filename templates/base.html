@@ -13,6 +13,10 @@
     
     <!-- Balises SEO Stratégiques (Market-Driven) -->
     <title>{% block title %}Loger Sénégal | Location & Vente Immobilière de Confiance à Dakar{% endblock %}</title>
+    
+    <!-- LCP Image Preload -->
+    <link rel="preload" href="{% static 'img/og_banner.png' %}" as="image" fetchpriority="high">
+    
     <meta name="twitter:description" content="{% block twitter_description %}{{ self.meta_description }}{% endblock %}">
 
     <!-- SEO & Canoniques -->

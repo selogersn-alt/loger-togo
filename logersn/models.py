@@ -1,5 +1,6 @@
 import uuid
 import io
+import os
 from PIL import Image
 from django.core.files.base import ContentFile
 from django.db import models
@@ -109,7 +110,29 @@ class PropertyImage(models.Model):
     is_primary = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        """Standard save to ensure reliability on O2switch."""
+        """Conversion automatique en WebP et redimensionnement intelligent."""
+        if self.image_url:
+            img = Image.open(self.image_url)
+            
+            # 1. Conversion en RGB (nécessaire pour certains formats comme PNG/RGBA)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            
+            # 2. Redimensionnement (Max 1200px de large pour le web)
+            max_width = 1200
+            if img.width > max_width:
+                output_size = (max_width, int((max_width / img.width) * img.height))
+                img = img.resize(output_size, Image.LANCZOS)
+            
+            # 3. Préparation du flux mémoire pour le WebP
+            output = io.BytesIO()
+            img.save(output, format='WEBP', quality=85)
+            output.seek(0)
+            
+            # 4. Changement de l'extension du fichier original
+            current_name = os.path.splitext(self.image_url.name)[0]
+            self.image_url.save(f"{current_name}.webp", ContentFile(output.read()), save=False)
+            
         super().save(*args, **kwargs)
 
     def __str__(self):

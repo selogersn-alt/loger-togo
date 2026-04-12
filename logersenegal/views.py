@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.views.decorators.cache import cache_page
 
 from logersn.models import Property, Favorite
 from logersn.forms import PropertyForm
@@ -24,6 +25,7 @@ try:
 except ImportError:
     COUNTRY_CHOICES = []
 
+@cache_page(60 * 15)
 def home_view(request):
     # Stats de base réelles
     try:

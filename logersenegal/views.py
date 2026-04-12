@@ -96,86 +96,81 @@ def verified_professionals_view(request):
     return render(request, 'professionals_list.html', context)
 
 def properties_list_view(request):
-    try:
-        # Récupérer les paramètres de recherche
-        city = request.GET.get('city')
-        neighborhood = request.GET.get('neighborhood')
-        property_type = request.GET.get('property_type')
-        listing_category = request.GET.get('listing_category')
-        min_price = request.GET.get('min_price')
-        max_price = request.GET.get('max_price')
-        owner_id = request.GET.get('owner')
+    # Récupérer les paramètres de recherche
+    city = request.GET.get('city')
+    neighborhood = request.GET.get('neighborhood')
+    property_type = request.GET.get('property_type')
+    listing_category = request.GET.get('listing_category')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    owner_id = request.GET.get('owner')
+    
+    # Base Queryset optimisé avec prefetch_related et select_related (Analytics N+1 fixes)
+    properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    
+    # Filtrage par propriétaire
+    if owner_id:
+        properties = properties.filter(owner_id=owner_id)
         
-        # Base Queryset optimisé avec prefetch_related et select_related (Analytics N+1 fixes)
-        properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    # Filtrage
+    if listing_category and listing_category != 'ALL':
+        properties = properties.filter(listing_category=listing_category)
+    if city and city != 'ALL':
+        properties = properties.filter(city=city)
+    if neighborhood and neighborhood != 'ALL':
+        properties = properties.filter(neighborhood=neighborhood)
+    if property_type and property_type != 'ALL':
+        properties = properties.filter(property_type=property_type)
+    if min_price:
+        properties = properties.filter(price__gte=min_price)
+    if max_price:
+        properties = properties.filter(price__lte=max_price)
         
-        # Filtrage par propriétaire
-        if owner_id:
-            properties = properties.filter(owner_id=owner_id)
-            
-        # Filtrage
-        if listing_category and listing_category != 'ALL':
-            properties = properties.filter(listing_category=listing_category)
-        if city and city != 'ALL':
-            properties = properties.filter(city=city)
-        if neighborhood and neighborhood != 'ALL':
-            properties = properties.filter(neighborhood=neighborhood)
-        if property_type and property_type != 'ALL':
-            properties = properties.filter(property_type=property_type)
-        if min_price:
-            properties = properties.filter(price__gte=min_price)
-        if max_price:
-            properties = properties.filter(price__lte=max_price)
-            
-        # Filtrage Amenities
-        if request.GET.get('wifi') == 'on':
-            properties = properties.filter(wifi=True)
-        if request.GET.get('swimming_pool') == 'on':
-            properties = properties.filter(swimming_pool=True)
-        if request.GET.get('air_conditioning') == 'on':
-            properties = properties.filter(air_conditioning=True)
-        if request.GET.get('has_garage') == 'on':
-            properties = properties.filter(has_garage=True)
-        if request.GET.get('generator') == 'on':
-            properties = properties.filter(generator=True)
-            
-        # Tris : Boosté en premier, puis le tri choisi par l'utilisateur
-        sort = request.GET.get('sort')
-        if sort == 'price_asc':
-            properties = properties.order_by('-is_boosted', 'price')
-        elif sort == 'price_desc':
-            properties = properties.order_by('-is_boosted', '-price')
-        else:
-            properties = properties.order_by('-created_at', '-id')
-            
-        # Extraire les annonces pour le bandeau défilant du haut (Boostées uniquement)
-        boosted_slider = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:10]
+    # Filtrage Amenities
+    if request.GET.get('wifi') == 'on':
+        properties = properties.filter(wifi=True)
+    if request.GET.get('swimming_pool') == 'on':
+        properties = properties.filter(swimming_pool=True)
+    if request.GET.get('air_conditioning') == 'on':
+        properties = properties.filter(air_conditioning=True)
+    if request.GET.get('has_garage') == 'on':
+        properties = properties.filter(has_garage=True)
+    if request.GET.get('generator') == 'on':
+        properties = properties.filter(generator=True)
         
-        from logersn.constants import CITY_CHOICES, PROPERTY_TYPE_CHOICES, NEIGHBORHOOD_CHOICES
+    # Tris : Boosté en premier, puis le tri choisi par l'utilisateur
+    sort = request.GET.get('sort')
+    if sort == 'price_asc':
+        properties = properties.order_by('-is_boosted', 'price')
+    elif sort == 'price_desc':
+        properties = properties.order_by('-is_boosted', '-price')
+    else:
+        properties = properties.order_by('-created_at', '-id')
         
-        # Génération dynamique de la description SEO (Phase 4)
-        seo_market_description = ""
-        if city and city != 'ALL':
-            city_name = dict(CITY_CHOICES).get(city, city)
-            seo_market_description = f"Le marché immobilier à {city_name} offre de nombreuses opportunités. Que vous cherchiez un appartement moderne au Plateau, une villa de standing aux Almadies ou une maison familiale à Hann, Loger Sénégal vous accompagne pour sécuriser votre transaction immobilière au Sénégal."
-        else:
-            seo_market_description = "Loger Sénégal est la plateforme de référence pour l'immobilier au Sénégal. Nous connectons bailleurs, agences et locataires dans un environnement sécurisé grâce au réseau de solvabilité NILS. Retrouvez nos annonces d'appartements, de villas et de terrains à Dakar, Thiès, Saly et partout au Sénégal."
+    # Extraire les annonces pour le bandeau défilant du haut (Boostées uniquement)
+    boosted_slider = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:10]
+    
+    from logersn.constants import CITY_CHOICES, PROPERTY_TYPE_CHOICES, NEIGHBORHOOD_CHOICES
+    
+    # Génération dynamique de la description SEO (Phase 4)
+    seo_market_description = ""
+    if city and city != 'ALL':
+        city_name = dict(CITY_CHOICES).get(city, city)
+        seo_market_description = f"Le marché immobilier à {city_name} offre de nombreuses opportunités. Que vous cherchiez un appartement moderne au Plateau, une villa de standing aux Almadies ou une maison familiale à Hann, Loger Sénégal vous accompagne pour sécuriser votre transaction immobilière au Sénégal."
+    else:
+        seo_market_description = "Loger Sénégal est la plateforme de référence pour l'immobilier au Sénégal. Nous connectons bailleurs, agences et locataires dans un environnement sécurisé grâce au réseau de solvabilité NILS. Retrouvez nos annonces d'appartements, de villas et de terrains à Dakar, Thiès, Saly et partout au Sénégal."
 
-        context = {
-            'properties': properties,
-            'boosted_slider': boosted_slider,
-            'cities': CITY_CHOICES,
-            'neighborhoods': NEIGHBORHOOD_CHOICES,
-            'property_types': PROPERTY_TYPE_CHOICES,
-            'current_filters': request.GET,
-            'seo_market_description': seo_market_description
-        }
-        
-        return render(request, 'properties_list.html', context)
-        
-    except Exception as e:
-        # En cas d'erreur, on renvoie une page minimale avec le message d'erreur pour diagnostic
-        return render(request, 'properties_list.html', {'debug_error': str(e)})
+    context = {
+        'properties': properties,
+        'boosted_slider': boosted_slider,
+        'cities': CITY_CHOICES,
+        'neighborhoods': NEIGHBORHOOD_CHOICES,
+        'property_types': PROPERTY_TYPE_CHOICES,
+        'current_filters': request.GET,
+        'seo_market_description': seo_market_description
+    }
+    
+    return render(request, 'properties_list.html', context)
 
 def property_detail_view(request, property_id):
     # Récupère l'annonce par son ID unique

@@ -194,7 +194,7 @@ EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'solvable@logersenegal.com'
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '-P7GvVHJ2RmjnTG')
 EMAIL_TIMEOUT = 10
-DEFAULT_FROM_EMAIL = 'Solvable Loger SN <solvable@logersenegal.com>'
+DEFAULT_FROM_EMAIL = 'solvable@logersenegal.com'
 SERVER_EMAIL = 'solvable@logersenegal.com'
 
 # Configuration FedaPay / DigitalH

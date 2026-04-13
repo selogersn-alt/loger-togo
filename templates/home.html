@@ -534,36 +534,123 @@
 </section>
 {% endif %}
 
-<!-- FEATURED PROFESSIONALS SECTION -->
-<section class="py-5 bg-light">
-    <div class="container overflow-hidden">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">Professionnels de Confiance</h2>
-            <p class="text-muted">Des agents et agences certifiés par le réseau Loger Sénégal.</p>
-        </div>
-        <div class="d-flex justify-content-center gap-4 flex-wrap">
-            {% for pro in featured_pros|slice:":6" %}
-            <div class="text-center animate__animated animate__fadeInUp" style="width: 120px;">
-                <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
-                    <div class="position-relative mb-2 mx-auto" style="width: 100px; height: 100px;">
-                        {% if pro.profile_picture %}
-                            <img src="{{ pro.profile_picture.url }}" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100" style="object-fit: cover;">
-                        {% else %}
-                            <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
-                                <i class="fa-solid fa-user-tie text-muted opacity-25 fs-2"></i>
+<!-- FEATURED PROFESSIONALS SECTION (Bandeau Défilant Infini) -->
+<section class="py-4 bg-white" style="border-bottom: 1px solid #eee; overflow: hidden;">
+    <div class="container-fluid px-0">
+        <div class="pro-marquee">
+            <div class="pro-track">
+                {# Premier groupe #}
+                {% for pro in featured_pros %}
+                <div class="pro-item text-center">
+                    <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
+                        <div class="pro-avatar-wrapper position-relative mx-auto mb-2">
+                            {% if pro.profile_picture %}
+                                <img src="{{ pro.profile_picture.url }}" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100 pro-img" style="object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
+                                    <i class="fa-solid fa-user-tie text-muted opacity-25 fs-4"></i>
+                                </div>
+                            {% endif %}
+                            <div class="verified-badge">
+                                <i class="fa-solid fa-check"></i>
                             </div>
-                        {% endif %}
-                        <div class="position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 25px; height: 25px; border: 2px solid white;">
-                            <i class="fa-solid fa-check" style="font-size: 0.6rem;"></i>
                         </div>
-                    </div>
-                    <div class="small fw-bold text-dark text-truncate">{{ pro.company_name|default:pro.get_full_name }}</div>
-                </a>
+                        <div class="small fw-bold text-dark text-truncate px-2">{{ pro.company_name|default:pro.get_full_name }}</div>
+                    </a>
+                </div>
+                {% endfor %}
+                {# Deuxième groupe pour la boucle infinie #}
+                {% for pro in featured_pros %}
+                <div class="pro-item text-center">
+                    <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
+                        <div class="pro-avatar-wrapper position-relative mx-auto mb-2">
+                            {% if pro.profile_picture %}
+                                <img src="{{ pro.profile_picture.url }}" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100 pro-img" style="object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
+                                    <i class="fa-solid fa-user-tie text-muted opacity-25 fs-4"></i>
+                                </div>
+                            {% endif %}
+                            <div class="verified-badge">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                        </div>
+                        <div class="small fw-bold text-dark text-truncate px-2">{{ pro.company_name|default:pro.get_full_name }}</div>
+                    </a>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
 </section>
+
+<style>
+    /* Rail de défilement */
+    .pro-marquee {
+        width: 100%;
+        display: flex;
+        overflow: hidden;
+        user-select: none;
+        padding: 10px 0;
+    }
+
+    .pro-track {
+        display: flex;
+        flex-shrink: 0;
+        gap: 40px;
+        min-width: 100%;
+        animation: scroll-pro 40s linear infinite;
+    }
+
+    .pro-track:hover {
+        animation-play-state: paused;
+    }
+
+    .pro-item {
+        flex: 0 0 110px;
+        transition: transform 0.3s ease;
+    }
+    
+    .pro-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .pro-avatar-wrapper {
+        width: 75px;
+        height: 75px;
+    }
+
+    .verified-badge {
+        position: absolute;
+        bottom: 0;
+        end: 0;
+        background: #28a745;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        font-size: 0.5rem;
+    }
+
+    @keyframes scroll-pro {
+        from { transform: translateX(0); }
+        to { transform: translateX(calc(-50% - 20px)); }
+    }
+
+    /* Mobile : défilement un peu plus rapide car moins de distance */
+    @media (max-width: 768px) {
+        .pro-track {
+            animation: scroll-pro 25s linear infinite;
+            gap: 25px;
+        }
+        .pro-item { flex: 0 0 90px; }
+        .pro-avatar-wrapper { width: 60px; height: 60px; }
+    }
+</style>
 
 <section id="annonces" class="py-5" style="background-color: var(--bg-body);">
     <div class="container py-4">

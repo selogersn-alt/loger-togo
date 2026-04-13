@@ -71,9 +71,9 @@ def home_view(request):
     except Exception:
         page_obj = paginator.page(1)
 
-    # Professionnels à la Une
+    # Professionnels à la Une (Augmenté pour le bandeau défilant)
     from users.models import User
-    featured_pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('?')[:10]
+    featured_pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('?')[:30]
 
     return render(request, 'home.html', {
         'page_obj': page_obj,

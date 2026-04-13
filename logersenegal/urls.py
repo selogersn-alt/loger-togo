@@ -137,7 +137,6 @@ urlpatterns = [
     
     # Sitemap & SEO
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
-    path('debug-email-smtp/', debug_email_view, name='debug_email_smtp'),
     path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
 
     # ---- PWA (Progressive Web App) ----

@@ -1062,27 +1062,3 @@ def custom_500_view(request):
     """Gestionnaire d'erreur 500 (Erreur Serveur)."""
     return render(request, '500.html', status=500)
 
-@staff_member_required
-def debug_email_view(request):
-    """Page secrète pour voir l'erreur SMTP réelle."""
-    from django.core.mail import send_mail
-    from django.conf import settings
-    import traceback
-    
-    status = "Initialis"
-    error_msg = ""
-    
-    try:
-        res = send_mail(
-            "TEST DEBUG LOGERSN",
-            "Ceci est un test de diagnostic pour voir l'erreur SMTP s'il y en a une.",
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.EMAIL_HOST_USER], # On s'envoie  soi-mme
-            fail_silently=False,
-        )
-        status = f"Succs ! Django a renvoy : {res}"
-    except Exception as e:
-        status = "ÉCHEC"
-        error_msg = f"{type(e).__name__}: {str(e)}\n\n{traceback.format_exc()}"
-    
-    return HttpResponse(f"<h1>Diagnostic E-mail</h1><p>Statut: {status}</p><pre>{error_msg}</pre>")

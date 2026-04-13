@@ -15,7 +15,8 @@ class UserAdmin(BaseUserAdmin):
     actions = [
         'verify_professionals', 'revoke_professionals', 'generate_recovery_code', 
         'send_otp_whatsapp', 'send_otp_email', 'generate_frontend_reset_link', 
-        'send_reset_link_email', 'export_marketing_data', 'send_mass_marketing_email'
+        'send_reset_link_email', 'admin_set_temp_password', 'export_marketing_data', 
+        'send_mass_marketing_email'
     ]
     ordering = ('-date_joined',)
     
@@ -121,7 +122,7 @@ class UserAdmin(BaseUserAdmin):
         if count:
             self.message_user(request, f"{count} codes OTP envoyés par e-mail.")
 
-    @admin.action(description="📧 Envoyer Lien de Réinitialisation par E-mail (Auto)")
+    @admin.action(description="📧 Envoyer LIEN de réinitialisation (L'utilisateur choisit)")
     def send_reset_link_email(self, request, queryset):
         from django.contrib.auth.tokens import default_token_generator
         from django.utils.http import urlsafe_base64_encode
@@ -144,6 +145,29 @@ class UserAdmin(BaseUserAdmin):
         
         if count:
             self.message_user(request, f"{count} liens de réinitialisation envoyés par e-mail.")
+
+    @admin.action(description="🔑 Définir MOT DE PASSE TEMPORAIRE (Admin choisit)")
+    def admin_set_temp_password(self, request, queryset):
+        import random
+        import string
+        from django.utils.html import format_html
+        
+        # Mot de passe temporaire sécurisé mais lisible
+        temp_pass = "Loger" + "".join(random.choices(string.digits, k=4)) + "!"
+        
+        for user in queryset:
+            user.set_password(temp_pass)
+            user.save()
+            
+            # Message à l'admin avec options d'envoi
+            clean_phone = user.phone_number.replace('+', '').replace(' ', '').replace('-', '')
+            msg = f"Votre mot de passe temporaire Loger Sénégal est : {temp_pass}"
+            wa_url = f"https://wa.me/{clean_phone}?text={msg.replace(' ', '%20')}"
+            
+            self.message_user(request, format_html(
+                'Mot de passe défini pour {}: <strong>{}</strong>. <a href="{}" target="_blank" style="color: #25D366; font-weight: bold;">[Envoyer WhatsApp]</a>',
+                user.phone_number, temp_pass, wa_url
+            ))
 
     @admin.action(description="Accorder le badge de Professionnel Vérifié")
     def verify_professionals(self, request, queryset):

@@ -30,7 +30,7 @@ def seed_master_data():
     # 2. Création des Profils Professionnels de Référence
     pros = [
         {
-            'phone': '778578979', 'first': 'Loger', 'last': 'Sénégal', 
+            'phone': '764443313', 'first': 'Loger', 'last': 'Sénégal', 
             'role': 'AGENCY', 'company': 'Loger Sénégal ™', 'area': 'Dakar & Régions',
             'is_staff': True, 'is_superuser': True
         },
@@ -84,7 +84,7 @@ def seed_master_data():
         }
     ]
 
-    landlord = User.objects.get(phone_number='778578979')
+    landlord = User.objects.get(phone_number='764443313')
     for pd in property_data:
         prop, created = Property.objects.get_or_create(
             title=pd['title'],

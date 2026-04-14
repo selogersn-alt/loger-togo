@@ -196,7 +196,7 @@ def mediation_room_view(request, item_type, item_id):
             msg.save()
             
             # Re-calculate score in case the status was changed in the mean time
-            if hasattr(request.user, 'nils_profile'):
+            if request.user.nils_profile:
                 request.user.nils_profile.update_score()
                 
             messages.success(request, "Message envoyé.")

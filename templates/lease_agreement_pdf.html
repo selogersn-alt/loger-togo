@@ -5,159 +5,171 @@
     <style>
         @page {
             size: A4;
-            margin: 2cm;
+            margin: 1.5cm;
         }
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
-            color: #333;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000;
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #000;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #0B4629;
             padding-bottom: 10px;
         }
         .logo {
-            font-size: 24pt;
-            font-weight: bold;
-            color: #0d6efd;
+            font-size: 26pt;
+            font-weight: 800;
+            color: #0B4629;
+            letter-spacing: 3px;
         }
         .title {
-            font-size: 18pt;
+            font-size: 16pt;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 5px;
             text-transform: uppercase;
         }
-        .section {
+        .nils-info {
+            font-size: 9pt;
+            color: #555;
+            margin-top: 5px;
+        }
+        h3 {
+            font-size: 12pt;
+            text-transform: uppercase;
+            border-bottom: 1px solid #7fd47d;
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
+        .parties-box {
+            width: 100%;
             margin-bottom: 20px;
         }
-        .section-title {
-            font-size: 12pt;
+        .party {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #eee;
+        }
+        .variable {
             font-weight: bold;
             text-decoration: underline;
-            margin-bottom: 10px;
         }
-        .grid {
-            width: 100%;
-            border-collapse: collapse;
+        .content {
+            text-align: justify;
         }
-        .grid td {
-            padding: 5px;
-            vertical-align: top;
-        }
-        .box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            background-color: #f9f9f9;
+        .section-title {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
         }
         .footer {
-            margin-top: 50px;
-            font-size: 9pt;
+            margin-top: 30px;
+            font-size: 8pt;
             text-align: center;
             color: #777;
-        }
-        .signature-box {
-            margin-top: 40px;
-            width: 100%;
-        }
-        .signature-box td {
-            width: 50%;
-            height: 100px;
-            border: 1px dashed #ccc;
-            text-align: center;
-            vertical-align: top;
+            border-top: 1px solid #ddd;
             padding-top: 10px;
         }
-        .nils-badge {
-            background-color: #000;
+        .signature-table {
+            width: 100%;
+            margin-top: 40px;
+        }
+        .signature-cell {
+            width: 50%;
+            height: 120px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+            padding: 10px;
+            text-align: center;
+        }
+        .badge-nils {
+            background-color: #0B4629;
             color: #fff;
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 8pt;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">SOLVABLE SÉNÉGAL</div>
-        <div class="title">CONTRAT DE BAIL À USAGE D'HABITATION</div>
-        <div style="font-size: 10pt; color: #555;">Document généré via le réseau de confiance NILS</div>
+        <div class="logo">SOLVABLE</div>
+        <div class="title">CONTRAT DE LOCATION À USAGE D’HABITATION</div>
+        <div class="nils-info">Certifié par le réseau de confiance <strong>LOGER SÉNÉGAL (DigitalH)</strong></div>
     </div>
 
-    <div class="section">
-        <p><strong>Réf. Contrat :</strong> SOLV-{{ filiation.id|stringformat:".8"|upper }} | <strong>Date :</strong> {{ today|date:"d/m/Y" }}</p>
-    </div>
+    <div class="content">
+        <p><strong>ENTRE LES SOUSSIGNÉS :</strong></p>
+        
+        <div class="party">
+            <strong>M/Mme/Société :</strong> <span class="variable">{{ filiation.landlord.get_full_name|upper }}</span><br>
+            <strong>NILS Propriétaire :</strong> <span class="badge-nils">{{ filiation.landlord.nils_profile.nils_number|default:"EN ATTENTE" }}</span><br>
+            Ci-après dénommé <strong>LE BAILLEUR</strong>, d’une part.
+        </div>
 
-    <div class="section">
-        <div class="section-title">ARTICLE 1 : LES PARTIES</div>
-        <table class="grid">
+        <p style="text-align: center;"><strong>ET</strong></p>
+
+        <div class="party">
+            <strong>M/Mme :</strong> <span class="variable">{{ filiation.tenant.get_full_name|upper }}</span>, 
+            titulaire d’une pièce d’identité <strong>{{ filiation.tenant.document_country|default:"Sénégalaise" }}</strong> 
+            N° <span class="variable">{{ filiation.tenant.cni_number|default:"___________" }}</span><br>
+            <strong>NILS Locataire :</strong> <span class="badge-nils">{{ filiation.tenant.nils_profile.nils_number|default:"EN ATTENTE" }}</span><br>
+            Ci-après dénommé <strong>LE LOCATAIRE</strong>, d’autre part.
+        </div>
+
+        <p>Il a été arrêté et convenu ce qui suit :</p>
+        <p>Le bailleur louant les locaux et équipements ci-après désignés, au locataire qui les accepte aux conditions suivantes. Le locataire déclare bien connaître les lieux loués pour les avoir visités.</p>
+
+        <h3>DÉSIGNATION ET DESTINATION</h3>
+        <p>
+            <strong>Type de bien :</strong> <span class="variable">{{ filiation.property.get_property_type_display|upper }}</span><br>
+            <strong>Consistance des locaux :</strong><br>
+            {{ filiation.property.description|linebreaksbr }}<br>
+            <strong>Destination :</strong> À usage d'habitation.
+        </p>
+
+        <h3>CONDITIONS GÉNÉRALES</h3>
+        
+        <p><strong>1) DURÉE DU CONTRAT :</strong> Le bail est consenti pour une durée au moins égale à UN (01) AN avec tacite reconduction.</p>
+
+        <p><strong>2) CONGÉ :</strong> Le congé doit être signifié par lettre. Il peut être délivré à tout moment par le locataire en respectant un préavis de DEUX (02) MOIS. Le congé du bailleur respectera un préavis de SIX (06) MOIS pour motifs légitimes (reprise, vente, faute du locataire).</p>
+
+        <p><strong>3) OBLIGATIONS :</strong> Le bailleur s'oblige à délivrer un logement en bon état et assurer une jouissance paisible. Le locataire s'oblige à payer le loyer, user paisiblement des lieux et répondre des dégradations.</p>
+
+        <p><strong>4) CLAUSE DE TRANPARENCE NILS :</strong> Les parties acceptent que l'exécution de ce contrat soit tracée sur la plateforme Solvable. Tout incident de paiement ou dégradation sera reporté au profil NILS des parties concernées.</p>
+
+        <h3>CONDITIONS PARTICULIÈRES</h3>
+        <p><strong>LOYER :</strong> Le montant mensuel est fixé à <span class="variable">{{ filiation.monthly_rent|floatformat:0 }} FCFA</span> payable au plus tard le 05 de chaque mois.</p>
+        <p><strong>DÉPÔT DE GARANTIE :</strong> Fixé à <span class="variable">{{ filiation.monthly_rent|floatformat:0 }} FCFA</span> (01 mois de caution + 01 mois de loyer d'avance).</p>
+        <p><strong>DURÉE :</strong> Commençant le <span class="variable">{{ filiation.start_date|date:"d/m/Y" }}</span> et se terminant le <span class="variable">{{ filiation.end_date|date:"d/m/Y"|default:"___/___/______" }}</span>.</p>
+
+        <p><strong>RÈGLEMENT INTÉRIEUR :</strong> 
+            Maximum 04 personnes par studio. Bruits sonores prohibés. Animaux non tolérés. 
+            Abonnements électricité/eau à la charge du locataire.
+        </p>
+
+        <p style="margin-top: 20px;">Fait à Dakar, le <span class="variable">{{ today|date:"d/m/Y" }}</span> en deux originaux.</p>
+
+        <table class="signature-table">
             <tr>
-                <td>
-                    <strong>LE BAILLEUR :</strong><br>
-                    Nom : {{ filiation.landlord.get_full_name }}<br>
-                    NILS : <span class="nils-badge">{{ filiation.landlord.nils_profile.nils_number|default:"EN COURS" }}</span><br>
-                    Tél : {{ filiation.landlord.phone_number }}
+                <td class="signature-cell">
+                    <strong>LE BAILLEUR</strong><br>
+                    <small>(Lu et approuvé)</small>
                 </td>
-                <td>
-                    <strong>LE PRENEUR (LOCATAIRE) :</strong><br>
-                    Nom : {{ filiation.tenant.get_full_name }}<br>
-                    NILS : <span class="nils-badge">{{ filiation.tenant.nils_profile.nils_number|default:"EN COURS" }}</span><br>
-                    Tél : {{ filiation.tenant.phone_number }}
+                <td class="signature-cell">
+                    <strong>LE LOCATAIRE</strong><br>
+                    <small>(Lu et approuvé)</small>
                 </td>
             </tr>
         </table>
     </div>
 
-    <div class="section">
-        <div class="section-title">ARTICLE 2 : DÉSIGNATION DU BIEN</div>
-        <div class="box">
-            Le présent contrat concerne le bien suivant : 
-            <strong>{{ filiation.property.get_property_type_display }}</strong> situé à 
-            <strong>{{ filiation.property.neighborhood }}, {{ filiation.property.city }}</strong>.
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">ARTICLE 3 : CONDITIONS FINANCIÈRES</div>
-        <ul>
-            <li><strong>Loyer Mensuel :</strong> {{ filiation.monthly_rent|floatformat:0 }} FCFA</li>
-            <li><strong>Date de paiement :</strong> Avant le {{ filiation.property.payment_day|default:"5" }} de chaque mois.</li>
-            <li><strong>Dépôt de garantie :</strong> {{ filiation.monthly_rent|floatformat:0 }} FCFA (1 mois de caution).</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <div class="section-title">ARTICLE 4 : CLAUSE DE MÉDIATION SOLVABLE (NILS)</div>
-        <p style="font-style: italic; font-size: 10pt;">
-            Les parties conviennent expressément que le présent contrat est placé sous la surveillance du réseau <strong>NILS (Numéro d'Identification de Logement Solvable)</strong>. 
-            En cas d'impayé de loyer ou de dégradation du bien dépassant 15 jours de retard, le Bailleul se réserve le droit de signaler l'incident sur la plateforme SOLVABLE. 
-            Tout signalement validé par la médiation SOLVABLE entraînera une dégradation immédiate du score de solvabilité du Preneur, visible par l'ensemble du réseau immobilier national.
-        </p>
-    </div>
-
-    <div class="section">
-        <div class="section-title">ARTICLE 5 : DURÉE</div>
-        <p>Le bail est consenti pour une durée de 12 mois renouvelable par tacite reconduction, commençant le <strong>{{ filiation.start_date|date:"d/m/Y" }}</strong>.</p>
-    </div>
-
-    <table class="signature-box">
-        <tr>
-            <td>
-                <strong>Signature du Bailleur</strong><br>
-                <span style="font-size: 8pt; color: #aaa;">(Précédé de "Lu et approuvé")</span>
-            </td>
-            <td>
-                <strong>Signature du Preneur</strong><br>
-                <span style="font-size: 8pt; color: #aaa;">(Précédé de "Lu et approuvé")</span>
-            </td>
-        </tr>
-    </table>
-
     <div class="footer">
-        Solvable Sénégal - www.logersenegal.com<br>
-        La confiance immobilière par la transparence.
+        Document ID: SOLV-{{ filiation.id }}<br>
+        <strong>Solvable Sénégal (DigitalH)</strong> - www.logersenegal.com - La Trust-Tech Immobilière.
     </div>
 </body>
 </html>

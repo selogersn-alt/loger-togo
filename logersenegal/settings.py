@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^gda*3#uhe6a6$lb#l23y*=_m-9%c&54(!pp*(rp_v%pn@^%gx')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
@@ -107,7 +107,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME', 'gaak4328_loger_app'),
         'USER': os.environ.get('DB_USER', 'gaak4328_loger_app'), 
-        'PASSWORD': os.environ.get('DB_PASSWORD', '5KMtFH-8kz3PgtJ'), 
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''), 
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
@@ -192,7 +192,7 @@ EMAIL_PORT = 25
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'solvable@logersenegal.com'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '-P7GvVHJ2RmjnTG')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = 'solvable@logersenegal.com'
 SERVER_EMAIL = 'solvable@logersenegal.com'

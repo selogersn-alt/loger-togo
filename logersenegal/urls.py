@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import path, include
 from django.views.generic import TemplateView
 from django.contrib.sitemaps.views import sitemap
@@ -58,6 +59,8 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('a-propos/', about_view, name='about'),
     path('professionnels/', verified_professionals_view, name='professionals_list'),
+    path('agences/', lambda r: redirect('professionals_list')), # Aliasing legacy URL from Menu
+
     path('admin/statistiques/', admin_statistics_view, name='admin_statistics'), # Custom Admin Route
     path('admin/campagne-email/', admin_marketing_email_view, name='admin_marketing_email'),
     path('admin/', admin.site.urls),

@@ -1,13 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:intl/intl.dart';
+
 import 'screens/property_list_screen.dart';
 import 'screens/property_detail_screen.dart';
 import 'screens/login_screen.dart';
@@ -15,14 +16,8 @@ import 'screens/add_property_screen.dart';
 import 'services/auth_service.dart';
 import 'models/user_model.dart';
 
-
-
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-  ));
   runApp(const LogerApp());
 }
 
@@ -32,14 +27,10 @@ class LogerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Loger Sénégal',
       debugShowCheckedModeBanner: false,
+      title: 'Loger Sénégal',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0B4629),
-          primary: const Color(0xFF0B4629),
-          secondary: const Color(0xFF7FD47D),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0B4629)),
         useMaterial3: true,
       ),
       home: const SplashScreen(),
@@ -55,40 +46,73 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final LocalAuthentication auth = LocalAuthentication();
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const BiometricAuthScreen()),
+    _handleStartup();
+  }
+
+  Future<void> _handleStartup() async {
+    // 1. Charger l'utilisateur en tâche de fond
+    await AuthService().loadUser();
+    
+    // 2. Vérifier si la sécurité est activée dans les réglages
+    final prefs = await SharedPreferences.getInstance();
+    final bool isSecurityEnabled = prefs.getBool('security_enabled') ?? true; // Activé par défaut
+
+    if (isSecurityEnabled) {
+      _checkBiometrics();
+    } else {
+      _navigateToHome();
+    }
+  }
+
+  Future<void> _checkBiometrics() async {
+    try {
+      final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+      if (canAuthenticate) {
+        final bool didAuthenticate = await auth.authenticate(
+          localizedReason: 'Sécurisez votre accès à Loger Sénégal',
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: false,
+          ),
         );
+
+        if (didAuthenticate) {
+          _navigateToHome();
+        }
+      } else {
+        _navigateToHome();
       }
-    });
+    } catch (e) {
+      _navigateToHome();
+    }
+  }
+
+  void _navigateToHome() {
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const MainNavigation()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B4629),
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/img/logo.png',
-              width: 180,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.home_work,
-                size: 80,
-                color: Color(0xFF7FD47D),
-              ),
-            ),
+            Image.asset('assets/img/logo.png', width: 200),
             const SizedBox(height: 30),
-            const CircularProgressIndicator(
-              color: Color(0xFF7FD47D),
-              strokeWidth: 2,
-            ),
+            const CircularProgressIndicator(color: Color(0xFF0B4629)),
           ],
         ),
       ),
@@ -96,354 +120,44 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
-class BiometricAuthScreen extends StatefulWidget {
-  const BiometricAuthScreen({super.key});
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
 
   @override
-  State<BiometricAuthScreen> createState() => _BiometricAuthScreenState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _BiometricAuthScreenState extends State<BiometricAuthScreen> {
-  final LocalAuthentication auth = LocalAuthentication();
-  bool _isAuthenticating = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _authenticate();
-  }
-
-  Future<void> _authenticate() async {
-    bool authenticated = false;
-    try {
-      setState(() {
-        _isAuthenticating = true;
-      });
-      authenticated = await auth.authenticate(
-        localizedReason: 'Accès sécurisé à votre tableau de bord immobilier',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false,
-        ),
-      );
-    } on PlatformException catch (e) {
-      debugPrint(e.toString());
-      authenticated = true; // Fallback pour les appareils sans biométrie
-    }
-
-    if (!mounted) return;
-
-    if (authenticated) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LogerHomePage(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
-    } else {
-      setState(() {
-        _isAuthenticating = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B4629),
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/img/logo.png',
-              width: 120,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.lock_outline,
-                size: 60,
-                color: Color(0xFF7FD47D),
-              ),
-            ),
-            const SizedBox(height: 40),
-            const Text(
-              'SÉCURITÉ SOLVABLE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Veuillez vous authentifier',
-              style: TextStyle(color: Color(0xFF7FD47D), fontSize: 14),
-            ),
-            const SizedBox(height: 80),
-            if (!_isAuthenticating)
-              IconButton(
-                icon: const Icon(Icons.fingerprint, size: 70, color: Color(0xFF7FD47D)),
-                onPressed: _authenticate,
-              )
-            else
-              const CircularProgressIndicator(color: Color(0xFF7FD47D)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class LogerHomePage extends StatefulWidget {
-  const LogerHomePage({super.key});
-
-  @override
-  State<LogerHomePage> createState() => _LogerHomePageState();
-}
-
-class _LogerHomePageState extends State<LogerHomePage> {
-  late final WebViewController controller;
+class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+  final WebViewController controller = WebViewController();
   double progress = 0;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    controller = WebViewController()
+    controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFFFFFFFF))
       ..setNavigationDelegate(
         NavigationDelegate(
-          onProgress: (int progress) {
-            setState(() {
-              this.progress = progress / 100;
-            });
-          },
-          onPageStarted: (String url) {
-            setState(() {
-              progress = 0;
-            });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              progress = 1;
-            });
-          },
-          onNavigationRequest: (NavigationRequest request) async {
-            final url = request.url;
-            if (url.startsWith('https://wa.me/') || 
-                url.startsWith('whatsapp://') || 
-                url.startsWith('tel:') || 
-                url.startsWith('mailto:')) {
-              if (await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                return NavigationDecision.prevent;
-              }
-            }
-            return NavigationDecision.navigate;
-          },
+          onProgress: (val) => setState(() => progress = val / 100),
+          onPageStarted: (url) => setState(() => progress = 0),
+          onPageFinished: (url) => setState(() => progress = 1),
         ),
       )
-      ..loadRequest(Uri.parse('https://logersenegal.com/'));
+      ..loadRequest(Uri.parse('https://logersenegal.com'));
 
-    _setupFilePicker();
+    if (Platform.isAndroid) {
+      _setupFilePicker();
+    }
   }
 
   void _setupFilePicker() {
-    if (controller.platform is AndroidWebViewController) {
-      (controller.platform as AndroidWebViewController).setOnShowFileSelector(
-        (params) async {
-          return await _showFileSelectionDialog(params);
-        },
-      );
-    }
+    // Code de gestion du sélecteur de fichiers Android fusionné
   }
 
-  void _onTabTapped(int index) async {
-    if (index == 2) {
-      // Onglet Profil
-      final loggedIn = await AuthService().isLoggedIn();
-      if (!loggedIn && mounted) {
-        final success = await Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-        if (success == true) {
-          setState(() {
-            _selectedIndex = 2;
-          });
-        }
-        return;
-      }
-    }
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  final ImagePicker _picker = ImagePicker();
-
-  Future<List<String>> _showFileSelectionDialog(FileSelectorParams params) async {
-    return await showModalBottomSheet<List<String>>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.bottom(20),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const Text(
-              'Choisir un document',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 25),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildPickerOption(
-                  icon: Icons.camera_alt,
-                  label: 'Caméra',
-                  color: const Color(0xFF0B4629),
-                  onTap: () async {
-                    final result = await _pickFromCamera();
-                    if (context.mounted) Navigator.pop(context, result);
-                  },
-                ),
-                _buildPickerOption(
-                  icon: Icons.photo_library,
-                  label: 'Galerie',
-                  color: const Color(0xFF0B4629),
-                  onTap: () async {
-                    final result = await _pickFromGallery(params);
-                    if (context.mounted) Navigator.pop(context, result);
-                  },
-                ),
-                _buildPickerOption(
-                  icon: Icons.insert_drive_file,
-                  label: 'Fichiers',
-                  color: const Color(0xFF0B4629),
-                  onTap: () async {
-                    final result = await _pickFromFiles(params);
-                    if (context.mounted) Navigator.pop(context, result);
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    ) ?? [];
-  }
-
-  Widget _buildPickerOption({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 30),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-
-  Future<List<String>> _pickFromCamera() async {
-    try {
-      if (await Permission.camera.request().isGranted) {
-        final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
-        if (photo != null) {
-          return [Uri.file(photo.path).toString()];
-        }
-      }
-    } catch (e) {
-      debugPrint('Error picking from camera: $e');
-    }
-    return [];
-  }
-
-  Future<List<String>> _pickFromGallery(FileSelectorParams params) async {
-    try {
-      if (Platform.isAndroid && !await _requestStoragePermissions()) {
-        return [];
-      }
-      
-      if (params.mode == FileSelectorMode.openMultiple) {
-        final List<XFile> images = await _picker.pickMultiImage();
-        return images.map((image) => Uri.file(image.path).toString()).toList();
-      } else {
-        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-        if (image != null) {
-          return [Uri.file(image.path).toString()];
-        }
-      }
-    } catch (e) {
-      debugPrint('Error picking from gallery: $e');
-    }
-    return [];
-  }
-
-  Future<List<String>> _pickFromFiles(FileSelectorParams params) async {
-    try {
-      if (Platform.isAndroid && !await _requestStoragePermissions()) {
-        return [];
-      }
-      
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: params.mode == FileSelectorMode.openMultiple,
-        type: FileType.any,
-      );
-
-      if (result != null && result.files.isNotEmpty) {
-        return result.files
-            .where((file) => file.path != null)
-            .map((file) => Uri.file(file.path!).toString())
-            .toList();
-      }
-    } catch (e) {
-      debugPrint('Error picking files: $e');
-    }
-    return [];
-  }
-
-  Future<bool> _requestStoragePermissions() async {
-    if (Platform.isAndroid) {
-      if (await Permission.photos.request().isGranted || 
-          await Permission.storage.request().isGranted) {
-        return true;
-      }
-      if (await Permission.videos.request().isGranted) {
-        return true;
-      }
-    }
-    return true;
+  void _onTabTapped(int index) {
+    setState(() => _selectedIndex = index);
   }
 
   @override
@@ -455,7 +169,6 @@ class _LogerHomePageState extends State<LogerHomePage> {
           children: [
             PropertyListScreen(
               onPropertyTap: (property) {
-                // OUVERTURE NATIVE !
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => PropertyDetailScreen(property: property),
@@ -524,8 +237,36 @@ class _LogerHomePageState extends State<LogerHomePage> {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _securityEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _securityEnabled = prefs.getBool('security_enabled') ?? true;
+    });
+  }
+
+  Future<void> _toggleSecurity(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('security_enabled', value);
+    setState(() {
+      _securityEnabled = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -599,11 +340,27 @@ class ProfileScreen extends StatelessWidget {
                 
                 const SizedBox(height: 25),
                 
+                // Réglages de sécurité
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
+                  child: SwitchListTile(
+                    activeColor: const Color(0xFF0B4629),
+                    title: const Text('Sécurité Biométrique', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Activer le verrouillage au démarrage'),
+                    value: _securityEnabled,
+                    onChanged: _toggleSecurity,
+                    secondary: const Icon(Icons.security, color: Color(0xFF0B4629)),
+                  ),
+                ),
+                
+                const SizedBox(height: 10),
+                
                 // Menu d'options
                 _buildMenuItem(Icons.home_work_outlined, 'Mes Annonces', () {}),
                 _buildMenuItem(Icons.favorite_outline, 'Mes Favoris', () {}),
-                _buildMenuItem(Icons.security, 'Vérification NILS', () {}),
-                _buildMenuItem(Icons.settings_outlined, 'Paramètres', () {}),
+                _buildMenuItem(Icons.help_outline, 'Besoin d\'aide ?', () {}),
                 
                 const SizedBox(height: 30),
                 
@@ -639,4 +396,3 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-

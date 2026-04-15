@@ -3,7 +3,7 @@
 
 {% block title %}{{ property.title }} à louer à {{ property.neighborhood }} | Loger Sénégal{% endblock %}
 
-{% block meta_description %}{{ property.get_property_type_display }} à {{ property.neighborhood }}, {{ property.city }}. {{ property.price|floatformat:0 }} FCFA par mois. Découvrez cette annonce immo vérifiée sur Loger Sénégal.{% endblock %}
+{% block meta_description %}Découvrez ce {{ property.get_property_type_display }} de {{ property.bedrooms }} ch à {{ property.neighborhood }}, {{ property.city }}. Prix : {{ property.price|floatformat:0 }} FCFA. Annonce vérifiée et sécurisée sur Loger Sénégal, la plateforme n°1 de l'immobilier au Sénégal.{% endblock %}
 
 {% block og_title %}{{ property.title }} - Annonce immo à {{ property.neighborhood }}{% endblock %}
 {% block og_description %}{{ property.property_type }} à {{ property.neighborhood }} ({{ property.city }}) | {{ property.price|floatformat:0 }} FCFA{% endblock %}
@@ -21,20 +21,20 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Données Structurées Schema.org pour les Robots -->
+    <!-- Données Structurées Schema.org pour Google Search -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "RealEstateListing",
       "name": "{{ property.title|escapejs }}",
-      "description": "{{ property.description|striptags|truncatewords:50|escapejs }}",
+      "description": "{{ property.description|striptags|truncatewords:60|escapejs }}",
       "datePosted": "{{ property.created_at|date:'Y-m-d' }}",
-      "url": "{{ request.build_absolute_uri }}",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }}",
       "image": [
         {% for image in property.images.all %}"{{ request.scheme }}://{{ request.get_host }}{{ image.image_url.url }}"{% if not forloop.last %},{% endif %}{% endfor %}
       ],
       "contents": {
-        "@type": "SingleFamilyResidence",
+        "@type": "RealEstateListing",
         "name": "{{ property.title|escapejs }}",
         "address": {
           "@type": "PostalAddress",
@@ -42,19 +42,19 @@
           "addressRegion": "{{ property.neighborhood|escapejs }}",
           "addressCountry": "SN"
         },
-        "numberOfRooms": "{{ property.rooms|default:'1' }}",
+        "numberOfRooms": "{{ property.bedrooms|default:1 }}",
         "floorSize": {
           "@type": "QuantitativeValue",
-          "value": "{{ property.surface_area|default:'0' }}",
+          "value": "{{ property.surface|default:0 }}",
           "unitCode": "MTK"
         }
       },
       "offers": {
         "@type": "Offer",
-        "price": "{% if property.listing_category == 'SALE' %}{{ property.price }}{% elif property.listing_category == 'FURNISHED' %}{{ property.price_per_night }}{% else %}{{ property.price }}{% endif %}",
+        "price": "{{ property.price }}",
         "priceCurrency": "XOF",
         "availability": "https://schema.org/InStock",
-        "validFrom": "{{ property.created_at|date:'Y-m-d' }}"
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }}"
       }
     }
     </script>
@@ -443,7 +443,7 @@
                 </div>
 
                 <div class="d-grid gap-2 mb-3">
-                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Solvable LogerSN : {{ property.title }} ({{ request.build_absolute_uri }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
+                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Loger Sénégal : {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
                         <i class="fa-brands fa-whatsapp me-2"></i> WhatsApp
                     </a>
                     

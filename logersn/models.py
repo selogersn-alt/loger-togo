@@ -4,6 +4,8 @@ import os
 from PIL import Image
 from django.core.files.base import ContentFile
 from django.db import models
+from django.urls import reverse
+from django.utils.text import slugify
 from django.conf import settings
 
 User = settings.AUTH_USER_MODEL
@@ -26,6 +28,7 @@ class Property(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')
     title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=300, unique=True, null=True, blank=True)
     description = models.TextField()
     listing_category = models.CharField(max_length=20, choices=CategoryEnum.choices, default=CategoryEnum.RENT)
     property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)
@@ -86,6 +89,20 @@ class Property(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        if self.slug:
+            return reverse('property_detail_slug', kwargs={'slug': self.slug})
+        return reverse('property_detail', kwargs={'property_id': self.id})
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title)
+            if not base_slug:
+                base_slug = "propriete"
+            # On ajoute une partie de l'ID pour garantir l'unicité absolue
+            self.slug = f"{base_slug}-{str(self.id)[:8]}"
+        super().save(*args, **kwargs)
 
     def get_main_image(self):
         primary_image = self.images.filter(is_primary=True).first()

@@ -91,6 +91,6 @@
 
     <!-- LIEN GLOBAL (SUR TOUTES LES COUCHES SAUF BOUTONS) -->
     {% if property.id %}
-        <a href="{% url 'property_detail' property.id %}" class="stretched-link" style="z-index: 7;"></a>
+        <a href="{{ property.get_absolute_url }}" class="stretched-link" style="z-index: 7;"></a>
     {% endif %}
 </div>

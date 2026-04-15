@@ -14,7 +14,7 @@ class PropertySitemap(Sitemap):
         return obj.created_at
 
     def location(self, obj):
-        return reverse('property_detail', kwargs={'property_id': str(obj.id)})
+        return obj.get_absolute_url()
 
 class StaticViewSitemap(Sitemap):
     protocol = 'https'

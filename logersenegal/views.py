@@ -175,9 +175,12 @@ def properties_list_view(request):
     
     return render(request, 'properties_list.html', context)
 
-def property_detail_view(request, property_id):
-    # Récupère l'annonce par son ID unique
-    property_obj = get_object_or_404(Property, id=property_id)
+def property_detail_view(request, property_id=None, slug=None):
+    # Récupère l'annonce par son Slug (SEO) ou son ID unique (Compatibilité)
+    if slug:
+        property_obj = get_object_or_404(Property, slug=slug)
+    else:
+        property_obj = get_object_or_404(Property, id=property_id)
     
     # Sécurité : Si l'annonce n'est pas publiée, SEUL l'admin ou le propriétaire peut la voir
     if not property_obj.is_published:

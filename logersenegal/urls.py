@@ -70,6 +70,7 @@ urlpatterns = [
     path('annonces/nouvelle/', create_property_view, name='create_property'),
     path('annonces/', properties_list_view, name='properties_list'),
     path('annonces/<uuid:property_id>/', property_detail_view, name='property_detail'),
+    path('annonces/<slug:slug>/', property_detail_view, name='property_detail_slug'),
     path('annonces/<uuid:property_id>/modifier/', edit_property_view, name='edit_property'),
     path('annonces/<uuid:property_id>/supprimer/', delete_property_view, name='delete_property'),
     

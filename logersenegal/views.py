@@ -191,7 +191,6 @@ def properties_list_view(request):
         'seo_title': seo_title,
         'seo_description': seo_description,
         'seo_market_description': seo_market_description
-    }ket_description': seo_market_description
     }
     
     return render(request, 'properties_list.html', context)

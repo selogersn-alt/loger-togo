@@ -163,6 +163,24 @@ def properties_list_view(request):
     else:
         seo_market_description = "Loger Sénégal est la plateforme de référence pour l'immobilier au Sénégal. Nous connectons bailleurs, agences et locataires dans un environnement sécurisé grâce au réseau de solvabilité NILS. Retrouvez nos annonces d'appartements, de villas et de terrains à Dakar, Thiès, Saly et partout au Sénégal."
 
+    # Génération dynamique des métadonnées SEO (SEO Local Power)
+    seo_title = "Annonces Immobilières au Sénégal"
+    seo_description = "Retrouvez les meilleures annonces d'appartements, villas et terrains au Sénégal sur Loger Sénégal."
+    
+    type_label = dict(PROPERTY_TYPE_CHOICES).get(property_type, "Biens immobiliers") if property_type and property_type != 'ALL' else "Biens immobiliers"
+    cat_label = "à vendre" if listing_category == 'SALE' else "meublés" if listing_category == 'FURNISHED' else "en location"
+    
+    if neighborhood and neighborhood != 'ALL':
+        n_name = dict(NEIGHBORHOOD_CHOICES).get(neighborhood, neighborhood)
+        seo_title = f"{type_label} {cat_label} à {n_name}, {dict(CITY_CHOICES).get(city, city)}"
+        seo_description = f"Découvrez notre sélection de {type_label.lower()} {cat_label} située à {n_name}. Loger Sénégal sécurise votre recherche avec le réseau NILS."
+    elif city and city != 'ALL':
+        c_name = dict(CITY_CHOICES).get(city, city)
+        seo_title = f"{type_label} {cat_label} à {c_name} | Meilleures offres immo"
+        seo_description = f"Trouvez votre futur {type_label.lower()} {cat_label} à {c_name}. Loger Sénégal : la plateforme de confiance pour l'immobilier au Sénégal."
+    elif property_type and property_type != 'ALL':
+        seo_title = f"{type_label} {cat_label} au Sénégal | Loger Sénégal"
+
     context = {
         'properties': properties,
         'boosted_slider': boosted_slider,
@@ -170,7 +188,10 @@ def properties_list_view(request):
         'neighborhoods': NEIGHBORHOOD_CHOICES,
         'property_types': PROPERTY_TYPE_CHOICES,
         'current_filters': request.GET,
+        'seo_title': seo_title,
+        'seo_description': seo_description,
         'seo_market_description': seo_market_description
+    }ket_description': seo_market_description
     }
     
     return render(request, 'properties_list.html', context)

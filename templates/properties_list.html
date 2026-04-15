@@ -1,16 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}
-    {% if current_filters.city != 'ALL' and current_filters.city %}
-        Annonces Immobilières à {{ current_filters.city }}
-    {% elif current_filters.property_type != 'ALL' and current_filters.property_type %}
-        {{ current_filters.property_type }} à Louer au Sénégal
-    {% else %}
-        Annonces Immobilières | Location & Vente au Sénégal
-    {% endif %}
-    | Loger Sénégal
-{% endblock %}
+{% block title %}{{ seo_title }} | Loger Sénégal{% endblock %}
+
+{% block meta_description %}{{ seo_description }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -197,20 +190,10 @@
 <div class="page-header mt-4 text-center text-md-start">
     <div class="container py-4">
         <h1 class="fw-800 display-5 text-white">
-            {% if current_filters.city != 'ALL' and current_filters.city %}
-                Immobilier à {{ current_filters.city }}
-            {% elif current_filters.property_type != 'ALL' and current_filters.property_type %}
-                {{ current_filters.property_type }}s au Sénégal
-            {% else %}
-                Nos Annonces Immobilières
-            {% endif %}
+            {{ seo_title }}
         </h1>
         <p class="lead fw-bold mb-0" style="color: rgba(255,255,255,0.85);">
-            {% if current_filters.city != 'ALL' and current_filters.city %}
-                Découvrez les meilleures opportunités à {{ current_filters.city }} vérifiées par LogerSN
-            {% else %}
-                Trouvez l'appartement ou la villa idéale au Sénégal
-            {% endif %}
+            {{ seo_description }}
         </p>
     </div>
 </div>

@@ -25,6 +25,6 @@ class PropertySerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'description', 'price', 'price_per_night', 
             'city', 'neighborhood', 'property_type', 'property_type_display',
             'listing_category', 'listing_category_display', 'bedrooms', 
-            'bathrooms', 'surface', 'is_boosted', 'created_at', 
+            'toilets', 'surface', 'is_boosted', 'created_at', 
             'images', 'owner', 'absolute_url'
         ]

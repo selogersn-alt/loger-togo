@@ -11,6 +11,7 @@ import 'dart:io';
 import 'screens/property_list_screen.dart';
 import 'screens/property_detail_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/add_property_screen.dart';
 import 'services/auth_service.dart';
 import 'models/user_model.dart';
 
@@ -504,6 +505,21 @@ class _LogerHomePageState extends State<LogerHomePage> {
           ),
         ],
       ),
+      floatingActionButton: _selectedIndex == 0 ? FloatingActionButton.extended(
+        onPressed: () async {
+          final loggedIn = await AuthService().isLoggedIn();
+          if (!loggedIn && mounted) {
+            await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LoginScreen()));
+            return;
+          }
+          if (mounted) {
+             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AddPropertyScreen()));
+          }
+        },
+        backgroundColor: const Color(0xFF0B4629),
+        icon: const Icon(Icons.add_photo_alternate, color: Colors.white),
+        label: const Text('Publier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ) : null,
     );
   }
 }

@@ -178,7 +178,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
     );
 
     return Card(
-      margin: const EdgeInsets.bottom(16),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       clipBehavior: Clip.antiAlias,

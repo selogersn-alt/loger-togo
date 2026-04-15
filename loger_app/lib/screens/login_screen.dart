@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
             if (_errorMessage != null)
               Container(
                 padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.bottom(20),
+                margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(10)),
                 child: Row(
                   children: [

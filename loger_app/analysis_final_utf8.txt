@@ -1,0 +1,37 @@
+﻿Analyzing loger_app...                                          
+
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\main.dart:204:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\main.dart:208:27 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\main.dart:293:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\main.dart:299:66 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\main.dart:314:60 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\main.dart:339:21 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\main.dart:533:50 - deprecated_member_use
+   info - The private field _images could be 'final' - lib\screens\add_property_screen.dart:29:15 - prefer_final_fields
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\add_property_screen.dart:232:13 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\chat_detail_screen.dart:127:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\professionals_screen.dart:63:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\professionals_screen.dart:72:66 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\property_detail_screen.dart:109:60 - deprecated_member_use
+   info - The private field _selectedCity could be 'final' - lib\screens\property_list_screen.dart:22:10 - prefer_final_fields
+warning - The value of the field '_cities' isn't used - lib\screens\property_list_screen.dart:25:22 - unused_field
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\property_list_screen.dart:117:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\property_list_screen.dart:203:76 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\property_list_screen.dart:334:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\property_list_screen.dart:352:69 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\property_list_screen.dart:418:51 - deprecated_member_use
+  error - The getter 'platform' isn't defined for the type 'FilePicker' - lib\screens\solvency_docs_screen.dart:39:55 - undefined_getter
+warning - The operand can't be 'null', so the condition is always 'true' - lib\screens\solvency_docs_screen.dart:41:16 - unnecessary_null_comparison
+   info - Don't use 'BuildContext's across async gaps - lib\screens\solvency_docs_screen.dart:46:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\solvency_docs_screen.dart:51:30 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\solvency_docs_screen.dart:111:51 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\solvency_docs_screen.dart:116:13 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\solvency_docs_screen.dart:152:56 - deprecated_member_use
+
+flutter : 27 issues found. (ran in 7.6s)
+Au caractère Ligne:1 : 1
++ flutter analyze > analysis_final.txt 2>&1 ; cat analysis_final.txt
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (27 issues found. (ran in 7.6s):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

@@ -39,7 +39,7 @@ def home_view(request):
             'active_mediation': IncidentReport.objects.filter(status='IN_MEDIATION').count(),
         }
         recent_incidents = IncidentReport.objects.filter(is_validated=True).order_by('-id')[:5]
-    except:
+    except Exception:
         stats = {'total_unpaid': 0, 'profiles_flagged': 0, 'resolved_cases': 0, 'active_mediation': 0}
         recent_incidents = []
 
@@ -54,26 +54,32 @@ def home_view(request):
     from django.core.paginator import Paginator
 
     # Slider : Uniquement les annonces boostées ET VALIDÉES
-    boosted_properties = Property.objects.filter(
-        is_boosted=True,
-        is_published=True
-    ).select_related('owner').prefetch_related('images').order_by('-created_at')
-
-    # Liste paginée : Uniquement les annonces VALIDÉES
-    all_properties = Property.objects.filter(
-        is_published=True
-    ).select_related('owner').prefetch_related('images').order_by('-created_at')
-
-    paginator = Paginator(all_properties, 12)
-    page_number = request.GET.get('page', 1)
     try:
+        boosted_properties = Property.objects.filter(
+            is_boosted=True,
+            is_published=True
+        ).select_related('owner').prefetch_related('images').order_by('-created_at')
+
+        # Liste paginée : Uniquement les annonces VALIDÉES
+        all_properties = Property.objects.filter(
+            is_published=True
+        ).select_related('owner').prefetch_related('images').order_by('-created_at')
+
+        paginator = Paginator(all_properties, 12)
+        page_number = request.GET.get('page', 1)
         page_obj = paginator.page(page_number)
     except Exception:
+        boosted_properties = Property.objects.none()
+        all_properties = Property.objects.none()
+        paginator = Paginator(all_properties, 12)
         page_obj = paginator.page(1)
 
     # Professionnels à la Une (Augmenté pour le bandeau défilant)
-    from users.models import User
-    featured_pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('?')[:30]
+    try:
+        from users.models import User
+        featured_pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('?')[:30]
+    except Exception:
+        featured_pros = []
 
     return render(request, 'home.html', {
         'page_obj': page_obj,
@@ -91,7 +97,10 @@ def about_view(request):
 
 def verified_professionals_view(request):
     # Les pros vérifiés par l'admin (badge is_verified_pro=True) et qui sont Agency, Broker, Agent, Landlord
-    pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('role', 'company_name', 'phone_number')
+    try:
+        pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('role', 'company_name', 'phone_number')
+    except Exception:
+        pros = User.objects.none()
     
     context = {
         'professionals': pros
@@ -109,7 +118,10 @@ def properties_list_view(request):
     owner_id = request.GET.get('owner')
     
     # Base Queryset optimisé avec prefetch_related et select_related (Analytics N+1 fixes)
-    properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    try:
+        properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    except Exception:
+        properties = Property.objects.none()
     
     # Filtrage par propriétaire
     if owner_id:
@@ -151,7 +163,10 @@ def properties_list_view(request):
         properties = properties.order_by('-created_at', '-id')
         
     # Extraire les annonces pour le bandeau défilant du haut (Boostées uniquement)
-    boosted_slider = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:10]
+    try:
+        boosted_slider = Property.objects.filter(is_published=True, is_boosted=True).order_by('-created_at', '-id')[:10]
+    except Exception:
+        boosted_slider = Property.objects.none()
     
     from logersn.constants import CITY_CHOICES, PROPERTY_TYPE_CHOICES, NEIGHBORHOOD_CHOICES
     

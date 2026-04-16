@@ -15,11 +15,47 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
-  Future<bool> login(String email, String password) async {
+  Future<Map<String, dynamic>> register({
+    required String phoneNumber,
+    required String password,
+    String? email,
+    String role = 'TENANT',
+    String firstName = '',
+    String lastName = '',
+    String companyName = '',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/register/'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'phone_number': phoneNumber,
+          'password': password,
+          'email': email,
+          'role': role,
+          'first_name': firstName,
+          'last_name': lastName,
+          'company_name': companyName,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return {'success': true, 'message': 'Compte créé avec succès.'};
+      } else {
+        final error = json.decode(response.body);
+        return {'success': false, 'message': error['error'] ?? 'Échec de l\'inscription.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur réseau : $e'};
+    }
+  }
+
+  Future<bool> login(String identifier, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/token/'),
-        body: {'email': email, 'password': password},
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'username': identifier, 'password': password}),
       );
 
       if (response.statusCode == 200) {
@@ -71,5 +107,9 @@ class AuthService {
       return await fetchProfile();
     }
     return token != null;
+  }
+
+  Future<bool> loadUser() async {
+    return await isLoggedIn();
   }
 }

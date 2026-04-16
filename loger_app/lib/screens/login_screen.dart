@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,7 +10,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
@@ -21,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final success = await AuthService().login(
-      _emailController.text.trim(),
+      _identifierController.text.trim(),
       _passwordController.text.trim(),
     );
 
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pop(context, true); // Return true to indicate success
       } else {
         setState(() {
-          _errorMessage = "Email ou mot de passe incorrect";
+          _errorMessage = "Identifiants incorrects";
         });
       }
     }
@@ -51,11 +52,11 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const SizedBox(height: 20),
             Image.asset('assets/img/logo.png', width: 140, 
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.home_work, size: 80, color: Color(0xFF0B4629))),
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.home_work, size: 80, color: Color(0xFF198754))),
             const SizedBox(height: 40),
             const Text(
               'Connexion Sécurisée',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0B4629)),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF198754)),
             ),
             const SizedBox(height: 10),
             const Text('Accédez à votre espace membre Loger Sénégal', style: TextStyle(color: Colors.grey)),
@@ -76,11 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
             TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
+              controller: _identifierController,
+              keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                labelText: 'Email',
-                prefixIcon: const Icon(Icons.email_outlined),
+                labelText: 'Email ou Téléphone',
+                prefixIcon: const Icon(Icons.person_outline_rounded),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
               ),
             ),
@@ -102,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleLogin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B4629),
+                  backgroundColor: const Color(0xFF198754),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
                 child: _isLoading 
@@ -113,9 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 30),
             TextButton(
               onPressed: () {
-                // TODO: Lien vers inscription web ou native
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                );
               },
-              child: const Text("Pas encore de compte ? S'inscrire", style: TextStyle(color: Color(0xFF0B4629))),
+              child: const Text("Pas encore de compte ? S'inscrire", style: TextStyle(color: Color(0xFF198754))),
             ),
           ],
         ),

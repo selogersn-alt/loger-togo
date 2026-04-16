@@ -77,4 +77,155 @@ class ApiService {
       return false;
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchProfessionals() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/professionals/'));
+      if (response.statusCode == 200) {
+        final List<dynamic> list = json.decode(utf8.decode(response.bodyBytes));
+        return list.cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // --- Favorites ---
+
+  Future<bool> toggleFavorite(String propertyId) async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/properties/$propertyId/toggle-favorite/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<List<Property>> fetchFavorites() async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/properties/favorites/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> list = json.decode(utf8.decode(response.bodyBytes));
+        return list.map((json) => Property.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // --- Conversations & Chat ---
+
+  Future<List<dynamic>> fetchConversations() async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/conversations/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<dynamic>> fetchMessages(String conversationId) async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/conversations/$conversationId/messages/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<bool> sendMessage(String conversationId, String content) async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/conversations/$conversationId/send_message/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'content': content}),
+      );
+      return response.statusCode == 201;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // --- Solvency Documents ---
+
+  Future<List<dynamic>> fetchSolvencyDocuments() async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/solvency-documents/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<bool> uploadSolvencyDocument(String docType, File file) async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) return false;
+
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/solvency-documents/'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['doc_type'] = docType;
+      
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+      ));
+
+      final response = await request.send();
+      return response.statusCode == 201;
+    } catch (e) {
+      return false;
+    }
+  }
 }

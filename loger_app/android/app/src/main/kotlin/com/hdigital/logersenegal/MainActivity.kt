@@ -1,4 +1,4 @@
-package com.digitalh.logersenegal
+package com.hdigital.logersenegal
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

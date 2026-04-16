@@ -12,13 +12,20 @@ class Property {
   final String listingCategory;
   final String listingCategoryDisplay;
   final int bedrooms;
-  final int bathrooms;
-  final double surface;
+  final int toilets;
+  final int? totalRooms;
+  final int? salons;
+  final int? kitchens;
+  final bool hasGarage;
+  final bool hasBalcony;
+  final bool hasTerrace;
+  final String? documentType;
   final bool isBoosted;
   final DateTime createdAt;
   final List<PropertyImage> images;
   final Owner owner;
   final String absoluteUrl;
+  final double surface;
 
   Property({
     required this.id,
@@ -34,7 +41,14 @@ class Property {
     required this.listingCategory,
     required this.listingCategoryDisplay,
     required this.bedrooms,
-    required this.bathrooms,
+    required this.toilets,
+    this.totalRooms,
+    this.salons,
+    this.kitchens,
+    this.hasGarage = false,
+    this.hasBalcony = false,
+    this.hasTerrace = false,
+    this.documentType,
     required this.surface,
     required this.isBoosted,
     required this.createdAt,
@@ -45,12 +59,12 @@ class Property {
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
-      id: json['id'],
-      title: json['title'],
+      id: json['id'].toString(),
+      title: json['title'] ?? '',
       slug: json['slug'],
       description: json['description'] ?? '',
-      price: (json['price'] as num).toDouble(),
-      pricePerNight: json['price_per_night'] != null ? (json['price_per_night'] as num).toDouble() : null,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      pricePerNight: json['price_per_night'] != null ? double.tryParse(json['price_per_night'].toString()) : null,
       city: json['city'] ?? '',
       neighborhood: json['neighborhood'] ?? '',
       propertyType: json['property_type'] ?? '',
@@ -58,27 +72,36 @@ class Property {
       listingCategory: json['listing_category'] ?? '',
       listingCategoryDisplay: json['listing_category_display'] ?? '',
       bedrooms: json['bedrooms'] ?? 0,
-      bathrooms: json['bathrooms'] ?? 0,
-      surface: (json['surface'] as num?)?.toDouble() ?? 0.0,
+      toilets: json['toilets'] ?? 0,
+      totalRooms: json['total_rooms'],
+      salons: json['salons'],
+      kitchens: json['kitchens'],
+      hasGarage: json['has_garage'] ?? false,
+      hasBalcony: json['has_balcony'] ?? false,
+      hasTerrace: json['has_terrace'] ?? false,
+      documentType: json['document_type'],
+      surface: double.tryParse(json['surface']?.toString() ?? '0') ?? 0.0,
       isBoosted: json['is_boosted'] ?? false,
-      createdAt: DateTime.parse(json['created_at']),
-      images: (json['images'] as List).map((i) => PropertyImage.fromJson(i)).toList(),
-      owner: Owner.fromJson(json['owner']),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      images: (json['images'] as List?)?.map((i) => PropertyImage.fromJson(i)).toList() ?? [],
+      owner: Owner.fromJson(json['owner'] ?? {}),
       absoluteUrl: json['absolute_url'] ?? '',
     );
   }
 }
 
 class PropertyImage {
-  final int id;
+  final String id;
   final String imageUrl;
 
   PropertyImage({required this.id, required this.imageUrl});
 
   factory PropertyImage.fromJson(Map<String, dynamic> json) {
+    // Some API versions use 'image', others 'image_url'
+    String url = json['image_url'] ?? json['image'] ?? '';
     return PropertyImage(
-      id: json['id'],
-      imageUrl: json['image_url'],
+      id: json['id'].toString(),
+      imageUrl: url,
     );
   }
 }

@@ -232,6 +232,10 @@ SERVER_EMAIL = 'solvable@logersenegal.com'
 # (Les paramètres MEDIA_URL et MEDIA_ROOT sont définis plus haut)
 
 # Auth Settings
+AUTHENTICATION_BACKENDS = [
+    'users.backends.EmailOrPhoneModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
@@ -260,8 +264,8 @@ JAZZMIN_SETTINGS = {
     "default_icon_parents": "fas fa-folder-open",
     "default_icon_children": "fas fa-bullseye",
     "topmenu_links": [
-        {"name": "Accueil Admin", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Statistiques Réelles", "url": "/admin/statistiques/", "permissions": ["auth.view_user"], "new_window": False},
+        {"name": "Accueil Admin", "url": "admin:index", "permissions": ["users.view_user"]},
+        {"name": "Statistiques Réelles", "url": "/admin/statistiques/", "permissions": ["users.view_user"], "new_window": False},
     ],
     "related_modal_active": True,
 }
@@ -284,20 +288,13 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
-# REST Framework Config
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
-
+# Spectacular Settings (Point 8)
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Solvable Loger Sénégal API',
     'DESCRIPTION': 'Documentation technique des services immobiliers de prestige par DigitalH.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
-
-# Sitemap & Domain
-SITE_ID = 1
 
 # --- CONFIGURATION LOCALE (ZÉRO CONFLIT) ---
 # Ce bloc permet de surcharger les réglages (comme la BDD) sur le serveur

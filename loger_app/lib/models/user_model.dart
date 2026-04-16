@@ -5,8 +5,6 @@ class AppUser {
   final String lastName;
   final String phoneNumber;
   final String? companyName;
-  final String userType;
-  final String city;
   final String role;
   final bool isVerified;
 
@@ -17,8 +15,6 @@ class AppUser {
     required this.lastName,
     required this.phoneNumber,
     this.companyName,
-    required this.userType,
-    required this.city,
     required this.role,
     required this.isVerified,
   });
@@ -31,10 +27,8 @@ class AppUser {
       lastName: json['last_name'] ?? '',
       phoneNumber: json['phone_number'] ?? '',
       companyName: json['company_name'],
-      userType: json['user_type'] ?? '',
-      city: json['city'] ?? '',
       role: json['role'] ?? '',
-      isVerified: json['is_verified'] ?? false,
+      isVerified: json['is_verified_pro'] ?? false,
     );
   }
 

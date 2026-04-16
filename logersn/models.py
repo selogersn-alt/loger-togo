@@ -28,7 +28,7 @@ class Property(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')
     title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=300, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
     description = models.TextField()
     listing_category = models.CharField(max_length=20, choices=CategoryEnum.choices, default=CategoryEnum.RENT)
     property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)

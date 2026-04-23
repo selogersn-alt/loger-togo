@@ -5,7 +5,7 @@
 
 {% block extra_meta %}
     <meta property="og:title" content="{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Certifié Loger Togo">
-    <meta property="og:description" content="{{ viewed_user.get_role_display }} vérifié sur Solvable. Consultez mes annonces et ma réputation NILS.">
+    <meta property="og:description" content="{{ viewed_user.get_role_display }} vérifié sur Loger Togo. Consultez mes annonces et mon profil de confiance.">
     {% if viewed_user.profile_picture %}
         <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
         <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">

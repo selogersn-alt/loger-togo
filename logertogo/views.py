@@ -311,6 +311,11 @@ def register_view(request):
         user = User.objects.create_user(phone_number=phone, email=email if email else None, password=password, role=role)
         user.company_name = company_name
         user.coverage_area = coverage_area
+        
+        # Pour les locataires au Togo : Pas de vérification OTP bloquante
+        if role == 'TENANT':
+            user.is_phone_verified = True
+            
         user.save()
         
         login(request, user)
@@ -321,6 +326,7 @@ def register_view(request):
                 send_account_created_email(user)
             except Exception:
                 pass
+        
         messages.success(request, "Votre compte a été créé avec succès !")
         return redirect('dashboard')
         
@@ -459,6 +465,11 @@ from logersn.forms import PropertyForm
 
 @login_required
 def create_property_view(request):
+    # Restriction Togo : Seuls les pros (Bailleurs, Agences, Courtiers, Agents) peuvent poster
+    if request.user.role == 'TENANT':
+        messages.error(request, "Accès refusé : Seuls les professionnels peuvent publier des annonces.")
+        return redirect('dashboard')
+
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES)
         if form.is_valid():
@@ -831,6 +842,11 @@ def send_message_view(request, conversation_id=None):
 def kyc_submit_view(request):
     from users.forms import KYCProfileForm
     
+    # Restriction Togo : La vérification d'identité est pour les Pros souhaitant le badge
+    if request.user.role == 'TENANT':
+        messages.error(request, "La vérification d'identité avec badge est réservée aux comptes professionnels.")
+        return redirect('dashboard')
+
     if hasattr(request.user, 'kyc_profile'):
         messages.info(request, "Vous avez déjà soumis votre dossier KYC.")
         return redirect('dashboard')

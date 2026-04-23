@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ property.title }} à louer à {{ property.neighborhood }} | Loger Sénégal{% endblock %}
+{% block title %}{{ property.title }} à louer à {{ property.neighborhood }} | Loger Togo{% endblock %}
 
-{% block meta_description %}Découvrez ce {{ property.get_property_type_display }} de {{ property.bedrooms }} ch à {{ property.neighborhood }}, {{ property.city }}. Prix : {{ property.price|floatformat:0 }} FCFA. Annonce vérifiée et sécurisée sur Loger Sénégal, la plateforme n°1 de l'immobilier au Sénégal.{% endblock %}
+{% block meta_description %}Découvrez ce {{ property.get_property_type_display }} de {{ property.bedrooms }} ch à {{ property.neighborhood }}, {{ property.city }}. Prix : {{ property.price|floatformat:0 }} FCFA. Annonce vérifiée et sécurisée sur Loger Togo, la plateforme n°1 de l'immobilier au Togo.{% endblock %}
 
 {% block og_title %}{{ property.title }} - Annonce immo à {{ property.neighborhood }}{% endblock %}
 {% block og_description %}{{ property.property_type }} à {{ property.neighborhood }} ({{ property.city }}) | {{ property.price|floatformat:0 }} FCFA{% endblock %}
@@ -260,7 +260,7 @@
                 <div>
                     {% with main_image=property.get_main_image %}
                         {% if main_image %}
-                            <img src="{{ main_image.image_url.url }}" alt="{{ property.title }}" class="main-image" id="expandedImg" onerror="this.onerror=null; this.outerHTML='<div class=\'main-image d-flex align-items-center justify-content-center bg-light\' style=\'height:400px;\'><i class=\'fa-solid {{ property.get_icon_class }} text-muted\' style=\'font-size: 8rem; opacity: 0.3;\'></i></div>';">
+                            <img src="{{ main_image.image_url.url }}" alt="{{ property.title }}" class="main-image" id="expandedImg" width="800" height="500" fetchpriority="high" onerror="this.onerror=null; this.outerHTML='<div class=\'main-image d-flex align-items-center justify-content-center bg-light\' style=\'height:400px;\'><i class=\'fa-solid {{ property.get_icon_class }} text-muted\' style=\'font-size: 8rem; opacity: 0.3;\'></i></div>';">
                         {% else %}
                             <div class="main-image d-flex align-items-center justify-content-center bg-light" id="expandedImg" style="height: 400px;">
                                 <i class="fa-solid {{ property.get_icon_class }} text-muted" style="font-size: 8rem; opacity: 0.3;"></i>
@@ -276,6 +276,7 @@
                     <img src="{{ image.image_url.url }}" 
                          alt="{{ property.title }} - Photo {{ forloop.counter }}" 
                          class="thumbnail-img {% if forloop.first %}active{% endif %}" 
+                         width="120" height="80" loading="lazy" decoding="async"
                          onclick="changeImage(this)">
                     {% endfor %}
                 </div>
@@ -284,7 +285,7 @@
 
             <!-- Main Details -->
             <div class="details-card">
-                {% if property.surface > 0 or property.bedrooms > 0 or property.toilets > 0 or property.total_rooms > 0 %}
+                {% if property.surface > 0 or property.bedrooms > 0 or property.toilets > 0 or property.total_rooms > 0 or property.households > 0 or property.floor_level > 0 or property.salons > 0 or property.kitchens > 0 %}
                 <div class="row mb-4 bg-light-subtle p-3 rounded-4 g-2">
                     {% if property.surface > 0 %}
                     <div class="col-6 col-md-3 text-center border-sm-end">
@@ -308,6 +309,30 @@
                     <div class="col-6 col-md-3 text-center">
                         <div class="text-muted small">Pièces</div>
                         <div class="fw-bold fs-5">{{ property.total_rooms }}</div>
+                    </div>
+                    {% endif %}
+                    {% if property.salons > 0 %}
+                    <div class="col-6 col-md-3 text-center">
+                        <div class="text-muted small">Salons</div>
+                        <div class="fw-bold fs-5">{{ property.salons }}</div>
+                    </div>
+                    {% endif %}
+                    {% if property.kitchens > 0 %}
+                    <div class="col-6 col-md-3 text-center">
+                        <div class="text-muted small">Cuisines</div>
+                        <div class="fw-bold fs-5">{{ property.kitchens }}</div>
+                    </div>
+                    {% endif %}
+                    {% if property.households > 0 %}
+                    <div class="col-6 col-md-3 text-center border-sm-end">
+                        <div class="text-muted small">Ménages</div>
+                        <div class="fw-bold fs-5">{{ property.households }}</div>
+                    </div>
+                    {% endif %}
+                    {% if property.floor_level > 0 %}
+                    <div class="col-6 col-md-3 text-center border-sm-end">
+                        <div class="text-muted small">Étage</div>
+                        <div class="fw-bold fs-5">{{ property.floor_level }}</div>
                     </div>
                     {% endif %}
                 </div>
@@ -449,7 +474,7 @@
                 </div>
 
                 <div class="d-grid gap-2 mb-3">
-                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Loger Sénégal : {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
+                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Loger Togo : {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
                         <i class="fa-brands fa-whatsapp me-2"></i> WhatsApp
                     </a>
                     
@@ -491,6 +516,104 @@
     </div>
     {% endif %}
 </div>
+
+<!-- ═══ SECTION AVIS & NOTATIONS ═══ -->
+<div class="container mt-5 mb-5">
+  <div class="row">
+    <div class="col-lg-8">
+
+      <!-- En-tête avis -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h3 class="fw-bold mb-1" style="color:var(--color-dark-green);">
+            <i class="fa-solid fa-star text-warning me-2"></i>Avis & Notations
+          </h3>
+          {% with reviews=property.reviews.filter %}
+          <span class="text-muted small">{{ property.reviews.count }} avis publiés</span>
+          {% endwith %}
+        </div>
+        <!-- Note moyenne -->
+        {% if property.reviews.count > 0 %}
+        <div class="text-center p-3 rounded-3" style="background:var(--bg-card);border:1px solid var(--border-color);">
+          <div class="fs-2 fw-bold text-warning">{{ avg_rating|default:"—" }}</div>
+          <div class="text-muted small">/ 5 étoiles</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Liste des avis approuvés -->
+      {% for review in approved_reviews %}
+      <div class="card border-0 shadow-sm mb-3" style="border-radius:14px;background:var(--bg-card);">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="fw-bold">{{ review.reviewer.get_full_name|default:review.reviewer.phone_number }}</div>
+              <small class="text-muted">{{ review.created_at|date:"d F Y" }}</small>
+            </div>
+            <div class="text-warning fs-5">
+              {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %}⭐{% else %}<span class="opacity-25">☆</span>{% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% if review.title %}<p class="fw-bold mb-1">{{ review.title }}</p>{% endif %}
+          <p class="text-muted mb-0">{{ review.comment }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center py-4 text-muted">
+        <i class="fa-regular fa-star fs-1 opacity-25 mb-3"></i>
+        <p>Soyez le premier à donner votre avis sur ce bien.</p>
+      </div>
+      {% endfor %}
+
+      <!-- Formulaire de soumission d'avis -->
+      {% if user.is_authenticated and user != property.owner %}
+        {% if not user_has_reviewed %}
+        <div class="card border-0 shadow-sm mt-4" style="border-radius:14px;background:var(--bg-card);">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-pen-to-square me-2 text-success"></i>Laisser un avis</h5>
+            <form method="POST" action="{% url 'submit_review' property.id %}">
+              {% csrf_token %}
+              <!-- Étoiles interactives -->
+              <div class="mb-3">
+                <label class="small fw-bold text-muted d-block mb-2">Votre note</label>
+                <div class="d-flex gap-2" id="star-selector">
+                  {% for i in "12345" %}
+                  <label class="star-label" style="cursor:pointer;font-size:2rem;color:#ddd;transition:color .2s;" data-val="{{ forloop.counter }}">
+                    ★
+                    <input type="radio" name="rating" value="{{ forloop.counter }}" class="d-none" required>
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="mb-3">
+                <input type="text" name="title" class="form-control" placeholder="Titre de votre avis (optionnel)" maxlength="120" style="background:var(--bg-body);border-color:var(--border-color);color:var(--text-main);">
+              </div>
+              <div class="mb-3">
+                <textarea name="comment" class="form-control" rows="4" placeholder="Décrivez votre expérience avec ce bien ou ce propriétaire..." required style="background:var(--bg-body);border-color:var(--border-color);color:var(--text-main);"></textarea>
+              </div>
+              <button type="submit" class="btn btn-success px-4 rounded-pill fw-bold">
+                <i class="fa-solid fa-paper-plane me-2"></i>Soumettre l'avis
+              </button>
+              <small class="text-muted ms-3">Votre avis sera visible après validation par notre équipe.</small>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <div class="alert alert-success border-0 rounded-3 mt-4">
+          <i class="fa-solid fa-check-circle me-2"></i>Vous avez déjà soumis un avis pour ce bien. Merci !
+        </div>
+        {% endif %}
+      {% elif not user.is_authenticated %}
+      <div class="card border-0 shadow-sm mt-4 text-center p-4" style="border-radius:14px;background:var(--bg-card);">
+        <p class="text-muted mb-3">Connectez-vous pour laisser un avis.</p>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-success rounded-pill px-4">Se connecter</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -502,6 +625,23 @@
         thumbnails.forEach(thumb => thumb.classList.remove("active"));
         element.classList.add("active");
     }
+
+    // ─── Étoiles interactives ────────────────────────────────────────────
+    const labels = document.querySelectorAll('.star-label');
+    labels.forEach((label, idx) => {
+        label.addEventListener('mouseenter', () => {
+            labels.forEach((l, i) => l.style.color = i <= idx ? '#f5c42f' : '#ddd');
+        });
+        label.addEventListener('mouseleave', () => {
+            const checked = document.querySelector('input[name="rating"]:checked');
+            const val = checked ? parseInt(checked.value) - 1 : -1;
+            labels.forEach((l, i) => l.style.color = i <= val ? '#f5c42f' : '#ddd');
+        });
+        label.addEventListener('click', () => {
+            label.querySelector('input').checked = true;
+            labels.forEach((l, i) => l.style.color = i <= idx ? '#f5c42f' : '#ddd');
+        });
+    });
 </script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>

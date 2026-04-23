@@ -1,119 +1,101 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Loger Sénégal | Location Appartement & Maison à Dakar | Immobilier Sénégal{% endblock %}
+{% block title %}Loger Togo | Les meilleures annonces immobilières au Togo | Lomé & Régions{% endblock %}
 
-{% block meta_description %}Trouvez votre logement idéal au Sénégal. Annonces certifiées d'appartements et de maisons à Dakar. Vérifiez la solvabilité des locataires avec le réseau NILS sur Loger Sénégal.{% endblock %}
+{% block meta_description %}Retrouvez votre futur appartement, villa ou terrain au Togo sur Loger Togo. Des milliers d'annonces vérifiées à Lomé, Kara, Kpalimé et partout au pays.{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Hero Section Styling - Mobile Responsive */
+    /* Hero Section Styling - Modern & Impactful */
     .hero-section {
-        background-color: var(--bg-body);
-        padding: 80px 0;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('{% static "img/og_banner.png" %}') center/cover no-repeat;
+        padding: 120px 0;
+        min-height: 650px;
+        display: flex;
+        align-items: center;
         position: relative;
-        overflow: hidden;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    /* Ticker Styling */
-    .ticker-wrap {
-        width: 100%;
-        overflow: hidden;
-        background: #dc3545;
-        color: white;
-        padding: 8px 0;
-        font-weight: 500;
-        font-size: 0.95rem;
-    }
-    .ticker {
-        display: inline-block;
-        white-space: nowrap;
-        padding-right: 100%;
-        animation: ticker 35s linear infinite;
-    }
-    @keyframes ticker {
-        0% { transform: translate3d(0, 0, 0); }
-        100% { transform: translate3d(-100%, 0, 0); }
-    }
-    .ticker-item {
-        display: inline-block;
-        padding: 0 2.5rem;
-    }
-
-    /* Solvable Stats Cards */
-    .stat-card {
-        background: var(--bg-card);
-        border-radius: 12px;
-        padding: 15px;
-        text-align: center;
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-    }
-    .stat-card:hover { transform: translateY(-5px); }
-    .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--text-main); }
-    .stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
-    
-    .hero-shape {
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 800px;
-        height: 800px;
-        background: radial-gradient(circle, rgba(127, 212, 125, 0.1) 0%, rgba(255,255,255,0) 70%);
-        border-radius: 50%;
-        z-index: 0;
     }
 
     .hero-content {
-        position: relative;
-        z-index: 1;
-        color: var(--text-main);
+        color: white;
+        text-align: center;
+        z-index: 2;
     }
 
     .hero-title {
         font-weight: 800;
-        font-size: clamp(2.5rem, 5vw, 4rem); /* Responsive typography */
-        line-height: 1.2;
-        margin-bottom: 20px;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.1;
+        margin-bottom: 25px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
     .hero-title span {
-        color: var(--color-light-green); /* Remplacé yellow par vert pour meilleur contraste sur blanc */
+        color: var(--color-light-green);
     }
 
     .hero-subtitle {
-        font-size: 1.2rem;
-        margin-bottom: 40px;
-        font-weight: 400;
-        max-width: 600px;
-        color: var(--text-muted);
+        font-size: 1.3rem;
+        margin-bottom: 50px;
+        opacity: 0.9;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    .search-box {
-        background: var(--bg-card);
-        padding: 8px;
-        border-radius: 60px;
+    /* Modern Search Engine */
+    .search-engine-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 30px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        margin-top: -50px;
+    }
+
+    .search-field {
+        background: white;
+        border-radius: 15px;
+        padding: 10px 20px;
         display: flex;
-        align-items: center;
-        box-shadow: 0 15px 35px var(--shadow-color);
-        max-width: 650px;
-        border: 1px solid var(--border-color);
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
     }
-    
-    .search-input {
-        background: transparent;
-        color: var(--text-main);
+
+    .search-field label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--color-dark-green);
+        margin-bottom: 5px;
+    }
+
+    .search-field select, .search-field input {
         border: none;
-        padding: 15px 20px;
-        font-size: 1.1rem;
-        width: 100%;
         outline: none;
-        border-radius: 60px 0 0 60px;
+        font-weight: 600;
+        width: 100%;
+        color: #333;
     }
-    
-    .search-input::placeholder {
-        color: var(--text-muted);
+
+    .btn-search {
+        background: var(--color-light-green);
+        color: var(--color-dark-green);
+        border: none;
+        border-radius: 15px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .btn-search:hover {
+        background: var(--color-yellow);
+        transform: scale(1.02);
     }
 
     /* Features Section */
@@ -143,42 +125,11 @@
         font-size: 2rem;
     }
 
-    /* Icon Colors adapting to theme implicitly */
     .icon-green { background: rgba(127, 212, 125, 0.15); color: var(--color-light-green); }
     .icon-yellow { background: rgba(245, 196, 47, 0.15); color: var(--color-yellow); }
     .icon-dark { background: rgba(11, 70, 41, 0.15); color: var(--text-main); }
 
-    /* For Mobile Adjustments */
-    @media (max-width: 768px) {
-        .hero-section {
-            padding: 60px 0;
-            text-align: center;
-        }
-        .hero-subtitle {
-            margin: 0 auto 30px auto;
-        }
-        .search-box {
-            flex-direction: column;
-            border-radius: 20px;
-            padding: 15px;
-        }
-        .search-input {
-            border-radius: 10px;
-            margin-bottom: 15px;
-            padding: 10px;
-            text-align: center;
-        }
-        .search-box .btn-secondary-custom, .search-box .btn-primary-custom {
-            width: 100%;
-            margin-left: 0 !important;
-            border-radius: 10px;
-        }
-        .search-box i {
-            display: none;
-        }
-    }
-
-    /* Marquee Infini - Défilement automatique droite → gauche */
+    /* Marquee Styling */
     .marquee-track {
         display: flex;
         gap: 20px;
@@ -191,34 +142,12 @@
     .marquee-wrapper {
         overflow: hidden;
         position: relative;
-        padding: 10px 0 20px 0;
-    }
-    /* Dégradés latéraux pour un effet premium */
-    .marquee-wrapper::before,
-    .marquee-wrapper::after {
-        content: '';
-        position: absolute;
-        top: 0; bottom: 0;
-        width: 80px;
-        z-index: 2;
-        pointer-events: none;
-    }
-    .marquee-wrapper::before {
-        left: 0;
-        background: linear-gradient(to right, var(--bg-body), transparent);
-    }
-    .marquee-wrapper::after {
-        right: 0;
-        background: linear-gradient(to left, var(--bg-body), transparent);
-    }
-    @keyframes marquee-scroll {
-        0%   { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
+        padding: 20px 0;
     }
     .boosted-card {
         flex: 0 0 300px;
         border-radius: 16px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s ease;
         border: 2px solid var(--color-yellow) !important;
         text-decoration: none;
         color: inherit;
@@ -228,303 +157,125 @@
     }
     .boosted-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.18) !important;
-        color: inherit;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
     }
-    .floating-banner {
-        animation: floating 3s ease-in-out infinite;
-        filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+
+    @keyframes marquee-scroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
     }
-    @keyframes floating {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-        100% { transform: translateY(0px); }
+
+    @media (max-width: 768px) {
+        .hero-section { padding: 80px 0; min-height: 500px; }
+        .search-engine-card { margin-top: 0; padding: 20px; border-radius: 20px; }
+        .search-field { margin-bottom: 10px; padding: 15px; }
+        .btn-search { padding: 15px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- TICKEUR DE VIGILANCE NILS -->
-<div class="ticker-wrap shadow-sm">
-    <div class="ticker">
-        {% for inc in recent_incidents %}
-            <div class="ticker-item">
-                <i class="fa-solid fa-triangle-exclamation me-1 text-white"></i> 
-                ALERTE NILS : {{ inc.get_incident_type_display }} détecté à {{ inc.rental_filiation.property.city }} - 
-                <strong>{{ inc.amount_due|floatformat:0 }} FCFA</strong>
-            </div>
-        {% empty %}
-            <div class="ticker-item">💡 Le réseau Solvable protège actuellement {{ stats.profiles_flagged }} profils immobiliers contre les impayés.</div>
-        {% endfor %}
-    </div>
-</div>
-
-<section class="hero-section py-5 position-relative" style="background: url('{% static 'img/og_banner.png' %}') center/cover no-repeat; min-height: 500px; display: flex; align-items: center;">
-    <!-- Overlay pour lisibilité -->
-    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8));"></div>
-    
-    <div class="container position-relative" style="z-index: 2;">
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-12 text-center text-lg-start">
-                <div class="hero-content">
-                    <span class="badge bg-danger rounded-pill px-3 py-2 mb-3 shadow-sm animate__animated animate__fadeInDown">
-                        <i class="fa-solid fa-shield-halved me-1"></i> Système National de Solvabilité
-                    </span>
-                    <h1 class="hero-title text-white">Vérifiez la <span>Solvabilité</span> de vos futurs locataires.</h1>
-                    <p class="hero-subtitle text-white opacity-75 mb-4">Recherchez instantanément dans la base NILS par Nom, Téléphone, CNI ou Passeport pour sécuriser vos revenus locatifs.</p>
-                </div>
-            </div>
+<!-- HERO SECTION -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title animate__animated animate__fadeInUp">L'immobilier au <span>Togo</span><br>n'a jamais été aussi simple.</h1>
+            <p class="hero-subtitle animate__animated animate__fadeInUp animate__delay-1s">Trouvez l'appartement, la villa ou le terrain de vos rêves parmi des milliers d'annonces vérifiées.</p>
             
-            <div class="col-lg-12">
-                <div class="position-relative">
-                <!-- LE MOTEUR NILS -->
-                <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 30px; background-color: var(--bg-card); border: 1px solid var(--border-color) !important;">
-                    <form method="get" action="{% url 'home' %}">
-                        <div class="row g-2">
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Nom ou Prénoms</label>
-                                <input type="text" name="name_query" class="form-control py-2 shadow-sm" placeholder="Ex: Mamadou Diop" value="{{ request.GET.name_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Téléphone</label>
-                                <input type="text" name="phone_query" class="form-control py-2 shadow-sm" placeholder="Ex: 77123..." value="{{ request.GET.phone_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
-                            </div>
-                            <div class="col-md-5 mb-2">
-                                <label class="form-label fw-bold small text-uppercase text-muted">CNI / Passeport</label>
-                                <input type="text" name="doc_query" class="form-control py-2 shadow-sm" placeholder="N° de document" value="{{ request.GET.doc_query }}" style="border-radius:10px; border: 1px solid var(--border-color);">
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Pays du document</label>
-                                <select name="country_query" class="form-select py-2 shadow-sm" style="border-radius:10px; border: 1px solid var(--border-color);">
-                                    <option value="">Tous les pays</option>
-                                    {% for code, name in countries %}
-                                        <option value="{{ code }}" {% if request.GET.country_query == code %}selected{% endif %}>{{ name }}</option>
+            <div class="search-engine-card animate__animated animate__zoomIn animate__delay-1s">
+                <form method="get" action="{% url 'home' %}">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="search-field shadow-sm">
+                                <label><i class="fa-solid fa-location-dot me-1"></i> Ville / Région</label>
+                                <select name="city">
+                                    <option value="ALL">Toutes les villes</option>
+                                    {% for code, name in cities %}
+                                        <option value="{{ code }}">{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3 mb-2 d-flex align-items-end">
-                                <button class="btn btn-primary w-100 py-2 fw-bold shadow" type="submit" style="border-radius:10px;">
-                                    <i class="fa-solid fa-bolt me-1"></i> ANALYSER
-                                </button>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-field shadow-sm">
+                                <label><i class="fa-solid fa-house me-1"></i> Type de bien</label>
+                                <select name="property_type">
+                                    <option value="ALL">Tous les types</option>
+                                    {% for code, name in property_types %}
+                                        <option value="{{ code }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
-                    </form>
-
-                    <!-- STATS DASHBOARD -->
-                    <div class="row g-2">
-                        <div class="col-6 col-md-3">
-                            <div class="stat-card shadow-sm">
-                                <div class="stat-value text-danger">{{ stats.total_unpaid|floatformat:0 }}</div>
-                                <div class="stat-label">Dettes (CFA)</div>
+                        <div class="col-md-3">
+                            <div class="search-field shadow-sm">
+                                <label><i class="fa-solid fa-magnifying-glass me-1"></i> Mots-clés</label>
+                                <input type="text" name="query" placeholder="Ex: Piscine, Meublé..." value="{{ query }}">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="stat-card shadow-sm">
-                                <div class="stat-value text-primary">{{ stats.profiles_flagged }}</div>
-                                <div class="stat-label">Signalés</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="stat-card shadow-sm">
-                                <div class="stat-value text-success">{{ stats.resolved_cases }}</div>
-                                <div class="stat-label">Clos</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="stat-card shadow-sm">
-                                <div class="stat-value text-warning">{{ stats.active_mediation }}</div>
-                                <div class="stat-label">En cours</div>
-                            </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn-search w-100 shadow">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
-
-        <!-- RÉSULTATS DE RECHERCHE NILS (INLINE) -->
-        {% if results is not None %}
-        <div id="nils_results_anchor" class="mt-4 mb-5 pt-4">
-            <div class="card border-0 shadow-lg" style="border-radius: 20px; background: var(--bg-card); overflow: hidden; border: 1px solid var(--border-color) !important;">
-                <div class="card-header bg-dark text-white p-4 border-0">
-                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-clipboard-list me-2"></i> Audit de Solvabilité pour : 🖋️ {{ request.GET.name_query }} {{ request.GET.phone_query }}</h5>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    {% if results %}
-                        <div class="row g-4">
-                            {% for profile in results %}
-                            <div class="col-md-6">
-                                <div class="p-4 border rounded-4 bg-light bg-opacity-10 h-100" style="border-color: var(--border-color) !important;">
-                                    <div class="d-flex align-items-center mb-4">
-                                        <div class="avatar me-3 shadow-sm" style="width: 65px; height: 65px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.3rem;">
-                                            {{ profile.user.first_name|first }}{{ profile.user.last_name|first }}
-                                        </div>
-                                        <div>
-                                            <h5 class="mb-1 fw-bold" style="color: var(--text-main);">{{ profile.user.get_full_name }}</h5>
-                                            <div class="d-flex gap-2 align-items-center">
-                                                <span class="badge bg-dark">NILS: {{ profile.nils_number }}</span>
-                                                <span class="small text-muted"><i class="fa-solid fa-location-dot me-1"></i> {{ profile.user.document_country|default:"Sénégal" }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row g-2 text-center mb-4">
-                                        <div class="col-4">
-                                            <div class="p-2 border rounded-3" style="border-color: var(--border-color) !important;">
-                                                <div class="small text-muted text-uppercase" style="font-size: 0.6rem;">Score Global</div>
-                                                <div class="fw-bold fs-5 {% if profile.score >= 80 %}text-success{% elif profile.score >= 50 %}text-warning{% else %}text-danger{% endif %}">{{ profile.score }}%</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <div class="p-2 border rounded-3" style="border-color: var(--border-color) !important;">
-                                                <div class="small text-muted text-uppercase" style="font-size: 0.6rem;">Incidents</div>
-                                                <div class="fw-bold fs-5 text-dark" style="color: var(--text-main) !important;">{{ profile.total_incidents }}</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <div class="p-2 border rounded-3" style="border-color: var(--border-color) !important;">
-                                                <div class="small text-muted text-uppercase" style="font-size: 0.6rem;">Dette Totale</div>
-                                                <div class="fw-bold fs-5 text-danger">{{ profile.amount_unpaid|floatformat:0 }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-grid">
-                                        <a href="{% url 'public_profile' profile.user.id %}" class="btn btn-dark rounded-pill py-2 fw-bold">Détails de l'Investigation</a>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fa-solid fa-user-xmark text-muted mb-4" style="font-size: 4rem;"></i>
-                            <h4 class="fw-bold" style="color: var(--text-main);">Aucun profil correspondant</h4>
-                            <p class="text-muted mx-auto" style="max-width: 400px;">Aucun incident n'est rattaché à ce critère dans le réseau NILS actuel. Cela ne garantit pas l'absence d'antécédents hors réseau.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <script>
-            document.getElementById('nils_results_anchor').scrollIntoView({ behavior: 'smooth' });
-        </script>
-        {% endif %}
     </div>
 </section>
 
-<!-- BOOSTED PROPERTIES SLIDER (Point 2) -->
+<!-- BOOSTED PROPERTIES -->
 {% if boosted_properties %}
-<section class="py-4" style="background: var(--bg-body); border-bottom: 2px solid var(--color-yellow);">
+<section class="py-5" style="background: var(--bg-body); border-bottom: 2px solid var(--color-yellow);">
     <div class="container">
-        <div class="d-flex align-items-center mb-3 px-1">
+        <div class="d-flex align-items-center mb-4">
             <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold me-3">
-                <i class="fa-solid fa-bolt me-1"></i> BOOSTÉES
+                <i class="fa-solid fa-bolt me-1"></i> À LA UNE
             </span>
-            <h5 class="fw-bold m-0" style="color: var(--text-main);">Offres à la Une — Défilement automatique</h5>
-            <span class="ms-auto small text-muted d-none d-md-inline">
-                <i class="fa-solid fa-angles-left me-1"></i> Passez la souris pour stopper
-            </span>
+            <h4 class="fw-bold m-0" style="color: var(--text-main);">Annonces Premium</h4>
         </div>
         <div class="marquee-wrapper">
             <div class="marquee-track">
-                {# Double boucle pour effet infini parfait #}
                 {% for prop in boosted_properties %}
-                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-lg" title="{{ prop.title }}">
-                    <div class="position-relative" style="height:210px; overflow:hidden;">
-                        {% with img=prop.images.first %}
-                        {% if img %}
-                            <img src="{{ img.image_url.url }}" alt="{{ prop.title }}" loading="lazy"
-                                 style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
+                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-sm">
+                    <div class="position-relative" style="height:220px; overflow:hidden;">
+                        {% if prop.images.first %}
+                            <img src="{{ prop.images.first.image_url.url }}" alt="{{ prop.title }}" style="width:100%; height:100%; object-fit:cover;">
                         {% else %}
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                <i class="fa-solid fa-house-chimney opacity-25" style="font-size:3rem;"></i>
+                            <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                <i class="fa-solid fa-image opacity-25 fs-1"></i>
                             </div>
                         {% endif %}
-                        {% endwith %}
-                        <div class="position-absolute top-0 start-0 m-2">
-                            <span class="badge bg-warning text-dark rounded-pill small fw-bold">⚡ BOOSTÉ</span>
-                        </div>
                         <div class="position-absolute bottom-0 end-0 m-2">
-                            <span class="badge bg-dark text-white rounded-pill">
-                                {% if prop.listing_category == 'SALE' %}
-                                    {{ prop.price|floatformat:0 }} F
-                                {% elif prop.listing_category == 'FURNISHED' %}
-                                    {{ prop.price_per_night|default:prop.price|floatformat:0 }} F/Nuit
-                                {% else %}
-                                    {{ prop.price|floatformat:0 }} F/Mois
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="p-3">
-                        <h6 class="fw-bold text-truncate mb-1" style="color:var(--text-main);">{{ prop.title }}</h6>
-                        <p class="small text-muted mb-0">
-                            <i class="fa-solid fa-location-dot me-1 text-success"></i>{{ prop.neighborhood }}, {{ prop.city }}
-                        </p>
-                    </div>
-                </a>
-                {% endfor %}
-                {# Duplication pour boucle infinie fluide #}
-                {% for prop in boosted_properties %}
-                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-sm" title="{{ prop.title }}">
-                    <div class="position-relative" style="height:190px; overflow:hidden;">
-                        {% with img=prop.images.first %}
-                        {% if img %}
-                            <img src="{{ img.image_url.url }}" alt="{{ prop.title }}" loading="lazy"
-                                 style="width:100%; height:100%; object-fit:cover;">
-                        {% else %}
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                <i class="fa-solid fa-house-chimney opacity-25" style="font-size:3rem;"></i>
-                            </div>
-                        {% endif %}
-                        {% endwith %}
-                        <div class="position-absolute top-0 start-0 m-2">
-                            <span class="badge bg-warning text-dark rounded-pill small fw-bold">⚡ BOOSTÉ</span>
-                        </div>
-                        <div class="position-absolute bottom-0 end-0 m-2">
-                            <span class="badge bg-dark text-white rounded-pill">
-                                {% if prop.listing_category == 'SALE' %}
-                                    {{ prop.price|floatformat:0 }} F
-                                {% elif prop.listing_category == 'FURNISHED' %}
-                                    {{ prop.price_per_night|default:prop.price|floatformat:0 }} F/Nuit
-                                {% else %}
-                                    {{ prop.price|floatformat:0 }} F/Mois
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="p-3">
-                        <h6 class="fw-bold text-truncate mb-1" style="color:var(--text-main);">{{ prop.title }}</h6>
-                        <p class="small text-muted mb-0">
-                            <i class="fa-solid fa-location-dot me-1 text-success"></i>{{ prop.neighborhood }}, {{ prop.city }}
-                        </p>
-                    </div>
-                </a>
-                {% endfor %}
-                {# Répétition pour la fluidité infinie #}
-                {% for prop in boosted_properties %}
-                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-lg">
-                    <div class="position-relative" style="height:210px; overflow:hidden;">
-                        {% with img=prop.images.first %}
-                        {% if img %}
-                            <img src="{{ img.image_url.url }}" alt="{{ prop.title }}" loading="lazy"
-                                 style="width:100%; height:100%; object-fit:cover;">
-                        {% endif %}
-                        {% endwith %}
-                        <div class="position-absolute bottom-0 end-0 m-2">
-                            <span class="badge bg-dark text-white rounded-pill">
-                                {% if prop.listing_category == 'SALE' %}
-                                    {{ prop.price|floatformat:0 }} F
-                                {% elif prop.listing_category == 'FURNISHED' %}
-                                    {{ prop.price_per_night|default:prop.price|floatformat:0 }} F/Nuit
-                                {% else %}
-                                    {{ prop.price|floatformat:0 }} F/Mois
-                                {% endif %}
+                            <span class="badge bg-dark text-white rounded-pill px-3 py-2">
+                                {{ prop.price|floatformat:0 }} F{% if prop.listing_category != 'SALE' %}/mois{% endif %}
                             </span>
                         </div>
                     </div>
                     <div class="p-3">
                         <h6 class="fw-bold text-truncate mb-1">{{ prop.title }}</h6>
-                        <div class="text-success fw-bold small">Voir l'offre <i class="fa-solid fa-arrow-right ms-1"></i></div>
+                        <p class="small text-muted mb-0"><i class="fa-solid fa-location-dot text-success me-1"></i>{{ prop.neighborhood }}, {{ prop.city }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+                {# Boucle pour l'effet infini #}
+                {% for prop in boosted_properties %}
+                <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-sm">
+                    <div class="position-relative" style="height:220px; overflow:hidden;">
+                        {% if prop.images.first %}
+                            <img src="{{ prop.images.first.image_url.url }}" alt="{{ prop.title }}" width="300" height="220" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">
+                        {% endif %}
+                        <div class="position-absolute bottom-0 end-0 m-2">
+                            <span class="badge bg-dark text-white rounded-pill px-3 py-2">
+                                {{ prop.price|floatformat:0 }} F
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h6 class="fw-bold text-truncate mb-1">{{ prop.title }}</h6>
+                        <p class="small text-muted mb-0"><i class="fa-solid fa-location-dot text-success me-1"></i>{{ prop.neighborhood }}, {{ prop.city }}</p>
                     </div>
                 </a>
                 {% endfor %}
@@ -534,48 +285,27 @@
 </section>
 {% endif %}
 
-<!-- FEATURED PROFESSIONALS SECTION (Bandeau Défilant Infini) -->
-<section class="py-4 bg-white" style="border-bottom: 1px solid #eee; overflow: hidden;">
-    <div class="container-fluid px-0">
-        <div class="pro-marquee">
-            <div class="pro-track">
-                {# Premier groupe #}
+<!-- PROFESSIONALS SECTION -->
+<section class="py-4 bg-white" style="border-bottom: 1px solid #eee;">
+    <div class="container-fluid">
+        <div class="pro-marquee" style="display:flex; overflow:hidden; padding: 10px 0;">
+            <div class="pro-track" style="display:flex; gap:50px; animation: scroll-pro 40s linear infinite;">
                 {% for pro in featured_pros %}
-                <div class="pro-item text-center">
+                <div class="text-center" style="flex: 0 0 120px;">
                     <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
-                        <div class="pro-avatar-wrapper position-relative mx-auto mb-2">
+                        <div class="position-relative mx-auto mb-2" style="width:80px; height:80px;">
                             {% if pro.profile_picture %}
-                                <img src="{{ pro.profile_picture.url }}" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100 pro-img" style="object-fit: cover;">
+                                <img src="{{ pro.profile_picture.url }}" width="80" height="80" loading="lazy" decoding="async" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100" style="object-fit:cover;" alt="Profil de {{ pro.company_name|default:pro.first_name }}">
                             {% else %}
-                                <div class="rounded-circle bg-light shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
-                                    <i class="fa-solid fa-user-tie text-muted opacity-25 fs-4"></i>
+                                <div class="rounded-circle bg-light shadow-sm w-100 h-100 d-flex align-items-center justify-content-center">
+                                    <i class="fa-solid fa-user-tie text-muted opacity-25 fs-3"></i>
                                 </div>
                             {% endif %}
-                            <div class="verified-badge">
+                            <div style="position:absolute; bottom:0; right:0; background:#28a745; color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border:2px solid white; font-size:0.6rem;">
                                 <i class="fa-solid fa-check"></i>
                             </div>
                         </div>
-                        <div class="small fw-bold text-dark text-truncate px-2">{{ pro.company_name|default:pro.get_full_name }}</div>
-                    </a>
-                </div>
-                {% endfor %}
-                {# Deuxième groupe pour la boucle infinie #}
-                {% for pro in featured_pros %}
-                <div class="pro-item text-center">
-                    <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
-                        <div class="pro-avatar-wrapper position-relative mx-auto mb-2">
-                            {% if pro.profile_picture %}
-                                <img src="{{ pro.profile_picture.url }}" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100 pro-img" style="object-fit: cover;">
-                            {% else %}
-                                <div class="rounded-circle bg-light shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
-                                    <i class="fa-solid fa-user-tie text-muted opacity-25 fs-4"></i>
-                                </div>
-                            {% endif %}
-                            <div class="verified-badge">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                        </div>
-                        <div class="small fw-bold text-dark text-truncate px-2">{{ pro.company_name|default:pro.get_full_name }}</div>
+                        <div class="small fw-bold text-dark text-truncate">{{ pro.company_name|default:pro.get_full_name }}</div>
                     </a>
                 </div>
                 {% endfor %}
@@ -585,275 +315,100 @@
 </section>
 
 <style>
-    /* Rail de défilement */
-    .pro-marquee {
-        width: 100%;
-        display: flex;
-        overflow: hidden;
-        user-select: none;
-        padding: 10px 0;
-    }
-
-    .pro-track {
-        display: flex;
-        flex-shrink: 0;
-        gap: 40px;
-        min-width: 100%;
-        animation: scroll-pro 40s linear infinite;
-    }
-
-    .pro-track:hover {
-        animation-play-state: paused;
-    }
-
-    .pro-item {
-        flex: 0 0 110px;
-        transition: transform 0.3s ease;
-    }
-    
-    .pro-item:hover {
-        transform: translateY(-5px);
-    }
-
-    .pro-avatar-wrapper {
-        width: 75px;
-        height: 75px;
-    }
-
-    .verified-badge {
-        position: absolute;
-        bottom: 0;
-        end: 0;
-        background: #28a745;
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid white;
-        font-size: 0.5rem;
-    }
-
-    @keyframes scroll-pro {
-        from { transform: translateX(0); }
-        to { transform: translateX(calc(-50% - 20px)); }
-    }
-
-    /* Mobile : défilement un peu plus rapide car moins de distance */
-    @media (max-width: 768px) {
-        .pro-track {
-            animation: scroll-pro 25s linear infinite;
-            gap: 25px;
-        }
-        .pro-item { flex: 0 0 90px; }
-        .pro-avatar-wrapper { width: 60px; height: 60px; }
-    }
+    @keyframes scroll-pro { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
 
-<section id="annonces" class="py-5" style="background-color: var(--bg-body);">
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-end mb-4">
+<!-- MAIN LISTINGS -->
+<section id="annonces" class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-5">
             <div>
                 <h2 class="fw-bold m-0" style="color: var(--text-main);">Dernières Annonces</h2>
-                <p class="text-muted">Du plus récent au plus ancien — Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</p>
+                <p class="text-muted mb-0">Découvrez les nouveaux biens disponibles au Togo.</p>
             </div>
-            <a href="{% url 'properties_list' %}" class="btn btn-sm btn-outline-success rounded-pill">
-                Voir tout <i class="fa-solid fa-arrow-right ms-1"></i>
+            <a href="{% url 'properties_list' %}" class="btn btn-outline-success rounded-pill px-4">
+                Tout voir <i class="fa-solid fa-arrow-right ms-2"></i>
             </a>
         </div>
 
         <div class="row g-4">
             {% for property in page_obj %}
-            <div class="col-md-4 col-sm-6">
+            <div class="col-lg-4 col-md-6">
                 {% include 'partials/property_card.html' %}
             </div>
             {% empty %}
             <div class="col-12 text-center py-5">
-                <i class="fa-solid fa-house-circle-xmark text-muted mb-4" style="font-size:4rem;"></i>
-                <p class="text-muted fs-5">Bientôt de nouvelles annonces certifiées...</p>
+                <i class="fa-solid fa-house-chimney-crack text-muted mb-4" style="font-size: 5rem;"></i>
+                <h4>Aucune annonce trouvée</h4>
+                <p class="text-muted">Essayez de modifier vos critères de recherche.</p>
             </div>
             {% endfor %}
         </div>
 
-        {# PAGINATION #}
         {% if page_obj.has_other_pages %}
-        <nav class="mt-5" aria-label="Navigation des annonces">
-            <ul class="pagination justify-content-center gap-1">
-                <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
-                    <a class="page-link rounded-pill px-3"
-                       href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}#annonces{% else %}#{% endif %}">
-                        <i class="fa-solid fa-chevron-left"></i> Préc.
-                    </a>
-                </li>
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link rounded-pill px-3"
-                                  style="background:var(--color-dark-green); border-color:var(--color-dark-green);">{{ num }}</span>
-                        </li>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item">
-                            <a class="page-link rounded-pill px-3" href="?page={{ num }}#annonces">{{ num }}</a>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-                <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
-                    <a class="page-link rounded-pill px-3"
-                       href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}#annonces{% else %}#{% endif %}">
-                        Suiv. <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </li>
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center gap-2">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link rounded-pill px-4" href="?page={{ page_obj.previous_page_number }}#annonces">Précédent</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link rounded-pill px-4" style="background:var(--color-dark-green); border:none;">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link rounded-pill px-4" href="?page={{ page_obj.next_page_number }}#annonces">Suivant</a></li>
+                {% endif %}
             </ul>
         </nav>
         {% endif %}
     </div>
 </section>
 
-<!-- Features Section -->
-<section class="py-5">
-    <div class="container py-5">
+<!-- HOW IT WORKS -->
+<section class="py-5 bg-white">
+    <div class="container py-4">
         <div class="text-center mb-5">
-            <h2 class="fw-bold" style="color: var(--text-main);">Comment ça marche ?</h2>
-            <p class="text-muted">La tranquillité d'esprit pour louer ou mettre en location.</p>
+            <h2 class="fw-bold">Pourquoi choisir Loger Togo ?</h2>
+            <p class="text-muted">La plateforme n°1 pour vos recherches immobilières au Togo.</p>
         </div>
         <div class="row g-4">
-            <!-- Card 1 -->
             <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-icon-wrapper icon-green">
-                        <i class="fa-solid fa-magnifying-glass-location"></i>
+                        <i class="fa-solid fa-magnifying-glass"></i>
                     </div>
-                    <h4 class="fw-bold mb-3" style="color: var(--text-main);">1. Trouvez un bien</h4>
-                    <p class="text-muted">Parcourez notre catalogue Loger SN pour trouver des appartements, villas ou locaux commerciaux certifiés.</p>
+                    <h4 class="fw-bold">Recherche Intuitive</h4>
+                    <p class="text-muted">Trouvez exactement ce que vous cherchez grâce à nos filtres avancés par ville, quartier et budget.</p>
                 </div>
             </div>
-            
-            <!-- Card 2 -->
             <div class="col-md-4">
-                <div class="feature-card h-100">
-                    <div class="feature-icon-wrapper mb-4" style="background: none; width: 80px; height: 80px;">
-                        <img src="{% static 'img/logo_nils.png' %}" alt="NILS" class="img-fluid" style="border-radius: 15px;">
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper icon-yellow">
+                        <i class="fa-solid fa-shield-check"></i>
                     </div>
-                    <h4 class="fw-bold mb-3" style="color: var(--text-main);">2. Profil NILS Certifié</h4>
-                    <p class="text-muted">Créez votre profil de confiance en deux minutes avec votre carte d'identité pour garantir votre sérieux.</p>
+                    <h4 class="fw-bold">Annonces Vérifiées</h4>
+                    <p class="text-muted">Chaque annonce est examinée pour vous garantir des informations fiables et éviter les mauvaises surprises.</p>
                 </div>
             </div>
-            
-            <!-- Card 3 -->
             <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-icon-wrapper icon-dark">
-                        <i class="fa-solid fa-handshake-simple"></i>
+                        <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h4 class="fw-bold mb-3" style="color: var(--text-main);">3. Signez et Louez</h4>
-                    <p class="text-muted">Le contrat "Solvable Filiation" est créé numériquement. Le suivi des paiements des loyers est automatisé.</p>
+                    <h4 class="fw-bold">Contact Direct</h4>
+                    <p class="text-muted">Communiquez instantanément avec les propriétaires et agents via notre messagerie intégrée.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+<!-- CALL TO ACTION -->
 <section class="py-5" style="background: linear-gradient(135deg, var(--color-dark-green), #083820); color: white;">
-    <div class="container py-4">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-5 mb-lg-0">
-                <span class="badge mb-3 px-3 py-2 rounded-pill" style="background: rgba(127, 212, 125, 0.2); color: var(--color-light-green); border: 1px solid rgba(127, 212, 125, 0.3);">PORTAIL DE CONFIANCE</span>
-                <h1 class="fw-bold display-5 mb-4">Ne louez plus jamais à l'aveugle.</h1>
-                <p class="fs-5 opacity-75 mb-4">Vérifiez instantanément la fiabilité d'un locataire grâce à son historique de paiement certifié sur le réseau Solvable. Sécurisez votre patrimoine en 30 secondes.</p>
-                <div class="d-flex align-items-center gap-4">
-                    <div class="text-center">
-                        <div class="fs-2 fw-bold text-success">98.5%</div>
-                        <div class="small opacity-50">Score Précision</div>
-                    </div>
-                    <div class="text-center border-start ps-4">
-                        <div class="fs-2 fw-bold text-warning">Zero</div>
-                        <div class="small opacity-50">Litiges non résolus</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-5 offset-lg-1">
-                <div class="card border-0 shadow-lg p-4 p-md-5" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.1) !important;">
-                    <h3 class="fw-bold mb-4">Lancer une vérification</h3>
-                    <form action="{% url 'nils_search' %}" method="get">
-                        <div class="mb-4">
-                            <label class="small text-uppercase opacity-50 fw-bold mb-2">Entrez ses coordonnées</label>
-                            <input type="text" name="query" class="form-control form-control-lg bg-transparent text-white border-0 border-bottom rounded-0 px-0" placeholder="N° NILS ou Téléphone..." style="border-color: rgba(255, 255, 255, 0.3) !important;">
-                        </div>
-                        <button type="submit" class="btn btn-primary-custom w-100 py-3 fs-5" style="background-color: var(--color-light-green); color: var(--color-dark-green); box-shadow: 0 10px 20px rgba(127, 212, 125, 0.3);">
-                            Vérifier maintenant <i class="fa-solid fa-shield-halved ms-2"></i>
-                        </button>
-                    </form>
-                    <p class="text-center small opacity-50 mt-4 mb-0">Accès sécurisé pour les bailleurs & agents certifiés</p>
-                </div>
-            </div>
-        </div>
+    <div class="container py-5 text-center">
+        <h2 class="display-5 fw-bold mb-4">Vous avez un bien à proposer ?</h2>
+        <p class="fs-4 opacity-75 mb-5">Publiez votre annonce en quelques minutes et touchez des milliers de locataires et acheteurs potentiels au Togo.</p>
+        <a href="{% url 'create_property' %}" class="btn btn-secondary-custom px-5 py-3 fs-5">
+            Publier mon annonce maintenant <i class="fa-solid fa-plus ms-2"></i>
+        </a>
     </div>
 </section>
 
-<!-- SECTION SEO : AUTORITÉ LOCALE (PHASE 4) -->
-<section class="py-5" style="border-top: 1px solid var(--border-color);">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h2 class="display-6 fw-bold mb-4" style="color: var(--color-dark-green);">L'Avenir de l'Immobilier au Sénégal : Sécurité & Transparence</h2>
-                <p class="text-muted lh-lg mb-4">
-                    Chez <strong>Loger Sénégal</strong>, nous révolutionnons le marché immobilier sénégalais. Que vous soyez à la recherche d'un appartement de luxe aux Almadies, d'une résidence paisible à Saly ou d'un local commercial à Dakar Plateau, notre plateforme vous garantit des annonces certifiées et des profils vérifiés.
-                </p>
-                <div class="row g-4">
-                    <div class="col-sm-6">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="p-2 rounded-circle bg-success-subtle text-success">
-                                <i class="fa-solid fa-map-location-dot"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Partout au Sénégal</h6>
-                                <p class="small text-muted mb-0">De Dakar à Casamance.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="p-2 rounded-circle bg-warning-subtle text-warning">
-                                <i class="fa-solid fa-user-lock"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Profils NILS</h6>
-                                <p class="small text-muted mb-0">Zéro fraude locative.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="p-4 rounded-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 20px 40px var(--shadow-color);">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-award text-warning me-2"></i>Engagement Qualité</h5>
-                    <p class="text-muted small">
-                        Chaque annonce publiée sur notre portail fait l'objet d'un contrôle rigoureux. Nous collaborons avec les meilleurs courtiers et agences de la place pour vous offrir un service premium, sans mauvaises surprises.
-                    </p>
-                    <ul class="list-unstyled mb-0 small text-muted">
-                        <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> Photos réelles et récentes.</li>
-                        <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> Prix conformes au marché.</li>
-                        <li><i class="fa-solid fa-check text-success me-2"></i> Assistance juridique Solvable.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{% include 'partials/seo_faqs.html' %}
-
-<!-- Prêt à rejoindre -->
-<section class="py-5" style="background-color: var(--bg-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
-    <div class="container text-center py-5">
-        <h2 class="fw-bold mb-4" style="color: var(--text-main);">Prêt à rejoindre l'expérience Solvable ?</h2>
-        <p class="mb-4 text-muted" style="max-width: 600px; margin: 0 auto;">Rejoignez la plus grande communauté immobilière de confiance au Sénégal.</p>
-        <div class="d-flex justify-content-center flex-column flex-sm-row gap-3">
-            <a href="{% url 'create_property' %}" class="btn btn-primary-custom"><i class="fa-solid fa-house-medical me-2"></i>Déposer une annonce</a>
-            <a href="{% url 'properties_list' %}" class="btn btn-outline-dark text-main" style="border-radius: 50px; padding: 10px 25px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-main);"><i class="fa-solid fa-key me-2"></i>Je cherche une location</a>
-        </div>
-    </div>
-</section>
 {% endblock %}

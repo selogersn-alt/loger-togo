@@ -138,7 +138,7 @@ class _ExploreProfessionalsScreenState extends State<ExploreProfessionalsScreen>
                                   const Icon(Icons.location_on_rounded, size: 14, color: Colors.redAccent),
                                   const SizedBox(width: 4),
                                   Text(
-                                    pro['coverage_area'] ?? 'Sénégal',
+                                    pro['coverage_area'] ?? 'Togo',
                                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                                   ),
                                 ],

@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 from django.conf import settings
-from solvable.models import IncidentReport
 from logersn.models import Property
 
 User = settings.AUTH_USER_MODEL
@@ -19,7 +18,6 @@ class Conversation(models.Model):
     
     # Liens optionnels
     related_property = models.ForeignKey(Property, on_delete=models.SET_NULL, null=True, blank=True)
-    related_incident = models.ForeignKey(IncidentReport, on_delete=models.SET_NULL, null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

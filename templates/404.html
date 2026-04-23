@@ -1,40 +1,91 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Page Introuvable - Loger Sénégal{% endblock %}
+{% block title %}Page Introuvable (404) | Loger Togo{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+@keyframes glitch {
+  0%,100%{text-shadow:3px 0 var(--color-light-green),-3px 0 #f5c42f}
+  25%{text-shadow:-3px 0 var(--color-light-green),3px 0 #f5c42f}
+  50%{text-shadow:3px 0 #f5c42f,-3px 0 var(--color-light-green)}
+}
+.error-number { font-size:clamp(5rem,18vw,11rem); font-weight:900; line-height:1;
+  color:var(--color-dark-green); animation:glitch 3s ease-in-out infinite; letter-spacing:-4px; }
+.house-float { animation:float 3.5s ease-in-out infinite; font-size:5rem; }
+.search-tip { background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:20px 24px; }
+.quick-link { display:flex;align-items:center;gap:12px;padding:14px 20px;border-radius:12px;
+  background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-main);
+  text-decoration:none;transition:all .25s;font-weight:600; }
+.quick-link:hover { border-color:var(--color-light-green);color:var(--color-dark-green);
+  transform:translateX(4px);box-shadow:0 4px 16px rgba(0,0,0,.1); }
+.quick-link i { width:36px;height:36px;border-radius:10px;background:rgba(127,212,125,.15);
+  color:var(--color-dark-green);display:flex;align-items:center;justify-content:center; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5 my-5 text-center px-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="mb-5 animate__animated animate__bounceIn">
-                <h1 class="display-1 fw-bold mb-0" style="color: var(--color-dark-green); position: relative; font-size: 10rem;">404</h1>
-                <h2 class="fw-bold text-muted mt-n3" style="letter-spacing: 5px;">PAGE INTROUVABLE</h2>
-            </div>
-            
-            <h3 class="fw-bold mb-3" style="color: var(--text-main);">Oups ! Ce bien immobilier a déjà trouvé preneur... ou n'existe plus.</h3>
-            <p class="text-muted fs-5 mb-5 px-md-5">
-                Il semble que le lien que vous avez suivi soit erroné ou que la page ait été déplacée vers une autre zone de la plateforme.
-            </p>
-            
-            <div class="d-flex flex-wrap justify-content-center gap-3">
-                <a href="{% url 'home' %}" class="btn btn-primary-custom px-5 py-3 rounded-pill fw-bold shadow">
-                    <i class="fa-solid fa-house-chimney me-2"></i> Retour à l'accueil
-                </a>
-                <a href="{% url 'properties_list' %}" class="btn btn-outline-success px-5 py-3 rounded-pill fw-bold border-2">
-                    <i class="fa-solid fa-magnifying-glass me-2"></i> Voir les annonces
-                </a>
-            </div>
-            
-            <div class="mt-5 pt-5 opacity-50">
-                <img src="{% static 'img/icon-512x512.png' %}" alt="Loger Sénégal" style="width: 100px;">
-            </div>
-        </div>
-    </div>
-</div>
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-lg-10">
+      <div class="row align-items-center g-5">
 
-<style>
-    .mt-n3 { margin-top: -20px; }
-    body { background-color: var(--bg-body); }
-</style>
+        <!-- Côté gauche : numéro + icône -->
+        <div class="col-lg-5 text-center">
+          <div class="house-float mb-3">🏠</div>
+          <div class="error-number">404</div>
+          <p class="fw-bold text-muted mt-2" style="letter-spacing:4px;font-size:.9rem;">PAGE INTROUVABLE</p>
+        </div>
+
+        <!-- Côté droit : message + actions -->
+        <div class="col-lg-7">
+          <h2 class="fw-bold mb-3" style="color:var(--text-main);">Ce bien a déjà trouvé preneur… ou n'existe plus.</h2>
+          <p class="text-muted mb-4" style="font-size:1.05rem;">
+            La page que vous cherchez a peut-être été supprimée, déplacée ou n'a jamais existé.<br>
+            Pas de panique — voici comment retrouver votre bonheur immobilier :
+          </p>
+
+          <!-- Recherche rapide -->
+          <form action="{% url 'properties_list' %}" method="GET" class="search-tip mb-4">
+            <label class="small fw-bold text-muted d-block mb-2"><i class="fa-solid fa-magnifying-glass me-1"></i>Rechercher une annonce</label>
+            <div class="input-group">
+              <input type="text" name="q" class="form-control" placeholder="Villa à Lomé, appartement Kégué…" style="border-radius:10px 0 0 10px;">
+              <button class="btn btn-success px-4 fw-bold" type="submit" style="border-radius:0 10px 10px 0;">Chercher</button>
+            </div>
+          </form>
+
+          <!-- Liens rapides -->
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <a href="{% url 'home' %}" class="quick-link">
+                <i class="fa-solid fa-house-chimney"></i>
+                <span>Accueil</span>
+              </a>
+            </div>
+            <div class="col-sm-6">
+              <a href="{% url 'properties_list' %}" class="quick-link">
+                <i class="fa-solid fa-building"></i>
+                <span>Toutes les annonces</span>
+              </a>
+            </div>
+            <div class="col-sm-6">
+              <a href="{% url 'professionals_list' %}" class="quick-link">
+                <i class="fa-solid fa-user-tie"></i>
+                <span>Agences & Pros</span>
+              </a>
+            </div>
+            <div class="col-sm-6">
+              <a href="javascript:history.back()" class="quick-link">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Page précédente</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

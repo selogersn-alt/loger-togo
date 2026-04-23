@@ -6,4 +6,4 @@ Disallow: /search/
 Disallow: /media/
 
 # Sitemaps
-Sitemap: https://logersenegal.com/sitemap.xml
+Sitemap: https://Logertogo.com/sitemap.xml

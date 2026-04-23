@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Annuaire des Professionnels Vérifiés | Logersenegal{% endblock %}
+{% block title %}Annuaire des Professionnels Vérifiés | Logertogo{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -12,7 +12,7 @@
 <section class="py-5" style="background-color: var(--bg-body);">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-main);">Annuaire des Professionnels Logersenegal</h1>
+            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-main);">Annuaire des Professionnels Logertogo</h1>
             <p class="lead text-muted mx-auto" style="max-width: 700px;">
                 Trouvez un professionnel de l'immobilier de confiance avec qui collaborer. Tous les profils listés ici ont été vérifiés et certifiés par notre équipe.
             </p>
@@ -52,7 +52,7 @@
                         </h5>
                         <div class="mb-2">
                             <span class="badge bg-secondary">{{ pro.get_role_display }}</span>
-                            <span class="badge bg-primary" title="Professionnel Vérifié par Logersenegal"><i class="fa-solid fa-certificate"></i> Vérifié</span>
+                            <span class="badge bg-primary" title="Professionnel Vérifié par Logertogo"><i class="fa-solid fa-certificate"></i> Vérifié</span>
                         </div>
                         <div class="mb-3">
                             <small class="text-muted fw-bold d-block">{{ pro.nils_profile.nils_number }}</small>
@@ -83,7 +83,7 @@
                         <div class="d-flex flex-column gap-2 mt-auto">
                             <div class="d-flex justify-content-center gap-2">
                                 <!-- Link to Whatsapp -->
-                                <a href="https://wa.me/{{ pro.phone_number|cut:' ' }}?text=Bonjour, je vous ai trouvé sur Solvable Logersenegal." target="_blank" class="btn btn-sm text-white flex-grow-1" style="background-color: #25D366; border-radius: 8px;">
+                                <a href="https://wa.me/{{ pro.phone_number|cut:' ' }}?text=Bonjour, je vous ai trouvé sur Solvable Logertogo." target="_blank" class="btn btn-sm text-white flex-grow-1" style="background-color: #25D366; border-radius: 8px;">
                                     <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
                                 </a>
                                 <!-- Link to call -->

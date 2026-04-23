@@ -3,21 +3,22 @@
 from django.db import migrations
 
 def convert_tables_to_utf8mb4(apps, schema_editor):
-    with schema_editor.connection.cursor() as cursor:
-        db_name = 'gaak4328_loger_app'
-        try:
-            cursor.execute(f"ALTER DATABASE `{db_name}` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;")
-        except Exception:
-            pass # Ignore if no permissions to alter database
-            
-        cursor.execute("SHOW TABLES;")
-        tables = cursor.fetchall()
-        for table_row in tables:
-            table = table_row[0]
+    if schema_editor.connection.vendor == 'mysql':
+        with schema_editor.connection.cursor() as cursor:
+            db_name = 'gaak4328_loger_app'
             try:
-                cursor.execute(f"ALTER TABLE `{table}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+                cursor.execute(f"ALTER DATABASE `{db_name}` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;")
             except Exception:
-                pass
+                pass # Ignore if no permissions to alter database
+                
+            cursor.execute("SHOW TABLES;")
+            tables = cursor.fetchall()
+            for table_row in tables:
+                table = table_row[0]
+                try:
+                    cursor.execute(f"ALTER TABLE `{table}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+                except Exception:
+                    pass
 
 
 def reverse_convert(apps, schema_editor):

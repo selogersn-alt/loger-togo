@@ -30,6 +30,8 @@ class PropertyForm(forms.ModelForm):
     total_rooms = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     salons = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     kitchens = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    households = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    floor_level = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     has_garage = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     has_balcony = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     has_terrace = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
@@ -52,7 +54,7 @@ class PropertyForm(forms.ModelForm):
             cleaned_data['title'] = re.sub(safe_chars_regex, '', title)
 
         # Remplacer None par 0 pour les champs Integer
-        integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens']
+        integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens', 'households', 'floor_level']
         for field in integer_fields:
             if cleaned_data.get(field) is None:
                 cleaned_data[field] = 0
@@ -63,11 +65,12 @@ class PropertyForm(forms.ModelForm):
         model = Property
         fields = [
             'title', 'listing_category', 'property_type', 'document_type', 'city', 'neighborhood', 'price', 
-            'price_per_night', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens',
+            'price_per_night', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens', 'households', 'floor_level',
             'has_garage', 'has_balcony', 'has_terrace', 'has_courtyard', 'has_garden',
             'description', 'wifi', 'swimming_pool', 'gym', 'air_conditioning',
             'refrigerator', 'washing_machine', 'microwave', 'tv_cable',
-            'generator', 'water_tank'
+            'generator', 'water_tank',
+            'latitude', 'longitude',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Superbe appartement F4 vue mer...'}),
@@ -75,13 +78,15 @@ class PropertyForm(forms.ModelForm):
             'property_type': forms.Select(attrs={'class': 'form-select'}),
             'document_type': forms.Select(attrs={'class': 'form-select'}),
             'city': forms.Select(attrs={'class': 'form-select'}),
-            'neighborhood': forms.Select(attrs={'class': 'form-select'}),
+            'neighborhood': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Adidogomé'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 350000'}),
             'price_per_night': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 45000'}),
             'surface': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'm2'}),
             'bedrooms': forms.NumberInput(attrs={'class': 'form-control'}),
             'toilets': forms.NumberInput(attrs={'class': 'form-control'}),
             'total_rooms': forms.NumberInput(attrs={'class': 'form-control'}),
+            'households': forms.NumberInput(attrs={'class': 'form-control'}),
+            'floor_level': forms.NumberInput(attrs={'class': 'form-control'}),
             'has_garage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Décrivez le bien...'}),
             'wifi': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -115,4 +120,6 @@ class PropertyForm(forms.ModelForm):
             'tv_cable': 'TV par câble',
             'generator': 'Groupe électrogène',
             'water_tank': 'Réservoir d\'eau',
+            'households': 'Nombre de ménages',
+            'floor_level': 'Niveau d\'étage',
         }

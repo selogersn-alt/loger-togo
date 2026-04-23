@@ -7,12 +7,12 @@ if path not in sys.path:
     sys.path.insert(0, path)
 
 # Définir les réglages Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'logersenegal.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'logertogo.settings')
 
 # Importer l'application WSGI de Django
 # Cela gère automatiquement le django.setup() et le chargement des réglages
 try:
-    from logersenegal.wsgi import application as django_app
+    from logertogo.wsgi import application as django_app
 except Exception as e:
     # Fallback pour le débogage si le démarrage échoue
     def application(environ, start_response):

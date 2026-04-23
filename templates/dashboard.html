@@ -1,964 +1,384 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Mon Tableau de Bord | Logersenegal{% endblock %}
+{% block title %}Mon Tableau de Bord | Loger Togo{% endblock %}
 
 {% block extra_css %}
 <style>
-    .dashboard-sidebar {
-        background-color: var(--bg-card);
-        border-radius: 15px;
-        box-shadow: 0 5px 20px var(--shadow-color);
-        padding: 20px 0;
-        height: 100%;
-    }
-    .nav-pills .nav-link {
-        color: var(--text-main);
-        padding: 12px 20px;
-        border-radius: 0;
-        border-left: 4px solid transparent;
-        transition: all 0.3s ease;
-    }
-    .nav-pills .nav-link:hover {
-        background-color: rgba(127, 212, 125, 0.1);
-        color: var(--color-light-green);
-    }
-    .nav-pills .nav-link.active {
-        background-color: rgba(127, 212, 125, 0.1);
-        color: var(--color-light-green);
-        border-left: 4px solid var(--color-light-green);
-        font-weight: bold;
-    }
-    .status-badge {
-        padding: 8px 15px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    
-    /* Messagerie Styles */
-    .chat-container {
-        display: flex;
-        flex-direction: column;
-        height: 500px;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        background-color: var(--bg-body);
-    }
-    .chat-header {
-        background-color: var(--bg-card);
-        border-bottom: 1px solid var(--border-color);
-        padding: 15px;
-        border-radius: 12px 12px 0 0;
-    }
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-    }
-    .msg-sent {
-        background-color: var(--color-light-green) !important;
-        color: var(--color-dark-green) !important;
-        align-self: flex-end;
-        border-bottom-right-radius: 2px;
-        box-shadow: 0 2px 8px rgba(127, 212, 125, 0.2);
-    }
-    .msg-received {
-        background-color: var(--bg-card) !important;
-        color: var(--text-main) !important;
-        border: 1px solid var(--border-color);
-        align-self: flex-start;
-        border-bottom-left-radius: 2px;
-        box-shadow: 0 2px 8px var(--shadow-color);
-    }
-    .quick-aid-btn {
-        font-size: 0.75rem;
-        padding: 6px 15px;
-        border-radius: 20px;
-        border: 1px solid var(--border-color);
-        background-color: var(--bg-card);
-        color: var(--text-main);
-        transition: all 0.2s;
-        white-space: nowrap;
-        margin-right: 8px;
-        margin-bottom: 8px;
-    }
-    .quick-aid-btn:hover {
-        border-color: var(--color-light-green);
-        color: var(--color-light-green);
-        background-color: rgba(127, 212, 125, 0.05);
-    }
-    .chat-input-area {
-        padding: 20px;
-        background-color: var(--bg-card);
-        border-top: 1px solid var(--border-color);
-        border-radius: 0 0 12px 12px;
-    }
-    .chat-messages {
-        scrollbar-width: thin;
-        scrollbar-color: var(--border-color) transparent;
-    }
-    .list-group-item.active-chat {
-        background-color: rgba(127, 212, 125, 0.2) !important;
-        border-color: rgba(127, 212, 125, 0.3) !important;
-    }
-    .list-group-item:hover:not(.active-chat) {
-        background-color: rgba(127, 212, 125, 0.05);
-    }
-
-    /* Solvabilité & Reputation Classes */
-    .status-green { color: #7fd47d !important; }
-    .status-yellow { color: #f5c42f !important; }
-    .status-red { color: #dc3545 !important; }
-    
-    .border-solvable { border: 2px solid var(--color-light-green) !important; }
-    .border-default { border: 2px solid var(--border-color) !important; }
+.dash-sidebar { background: var(--bg-card); border-radius: 16px; box-shadow: 0 4px 20px var(--shadow-color); }
+.nav-pills .nav-link { color: var(--text-main); padding: 12px 20px; border-radius: 0; border-left: 4px solid transparent; transition: all .3s; }
+.nav-pills .nav-link:hover { background: rgba(127,212,125,.1); color: var(--color-light-green); }
+.nav-pills .nav-link.active { background: rgba(127,212,125,.1); color: var(--color-light-green); border-left: 4px solid var(--color-light-green); font-weight: 700; }
+.stat-card { background: var(--bg-card); border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px var(--shadow-color); border: 1px solid var(--border-color); transition: transform .3s; }
+.stat-card:hover { transform: translateY(-4px); }
+.stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.filter-bar { background: var(--bg-card); border-radius: 14px; padding: 16px 20px; border: 1px solid var(--border-color); margin-bottom: 20px; }
+.msg-sent { background: var(--color-light-green) !important; color: var(--color-dark-green) !important; align-self: flex-end; border-bottom-right-radius: 2px; }
+.msg-received { background: var(--bg-card) !important; color: var(--text-main) !important; border: 1px solid var(--border-color); align-self: flex-start; border-bottom-left-radius: 2px; }
+.conv-list { height: calc(560px - 55px); overflow-y: auto; }
+.msg-area { height: 400px; overflow-y: auto; background: var(--bg-body); }
+@media(max-width:768px){ .dash-sidebar { margin-bottom: 20px; } .msg-area { height: 260px; } }
+.table th { font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; color: var(--text-muted); border-bottom: 2px solid var(--border-color); }
+.badge-pending { background: rgba(255,193,7,.15); color: #856404; }
+.badge-active { background: rgba(25,135,84,.15); color: #0a3622; }
+.badge-rejected { background: rgba(220,53,69,.15); color: #842029; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold" style="color: var(--text-main);">Mon Espace Personnel</h2>
-            <p class="text-muted">Bienvenue, {{ user.email }}</p>
+<div class="container py-4">
 
-            {% if not user.is_phone_verified %}
-            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 12px; background-color: rgba(255, 193, 7, 0.1);">
-                <i class="fa-solid fa-triangle-exclamation me-3" style="font-size: 1.5rem; color: #ffc107;"></i>
-                <div class="flex-grow-1">
-                    <h6 class="m-0 fw-bold" style="color: #664d03;">Compte non vérifié !</h6>
-                    <small class="text-muted">Votre numéro de téléphone n'est pas encore vérifié. Votre visibilité est limitée.</small>
-                </div>
-                <a href="{% url 'verify_phone' %}" class="btn btn-sm btn-warning fw-bold px-3 ms-3" style="border-radius: 8px;">Vérifier maintenant</a>
-            </div>
-            {% endif %}
+  {% if not user.is_phone_verified %}
+  <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4 rounded-3">
+    <i class="fa-solid fa-triangle-exclamation me-3 fs-4 text-warning"></i>
+    <div class="flex-grow-1">
+      <strong>Vérifiez votre compte !</strong> <small class="text-muted d-block">Vérifiez votre numéro pour gagner la confiance.</small>
+    </div>
+    <a href="{% url 'verify_phone' %}" class="btn btn-sm btn-warning fw-bold px-3">Vérifier</a>
+  </div>
+  {% endif %}
+
+  <!-- FILTRE DATE GLOBAL -->
+  <form method="GET" class="filter-bar d-flex flex-wrap gap-2 align-items-end mb-4">
+    <div>
+      <label class="small fw-bold text-muted d-block mb-1">Du</label>
+      <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm" style="min-width:150px;">
+    </div>
+    <div>
+      <label class="small fw-bold text-muted d-block mb-1">Au</label>
+      <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm" style="min-width:150px;">
+    </div>
+    <input type="hidden" name="tab" value="{{ request.GET.tab }}">
+    <button type="submit" class="btn btn-success btn-sm px-3"><i class="fa-solid fa-filter me-1"></i>Filtrer</button>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i></a>
+  </form>
+
+  <div class="row">
+    <!-- SIDEBAR -->
+    <div class="col-lg-3 mb-4">
+      <div class="dash-sidebar py-3">
+        <div class="text-center px-3 mb-3">
+          {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" width="90" height="90" style="border-radius:50%;object-fit:cover;border:3px solid var(--color-light-green);" alt="Profil">
+          {% else %}
+            <i class="fa-solid fa-circle-user" style="font-size:5rem;color:var(--color-light-green);"></i>
+          {% endif %}
+          <div class="mt-2">
+            <span class="badge bg-secondary">{{ user.get_role_display }}</span>
+            {% if user.is_verified_pro %}<span class="badge bg-success ms-1"><i class="fa-solid fa-certificate"></i> Pro</span>{% endif %}
+          </div>
+          <h6 class="fw-bold mt-2 mb-3 text-truncate">{{ user.get_full_name|default:user.phone_number }}</h6>
+          <a href="{% url 'update_profile' %}" class="btn btn-sm btn-outline-success rounded-pill w-100 mb-2"><i class="fa-solid fa-user-pen me-1"></i>Modifier profil</a>
         </div>
+        <ul class="nav nav-pills flex-column" id="dashTabs" role="tablist">
+          <li class="nav-item"><a class="nav-link {% if not request.GET.tab or request.GET.tab == 'overview' %}active{% endif %}" id="t-overview" data-bs-toggle="pill" href="#overview"><i class="fa-solid fa-chart-pie me-2"></i>Vue d'ensemble</a></li>
+          {% if user.role != 'TENANT' %}
+          <li class="nav-item"><a class="nav-link {% if request.GET.tab == 'properties' %}active{% endif %}" id="t-properties" data-bs-toggle="pill" href="#properties"><i class="fa-solid fa-house me-2"></i>Mes Annonces</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.GET.tab == 'applications' %}active{% endif %}" id="t-applications" data-bs-toggle="pill" href="#applications"><i class="fa-solid fa-inbox me-2"></i>Candidatures <span class="badge bg-success ms-1">{{ received_applications.count }}</span></a></li>
+          {% endif %}
+          <li class="nav-item"><a class="nav-link {% if request.GET.tab == 'transactions' %}active{% endif %}" id="t-transactions" data-bs-toggle="pill" href="#transactions"><i class="fa-solid fa-receipt me-2"></i>Transactions</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.GET.tab == 'favorites' %}active{% endif %}" id="t-favorites" data-bs-toggle="pill" href="#favorites"><i class="fa-solid fa-heart me-2"></i>Favoris</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.GET.tab == 'messages' %}active{% endif %}" id="t-messages" data-bs-toggle="pill" href="#messages"><i class="fa-solid fa-comments me-2"></i>Messages</a></li>
+          <li class="nav-item mt-3"><a class="nav-link text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Déconnexion</a></li>
+        </ul>
+      </div>
     </div>
 
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-lg-3 mb-4">
-            <div class="dashboard-sidebar">
-                <div class="text-center mb-4 px-3">
-                    <div class="mb-3">
-                        {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-light-green);">
-                        {% else %}
-                            <i class="fa-solid fa-circle-user" style="font-size: 5rem; color: var(--color-light-green);"></i>
-                        {% endif %}
-                    </div>
-                    <div class="mb-2">
-                        <span class="badge bg-secondary">{{ user.get_role_display }}</span>
-                        {% if user.role != 'TENANT' and user.is_verified_pro %}
-                            <span class="badge bg-primary" title="Professionnel Vérifié par Solvable"><i class="fa-solid fa-certificate"></i> Vérifié</span>
-                        {% endif %}
-                    </div>
-                    <h5 class="fw-bold m-0 text-truncate" style="color: var(--text-main);">{{ user.email|default:user.phone_number }}</h5>
-                    <small class="text-muted d-block">{{ user.phone_number }}</small>
-                    <div class="mt-3 d-grid gap-2">
-                        <a href="{% url 'update_profile' %}" class="btn btn-sm btn-outline-success rounded-pill fw-bold">
-                            <i class="fa-solid fa-user-pen me-1"></i> Modifier le profil
-                        </a>
-                        {% if user.slug %}
-                        <a href="{% url 'public_profile_slug' user.slug %}" target="_blank" class="btn btn-sm btn-light rounded-pill fw-bold border">
-                            <i class="fa-solid fa-eye me-1"></i> Voir mon profil public
-                        </a>
-                        {% endif %}
-                    </div>
-                    <div class="mt-3 text-warning d-flex align-items-center justify-content-center">
-                        {% for i in "1234567891"|make_list %}{# Workaround for range 10 #}
-                            {% if forloop.counter <= user.nils_profile.average_rating %}
-                                <i class="fa-solid fa-star small"></i>
-                            {% elif forloop.counter|add:"-0.5" <= user.nils_profile.average_rating %}
-                                <i class="fa-solid fa-star-half-stroke small"></i>
-                            {% else %}
-                                <i class="fa-regular fa-star small"></i>
-                            {% endif %}
-                        {% endfor %}
-                        <span class="ms-2 small text-muted">({{ user.nils_profile.average_rating|default:"0" }}/10)</span>
-                    </div>
-                </div>
-                
-                <ul class="nav nav-pills flex-column" id="dashboard-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab"><i class="fa-solid fa-chart-pie me-2"></i> Vue d'ensemble</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="profile-tab" data-bs-toggle="pill" href="#profile" role="tab"><i class="fa-solid fa-id-card me-2"></i> Profil NILS</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="filiations-tab" data-bs-toggle="pill" href="#filiations" role="tab"><i class="fa-solid fa-file-signature me-2"></i> Mes Contrats</a>
-                    </li>
-                    {% if user.role != 'TENANT' %}
-                    <li class="nav-item">
-                        <a class="nav-link" id="properties-tab" data-bs-toggle="pill" href="#properties" role="tab"><i class="fa-solid fa-house-chimney-window me-2"></i> Mes Annonces</a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" id="favorites-tab" data-bs-toggle="pill" href="#favorites" role="tab"><i class="fa-solid fa-heart me-2"></i> Mes Favoris</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="chat-tab" data-bs-toggle="pill" href="#chat" role="tab">
-                            <i class="fa-solid fa-comments me-2"></i> Messagerie 
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="applications-tab" data-bs-toggle="pill" href="#applications" role="tab">
-                            <i class="fa-solid fa-paper-plane me-2"></i> Candidatures
-                            {% if received_applications.count > 0 %}
-                                <span class="badge rounded-pill bg-danger ms-1">{{ received_applications.count }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
-                    <li class="nav-item mt-3">
-                        <a class="nav-link text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Déconnexion</a>
-                    </li>
-                </ul>
+    <!-- MAIN -->
+    <div class="col-lg-9">
+      <div class="tab-content" id="dashTabsContent">
+
+        <!-- VUE D'ENSEMBLE -->
+        <div class="tab-pane fade {% if not request.GET.tab or request.GET.tab == 'overview' %}show active{% endif %}" id="overview">
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+              <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2" style="background:rgba(25,135,84,.12);color:#198754;"><i class="fa-solid fa-house"></i></div>
+                <div class="fs-3 fw-bold">{{ approved_count }}</div>
+                <div class="small text-muted">Annonces publiées</div>
+              </div>
             </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2" style="background:rgba(255,193,7,.12);color:#ffc107;"><i class="fa-solid fa-clock"></i></div>
+                <div class="fs-3 fw-bold">{{ pending_count }}</div>
+                <div class="small text-muted">En attente</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2" style="background:rgba(13,110,253,.12);color:#0d6efd;"><i class="fa-solid fa-eye"></i></div>
+                <div class="fs-3 fw-bold">{{ views_total }}</div>
+                <div class="small text-muted">Vues totales</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2" style="background:rgba(111,66,193,.12);color:#6f42c1;"><i class="fa-solid fa-comments"></i></div>
+                <div class="fs-3 fw-bold">{{ conversations.count }}</div>
+                <div class="small text-muted">Messages</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold m-0">Dépenses cumulées</h5>
+              <span class="badge bg-success fs-6 px-3">{{ total_spent|floatformat:0 }} FCFA</span>
+            </div>
+            <div class="progress" style="height:10px;border-radius:8px;">
+              <div class="progress-bar bg-success" style="width:100%"></div>
+            </div>
+            <div class="mt-3 text-center">
+              <a href="{% url 'properties_list' %}" class="btn btn-success px-4 rounded-pill mt-2"><i class="fa-solid fa-magnifying-glass me-2"></i>Explorer les annonces</a>
+            </div>
+          </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="col-lg-9">
-            <div class="tab-content" id="dashboard-tabContent">
-                
-                <!-- VUE D'ENSEMBLE -->
-                <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                    
-                    {% if not user.email %}
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm animate__animated animate__pulse animate__infinite" style="background: linear-gradient(135deg, var(--color-dark-green), #084d2a); color: white; border-radius: 15px;">
-                                <div class="card-body p-4 d-flex align-items-center">
-                                    <div class="me-4 d-none d-md-block">
-                                        <i class="fa-solid fa-envelope-circle-check fs-1 text-warning"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="fw-bold mb-1">Restez informé en temps réel !</h5>
-                                        <p class="mb-0 opacity-75">Connectez votre adresse e-mail pour recevoir vos codes OTP, vos alertes d'annonces et vos baux numériques sans frais.</p>
-                                        <a href="{% url 'profile_update' %}" class="btn btn-warning btn-sm mt-3 fw-bold rounded-pill px-4" style="color: var(--color-dark-green);">Ajouter mon e-mail maintenant</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
+        <!-- MES ANNONCES (PRO) -->
+        {% if user.role != 'TENANT' %}
+        <div class="tab-pane fade {% if request.GET.tab == 'properties' %}show active{% endif %}" id="properties">
+          <div class="stat-card">
+            <!-- Filtres pro -->
+            <div class="d-flex flex-wrap gap-2 align-items-end mb-4">
+              <form method="GET" class="d-flex flex-wrap gap-2 w-100">
+                <input type="hidden" name="tab" value="properties">
+                <input type="hidden" name="date_from" value="{{ date_from }}">
+                <input type="hidden" name="date_to" value="{{ date_to }}">
+                <select name="filter_city" class="form-select form-select-sm" style="max-width:160px;">
+                  <option value="">Toutes villes</option>
+                  {% for code,name in cities %}<option value="{{ code }}" {% if filter_city == code %}selected{% endif %}>{{ name }}</option>{% endfor %}
+                </select>
+                <select name="filter_type" class="form-select form-select-sm" style="max-width:160px;">
+                  <option value="">Tous types</option>
+                  {% for code,name in property_types %}<option value="{{ code }}" {% if filter_type == code %}selected{% endif %}>{{ name }}</option>{% endfor %}
+                </select>
+                <select name="filter_status" class="form-select form-select-sm" style="max-width:140px;">
+                  <option value="">Tous statuts</option>
+                  <option value="published" {% if filter_status == 'published' %}selected{% endif %}>Publiées</option>
+                  <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>En attente</option>
+                </select>
+                <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-filter"></i></button>
+                <a href="?tab=properties&export=properties&date_from={{ date_from }}&date_to={{ date_to }}" class="btn btn-outline-success btn-sm ms-auto"><i class="fa-solid fa-download me-1"></i>Export CSV</a>
+                <a href="{% url 'create_property' %}" class="btn btn-success btn-sm"><i class="fa-solid fa-plus me-1"></i>Ajouter</a>
+              </form>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Bien</th><th>Ville</th><th>Prix</th><th>Vues</th><th>Statut</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {% for prop in properties %}
+                  <tr>
+                    <td><span class="fw-bold d-block" style="max-width:180px;" class="text-truncate">{{ prop.title|truncatechars:30 }}</span><small class="text-muted">{{ prop.get_property_type_display }}</small></td>
+                    <td><small>{{ prop.city }}</small></td>
+                    <td class="fw-bold text-success">{{ prop.price|floatformat:0 }}<small class="text-muted"> F</small></td>
+                    <td><i class="fa-solid fa-eye text-muted me-1"></i>{{ prop.views_count }}</td>
+                    <td>
+                      {% if prop.is_published %}<span class="badge badge-active px-3 py-2">Publiée</span>
+                      {% else %}<span class="badge badge-pending px-3 py-2">En attente</span>{% endif %}
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm">
+                        <a href="{% url 'property_detail' prop.id %}" class="btn btn-outline-primary" title="Voir"><i class="fa-solid fa-eye"></i></a>
+                        <a href="{% url 'edit_property' prop.id %}" class="btn btn-outline-warning" title="Modifier"><i class="fa-solid fa-pen"></i></a>
+                        <a href="{% url 'delete_property' prop.id %}" class="btn btn-outline-danger" title="Supprimer" onclick="return confirm('Confirmer la suppression ?')"><i class="fa-solid fa-trash"></i></a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="6" class="text-center py-5 text-muted">Aucune annonce pour cette période.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm h-100" style="background-color: var(--bg-card); border-radius: 15px;">
-                                <div class="card-body p-4">
-                                    <h5 class="fw-bold mb-3" style="color: var(--text-main);">Indice de Confiance NILS</h5>
-                                    {% if user.nils_profile %}
-                                        <div class="text-center mb-4">
-                                            <!-- Gauge CSS Custom -->
-                                            <div class="position-relative d-inline-block">
-                                                <svg width="120" height="120" viewBox="0 0 120 120">
-                                                    <circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-color)" stroke-width="8" />
-                                                    <circle id="nils-gauge-circle" cx="60" cy="60" r="54" fill="none" 
-                                                            stroke="{% if user.nils_profile.reputation_status == 'GREEN' %}var(--color-light-green){% elif user.nils_profile.reputation_status == 'YELLOW' %}var(--color-yellow){% else %}#dc3545{% endif %}" 
-                                                            stroke-width="12" 
-                                                            stroke-dasharray="339.29" 
-                                                            stroke-dashoffset="339.29" 
-                                                            stroke-linecap="round"
-                                                            style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);" />
-                                                </svg>
-                                                <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                                    <span class="d-block fw-800 fs-3">{{ user.nils_profile.score }}</span>
-                                                    <small class="text-muted" style="font-size: 0.6rem;">pts</small>
-                                                </div>
-                                            </div>
-                                            <script>
-                                                (function() {
-                                                    const circle = document.getElementById('nils-gauge-circle');
-                                                     const nilsScoreVal = parseFloat("{{ user.nils_profile.score|default:0 }}");
-                                                    const circumference = 339.29;
-                                                    const nilsOffset = circumference - (nilsScoreVal / 100) * circumference;
-                                                    setTimeout(() => {
-                                                        if(circle) circle.style.strokeDashoffset = nilsOffset;
-                                                    }, 300);
-                                                })();
-                                            </script>
-                                             <div class="mt-2 fw-bold text-uppercase {% if user.nils_profile.reputation_status == 'GREEN' %}status-green{% elif user.nils_profile.reputation_status == 'YELLOW' %}status-yellow{% else %}status-red{% endif %}">
-                                                Profil {{ user.nils_profile.get_reputation_status_display }}
-                                            </div>
-                                        </div>
-                                        <p class="text-muted small">ID NILS: <strong>{{ user.nils_profile.nils_number }}</strong>. Votre score reflète votre historique de paiement certifié sur la plateforme.</p>
-                                    {% else %}
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="status-badge bg-warning text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i> Profil non créé</div>
-                                        </div>
-                                        <p class="text-muted small">Veuillez soumettre vos documents pour générer votre indice de confiance.</p>
-                                        <a href="{% url 'kyc_submit' %}" class="btn btn-sm btn-success w-100 shadow-sm"><i class="fa-solid fa-id-card me-2"></i>Commencer</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm h-100 {% if user.is_solvency_active %}border-solvable{% else %}border-default{% endif %}" style="background-color: var(--bg-card); border-radius: 15px;">
-                                <div class="card-body p-4 text-center">
-                                    <h5 class="fw-bold mb-3" style="color: var(--text-main);">Badge Solvable & Capacité</h5>
-                                    
-                                    {% if user.is_solvency_active %}
-                                        <div class="mb-3">
-                                            <i class="fa-solid fa-medal text-success animate__animated animate__pulse animate__infinite" style="font-size: 3.5rem;"></i>
-                                        </div>
-                                        <div class="mb-2">
-                                            <span class="badge bg-success px-3 py-2 rounded-pill">LOCATAIRE CERTIFIÉ</span>
-                                        </div>
-                                        <h4 class="fw-bold text-success mb-1">{{ user.solvency_max_rent|floatformat:0 }} F <small>Max/mois</small></h4>
-                                        <p class="text-muted small mb-0">Valide jusqu'au {{ user.solvency_expiry_date|date:"d M Y" }}</p>
-                                        <div class="mt-3">
-                                            <a href="{% url 'submit_solvency_docs' %}" class="btn btn-sm btn-outline-success border-0">Mettre à jour mes documents</a>
-                                        </div>
-                                    {% else %}
-                                        <div class="mb-3 opacity-50">
-                                            <i class="fa-solid fa-medal text-muted" style="font-size: 3.5rem;"></i>
-                                        </div>
-                                        <p class="text-muted small mb-4">Augmentez vos chances de 80% en certifiant votre solvabilité auprès des bailleurs.</p>
-                                        <a href="{% url 'submit_solvency_docs' %}" class="btn btn-primary-custom w-100 py-2">Obtenir mon Badge (Gratuit)</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+        <!-- CANDIDATURES REÇUES -->
+        <div class="tab-pane fade {% if request.GET.tab == 'applications' %}show active{% endif %}" id="applications">
+          <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold m-0">Candidatures reçues</h5>
+              <form method="GET" class="d-flex gap-2">
+                <input type="hidden" name="tab" value="applications">
+                <input type="hidden" name="date_from" value="{{ date_from }}">
+                <input type="hidden" name="date_to" value="{{ date_to }}">
+                <select name="app_status" class="form-select form-select-sm" style="max-width:160px;">
+                  <option value="">Tous statuts</option>
+                  <option value="PENDING" {% if app_filter == 'PENDING' %}selected{% endif %}>En attente</option>
+                  <option value="ACCEPTED" {% if app_filter == 'ACCEPTED' %}selected{% endif %}>Acceptées</option>
+                  <option value="REJECTED" {% if app_filter == 'REJECTED' %}selected{% endif %}>Refusées</option>
+                </select>
+                <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-filter"></i></button>
+              </form>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Candidat</th><th>Bien</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {% for app in received_applications %}
+                  <tr>
+                    <td>
+                      <div class="fw-bold">{{ app.tenant.get_full_name|default:app.tenant.phone_number }}</div>
+                      <small class="text-muted">{{ app.tenant.phone_number }}</small>
+                    </td>
+                    <td><small class="fw-bold">{{ app.property.title|truncatechars:25 }}</small></td>
+                    <td><small>{{ app.created_at|date:"d/m/Y" }}</small></td>
+                    <td>
+                      {% if app.status == 'ACCEPTED' %}<span class="badge badge-active px-2 py-1">Acceptée</span>
+                      {% elif app.status == 'REJECTED' %}<span class="badge badge-rejected px-2 py-1">Refusée</span>
+                      {% else %}<span class="badge badge-pending px-2 py-1">En attente</span>{% endif %}
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm">
+                        <a href="{% url 'public_profile' app.tenant.id %}" class="btn btn-outline-primary" title="Voir profil"><i class="fa-solid fa-user"></i></a>
+                        {% if app.status == 'PENDING' %}
+                        <a href="{% url 'approve_filiation' app.id %}" class="btn btn-outline-success" title="Accepter"><i class="fa-solid fa-check"></i></a>
+                        <a href="{% url 'reject_filiation' app.id %}" class="btn btn-outline-danger" title="Refuser" onclick="return confirm('Refuser cette candidature ?')"><i class="fa-solid fa-xmark"></i></a>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="5" class="text-center py-5 text-muted">Aucune candidature reçue.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endif %}
 
-                         <div class="col-md-6">
-                            <div class="card border-0 shadow-sm h-100" style="background-color: var(--bg-card); border-radius: 15px;">
-                                <div class="card-body p-4">
-                                    <h5 class="fw-bold mb-3" style="color: var(--text-main);">Gestion Immobilière</h5>
-                                    <div class="row text-center g-2 mt-2">
-                                        <div class="col-6">
-                                            <div class="p-3 bg-light rounded shadow-sm" style="border: 1px solid var(--border-color);">
-                                                <h3 class="fw-bold text-success m-0">{{ approved_count }}</h3>
-                                                <small class="text-muted">En ligne</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="p-3 bg-light rounded shadow-sm" style="border: 1px solid var(--border-color);">
-                                                <h3 class="fw-bold text-warning m-0">{{ pending_count }}</h3>
-                                                <small class="text-muted">En attente</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-grid mt-4">
-                                        <button class="btn btn-sm btn-outline-success" onclick="document.getElementById('properties-tab').click()">
-                                            <i class="fa-solid fa-list-check me-1"></i> Gérer mes annonces
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- TRANSACTIONS -->
+        <div class="tab-pane fade {% if request.GET.tab == 'transactions' %}show active{% endif %}" id="transactions">
+          <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold m-0">Mes Transactions</h5>
+              <a href="?tab=transactions&export=transactions&date_from={{ date_from }}&date_to={{ date_to }}" class="btn btn-outline-success btn-sm"><i class="fa-solid fa-download me-1"></i>Export CSV</a>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Référence</th><th>Type</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
+                <tbody>
+                  {% for t in my_transactions %}
+                  <tr>
+                    <td><code class="small">{{ t.reference|truncatechars:18 }}</code></td>
+                    <td><small>{{ t.get_transaction_type_display }}</small></td>
+                    <td class="fw-bold">{{ t.amount|floatformat:0 }} <small class="text-muted">FCFA</small></td>
+                    <td>
+                      {% if t.status == 'SUCCESS' %}<span class="badge badge-active px-2 py-1">Succès</span>
+                      {% elif t.status == 'FAILED' %}<span class="badge badge-rejected px-2 py-1">Échoué</span>
+                      {% else %}<span class="badge badge-pending px-2 py-1">En attente</span>{% endif %}
+                    </td>
+                    <td><small>{{ t.created_at|date:"d/m/Y H:i" }}</small></td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="5" class="text-center py-5 text-muted">Aucune transaction.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
-                    <!-- Activités Récentes -->
-                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-3" style="color: var(--text-main);">Activités Récentes</h5>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item bg-transparent px-0 py-3" style="border-color: var(--border-color);">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-circle bg-success text-white me-3" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fa-solid fa-user-check"></i>
-                                        </div>
-                                        <div>
-                                            <p class="mb-0 fw-bold" style="color: var(--text-main);">Connexion réussie</p>
-                                            <small class="text-muted">Aujourd'hui à {{ "now"|date:"H:i" }}</small>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+        <!-- FAVORIS -->
+        <div class="tab-pane fade {% if request.GET.tab == 'favorites' %}show active{% endif %}" id="favorites">
+          <div class="stat-card">
+            <h5 class="fw-bold mb-4">Mes Favoris</h5>
+            <div class="row g-3">
+              {% for fav in user.favorites.all %}
+              <div class="col-md-6 col-lg-4">{% include 'partials/property_card.html' with property=fav.property %}</div>
+              {% empty %}
+              <div class="col-12 text-center py-5 text-muted"><i class="fa-solid fa-heart-crack fs-1 mb-3 opacity-25"></i><p>Aucun favori enregistré.</p></div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGERIE -->
+        <div class="tab-pane fade {% if request.GET.tab == 'messages' %}show active{% endif %}" id="messages">
+          <div class="stat-card p-0 overflow-hidden" style="border-radius:16px;">
+            <div class="row g-0" style="min-height:560px;">
+              <!-- Liste conversations -->
+              <div class="col-md-4 border-end">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background:var(--bg-card);">
+                  <h6 class="m-0 fw-bold">Discussions</h6>
+                  <a href="{% url 'start_support' %}" class="btn btn-success btn-sm rounded-pill px-3" title="Nouveau message"><i class="fa-solid fa-plus"></i></a>
                 </div>
-
-                <!-- PROFIL NILS -->
-                <div class="tab-pane fade" id="profile" role="tabpanel">
-                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
-                        <div class="card-body p-4">
-                            <h4 class="fw-bold mb-4" style="color: var(--text-main);">Identité & KYC</h4>
-                            <p class="text-muted">Ces informations restent confidentielles et servent uniquement à générer votre indice de confiance Solvable (NILS).</p>
-                            
-                            <div class="text-center mt-5 mb-4">
-                                <i class="fa-solid fa-shield-halved text-success mb-3" style="font-size: 4rem;"></i>
-                                <h5 style="color: var(--text-main);">Processus de Vérification Sécurisé</h5>
-                                <p class="text-muted small px-md-5">Nous utilisons la reconnaissance faciale et l'analyse documentaire pour garantir l'intégrité de tous nos membres.</p>
-                                
-                                <a href="{% url 'kyc_submit' %}" class="btn btn-primary-custom px-4 mt-3">Transmettre mes documents sécurisés</a>
-                            </div>
-                        </div>
+                <div class="conv-list">
+                  {% for conv in conversations %}
+                  <a href="?tab=messages&conv={{ conv.id }}" class="list-group-item list-group-item-action border-0 py-3 px-3 {% if active_conversation.id == conv.id %}bg-success bg-opacity-10{% endif %}">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;font-size:.8rem;font-weight:700;">
+                        {{ conv.get_topic_display|slice:":2"|upper }}
+                      </div>
+                      <div class="overflow-hidden">
+                        <div class="fw-bold small text-truncate">{{ conv.get_topic_display }}</div>
+                        <small class="text-muted text-truncate d-block">{{ conv.messages.last.content|truncatechars:28|default:"Démarrer…" }}</small>
+                      </div>
                     </div>
+                  </a>
+                  {% empty %}
+                  <div class="p-4 text-center text-muted small">Aucune discussion.<br><a href="{% url 'start_support' %}" class="btn btn-success btn-sm mt-3 rounded-pill">Démarrer</a></div>
+                  {% endfor %}
                 </div>
-
-                <!-- MES CONTRATS FILIATIONS -->
-                <div class="tab-pane fade" id="filiations" role="tabpanel">
-                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
-                        <div class="card-body p-4">
-                            <h4 class="fw-bold mb-4" style="color: var(--text-main);">Mes Baux & Locations</h4>
-                            <p class="text-muted">Gérez vos contrats de location sécurisés par Solvable (Filiations).</p>
-                            
-                            <h5 class="fw-bold mt-4" style="color: var(--color-dark-green);">Je suis Bailleur (Mes Locataires)</h5>
-                            {% if user.tenant_filiations.all %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mt-3" style="color: var(--text-main);">
-                                    <thead style="background-color: rgba(127, 212, 125, 0.1);">
-                                        <tr>
-                                            <th>Bien Immobilier</th>
-                                            <th>Locataire (Tél/NILS)</th>
-                                            <th>Loyer Mensuel</th>
-                                            <th>Statut</th>
-                                            <th>Début</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for filiation in user.tenant_filiations.all %}
-                                        <tr>
-                                            <td>{{ filiation.property.title|default:"Non spécifié" }}</td>
-                                            <td>{{ filiation.tenant.phone_number }}<br><small class="text-muted">{{ filiation.tenant.nils_profile.nils_number|default:"-" }}</small></td>
-                                            <td>{{ filiation.monthly_rent }} FCFA</td>
-                                            <td>
-                                                <span class="badge {% if filiation.status == 'ACTIVE' %}bg-success{% elif filiation.status == 'PENDING_APPROVAL' %}bg-warning{% else %}bg-secondary{% endif %}">
-                                                    {{ filiation.get_status_display }}
-                                                </span>
-                                            </td>
-                                            <td>{{ filiation.start_date|date:"d M Y" }}</td>
-                                            <td>
-                                                {% if filiation.status == 'PENDING_APPROVAL' %}
-                                                    <a href="{% url 'approve_filiation' filiation.id %}" class="btn btn-sm btn-success px-2 py-1">
-                                                        <i class="fa-solid fa-check"></i> Étudier
-                                                    </a>
-                                                {% else %}
-                                                    <a href="{% url 'record_payment' %}?filiation={{ filiation.id }}" class="btn btn-sm btn-outline-success border-0 px-2 py-1 mb-1 mb-lg-0" title="Enregistrer un paiement">
-                                                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                                                    </a>
-                                                    <a href="{% url 'report_incident' %}?filiation={{ filiation.id }}" class="btn btn-sm btn-outline-danger border-0 px-2 py-1" title="Signaler un incident">
-                                                        <i class="fa-solid fa-triangle-exclamation"></i>
-                                                    </a>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-light border text-center" style="background-color: var(--bg-body); border-color: var(--border-color) !important;">
-                                <p class="text-muted mb-2">Vous n'avez aucun contrat actif en tant que bailleur.</p>
-                                <a href="{% url 'nils_search' %}" class="btn btn-sm btn-outline-success">Ajouter un locataire</a>
-                            </div>
-                            {% endif %}
-                            
-                            <h5 class="fw-bold mt-5" style="color: var(--color-yellow);">Je suis Locataire (Mes Baux)</h5>
-                            {% if user.landlord_filiations.all %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mt-3" style="color: var(--text-main);">
-                                    <thead style="background-color: rgba(245, 196, 47, 0.1);">
-                                        <tr>
-                                            <th>Bien Immobilier</th>
-                                            <th>Bailleur (Tél)</th>
-                                            <th>Loyer Mensuel</th>
-                                            <th>Statut</th>
-                                            <th>Début</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for filiation in user.landlord_filiations.all %}
-                                        <tr>
-                                            <td>{{ filiation.property.title|default:"Non spécifié" }}</td>
-                                            <td>{{ filiation.landlord.phone_number }}</td>
-                                            <td>{{ filiation.monthly_rent }} FCFA</td>
-                                            <td>
-                                                <span class="badge {% if filiation.status == 'ACTIVE' %}bg-success{% elif filiation.status == 'PENDING_APPROVAL' %}bg-warning{% else %}bg-secondary{% endif %}">
-                                                    {{ filiation.get_status_display }}
-                                                </span>
-                                            </td>
-                                            <td>{{ filiation.start_date|date:"d M Y" }}</td>
-                                            <td>
-                                                <a href="{% url 'filiation_details' filiation.id %}" class="btn btn-sm btn-outline-info border-0 px-2 py-1">
-                                                    <i class="fa-solid fa-eye"></i> Détails
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-light border text-center" style="background-color: var(--bg-body); border-color: var(--border-color) !important;">
-                                <p class="text-muted mb-0">Vous n'êtes actuellement locataire sur aucun bien Solvable.</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+              </div>
+              <!-- Zone messages -->
+              <div class="col-md-8 d-flex flex-column">
+                <div class="p-3 border-bottom d-flex align-items-center gap-2" style="background:var(--bg-card);">
+                  <i class="fa-solid fa-comments text-success fs-5"></i>
+                  <h6 class="m-0 fw-bold">{% if active_conversation %}{{ active_conversation.get_topic_display }}{% else %}Messagerie Loger Togo{% endif %}</h6>
                 </div>
-
-                <!-- MES ANNONCES (POUR PROS) -->
-                {% if user.role != 'TENANT' %}
-                <div class="tab-pane fade" id="properties" role="tabpanel">
-                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
-                        <div class="card-body p-4">
-                            <h4 class="fw-bold mb-4" style="color: var(--text-main);">Mes Annonces Immobilières</h4>
-                            {% if properties %}
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Bien</th>
-                                            <th>Prix</th>
-                                            <th class="text-center">Vues 👁️</th>
-                                            <th class="text-center">Clics 🖱️</th>
-                                            <th>Statut</th>
-                                            <th class="text-end">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for prop in properties %}
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    {% if prop.images.first %}
-                                                        <img src="{{ prop.images.first.image_url.url }}" class="rounded me-3" style="width: 45px; height: 45px; object-fit: cover;">
-                                                    {% else %}
-                                                        <div class="rounded me-3 bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                                                            <i class="fa-solid {{ prop.get_icon_class }} text-muted"></i>
-                                                        </div>
-                                                    {% endif %}
-                                                    <div class="d-flex flex-column">
-                                                        <span class="fw-bold text-truncate" style="max-width: 150px;">{{ prop.title }}</span>
-                                                        <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i>{{ prop.city }}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ prop.price|floatformat:0 }} <small>FCFA</small></td>
-                                            <td class="text-center fw-bold"><span class="badge bg-light text-dark border">{{ prop.views_count }}</span></td>
-                                            <td class="text-center fw-bold"><span class="badge bg-light text-success border">{{ prop.clicks_count }}</span></td>
-                                            <td>
-                                                {% if not prop.is_paid %}
-                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25"><i class="fa-solid fa-circle-exclamation me-1"></i>Non Payée</span>
-                                                {% elif prop.is_published %}
-                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="fa-solid fa-circle-check me-1"></i>Validée</span>
-                                                {% else %}
-                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 text-dark"><i class="fa-solid fa-clock me-1"></i>En attente</span>
-                                                {% endif %}
-                                                
-                                                {% if prop.is_boosted %}
-                                                    <br><small class="text-success fw-bold"><i class="fa-solid fa-bolt me-1"></i>Boosté</small>
-                                                {% endif %}
-                                                {% if prop.is_featured_popup %}
-                                                    <br><small class="text-info fw-bold"><i class="fa-solid fa-up-right-from-square me-1"></i>Pop-up actif</small>
-                                                {% endif %}
-                                            </td>
-                                            <td class="text-end">
-                                                <div class="btn-group shadow-sm">
-                                                    <a href="{% url 'property_detail' prop.id %}" class="btn btn-sm btn-outline-primary" title="Voir l'annonce"><i class="fa-solid fa-eye"></i></a>
-                                                    
-                                                    {% if not prop.is_paid %}
-                                                        <a href="{% url 'checkout_payment' prop.id 'PUBLICATION' %}" class="btn btn-sm btn-success fw-bold" title="Régulariser 100F"><i class="fa-solid fa-credit-card me-1"></i> Payer</a>
-                                                    {% else %}
-                                                        <a href="{% url 'checkout_payment' prop.id 'BOOST' %}" class="btn btn-sm btn-outline-success" title="Booster l'annonce (100F/j)"><i class="fa-solid fa-bolt"></i></a>
-                                                        <a href="{% url 'checkout_payment' prop.id 'POPUP' %}" class="btn btn-sm btn-outline-info" title="Mise en avant Pop-up (500F/j)"><i class="fa-solid fa-up-right-from-square"></i></a>
-                                                    {% endif %}
-
-                                                    <a href="{% url 'edit_property' prop.id %}" class="btn btn-sm btn-outline-warning" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></a>
-                                                    <a href="{% url 'delete_property' prop.id %}" class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="fa-solid fa-trash-can"></i></a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fa-solid fa-house-chimney-medical text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                                    <h5>Aucune annonce publiée</h5>
-                                    <p class="text-muted small">Commencez par ajouter votre premier bien immobilier sur Solvable.</p>
-                                    <a href="{% url 'create_property' %}" class="btn btn-primary-custom">Publier une annonce</a>
-                                </div>
-                            {% endif %}
-                        </div>
+                <div class="msg-area p-3 d-flex flex-column gap-2" id="chat-box">
+                  {% if active_conversation %}
+                    {% for msg in active_conversation.messages.all %}
+                    <div class="d-flex {% if msg.sender == user %}justify-content-end{% endif %}">
+                      <div class="p-3 rounded-3 {% if msg.sender == user %}msg-sent{% else %}msg-received{% endif %}" style="max-width:78%;">
+                        <div style="font-size:.93rem;">{{ msg.content }}</div>
+                        <small class="opacity-60" style="font-size:.7rem;">{{ msg.created_at|date:"d/m H:i" }}</small>
+                      </div>
                     </div>
+                    {% empty %}
+                    <div class="h-100 d-flex align-items-center justify-content-center text-center mt-5">
+                      <div><i class="fa-solid fa-message opacity-25 fs-1 mb-3"></i><p class="text-muted">Commencez la conversation.</p></div>
+                    </div>
+                    {% endfor %}
+                  {% else %}
+                  <div class="d-flex align-items-center justify-content-center h-100 text-center mt-5">
+                    <div><i class="fa-solid fa-comments opacity-25 fs-1 mb-3"></i><p class="text-muted">Sélectionnez une discussion.</p></div>
+                  </div>
+                  {% endif %}
                 </div>
-
-                <!-- CANDIDATURES -->
-                <div class="tab-pane fade" id="applications" role="tabpanel">
-                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
-                        <div class="card-body p-4">
-                            {% if user.role == 'TENANT' %}
-                                <h5 class="fw-bold mb-4" style="color: var(--text-main);">Mes candidatures envoyées</h5>
-                                {% if my_applications %}
-                                    <div class="table-responsive">
-                                        <table class="table align-middle" style="color: var(--text-main);">
-                                            <thead>
-                                                <tr class="text-muted small">
-                                                    <th>Bien immobilier</th>
-                                                    <th>Date</th>
-                                                    <th>Statut</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for app in my_applications %}
-                                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                                        <td>
-                                                            <div class="fw-bold">{{ app.property.title }}</div>
-                                                            <small class="text-muted">{{ app.property.location }}</small>
-                                                        </td>
-                                                        <td>{{ app.created_at|date:"d M Y" }}</td>
-                                                        <td>
-                                                            <span class="badge rounded-pill {% if app.status == 'ACCEPTED' %}bg-success{% elif app.status == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                                                {{ app.get_status_display }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            {% if app.status == 'ACCEPTED' %}
-                                                                <a href="{% url 'start_filiation' app.id %}" class="btn btn-sm fw-bold" style="background-color: var(--color-light-green); color: white; border-radius: 20px;">
-                                                                    <i class="fa-solid fa-link me-1"></i> Je poursuis pour cette offre
-                                                                </a>
-                                                            {% else %}
-                                                                <a href="{% url 'property_detail' app.property.id %}" class="btn btn-sm btn-outline-secondary">Voir l'annonce</a>
-                                                            {% endif %}
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <p class="text-center text-muted py-5">Vous n'avez pas encore postulé à une annonce.</p>
-                                {% endif %}
-                            {% else %}
-                                <h5 class="fw-bold mb-4" style="color: var(--text-main);">Candidatures reçues</h5>
-                                {% if received_applications %}
-                                    <div class="table-responsive">
-                                        <table class="table align-middle" style="color: var(--text-main);">
-                                            <thead>
-                                                <tr class="text-muted small">
-                                                    <th>Candidat (NILS)</th>
-                                                    <th>Bien</th>
-                                                    <th>Message</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for app in received_applications %}
-                                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                                        <td>
-                                                            <div class="d-flex align-items-center">
-                                                                {% for nils in app.applicant.nils_profiles.all %}
-                                                                    <div class="fw-bold">{{ nils.nils_number }}</div>
-                                                                {% endfor %}
-                                                            </div>
-                                                        </td>
-                                                        <td>{{ app.property.title }}</td>
-                                                        <td class="small text-muted">{{ app.message|truncatechars:50 }}</td>
-                                                        <td>
-                                                            <div class="d-flex gap-2">
-                                                                <a href="{% url 'nils_search' %}?q={{ app.applicant.phone_number }}" class="btn btn-sm btn-outline-primary border-0" title="Vérifier NILS"><i class="fa-solid fa-magnifying-glass"></i></a>
-                                                                {% if app.status == 'PENDING' %}
-                                                                    <form action="{% url 'update_application_status' app.id %}" method="POST" class="d-inline">
-                                                                        {% csrf_token %}
-                                                                        <button type="submit" name="action" value="accept" class="btn btn-sm btn-success py-1 px-2"><i class="fa-solid fa-check"></i></button>
-                                                                        <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger py-1 px-2"><i class="fa-solid fa-times"></i></button>
-                                                                    </form>
-                                                                {% else %}
-                                                                    <span class="badge {% if app.status == 'ACCEPTED' %}bg-success{% else %}bg-danger{% endif %} small">{{ app.get_status_display }}</span>
-                                                                {% endif %}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <p class="text-center text-muted py-5">Aucune candidature reçue pour le moment.</p>
-                                {% endif %}
-                            {% endif %}
-                        </div>
+                {% if active_conversation %}
+                <div class="p-3 border-top" style="background:var(--bg-card);">
+                  <form method="POST" action="{% url 'send-message' active_conversation.id %}" id="chat-form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                      <input type="text" name="content" id="chat-input" class="form-control" placeholder="Votre message…" autocomplete="off" required>
+                      <button class="btn btn-success" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
+                  </form>
                 </div>
                 {% endif %}
-
-                <!-- MES FAVORIS (Point 4) -->
-                <div class="tab-pane fade" id="favorites" role="tabpanel">
-                    <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px;">
-                        <div class="card-body p-4">
-                            <h4 class="fw-bold mb-4" style="color: var(--text-main);"><i class="fa-solid fa-heart text-danger me-2"></i>Mes Biens Sauvegardés</h4>
-                            <div class="row g-4">
-                                {% for fav in user.favorites.all %}
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="card h-100 border-0 shadow-sm overflow-hidden" style="border-radius: 12px; border: 1px solid var(--border-color) !important; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='none'">
-                                        {% if fav.property.images.first %}
-                                            <img src="{{ fav.property.images.first.image_url.url }}" class="card-img-top" style="height: 160px; object-fit: cover;">
-                                        {% else %}
-                                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 160px;">
-                                                <i class="fa-solid fa-house text-muted opacity-50" style="font-size: 3rem;"></i>
-                                            </div>
-                                        {% endif %}
-                                        <div class="card-body p-3">
-                                            <h6 class="fw-bold mb-1 text-truncate" title="{{ fav.property.title }}">{{ fav.property.title }}</h6>
-                                            <p class="small text-muted mb-3"><i class="fa-solid fa-location-dot me-1"></i>{{ fav.property.neighborhood }}</p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="fw-bold text-success">{{ fav.property.price|floatformat:0 }} F</span>
-                                                <button onclick="toggleFavorite('{{ fav.property.id }}'); this.closest('.col-md-6').remove();" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></button>
-                                                <a href="{% url 'property_detail' fav.property.id %}" class="btn btn-sm btn-primary-custom" style="padding: 4px 15px; font-size: 0.8rem;">Détails</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <div class="col-12 text-center py-5">
-                                    <i class="fa-solid fa-heart-broken text-muted mb-3" style="font-size: 3.5rem; opacity: 0.2;"></i>
-                                    <h5 class="text-muted">Votre liste de favoris est vide</h5>
-                                    <p class="small text-muted">Explorez nos annonces et cliquez sur le coeur pour les sauvegarder ici.</p>
-                                    <a href="{% url 'properties_list' %}" class="btn btn-primary-custom mt-2">Voir les annonces</a>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MESSAGERIE (CHAT) -->
-                <div class="tab-pane fade" id="chat" role="tabpanel">
-                    <div class="row g-3">
-                        <!-- Liste des conversations -->
-                        <div class="col-lg-4 col-md-5 mb-3 mb-md-0">
-                            <div class="card border-0 shadow-sm w-100" style="background-color: var(--bg-card); border-radius: 12px; overflow: hidden; height: 600px;">
-                                <div class="p-3" style="background-color: var(--bg-body); border-bottom: 1px solid var(--border-color);">
-                                    <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Mes Discussions</h6>
-                                </div>
-                                <div class="list-group list-group-flush h-100" style="overflow-y: auto;">
-                                    {% if conversations %}
-                                        {% for conv in conversations %}
-                                            <a href="?conv={{ conv.id }}#chat" class="list-group-item list-group-item-action p-3 {% if active_conversation.id == conv.id %}active-chat{% endif %}" style="background-color: transparent; border-color: var(--border-color);">
-                                                <div class="d-flex w-100 justify-content-between align-items-center">
-                                                    <h6 class="mb-1 text-truncate fw-bold" style="color: var(--text-main);">{{ conv.get_topic_display }}</h6>
-                                                    <small class="text-muted" style="font-size: 0.7rem;">Active</small>
-                                                </div>
-                                                <p class="mb-1 text-muted small text-truncate">
-                                                    {% if conv.messages.last %}
-                                                        {{ conv.messages.last.content }}
-                                                    {% else %}
-                                                        Commencez la discussion
-                                                    {% endif %}
-                                                </p>
-                                            </a>
-                                        {% endfor %}
-                                    {% else %}
-                                        <!-- Placeholder Support -->
-                                        <div class="p-4 text-center">
-                                            <p class="text-muted small">Aucune discussion en cours.</p>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Zone de Chat -->
-                        <div class="col-lg-8 col-md-7">
-                            <div class="chat-container shadow-sm w-100" style="height: 600px; max-height: 80vh;">
-                                <div class="chat-header d-flex align-items-center">
-                                    <div class="me-3">
-                                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--color-dark-green); color: white; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fa-solid fa-headset text-warning"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h6 class="m-0 fw-bold" style="color: var(--text-main);">Support Technique - Logersenegal</h6>
-                                        <small class="text-success"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i>Service en ligne</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="chat-messages d-flex flex-column p-4" id="chat-box" style="flex-grow: 1; overflow-y: auto; background-image: radial-gradient(var(--border-color) 1px, transparent 1px); background-size: 20px 20px;">
-                                    {% if active_conversation %}
-                                        {% for msg in active_conversation.messages.all %}
-                                            <div class="message-bubble {% if msg.sender == user %}msg-sent{% else %}msg-received{% endif %} mb-3 animate__animated animate__fadeInUp animate__faster">
-                                                <div class="fw-bold small mb-1" style="opacity: 0.8; font-size: 0.7rem;">
-                                                    {% if msg.sender.is_staff %}<i class="fa-solid fa-shield-halved me-1 text-success"></i>Support Logersenegal{% else %}{{ msg.sender.phone_number }}{% endif %}
-                                                </div>
-                                                <p class="mb-1">{{ msg.content }}</p>
-                                                <div class="d-flex justify-content-end">
-                                                    <small style="font-size: 0.6rem; opacity: 0.6;">{{ msg.created_at|date:"H:i" }}</small>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <div class="text-center my-auto p-5">
-                                            <div class="mb-4">
-                                                <i class="fa-solid fa-comments text-muted opacity-25" style="font-size: 4rem;"></i>
-                                            </div>
-                                            <h5 class="text-muted fw-bold">Bienvenue sur Logersenegal Chat</h5>
-                                            <p class="text-muted small">Sélectionnez une discussion ou contactez le support pour toute aide sur vos documents ou votre profil.</p>
-                                            <div class="d-flex flex-wrap justify-content-center mt-3">
-                                                <button onclick="setChatMessage('Bonjour, j\'ai besoin d\'aide pour mon dossier KYC.')" class="quick-aid-btn">Aide Documents KYC</button>
-                                                <button onclick="setChatMessage('Comment puis-je obtenir mon numéro NILS ?')" class="quick-aid-btn">Obtenir mon NILS</button>
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="chat-input-area p-3">
-                                    {% if active_conversation %}
-                                        <div class="d-flex flex-nowrap overflow-auto mb-2 pb-1" style="scrollbar-width: none;">
-                                            <button onclick="setChatMessage('Je vous envoie ma pièce d\'identité ici.')" class="quick-aid-btn text-success"><i class="fa-solid fa-id-card me-1"></i>Envoi CNI</button>
-                                            <button onclick="setChatMessage('Mon numéro NILS est : ')" class="quick-aid-btn"><i class="fa-solid fa-hashtag me-1"></i>Envoyer NILS</button>
-                                            <button onclick="setChatMessage('Pouvez-vous valider mon annonce immobilière ?')" class="quick-aid-btn text-warning"><i class="fa-solid fa-house-circle-check me-1"></i>Validation Annonce</button>
-                                        </div>
-                                    {% endif %}
-                                    <form id="chat-form" method="POST" action="{% if active_conversation %}{% url 'send-message' active_conversation.id %}{% else %}{% url 'send-message-new' %}{% endif %}">
-                                        {% csrf_token %}
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-2">
-                                                <label for="chat-file" class="btn btn-light rounded-circle shadow-sm" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                                                    <i class="fa-solid fa-paperclip text-muted"></i>
-                                                    <input type="file" id="chat-file" class="d-none">
-                                                </label>
-                                            </div>
-                                            <div class="flex-grow-1 position-relative">
-                                                <input type="text" name="content" id="chat-input" class="form-control border-0 shadow-sm px-4 py-3" required 
-                                                       placeholder="Écrivez votre message..." 
-                                                       style="background-color: var(--bg-body); color: var(--text-main); border-radius: 30px; padding-right: 60px;">
-                                                <button class="btn border-0 position-absolute" type="submit" 
-                                                        style="right: 10px; top: 50%; transform: translateY(-50%); background-color: var(--color-light-green); color: var(--color-dark-green); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="fa-solid fa-paper-plane" style="font-size: 0.9rem;"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+              </div>
             </div>
+          </div>
         </div>
+
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Gérer les aides rapides
-    function setChatMessage(text) {
-        document.getElementById("chat-input").value = text;
-        document.getElementById("chat-input").focus();
-    }
+  // Scroll to bottom of chat
+  const chatBox = document.getElementById('chat-box');
+  if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Automatique Chat Scroll
-    function scrollToBottom() {
-        var chatBox = document.getElementById("chat-box");
-        if(chatBox) {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    }
-
-    // AJAX Polling for Chat (Point 2: Temps Réel)
-    let lastMessageId = null;
-    const activeConversationId = "{{ active_conversation.id }}";
-
-    function pollMessages() {
-        if (!activeConversationId || activeConversationId === "None") return;
-
-        let url = `/chat/poll/${activeConversationId}/`;
-        if (lastMessageId) url += `?last_id=${lastMessageId}`;
-
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data.messages && data.messages.length > 0) {
-                    const chatBox = document.getElementById("chat-box");
-                    data.messages.forEach(msg => {
-                        // Skip if already there (extra safety)
-                        if (document.getElementById(`msg-${msg.id}`)) return;
-                        
-                        const msgDiv = document.createElement("div");
-                        msgDiv.id = `msg-${msg.id}`;
-                        msgDiv.className = `message-bubble ${msg.is_me ? 'msg-sent' : 'msg-received'} mb-3 animate__animated animate__fadeInUp animate__faster`;
-                        msgDiv.innerHTML = `
-                            <div class="fw-bold small mb-1" style="opacity: 0.8; font-size: 0.7rem;">
-                                ${msg.sender_name}
-                            </div>
-                            <p class="mb-1">${msg.content}</p>
-                            <div class="d-flex justify-content-end">
-                                <small style="font-size: 0.6rem; opacity: 0.6;">${msg.created_at}</small>
-                            </div>
-                        `;
-                        chatBox.appendChild(msgDiv);
-                        lastMessageId = msg.id;
-                    });
-                    scrollToBottom();
-                }
-            });
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        scrollToBottom();
-        
-        // --- NOUVEAU : Envoi de message sans rechargement ---
-        const chatForm = document.getElementById('chat-form');
-        if (chatForm) {
-            chatForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const contentInput = document.getElementById('chat-input');
-                const content = contentInput.value.trim();
-                if (!content) return;
-
-                const formData = new FormData(chatForm);
-                formData.append('ajax', 'true'); // Sécurité DigitalH pour le backend
-
-                fetch(chatForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Ajout instantané à l'interface
-                        const chatBox = document.getElementById("chat-box");
-                        const msgDiv = document.createElement("div");
-                        msgDiv.className = `message-bubble msg-sent mb-3 animate__animated animate__fadeInUp animate__faster`;
-                        msgDiv.innerHTML = `
-                            <div class="fw-bold small mb-1" style="opacity: 0.8; font-size: 0.7rem;">Vous</div>
-                            <p class="mb-1">${data.content}</p>
-                            <div class="d-flex justify-content-end">
-                                <small style="font-size: 0.6rem; opacity: 0.6;">${data.created_at}</small>
-                            </div>
-                        `;
-                        chatBox.appendChild(msgDiv);
-                        contentInput.value = ''; // Vider le champ
-                        scrollToBottom();
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur Chat:', error);
-                    chatForm.submit(); // Fallback si le fetch échoue (vieux navigateur)
-                });
-            });
-        }
-        
-        // Initialiser lastMessageId avec le dernier ID existant dans la page
-        const existingMessages = document.querySelectorAll('.message-bubble');
-        if (existingMessages.length > 0) {
-            // Un peu complexe à extraire sans ID sur chaque bulle, mais le polling 
-            // gérera les doublons avec les nouveaux messages.
-        }
-
-        // Lancer le polling toutes les 3 secondes
-        if (activeConversationId !== "None") {
-            setInterval(pollMessages, 3000);
-        }
-        
-        // Gérer l'ouverture de l'onglet Chat si on recharge via URL avec le hash #chat
-        if(window.location.hash === '#chat') {
-            var chatTab = new bootstrap.Tab(document.querySelector('#chat-tab'));
-            chatTab.show();
-        }
-    });
+  // Preserve active tab on reload
+  const activeTab = "{{ request.GET.tab|default:'overview' }}";
+  const tabEl = document.getElementById('t-' + activeTab);
+  if (tabEl) { new bootstrap.Tab(tabEl).show(); }
 </script>
 {% endblock %}

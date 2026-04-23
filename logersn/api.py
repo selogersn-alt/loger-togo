@@ -21,10 +21,26 @@ class PropertyViewSet(viewsets.ModelViewSet):
     """
     Guichet API pour visualiser et CREER des annonces.
     """
-    queryset = Property.objects.filter(is_published=True).order_by('-is_boosted', '-created_at')
     serializer_class = PropertySerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'neighborhood', 'description']
+
+    def get_queryset(self):
+        queryset = Property.objects.filter(is_published=True).order_by('-is_boosted', '-created_at')
+        
+        city = self.request.query_params.get('city')
+        if city:
+            queryset = queryset.filter(city=city)
+            
+        property_type = self.request.query_params.get('property_type')
+        if property_type:
+            queryset = queryset.filter(property_type=property_type)
+            
+        neighborhood = self.request.query_params.get('neighborhood')
+        if neighborhood:
+            queryset = queryset.filter(neighborhood__iexact=neighborhood)
+            
+        return queryset
 
     def get_permissions(self):
         if self.action in ['create', 'toggle_favorite', 'my_favorites']:

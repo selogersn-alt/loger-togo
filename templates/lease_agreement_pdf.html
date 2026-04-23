@@ -98,7 +98,7 @@
     <div class="header">
         <div class="logo">SOLVABLE</div>
         <div class="title">CONTRAT DE LOCATION À USAGE D’HABITATION</div>
-        <div class="nils-info">Certifié par le réseau de confiance <strong>LOGER SÉNÉGAL (DigitalH)</strong></div>
+        <div class="nils-info">Certifié par le réseau de confiance <strong>Loger Togo (DigitalH)</strong></div>
     </div>
 
     <div class="content">
@@ -114,7 +114,7 @@
 
         <div class="party">
             <strong>M/Mme :</strong> <span class="variable">{{ filiation.tenant.get_full_name|upper }}</span>, 
-            titulaire d’une pièce d’identité <strong>{{ filiation.tenant.document_country|default:"Sénégalaise" }}</strong> 
+            titulaire d’une pièce d’identité <strong>{{ filiation.tenant.document_country|default:"Togoaise" }}</strong> 
             N° <span class="variable">{{ filiation.tenant.cni_number|default:"___________" }}</span><br>
             <strong>NILS Locataire :</strong> <span class="badge-nils">{{ filiation.tenant.nils_profile.nils_number|default:"EN ATTENTE" }}</span><br>
             Ci-après dénommé <strong>LE LOCATAIRE</strong>, d’autre part.
@@ -151,7 +151,7 @@
             Abonnements électricité/eau à la charge du locataire.
         </p>
 
-        <p style="margin-top: 20px;">Fait à Dakar, le <span class="variable">{{ today|date:"d/m/Y" }}</span> en deux originaux.</p>
+        <p style="margin-top: 20px;">Fait à Lomé, le <span class="variable">{{ today|date:"d/m/Y" }}</span> en deux originaux.</p>
 
         <table class="signature-table">
             <tr>
@@ -169,7 +169,7 @@
 
     <div class="footer">
         Document ID: SOLV-{{ filiation.id }}<br>
-        <strong>Solvable Sénégal (DigitalH)</strong> - www.logersenegal.com - La Trust-Tech Immobilière.
+        <strong>Solvable Togo (DigitalH)</strong> - www.Logertogo.com - La Trust-Tech Immobilière.
     </div>
 </body>
 </html>

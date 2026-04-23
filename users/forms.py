@@ -74,7 +74,7 @@ class UserProfileForm(forms.ModelForm):
         labels = {
             'company_name': 'Nom de l\'agence ou Entreprise',
             'profile_picture': 'Logo ou Photo de profil',
-            'slug': 'Lien personnalisé (ex: logersenegal.com/p/votre-nom)',
+            'slug': 'Lien personnalisé (ex: Logertogo.com/p/votre-nom)',
             'notification_preference': 'Mode de réception des notifications',
         }
 

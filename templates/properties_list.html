@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ seo_title }} | Loger Sénégal{% endblock %}
+{% block title %}{{ seo_title }} | Loger Togo{% endblock %}
 
 {% block meta_description %}{{ seo_description }}{% endblock %}
 
@@ -212,6 +212,18 @@
     </div>
 </div>
 
+<!-- ═══ CARTE INTERACTIVE ═══ -->
+<div class="container mt-3 mb-2">
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold" id="mapToggleBtn" onclick="toggleMap()">
+      <i class="fa-solid fa-map-location-dot me-2"></i>Voir sur la carte
+    </button>
+  </div>
+  <div id="mapWrapper" style="display:none;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
+    <div id="leaflet-map" style="height:420px;"></div>
+  </div>
+</div>
+
 {% if boosted_slider %}
 <!-- Bandeau Défilant Premium DigitalH - Nouvelle Version Multi-item Continue -->
 <div class="container mb-5">
@@ -226,7 +238,7 @@
                     <a href="{% url 'property_detail' boost_prop.id %}" class="text-decoration-none">
                         <div class="boosted-img-wrapper">
                             {% if boost_prop.images.first %}
-                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}">
+                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}" width="340" height="220" loading="lazy" decoding="async">
                             {% else %}
                                 <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
                                     <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
@@ -253,7 +265,7 @@
                     <a href="{% url 'property_detail' boost_prop.id %}" class="text-decoration-none">
                         <div class="boosted-img-wrapper">
                             {% if boost_prop.images.first %}
-                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}">
+                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}" width="340" height="220" loading="lazy" decoding="async">
                             {% else %}
                                 <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
                                     <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
@@ -393,7 +405,7 @@
                         {% if ad.ad_type == 'BANNER' %}
                         <a href="{{ ad.target_url }}" target="_blank">
                             {% if ad.image %}
-                                <img src="{{ ad.image.url }}" class="img-fluid rounded-3" alt="{{ ad.title }}" style="max-height: 250px; width: auto;">
+                                <img src="{{ ad.image.url }}" class="img-fluid rounded-3" alt="{{ ad.title }}" width="728" height="250" loading="lazy" decoding="async" style="max-height: 250px; width: auto;">
                             {% endif %}
                         </a>
                         {% else %}
@@ -416,13 +428,42 @@
         {% endfor %}
     </div>
 
+    <!-- SECTION : ALERTE EMAIL -->
+    <div class="row mt-5 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius:20px; background:linear-gradient(135deg, var(--color-dark-green), #198754);">
+                <div class="card-body p-4 p-md-5 row align-items-center">
+                    <div class="col-lg-6 mb-4 mb-lg-0 text-white">
+                        <h3 class="fw-bold mb-2"><i class="fa-solid fa-bell text-warning me-2"></i>Alerte Immobilière</h3>
+                        <p class="mb-0 opacity-75">Soyez le premier informé ! Recevez un email dès qu'un bien correspondant à vos critères de recherche actuels est publié.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <form action="{% url 'subscribe_alert' %}" method="POST" class="d-flex flex-column gap-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="city" value="{{ current_filters.city|default:'' }}">
+                            <input type="hidden" name="property_type" value="{{ current_filters.property_type|default:'' }}">
+                            <input type="hidden" name="listing_category" value="{{ current_filters.listing_category|default:'' }}">
+                            
+                            <div class="input-group input-group-lg shadow-sm" style="border-radius:14px; overflow:hidden;">
+                                <span class="input-group-text bg-white border-0 text-success"><i class="fa-solid fa-envelope"></i></span>
+                                <input type="email" name="email" class="form-control border-0 px-3" placeholder="Votre adresse email" required {% if user.is_authenticated %}value="{{ user.email }}"{% endif %}>
+                                <button type="submit" class="btn btn-warning fw-bold px-4">Créer l'alerte</button>
+                            </div>
+                            <small class="text-white opacity-50 text-end"><i class="fa-solid fa-shield-halved me-1"></i>100% gratuit, désabonnement en 1 clic.</small>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SECTION SEO : CONTENU LOCALISÉ (PHASE 4) -->
     <div class="row mt-5">
         <div class="col-12">
             <div class="p-4 rounded-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
                 <h4 class="fw-bold mb-3" style="color: var(--color-dark-green);">
                     <i class="fa-solid fa-circle-info me-2 text-warning"></i>
-                    À propos du marché immobilier au Sénégal
+                    À propos du marché immobilier au Togo
                 </h4>
                 <p class="text-muted mb-0 lh-lg">
                     {{ seo_market_description }}
@@ -443,4 +484,70 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const MAP_MARKERS = {{ map_markers_json|safe }};
+let mapInitialized = false;
+let map;
+
+function toggleMap() {
+    const wrapper = document.getElementById('mapWrapper');
+    const btn = document.getElementById('mapToggleBtn');
+    if (wrapper.style.display === 'none') {
+        wrapper.style.display = 'block';
+        btn.innerHTML = '<i class="fa-solid fa-list me-2"></i>Masquer la carte';
+        btn.classList.replace('btn-outline-success', 'btn-success');
+        if (!mapInitialized) initMap();
+    } else {
+        wrapper.style.display = 'none';
+        btn.innerHTML = '<i class="fa-solid fa-map-location-dot me-2"></i>Voir sur la carte';
+        btn.classList.replace('btn-success', 'btn-outline-success');
+    }
+}
+
+function initMap() {
+    mapInitialized = true;
+    // Centre sur Lomé par défaut
+    map = L.map('leaflet-map').setView([6.137, 1.222], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    if (MAP_MARKERS.length === 0) {
+        map.setView([6.137, 1.222], 12);
+        return;
+    }
+
+    const bounds = [];
+    MAP_MARKERS.forEach(m => {
+        const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#8e44ad' : '#198754';
+        const icon = L.divIcon({
+            html: `<div style="background:${catColor};color:white;border-radius:50px;padding:4px 8px;font-weight:700;font-size:11px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);">${m.price.toLocaleString('fr-FR')} F</div>`,
+            className: '',
+            iconAnchor: [30, 20]
+        });
+        const popup = `
+            <div style="width:200px;">
+                ${m.img ? `<img src="${m.img}" style="width:100%;height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;">` : ''}
+                <strong style="font-size:13px;">${m.title}</strong>
+                <div style="font-size:12px;color:#555;margin:2px 0;">${m.type} · ${m.neighborhood}</div>
+                <div style="font-weight:700;color:#198754;margin:4px 0;">${m.price.toLocaleString('fr-FR')} FCFA</div>
+                <a href="${m.url}" style="display:block;background:#198754;color:white;text-align:center;padding:6px;border-radius:6px;text-decoration:none;font-size:12px;margin-top:6px;">Voir l'annonce →</a>
+            </div>`;
+        L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
+        bounds.push([m.lat, m.lng]);
+    });
+
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, {padding: [30, 30]});
+    }
+}
+</script>
 {% endblock %}

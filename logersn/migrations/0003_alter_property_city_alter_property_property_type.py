@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='property',
             name='city',
-            field=models.CharField(choices=[('DAKAR', 'Dakar'), ('THIES', 'Thiès'), ('SAINT_LOUIS', 'Saint-Louis'), ('ZIGUINCHOR', 'Ziguinchor'), ('DIOURBEL', 'Diourbel'), ('LOUGA', 'Louga'), ('FATICK', 'Fatick'), ('KAOLACK', 'Kaolack'), ('KOLDA', 'Kolda'), ('TAMBACOUNDA', 'Tambacounda'), ('MATAM', 'Matam'), ('KAFFRINE', 'Kaffrine'), ('KEDOUGOU', 'Kédougou'), ('SEDHIOU', 'Sédhiou')], default='DAKAR', max_length=100),
+            field=models.CharField(choices=[('LOME', 'Lomé'), ('THIES', 'Thiès'), ('SAINT_LOUIS', 'Saint-Louis'), ('ZIGUINCHOR', 'Ziguinchor'), ('DIOURBEL', 'Diourbel'), ('LOUGA', 'Louga'), ('FATICK', 'Fatick'), ('KAOLACK', 'Kaolack'), ('KOLDA', 'Kolda'), ('TAMBACOUNDA', 'Tambacounda'), ('MATAM', 'Matam'), ('KAFFRINE', 'Kaffrine'), ('KEDOUGOU', 'Kédougou'), ('SEDHIOU', 'Sédhiou')], default='LOME', max_length=100),
         ),
         migrations.AlterField(
             model_name='property',

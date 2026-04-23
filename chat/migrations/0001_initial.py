@@ -12,7 +12,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('logersn', '0002_initial'),
-        ('solvable', '0002_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -25,7 +24,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('participants', models.ManyToManyField(related_name='conversations', to=settings.AUTH_USER_MODEL)),
-                ('related_incident', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='solvable.incidentreport')),
+
                 ('related_property', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='logersn.property')),
             ],
             options={

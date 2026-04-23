@@ -42,7 +42,7 @@
                     <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>
                     {{ inc.get_incident_type_display }} : 
                     <strong class="text-danger">{{ inc.amount_due|floatformat:0 }} FCFA</strong> 
-                    ({{ inc.rental_filiation.property.city|default:"Sénégal" }})
+                    ({{ inc.rental_filiation.property.city|default:"Togo" }})
                 </span>
             {% endfor %}
         </div>

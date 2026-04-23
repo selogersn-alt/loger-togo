@@ -1,10 +1,10 @@
 // ============================================
-// LOGER SÉNÉGAL - Service Worker PWA
+// Loger Togo - Service Worker PWA
 // Version: 2.0 - Production Safe
 // ============================================
 
-const CACHE_NAME = 'logersenegal-v2';
-const STATIC_CACHE = 'logersenegal-static-v2';
+const CACHE_NAME = 'Logertogo-v2';
+const STATIC_CACHE = 'Logertogo-static-v2';
 
 // Ressources critiques mises en cache au démarrage
 const PRECACHE_URLS = [

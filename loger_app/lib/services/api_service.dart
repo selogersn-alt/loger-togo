@@ -1,32 +1,102 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive/hive.dart';
 import '../models/property_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://logersenegal.com/api';
+  static const String baseUrl = 'https://Logertogo.com/api';
   final _storage = const FlutterSecureStorage();
 
-  Future<List<Property>> fetchProperties({String? city, String? propertyType, String? search}) async {
+  Future<Map<String, dynamic>> fetchProperties({String? city, String? propertyType, String? neighborhood, String? search, int page = 1}) async {
     final queryParameters = <String, String>{};
-    if (city != null && city != 'ALL') queryParameters['city'] = city;
-    if (propertyType != null && propertyType != 'ALL') queryParameters['property_type'] = propertyType;
+    if (city != null && city != 'TOUT') queryParameters['city'] = city;
+    if (propertyType != null && propertyType != 'TOUT') queryParameters['property_type'] = propertyType;
+    if (neighborhood != null && neighborhood != 'TOUT') {
+      queryParameters['neighborhood'] = _normalizeNeighborhood(neighborhood);
+    }
     if (search != null && search.isNotEmpty) queryParameters['search'] = search;
+    queryParameters['page'] = page.toString();
 
     final uri = Uri.parse('$baseUrl/properties/').replace(queryParameters: queryParameters);
 
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
-        final List<dynamic> list = json.decode(utf8.decode(response.bodyBytes));
-        return list.map((json) => Property.fromJson(json)).toList();
+        final dynamic decodedData = json.decode(utf8.decode(response.bodyBytes));
+        debugPrint('API Response Type: ${decodedData.runtimeType}');
+        if (decodedData is Map) debugPrint('API Keys: ${decodedData.keys}');
+        
+        List<dynamic> list;
+        bool hasNext = false;
+
+        if (decodedData is Map<String, dynamic>) {
+          // Paginated response
+          list = decodedData['results'] ?? [];
+          hasNext = decodedData['next'] != null;
+
+          // Caching logic for page 1 without filters
+          if (page == 1 && city == null && propertyType == null && (search == null || search.isEmpty)) {
+            try {
+              final box = Hive.box('properties_cache');
+              box.put('home_properties', list);
+            } catch (e) {
+              debugPrint('Cache Save Error: $e');
+            }
+          }
+        } else if (decodedData is List) {
+          // Legacy unpaginated response
+          list = decodedData;
+          hasNext = false;
+        } else {
+          throw Exception('Format de données inconnu');
+        }
+
+        final properties = list.map((json) {
+          try {
+            return Property.fromJson(Map<String, dynamic>.from(json));
+          } catch (e) {
+            debugPrint('Property Parse Error: $e');
+            return null;
+          }
+        }).whereType<Property>().toList();
+
+        return {
+          'properties': properties,
+          'next': hasNext,
+        };
       } else {
-        throw Exception('Erreur lors du chargement des annonces (${response.statusCode})');
+        throw Exception('Erreur serveur (${response.statusCode})');
       }
     } catch (e) {
-      throw Exception('Erreur de connexion : $e');
+      debugPrint('ApiService Error: $e');
+      throw Exception('Impossible de charger les annonces');
     }
+  }
+
+  String _normalizeNeighborhood(String name) {
+    return name.trim().toUpperCase().replaceAll(' ', '_').replaceAll("'", "_").replaceAll("-", "_");
+  }
+
+  List<Property> getCachedProperties() {
+    try {
+      final box = Hive.box('properties_cache');
+      final List<dynamic>? cached = box.get('home_properties');
+      if (cached != null) {
+        return cached.map((json) {
+          try {
+            return Property.fromJson(Map<String, dynamic>.from(json));
+          } catch (e) {
+            return null;
+          }
+        }).whereType<Property>().toList();
+      }
+    } catch (e) {
+      debugPrint('Cache Load Error: $e');
+    }
+    return [];
   }
 
   Future<Map<String, dynamic>?> createProperty(Map<String, dynamic> data) async {
@@ -184,48 +254,5 @@ class ApiService {
     }
   }
 
-  // --- Solvency Documents ---
 
-  Future<List<dynamic>> fetchSolvencyDocuments() async {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) return [];
-
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/solvency-documents/'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      if (response.statusCode == 200) {
-        return json.decode(utf8.decode(response.bodyBytes));
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  Future<bool> uploadSolvencyDocument(String docType, File file) async {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) return false;
-
-    try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/solvency-documents/'),
-      );
-
-      request.headers['Authorization'] = 'Bearer $token';
-      request.fields['doc_type'] = docType;
-      
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        file.path,
-      ));
-
-      final response = await request.send();
-      return response.statusCode == 201;
-    } catch (e) {
-      return false;
-    }
-  }
 }

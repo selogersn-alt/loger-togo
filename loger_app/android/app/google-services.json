@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "309094149124",
+    "project_id": "loger-senegal",
+    "storage_bucket": "loger-senegal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309094149124:android:76c3cd253906ea6c9b5951",
+        "android_client_info": {
+          "package_name": "com.hdigital.Logertogo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIDUqtm2DMHRYZLGTwaEla0MccpYnTGEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

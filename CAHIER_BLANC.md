@@ -1,10 +1,10 @@
-# 🛡️ CAHIER BLANC : LOGER SÉNÉGAL (DIGITALH)
+# 🛡️ CAHIER BLANC : Loger Togo (DIGITALH)
 **Édition de Prestige - Version 1.0 (Avril 2026)**
 
 ---
 
 ## 1. VISION STRATÉGIQUE
-**Loger Sénégal**, propulsé par l'écosystème **DigitalH**, est une plateforme immobilière de confiance totale. Elle résout le problème majeur du marché sénégalais : **l'insécurité transactionnelle**. 
+**Loger Togo**, propulsé par l'écosystème **DigitalH**, est une plateforme immobilière de confiance totale. Elle résout le problème majeur du marché sénégalais : **l'insécurité transactionnelle**. 
 
 La plateforme repose sur trois piliers :
 1.  **La Confiance (NILS)** : Vérification d'identité certifiée par IA.
@@ -62,4 +62,4 @@ Un score de confiance calculé sur l'historique de paiement et de comportement. 
 3.  **Application Mobile** : Synchronisation avec le Dashboard Web Responsive.
 
 ---
-**DigitalH - "L'Immobilier de Confiance au Sénégal"**
+**DigitalH - "L'Immobilier de Confiance au Togo"**

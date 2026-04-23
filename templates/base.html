@@ -11,8 +11,11 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/logo_square.png' %}">
+    
     <!-- Balises SEO Stratégiques (Market-Driven) -->
-    <title>{% block title %}Loger Sénégal | Location & Vente Immobilière de Confiance à Dakar{% endblock %}</title>
+    <title>{% block title %}Loger Togo | Location & Vente Immobilière de Confiance à Lomé{% endblock %}</title>
     
     <!-- LCP Image Preload -->
     <link rel="preload" href="{% static 'img/og_banner.png' %}" as="image" fetchpriority="high">
@@ -22,17 +25,17 @@
     <!-- SEO & Canoniques -->
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="description" content="{% block meta_description %}{% if seo_settings and seo_settings.meta_description %}{{ seo_settings.meta_description }}{% else %}Trouvez votre appartement, villa ou terrain au Sénégal sur Loger Sénégal. Location sécurisée, vérification de profil NILS et annonces immobilières vérifiées à Dakar et en province.{% endif %}{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Sénégal, Location appartement Dakar, Louer maison Sénégal, Vendre terrain Sénégal, Agence immobilière Dakar, F3 location Dakar, Haut standing Almadies, Titre foncier Sénégal, Loger Sénégal, Solvable NILS{% endif %}{% endblock %}">
-    <meta name="author" content="Loger Sénégal - DigitalH Group">
+    <meta name="description" content="{% block meta_description %}{% if seo_settings and seo_settings.meta_description %}{{ seo_settings.meta_description }}{% else %}Trouvez votre appartement, villa ou terrain au Togo sur Loger Togo. Location sécurisée, vérification de profil NILS et annonces immobilières vérifiées à Lomé et en province.{% endif %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Togo, Location appartement Lomé, Louer maison Togo, Vendre terrain Togo, Agence immobilière Lomé, F3 location Lomé, Haut standing Almadies, Titre foncier Togo, Loger Togo, Solvable NILS{% endif %}{% endblock %}">
+    <meta name="author" content="Loger Togo - DigitalH Group">
 
     {% if seo_settings and seo_settings.header_scripts %}
         {{ seo_settings.header_scripts|safe }}
     {% endif %}
     
     <!-- Open Graph (Pour le partage sur Whatsapp/Facebook) -->
-    <meta property="og:title" content="{% block og_title %}Solvable - Logersenegal : L'Immobilier en toute confiance au Sénégal{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Location d'appartements et de maisons au Sénégal avec garantie de loyer, vérification d'identité et profil NILS.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Loger Togo : L'Immobilier de Confiance au Togo{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Location d'appartements et de maisons au Togo avec garantie de loyer, vérification d'identité et profil NILS.{% endblock %}">
     {% block extra_meta %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
     <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
@@ -48,7 +51,7 @@
     <!-- Spécificités Apple / Safari -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Loger Sénégal">
+    <meta name="apple-mobile-web-app-title" content="Loger Togo">
     <link rel="apple-touch-icon" href="{% static 'img/icon-512x512.png' %}">
     <meta name="theme-color" content="#ffffff">
 
@@ -66,17 +69,17 @@
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "Loger Sénégal",
-      "alternateName": "Logersenegal",
-      "url": "https://logersenegal.com",
-      "logo": "https://logersenegal.com{% static 'img/icon-512x512.png' %}",
+      "name": "Loger Togo",
+      "alternateName": "Logertogo",
+      "url": "https://Logertogo.com",
+      "logo": "https://Logertogo.com{% static 'img/icon-512x512.png' %}",
       "sameAs": [
-        "https://web.facebook.com/logersenegal",
-        "https://www.instagram.com/logersenegal"
+        "https://web.facebook.com/Logertogo",
+        "https://www.instagram.com/Logertogo"
       ],
       "contactPoint": {
         "@type": "ContactPoint",
-        "telephone": "+221770000000",
+        "telephone": "+22897151610",
         "contactType": "customer service",
         "areaServed": "SN",
         "availableLanguage": "French"
@@ -93,10 +96,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
     
     <!-- Animate.css (Pour des animations fluides) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"></noscript>
     
     {% block extra_css %}{% endblock %}
     
@@ -384,9 +389,20 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
         <div class="container">
-            <a class="navbar-brand animate__animated animate__fadeInLeft d-flex align-items-center" href="{% url 'home' %}">
-                <img src="{% static 'img/icon-512x512.png' %}" alt="Logo" style="height: 45px; width: auto; margin-right: 12px;">
-                <span class="fw-bold text-uppercase" style="font-size: 1.25rem; letter-spacing: 0.5px; color: var(--color-dark-green);">Loger Sénégal</span>
+            <a class="navbar-brand animate__animated animate__fadeInLeft d-flex align-items-center" href="{% url 'home' %}" aria-label="Accueil Loger Togo" style="text-decoration: none;">
+                <div class="d-flex align-items-center" style="gap: 12px;">
+                    <!-- Icône Maison Premium -->
+                    <div class="d-flex align-items-center justify-content-center position-relative" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--color-light-green), var(--color-dark-green)); border-radius: 14px; box-shadow: 0 6px 15px rgba(11, 70, 41, 0.25);">
+                        <i class="fa-solid fa-house-chimney" style="color: white; font-size: 1.6rem; z-index: 2;"></i>
+                        <!-- Petit accent design -->
+                        <div class="position-absolute top-0 end-0 mt-1 me-1" style="width: 8px; height: 8px; background-color: var(--color-yellow); border-radius: 50%; z-index: 3;"></div>
+                    </div>
+                    <!-- Typographie -->
+                    <div class="d-flex flex-column justify-content-center">
+                        <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.9rem; line-height: 0.9; letter-spacing: -1.2px; color: var(--text-main);">Loger<span style="color: var(--color-light-green);">Togo</span></span>
+                        <span style="font-family: 'Outfit', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 2.5px; color: var(--color-yellow); text-transform: uppercase; margin-top: 3px;">Immobilier</span>
+                    </div>
+                </div>
             </a>
             
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -401,9 +417,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'properties_list' %}">Annonces immo.</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'nils_search' %}">Vérifier candidat</a>
-                    </li>
+
                     
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="guidesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -417,15 +431,7 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle fw-bold text-danger" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Sécurité
-                        </a>
-                        <ul class="dropdown-menu shadow border-0 p-2">
-                            <li><a class="dropdown-item rounded" href="{% url 'fraud_list' %}"><i class="fa-solid fa-mask me-2 text-danger"></i>Liste Noire</a></li>
-                            <li><a class="dropdown-item rounded" href="{% url 'report_pro_fraud' %}"><i class="fa-solid fa-bullhorn me-2"></i>Signaler un Pro</a></li>
-                        </ul>
-                    </li>
+
 
                     <!-- Bouton d'installation PWA (visible seulement si Chrome propose l'installation) -->
                     <li class="nav-item ms-lg-2">
@@ -529,11 +535,16 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <div class="footer-logo">
-                        <i class="fa-solid fa-house-circle-check" style="color: var(--color-light-green);"></i> LOGERSENEGAL
+                    <div class="footer-logo mb-3 d-flex align-items-center" style="gap: 10px;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-light-green), var(--color-dark-green)); border-radius: 10px;">
+                            <i class="fa-solid fa-house-chimney" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <div class="d-flex flex-column justify-content-center">
+                            <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.5rem; line-height: 0.9; letter-spacing: -1px; color: white;">Loger<span style="color: var(--color-light-green);">Togo</span></span>
+                        </div>
                     </div>
                     <p style="color: rgba(255, 255, 255, 0.7);">
-                        Trouvez le logement idéal au Sénégal, certifiez vos locataires et louez l'esprit tranquille.
+                        Trouvez le logement idéal au Togo, certifiez vos locataires et louez l'esprit tranquille.
                     </p>
                 </div>
                 <div class="col-md-3 mb-4">
@@ -552,17 +563,18 @@
                         <li class="mb-2"><a href="{% url 'professionals_list' %}" class="footer-link">Annuaire des Professionnels</a></li>
                         <li class="mb-2"><a href="{% url 'cgu' %}" class="footer-link">CGU & Conditions</a></li>
                         <li class="mb-2"><a href="{% url 'privacy' %}" class="footer-link">Confidentialité</a></li>
-                        <li class="mb-2"><a href="mailto:serviceclient@logersenegal.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@logersenegal.com</a></li>
+                        <li class="mb-2"><a href="mailto:serviceclient@Logertogo.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@Logertogo.com</a></li>
+                        <li class="mb-2"><a href="https://wa.me/22897151610" class="footer-link" target="_blank"><i class="fa-brands fa-whatsapp me-2"></i>+228 97 15 16 10</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Secteurs Prisés</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=ALMADIES" class="footer-link">Immobilier Almadies</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=MERMOZ" class="footer-link">Location Mermoz</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=PLATEAU" class="footer-link">Appartements Dakar Plateau</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=POINT_E" class="footer-link">Villas Point E</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=OUAKAM" class="footer-link">Annonces Ouakam</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Agoè-Assiyéyé" class="footer-link">Immobilier Agoè</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Baguida" class="footer-link">Location Baguida</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hanoukopé" class="footer-link">Appartements Hanoukopé</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hedzranawoé" class="footer-link">Villas Hedzranawoé</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Adidogomé" class="footer-link">Annonces Adidogomé</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4">
@@ -576,7 +588,7 @@
             </div>
             <hr style="border-color: rgba(255, 255, 255, 0.2);">
             <div class="text-center" style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem;">
-                &copy; <span id="currentYear"></span> Logersenegal. Tous droits réservés.
+                &copy; <span id="currentYear"></span> Logertogo. Tous droits réservés.
             </div>
         </div>
     </footer>
@@ -584,7 +596,7 @@
 
     <!-- Bootstrap JS -->
     {% if user.is_authenticated %}
-    <a href="{% url 'support-chat' %}" class="support-fab shadow-lg" title="Assistance LogerSN">
+    <a href="{% url 'support-chat' %}" class="support-fab shadow-lg" title="Assistance Loger Togo">
         <i class="fa-solid fa-headset"></i>
     </a>
     <div class="support-tooltip">
@@ -738,11 +750,11 @@
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js', { scope: '/' })
                     .then(function(reg) {
-                        console.log('[LogerSN PWA] Service Worker actif, scope:', reg.scope);
+                        console.log('[Loger Togo PWA] Service Worker actif, scope:', reg.scope);
                     })
                     .catch(function(err) {
                         // Erreur silencieuse : le site fonctionne normalement sans SW
-                        console.warn('[LogerSN PWA] SW non enregistré:', err);
+                        console.warn('[Loger Togo PWA] SW non enregistré:', err);
                     });
             });
         }
@@ -768,7 +780,7 @@
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then(function(choice) {
                     if (choice.outcome === 'accepted') {
-                        console.log('[LogerSN PWA] App installée !');
+                        console.log('[Loger Togo PWA] App installée !');
                     }
                     deferredPrompt = null;
                     installBtn.style.display = 'none';

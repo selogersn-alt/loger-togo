@@ -16,6 +16,8 @@ class Property {
   final int? totalRooms;
   final int? salons;
   final int? kitchens;
+  final int? households;
+  final int? floorLevel;
   final bool hasGarage;
   final bool hasBalcony;
   final bool hasTerrace;
@@ -26,6 +28,8 @@ class Property {
   final Owner owner;
   final String absoluteUrl;
   final double surface;
+  final double latitude;
+  final double longitude;
 
   Property({
     required this.id,
@@ -45,6 +49,8 @@ class Property {
     this.totalRooms,
     this.salons,
     this.kitchens,
+    this.households,
+    this.floorLevel,
     this.hasGarage = false,
     this.hasBalcony = false,
     this.hasTerrace = false,
@@ -55,6 +61,8 @@ class Property {
     required this.images,
     required this.owner,
     required this.absoluteUrl,
+    this.latitude = 0.0,
+    this.longitude = 0.0,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -76,6 +84,8 @@ class Property {
       totalRooms: json['total_rooms'],
       salons: json['salons'],
       kitchens: json['kitchens'],
+      households: json['households'],
+      floorLevel: json['floor_level'],
       hasGarage: json['has_garage'] ?? false,
       hasBalcony: json['has_balcony'] ?? false,
       hasTerrace: json['has_terrace'] ?? false,
@@ -86,6 +96,8 @@ class Property {
       images: (json['images'] as List?)?.map((i) => PropertyImage.fromJson(i)).toList() ?? [],
       owner: Owner.fromJson(json['owner'] ?? {}),
       absoluteUrl: json['absolute_url'] ?? '',
+      latitude: double.tryParse(json['latitude']?.toString() ?? '0') ?? 0.0,
+      longitude: double.tryParse(json['longitude']?.toString() ?? '0') ?? 0.0,
     );
   }
 }

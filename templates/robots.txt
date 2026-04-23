@@ -1,9 +1,12 @@
 User-agent: *
-Allow: /
-Allow: /media/
 Disallow: /admin/
-Disallow: /api/auth/
-Disallow: /search/
+Disallow: /mon-compte/
+Disallow: /paiement/
+Disallow: /chat/
+Disallow: /api/
 
-# Sitemaps
-Sitemap: https://logersenegal.com/sitemap.xml
+# Autoriser spécifiquement tout le reste
+Allow: /
+
+# Indiquer le chemin du sitemap (dynamique)
+Sitemap: https://logertogo.com/sitemap.xml

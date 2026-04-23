@@ -8,7 +8,7 @@ class PropertySitemap(Sitemap):
     protocol = 'https'
 
     def items(self):
-        return Property.objects.all().order_by('-created_at')
+        return Property.objects.filter(is_published=True).order_by('-created_at')
 
     def lastmod(self, obj):
         return obj.created_at
@@ -29,8 +29,7 @@ class StaticViewSitemap(Sitemap):
             'guide_locataires',
             'guide_bailleurs',
             'guide_agences',
-            'guide_courtiers',
-            'fraud_list'
+            'guide_courtiers'
         ]
 
     def priority(self, item):
@@ -49,3 +48,20 @@ class StaticViewSitemap(Sitemap):
 
     def location(self, item):
         return reverse(item)
+
+class ProfessionalSitemap(Sitemap):
+    changefreq = 'weekly'
+    priority = 0.7
+    protocol = 'https'
+
+    def items(self):
+        from users.models import User
+        return User.objects.filter(is_verified_pro=True).order_by('-date_joined')
+
+    def lastmod(self, obj):
+        return obj.date_joined
+
+    def location(self, obj):
+        if obj.slug:
+            return reverse('public_profile_slug', kwargs={'slug': obj.slug})
+        return reverse('public_profile', kwargs={'user_id': obj.id})

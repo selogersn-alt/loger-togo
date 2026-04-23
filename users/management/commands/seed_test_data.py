@@ -1,8 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from users.models import KYCProfile, NILS_Profile
+from users.models import KYCProfile
 from logersn.models import Property, PropertyImage
-from solvable.models import RentalFiliation
 import random
 import uuid
 
@@ -16,10 +15,10 @@ class Command(BaseCommand):
 
         # 1. Create 4 Agents
         agent_data = [
-            ("771000001", "agent1@solvable.sn", "Dakar Plateau", "Agent Diallo Immobilier"),
-            ("771000002", "agent2@solvable.sn", "Mermoz / Sacré-Cœur", "Kory Agence"),
-            ("771000003", "agent3@solvable.sn", "Ouakam / Mamelles", "Arona Immo"),
-            ("771000004", "agent4@solvable.sn", "Almadies", "Elite Agent"),
+            ("901000001", "agent1@logertg.com", "Lomé Plateau", "Agent Kodjo Immobilier"),
+            ("901000002", "agent2@logertg.com", "Agoè-Assiyéyé", "Koffi Agence"),
+            ("901000003", "agent3@logertg.com", "Adidogomé", "Alovor Immo"),
+            ("901000004", "agent4@logertg.com", "Baguida", "Elite Agent Togo"),
         ]
         agents = []
         for phone, email, area, company in agent_data:
@@ -40,10 +39,10 @@ class Command(BaseCommand):
 
         # 2. Create 4 Landlords (Bailleurs)
         landlord_data = [
-            ("781000001", "bailleur1@solvable.sn", "Thiès", "SCI Horizon"),
-            ("781000002", "bailleur2@solvable.sn", "Dakar", "M. Fall Immobilier"),
-            ("781000003", "bailleur3@solvable.sn", "Saint-Louis", "Résidence du Fleuve"),
-            ("781000004", "bailleur4@solvable.sn", "Saly", "Villas du Soleil"),
+            ("991000001", "bailleur1@logertg.com", "Kara", "SCI Kabyè"),
+            ("991000002", "bailleur2@logertg.com", "Lomé Centre", "M. Lawson Immobilier"),
+            ("991000003", "bailleur3@logertg.com", "Aného", "Résidence du Littoral"),
+            ("991000004", "bailleur4@logertg.com", "Kpalimé", "Villas de la Montagne"),
         ]
         landlords = []
         for phone, email, area, company in landlord_data:
@@ -64,10 +63,10 @@ class Command(BaseCommand):
 
         # 3. Create 4 Agencies
         agency_data = [
-            ("761000001", "agence1@solvable.sn", "Dakar / Banlieue", "Kër Gui Immo"),
-            ("761000002", "agence2@solvable.sn", "Ziguinchor", "Casamance Immobilier"),
-            ("761000003", "agence3@solvable.sn", "Dakar Centre", "Loger Sans Stress"),
-            ("761000004", "agence4@solvable.sn", "Touba", "Diarra Agence"),
+            ("901000005", "agence1@logertg.com", "Lomé / Banlieue", "Togo Gui Immo"),
+            ("901000006", "agence2@logertg.com", "Sokodé", "Centrale Immobilier"),
+            ("901000007", "agence3@logertg.com", "Lomé Port", "Loger Sans Stress TG"),
+            ("901000008", "agence4@logertg.com", "Dapaong", "Savanes Agence"),
         ]
         agencies = []
         for phone, email, area, company in agency_data:
@@ -88,23 +87,23 @@ class Command(BaseCommand):
 
         # 4. Create 10 Properties
         prop_titles = [
-            "Appartement F4 Moderne à Mermoz",
-            "Studio Meublé aux Almadies",
-            "Villa de Standing avec Piscine à Saly",
-            "Bureau 200m2 en Centre-Ville",
-            "Chambre Étudiant Proche Université",
-            "Appartement F3 Vue Mer à Ngor",
-            "Duplex de Luxe à Sacré-Cœur 3",
-            "Hangar Industriel Zone Franche",
-            "Terrain Constructible 500m2 à Diamniadio",
-            "Local Commercial RDC Avenue Bourguiba"
+            "Appartement F4 Moderne à Agoè",
+            "Studio Meublé à Deckon",
+            "Villa de Standing à Baguida",
+            "Bureau 200m2 au Plateau",
+            "Chambre Étudiant Proche Université de Lomé",
+            "Appartement F3 Vue Mer à Aného",
+            "Duplex de Luxe à Hedzranawoé",
+            "Hangar Industriel Zone Franche Lomé",
+            "Terrain Constructible 500m2 à Tsévié",
+            "Local Commercial RDC Avenue de la Libération"
         ]
         
         all_pros = agents + landlords + agencies
         # Real Choices from constants
-        cities = ['DAKAR', 'THIES', 'SAINT_LOUIS', 'ZIGUINCHOR', 'MBOUR', 'SALY', 'TOUBA']
+        cities = ['LOME', 'KARA', 'SOKODE', 'ANEHO', 'KPALIME', 'TSEVIE', 'DAPAONG']
         p_types = ['APARTMENT_F4', 'STUDIO', 'VILLA', 'BUREAU', 'CHAMBRE_SDB', 'APARTMENT_F3', 'DUPLEX', 'COMMERCIAL', 'TERRAIN', 'COMMERCIAL']
-        neighborhoods = ['MERMOZ', 'ALMADIES', 'SALY_PORTUDAL', 'PLATEAU', 'FANN', 'NGOR', 'SACRE_CŒUR_3', 'ZONE_INDUSTRIELLE', 'DIAMNIADIO', 'AVENUE_BOURGUIBA']
+        neighborhoods = ['Agoè-Assiyéyé', 'Deckon', 'Baguida', 'Hanoukopé', 'Amoutiévé', 'Aného', 'Hedzranawoé', 'Akodésséwa', 'Tsévié', 'Centre-Ville']
 
         for i in range(10):
             owner = random.choice(all_pros)
@@ -115,7 +114,7 @@ class Command(BaseCommand):
                     'property_type': p_types[i],
                     'city': cities[i % len(cities)],
                     'neighborhood': neighborhoods[i],
-                    'rent_price': random.randint(150000, 2000000),
+                    'price': random.randint(150000, 2000000),
                     'surface': random.randint(50, 450),
                     'bedrooms': random.randint(1, 5),
                     'toilets': random.randint(1, 4),

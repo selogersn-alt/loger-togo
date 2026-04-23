@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite, PropertyEquipment
-from logersenegal.emails import send_property_published_email
+from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite, PropertyEquipment, PropertyReview, PropertyAlert
+from logertogo.emails import send_property_published_email
 
 class PropertyImageInline(admin.TabularInline):
     model = PropertyImage
@@ -37,14 +37,21 @@ class PropertyAdmin(admin.ModelAdmin):
     @admin.action(description="✅ Publier les annonces sélectionnées")
     def publish_properties(self, request, queryset):
         count = 0
+        alerts_sent = 0
+        from logertogo.views import trigger_property_alerts
+        
         for prop in queryset:
             if not prop.is_published:
                 prop.is_published = True
                 prop.save()
                 if prop.owner and prop.owner.email:
                     send_property_published_email(prop.owner, prop)
+                
+                # Déclencher les alertes email aux abonnés
+                alerts_sent += trigger_property_alerts(prop)
                 count += 1
-        self.message_user(request, f"{count} annonce(s) ont été publiées et les propriétaires notifiés.")
+                
+        self.message_user(request, f"{count} annonce(s) publiées, {alerts_sent} alerte(s) email envoyée(s).")
 
     @admin.action(description="❌ Retirer les annonces sélectionnées")
     def unpublish_properties(self, request, queryset):
@@ -98,3 +105,58 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'property', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('user__email', 'user__phone_number', 'property__title')
+
+
+@admin.register(PropertyReview)
+class PropertyReviewAdmin(admin.ModelAdmin):
+    list_display = ('property', 'reviewer', 'star_display', 'title', 'is_approved', 'created_at')
+    list_filter = ('is_approved', 'rating', 'created_at')
+    search_fields = ('property__title', 'reviewer__email', 'reviewer__phone_number', 'comment')
+    actions = ['approve_reviews', 'reject_reviews']
+    readonly_fields = ('created_at',)
+
+    def star_display(self, obj):
+        stars = '⭐' * obj.rating + '☆' * (5 - obj.rating)
+        return format_html('<span style="font-size:1.1rem;">{}</span>', stars)
+    star_display.short_description = "Note"
+
+    @admin.action(description="✅ Approuver et publier les avis sélectionnés")
+    def approve_reviews(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"{updated} avis approuvés et maintenant visibles sur le site.")
+
+    @admin.action(description="❌ Masquer les avis sélectionnés")
+    def reject_reviews(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f"{updated} avis masqués.")
+
+
+@admin.register(PropertyAlert)
+class PropertyAlertAdmin(admin.ModelAdmin):
+    list_display = ('email', 'city', 'property_type', 'listing_category', 'max_price', 'is_active', 'created_at')
+    list_filter = ('is_active', 'city', 'property_type', 'listing_category', 'created_at')
+    search_fields = ('email', 'city')
+    actions = ['deactivate_alerts', 'export_emails_csv']
+    readonly_fields = ('token', 'created_at')
+
+    @admin.action(description="🔕 Désactiver les alertes sélectionnées")
+    def deactivate_alerts(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} alertes désactivées.")
+
+    @admin.action(description="📥 Exporter les emails (CSV)")
+    def export_emails_csv(self, request, queryset):
+        import csv
+        from django.http import HttpResponse
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename="alertes_emails.csv"'
+        w = csv.writer(response)
+        w.writerow(['Email', 'Ville', 'Type', 'Catégorie', 'Budget max', 'Actif', 'Date'])
+        for alert in queryset:
+            w.writerow([
+                alert.email, alert.city, alert.property_type,
+                alert.listing_category, alert.max_price or '',
+                'Oui' if alert.is_active else 'Non',
+                alert.created_at.strftime('%d/%m/%Y')
+            ])
+        return response

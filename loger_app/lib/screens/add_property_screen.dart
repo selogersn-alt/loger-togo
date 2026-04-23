@@ -5,7 +5,7 @@ class AddPropertyScreen extends StatelessWidget {
   const AddPropertyScreen({super.key});
 
   Future<void> _launchWebAddProperty() async {
-    final Uri url = Uri.parse('https://logersenegal.com/annonces/nouvelle/');
+    final Uri url = Uri.parse('https://Logertogo.com/annonces/nouvelle/');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
@@ -51,7 +51,7 @@ class AddPropertyScreen extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               const Text(
-                'Pour garantir la qualité des annonces et la vérification des annonceurs (NILS), le dépôt d\'annonces se fait désormais sur notre interface web optimisée.',
+                'Pour garantir la qualité des annonces, le dépôt de nouvelles annonces se fait sur notre plateforme web optimisée.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16, 

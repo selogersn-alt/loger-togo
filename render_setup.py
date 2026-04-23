@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'logersenegal.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Logertogo.settings')
 django.setup()
 
 from users.models import User
@@ -10,7 +10,7 @@ from django.core.management import call_command
 from django.contrib.sites.models import Site
 
 # 1. Configuration du Domaine pour le Sitemap
-domain = 'solvable.logersn.com'
+domain = 'solvable.logertg.com'
 site, created = Site.objects.get_or_create(id=1)
 site.domain = domain
 site.name = 'Solvable SN'
@@ -18,8 +18,8 @@ site.save()
 print(f"Site configuré sur le domaine : {domain}")
 
 # 2. Création de votre Super-Administrateur (si n'existe pas)
-# Remplacez '+221770000000' et 'admin123' par ce que vous voulez ci-dessous
-ADMIN_PHONE = os.getenv('ADMIN_PHONE', '+221764443313')
+# Remplacez '+228770000000' et 'admin123' par ce que vous voulez ci-dessous
+ADMIN_PHONE = os.getenv('ADMIN_PHONE', '+228764443313')
 ADMIN_PASS = os.getenv('ADMIN_PASS', 'admin123')
 
 if not User.objects.filter(phone_number=ADMIN_PHONE).exists():

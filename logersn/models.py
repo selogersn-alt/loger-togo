@@ -10,7 +10,7 @@ from django.conf import settings
 
 User = settings.AUTH_USER_MODEL
 
-from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES, NEIGHBORHOOD_CHOICES
+from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 
 class Property(models.Model):
     class CategoryEnum(models.TextChoices):
@@ -32,8 +32,8 @@ class Property(models.Model):
     description = models.TextField()
     listing_category = models.CharField(max_length=20, choices=CategoryEnum.choices, default=CategoryEnum.RENT)
     property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)
-    city = models.CharField(max_length=100, choices=CITY_CHOICES, default='DAKAR')
-    neighborhood = models.CharField(max_length=100, choices=NEIGHBORHOOD_CHOICES)
+    city = models.CharField(max_length=100, choices=CITY_CHOICES, default='LOME')
+    neighborhood = models.CharField(max_length=100, verbose_name="Quartier")
     document_type = models.CharField(max_length=50, choices=DocumentTypeEnum.choices, null=True, blank=True, verbose_name="Type de document")
     price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Prix (CFA)")
     
@@ -43,6 +43,8 @@ class Property(models.Model):
     bedrooms = models.IntegerField(default=0, blank=True, verbose_name="Nombre de chambres")
     toilets = models.IntegerField(default=0, blank=True, verbose_name="Nombre de toilettes")
     total_rooms = models.IntegerField(default=1, blank=True, verbose_name="Nombre total de pièces")
+    households = models.IntegerField(default=0, blank=True, verbose_name="Nombre de ménages")
+    floor_level = models.IntegerField(default=0, blank=True, verbose_name="Niveau d'étage")
     has_garage = models.BooleanField(default=False, blank=True, verbose_name="Garage disponible")
     # Nouvelles pièces
     salons = models.IntegerField(default=0, blank=True, verbose_name="Nombre de salons")
@@ -228,3 +230,60 @@ class PropertyEquipment(models.Model):
     
     def __str__(self):
         return f"{self.name} for {self.property.title}"
+
+
+class PropertyReview(models.Model):
+    """Avis et notation laissés sur une annonce par un locataire/acheteur."""
+    RATING_CHOICES = [(i, f"{i} étoile{'s' if i > 1 else ''}") for i in range(1, 6)]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='reviews')
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_given')
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, verbose_name="Note (1-5)")
+    title = models.CharField(max_length=120, blank=True, verbose_name="Titre de l'avis")
+    comment = models.TextField(verbose_name="Commentaire")
+    is_approved = models.BooleanField(default=False, verbose_name="Approuvé (visible)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('property', 'reviewer')
+        ordering = ['-created_at']
+        verbose_name = "Avis"
+        verbose_name_plural = "Avis & Notations"
+
+    def __str__(self):
+        return f"{self.reviewer} → {self.property.title} ({self.rating}★)"
+
+
+class PropertyAlert(models.Model):
+    """Abonnement aux alertes email pour les nouvelles annonces."""
+    email = models.EmailField(verbose_name="Email")
+    city = models.CharField(max_length=100, choices=CITY_CHOICES, blank=True, default='', verbose_name="Ville")
+    property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES, blank=True, default='', verbose_name="Type de bien")
+    listing_category = models.CharField(
+        max_length=20,
+        choices=[('', 'Toutes'), ('RENT', 'Location'), ('SALE', 'Vente'), ('FURNISHED', 'Meublé')],
+        blank=True, default='', verbose_name="Catégorie"
+    )
+    max_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name="Budget max (FCFA)")
+    token = models.CharField(max_length=64, unique=True, verbose_name="Token désabonnement")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Alerte Immobilière"
+        verbose_name_plural = "Alertes Immobilières (Abonnements)"
+
+    def __str__(self):
+        parts = [self.email]
+        if self.city:
+            parts.append(self.city)
+        if self.property_type:
+            parts.append(self.property_type)
+        return " | ".join(parts)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            import secrets
+            self.token = secrets.token_urlsafe(32)
+        super().save(*args, **kwargs)

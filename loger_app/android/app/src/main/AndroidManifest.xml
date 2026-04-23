@@ -23,7 +23,7 @@
         <package android:name="com.whatsapp" />
     </queries>
     <application
-        android:label="Loger Sénégal"
+        android:label="Loger Togo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

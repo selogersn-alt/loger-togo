@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Récupération Assistée | Logersenegal{% endblock %}
+{% block title %}Récupération Assistée | Logertogo{% endblock %}
 
 {% block content %}
 <div class="container py-5 mt-5">
@@ -19,7 +19,7 @@
                     <form id="recovery_form" method="POST">
                         {% csrf_token %}
                         <div id="check_area" class="mb-4">
-                            <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">Votre numéro au Sénégal</label>
+                            <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">Votre numéro au Togo</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-2 border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);"><i class="fa-solid fa-phone"></i></span>
                                 <input type="tel" id="recovery_phone" name="phone" class="form-control py-3 border-2" placeholder="77XXXXXXX" required style="border-radius: 0 12px 12px 0; border-color: var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
@@ -135,7 +135,7 @@
         
         const message = `SOLVABLE RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nSource : ${siteUrl}\n\nMerci de m'envoyer un lien de connexion.`;
         
-        const supportWhatsApp = "221764443313"; 
+        const supportWhatsApp = "22897151610"; 
         const waUrl = `https://wa.me/${supportWhatsApp}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
         

@@ -1,224 +1,405 @@
 {% extends 'base.html' %}
-{% block title %}Publier une annonce | Solvable - LogerSN{% endblock %}
+{% block title %}Publier une annonce | Loger Togo{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <style>
-    /* Styling for dark mode support on forms */
-    .form-control, .form-select {
-        background-color: var(--bg-body) !important;
-        color: var(--text-main) !important;
-        border-color: var(--border-color) !important;
-        padding: 12px;
-        border-radius: 10px;
-    }
-    .form-control:focus, .form-select:focus {
-        box-shadow: 0 0 0 0.25rem rgba(127, 212, 125, 0.25) !important;
-        border-color: var(--color-light-green) !important;
-    }
+  .form-control, .form-select {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+    padding: 12px; border-radius: 10px;
+  }
+  .form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(127,212,125,.25) !important;
+    border-color: var(--color-light-green) !important;
+  }
+  .section-divider { border-color: var(--border-color) !important; }
+  #map-picker { height: 360px; border-radius: 14px; border: 2px solid var(--border-color); }
+  #map-picker.pinned { border-color: var(--color-light-green); box-shadow: 0 0 0 4px rgba(127,212,125,.2); }
+  .map-status { font-size:.82rem; padding: 6px 12px; border-radius: 8px; margin-top: 8px; display: none; }
+  .map-status.visible { display:block; }
+  .geocode-btn { transition: all .25s; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-lg" style="border-radius: 20px; background-color: var(--bg-card);">
-                <div class="card-body p-4 p-md-5">
-                    <div class="text-center mb-5">
-                        <span class="badge mb-3 px-3 py-2 rounded-pill" style="background-color: rgba(127, 212, 125, 0.1); color: var(--color-dark-green); border: 1px solid var(--color-light-green);">Pour les bailleurs</span>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Ajouter un bien immobilier</h2>
-                        <p class="text-muted">Remplissez les informations ci-dessous. Votre annonce sera évaluée par équipe Solvable avant publication pour maintenir un niveau de sécurité maximal.</p>
-                    </div>
-                    
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        {% if form.errors %}
-                        <div class="alert alert-danger" style="border-radius: 10px;">
-                            <strong>⚠️ Erreur dans le formulaire :</strong>
-                            <ul class="mb-0 mt-2">
-                                {% for field, errors in form.errors.items %}
-                                    {% for error in errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="card border-0 shadow-lg" style="border-radius:20px;background:var(--bg-card);">
+        <div class="card-body p-4 p-md-5">
 
-                        <div class="row g-4">
-                            <div class="col-12">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.title.label }}</label>
-                                {{ form.title }}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.listing_category.label }}</label>
-                                {{ form.listing_category }}
-                            </div>
+          <div class="text-center mb-5">
+            <span class="badge mb-3 px-3 py-2 rounded-pill" style="background:rgba(127,212,125,.1);color:var(--color-dark-green);border:1px solid var(--color-light-green);">Pour les bailleurs</span>
+            <h2 class="fw-bold" style="color:var(--text-main);">Ajouter un bien immobilier</h2>
+            <p class="text-muted">Remplissez les informations ci-dessous. Votre annonce sera vérifiée par notre équipe avant publication.</p>
+          </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold" id="price_label" style="color: var(--text-main);">{{ form.price.label }}</label>
-                                <div class="input-group">
-                                    {{ form.price }}
-                                    <span class="input-group-text border-0" style="background-color: var(--color-light-green); color: var(--color-dark-green); font-weight: bold; border-radius: 0 10px 10px 0;">FCFA</span>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6" id="price_per_night_container" style="display: none;">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.price_per_night.label }}</label>
-                                <div class="input-group">
-                                    {{ form.price_per_night }}
-                                    <span class="input-group-text border-0" style="background-color: var(--color-yellow); color: var(--color-dark-green); font-weight: bold; border-radius: 0 10px 10px 0;">/ Nuitée</span>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.property_type.label }}</label>
-                                {{ form.property_type }}
-                            </div>
+          <form method="POST" enctype="multipart/form-data" id="property-form">
+            {% csrf_token %}
 
-                            <div class="col-md-6" id="document_type_container" style="display: none;">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.document_type.label }}</label>
-                                {{ form.document_type }}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.city.label }}</label>
-                                {{ form.city }}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.neighborhood.label }}</label>
-                                {{ form.neighborhood }}
-                            </div>
-                            
-                            <div class="col-12">
-                                <label class="form-label fw-bold" style="color: var(--text-main);">{{ form.description.label }}</label>
-                                {{ form.description }}
-                            </div>
-                            
-                            <!-- New Optional Technical Fields Section -->
-                            <div class="col-12 mt-4 pt-3 border-top" style="border-color: var(--border-color) !important;">
-                                <h5 class="fw-bold mb-3" style="color: var(--text-main);">Détails Techniques (Optionnel)</h5>
-                                <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold">Surface (m²)</label>
-                                        {{ form.surface }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold">Chambres</label>
-                                        {{ form.bedrooms }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold">Toilettes</label>
-                                        {{ form.toilets }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold">Salons</label>
-                                        {{ form.salons }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold">Cuisines</label>
-                                        {{ form.kitchens }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold">Pièces totales</label>
-                                        {{ form.total_rooms }}
-                                    </div>
-                                </div>
-                                <div class="row g-3 mt-1">
-                                    <div class="col-md-3">
-                                        <div class="form-check mt-3">
-                                            {{ form.has_balcony }}
-                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_balcony.id_for_label }}">Balcon</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check mt-3">
-                                            {{ form.has_terrace }}
-                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_terrace.id_for_label }}">Terrasse</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check mt-3">
-                                            {{ form.has_courtyard }}
-                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_courtyard.id_for_label }}">Cour</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check mt-3">
-                                            {{ form.has_garden }}
-                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_garden.id_for_label }}">Jardin</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 mt-3">
-                                        <div class="form-check form-switch border p-3 rounded" style="background-color: var(--bg-card);">
-                                            {{ form.has_garage }}
-                                            <label class="form-check-label fw-bold small ms-2" for="{{ form.has_garage.id_for_label }}">Disponibilité d'un Garage / Parking privé</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-12">
-                                <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{{ form.images.label }}</label>
-                                {{ form.images }}
-                            </div>
-                        </div>
-                        
-                        <div class="mt-5 pt-4 border-top" style="border-color: var(--border-color) !important;">
-                            <button type="submit" class="btn btn-primary-custom px-4 py-3 w-100 shadow-sm" style="border-radius: 12px; font-weight: 600; font-size: 1.1rem;">
-                                <i class="fa-solid fa-cloud-arrow-up me-2"></i>Soumettre mon annonce au réseau LOGERSN
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            {% if form.errors %}
+            <div class="alert alert-danger rounded-3">
+              <strong>⚠️ Erreur dans le formulaire :</strong>
+              <ul class="mb-0 mt-2">
+                {% for field, errors in form.errors.items %}
+                  {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+                {% endfor %}
+              </ul>
             </div>
+            {% endif %}
+
+            <div class="row g-4">
+
+              <!-- ─ TITRE ─ -->
+              <div class="col-12">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.title.label }}</label>
+                {{ form.title }}
+              </div>
+
+              <!-- ─ CATÉGORIE + PRIX ─ -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.listing_category.label }}</label>
+                {{ form.listing_category }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold" id="price_label" style="color:var(--text-main);">{{ form.price.label }}</label>
+                <div class="input-group">
+                  {{ form.price }}
+                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:var(--color-dark-green);border-radius:0 10px 10px 0;">FCFA</span>
+                </div>
+              </div>
+              <div class="col-md-6" id="price_per_night_container" style="display:none;">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.price_per_night.label }}</label>
+                <div class="input-group">
+                  {{ form.price_per_night }}
+                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-yellow);color:var(--color-dark-green);border-radius:0 10px 10px 0;">/ Nuitée</span>
+                </div>
+              </div>
+
+              <!-- ─ TYPE + DOCUMENT ─ -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.property_type.label }}</label>
+                {{ form.property_type }}
+              </div>
+              <div class="col-md-6" id="document_type_container" style="display:none;">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.document_type.label }}</label>
+                {{ form.document_type }}
+              </div>
+
+              <!-- ─ VILLE + QUARTIER ─ -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.city.label }}</label>
+                {{ form.city }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.neighborhood.label }}</label>
+                {{ form.neighborhood }}
+              </div>
+
+              <!-- ─ DESCRIPTION ─ -->
+              <div class="col-12">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.description.label }}</label>
+                {{ form.description }}
+              </div>
+
+              <!-- ════════════════════════════════════════════
+                   SECTION : LOCALISATION SUR LA CARTE
+              ════════════════════════════════════════════ -->
+              <div class="col-12 mt-2">
+                <div class="p-4 rounded-4" style="background:var(--bg-body);border:1px solid var(--border-color);">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div>
+                      <h5 class="fw-bold m-0" style="color:var(--color-dark-green);">
+                        <i class="fa-solid fa-map-location-dot me-2 text-success"></i>Localisation sur la carte
+                      </h5>
+                      <small class="text-muted">Cliquez sur la carte pour placer votre bien, ou utilisez la localisation automatique.</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-success geocode-btn rounded-pill px-3" onclick="geocodeAddress()">
+                        <i class="fa-solid fa-magnifying-glass-location me-1"></i>Géocoder l'adresse
+                      </button>
+                      <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="useMyGPS()">
+                        <i class="fa-solid fa-crosshairs me-1"></i>Ma position GPS
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Carte Leaflet -->
+                  <div id="map-picker"></div>
+
+                  <!-- Statut géolocalisation -->
+                  <div id="map-status" class="map-status alert mb-0 py-2 px-3"></div>
+
+                  <!-- Coordonnées affichées -->
+                  <div class="d-flex gap-3 mt-2" id="coords-display" style="display:none!important;">
+                    <small class="text-muted"><i class="fa-solid fa-location-dot text-success me-1"></i>Lat: <span id="lat-display">—</span></small>
+                    <small class="text-muted"><i class="fa-solid fa-location-dot text-success me-1"></i>Lng: <span id="lng-display">—</span></small>
+                    <small class="text-muted text-success fw-bold" id="coords-ok" style="display:none;"><i class="fa-solid fa-check-circle me-1"></i>Position enregistrée</small>
+                  </div>
+
+                  <!-- Champs cachés soumis avec le formulaire -->
+                  <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default:'' }}">
+                  <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default:'' }}">
+                </div>
+              </div>
+
+              <!-- ─ DÉTAILS TECHNIQUES ─ -->
+              <div class="col-12 mt-2 pt-3 border-top section-divider">
+                <h5 class="fw-bold mb-3" style="color:var(--text-main);">Détails Techniques <span class="text-muted fw-normal small">(Optionnel)</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Surface (m²)</label>{{ form.surface }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Chambres</label>{{ form.bedrooms }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Toilettes</label>{{ form.toilets }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Salons</label>{{ form.salons }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Cuisines</label>{{ form.kitchens }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Pièces totales</label>{{ form.total_rooms }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Ménages</label>{{ form.households }}</div>
+                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">Niveau d'étage</label>{{ form.floor_level }}</div>
+                </div>
+                <div class="row g-3 mt-2">
+                  {% for field in form.has_balcony,form.has_terrace,form.has_courtyard,form.has_garden,form.has_garage %}
+                  <div class="col-md-3">
+                    <div class="form-check mt-2">
+                      {{ field }}
+                      <label class="form-check-label fw-bold small ms-2">{{ field.label }}</label>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- ─ ÉQUIPEMENTS ─ -->
+              <div class="col-12 pt-3 border-top section-divider">
+                <h5 class="fw-bold mb-3" style="color:var(--text-main);">Équipements <span class="text-muted fw-normal small">(Optionnel)</span></h5>
+                <div class="row g-2">
+                  {% for field in form.wifi,form.air_conditioning,form.swimming_pool,form.gym,form.refrigerator,form.washing_machine,form.microwave,form.tv_cable,form.generator,form.water_tank %}
+                  <div class="col-6 col-md-4">
+                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                      {{ field }}
+                      <label class="form-check-label small fw-bold ms-2">{{ field.label }}</label>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- ─ PHOTOS ─ -->
+              <div class="col-12 pt-3 border-top section-divider">
+                <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{{ form.images.label }}</label>
+                {{ form.images }}
+                <small class="text-muted d-block mt-1">Formats acceptés : JPG, PNG, WEBP. Convertis automatiquement en WebP haute qualité.</small>
+              </div>
+
+            </div><!-- end row -->
+
+            <div class="mt-5 pt-4 border-top section-divider">
+              <button type="submit" class="btn btn-primary-custom px-4 py-3 w-100 shadow-sm" style="border-radius:12px;font-weight:600;font-size:1.1rem;">
+                <i class="fa-solid fa-cloud-arrow-up me-2"></i>Soumettre mon annonce sur Loger Togo
+              </button>
+            </div>
+          </form>
+
         </div>
+      </div>
     </div>
+  </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const categorySelect = document.getElementById('id_listing_category');
-        const priceLabel = document.getElementById('price_label');
-        const pricePerNightContainer = document.getElementById('price_per_night_container');
-        const documentTypeContainer = document.getElementById('document_type_container');
+// ─── CONFIG ──────────────────────────────────────────────────────────────
+const LOME_CENTER = [6.1375, 1.2123];  // Lomé, Togo
+let map, marker;
+let markerPinned = false;
 
-        function updateFields() {
-            const category = categorySelect.value;
-            
-            // Toggle Price per Night for Furnished
-            if (category === 'FURNISHED') {
-                pricePerNightContainer.style.display = 'block';
-                priceLabel.innerText = "Loyer mensuel (si applicable)";
+const latInput  = document.getElementById('id_latitude');
+const lngInput  = document.getElementById('id_longitude');
+const latDisp   = document.getElementById('lat-display');
+const lngDisp   = document.getElementById('lng-display');
+const coordsOk  = document.getElementById('coords-ok');
+const coordsRow = document.getElementById('coords-display');
+const statusBox = document.getElementById('map-status');
+const mapEl     = document.getElementById('map-picker');
+
+// ─── INIT MAP ────────────────────────────────────────────────────────────
+map = L.map('map-picker').setView(LOME_CENTER, 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+}).addTo(map);
+
+// Custom green pin icon
+const greenIcon = L.divIcon({
+    html: `<div style="
+        width:32px;height:32px;border-radius:50% 50% 50% 0;
+        background:linear-gradient(135deg,#198754,#0b4629);
+        border:3px solid white;
+        box-shadow:0 3px 12px rgba(0,0,0,.35);
+        transform:rotate(-45deg);
+        display:flex;align-items:center;justify-content:center;
+    ">
+        <i class='fa-solid fa-house' style='color:white;font-size:11px;transform:rotate(45deg);'></i>
+    </div>`,
+    className: '',
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -34]
+});
+
+// Restaurer coords existantes (édition)
+const existingLat = "{{ form.instance.latitude|default:'' }}";
+const existingLng = "{{ form.instance.longitude|default:'' }}";
+if (existingLat && existingLng) {
+    placeMarker(parseFloat(existingLat), parseFloat(existingLng));
+    map.setView([parseFloat(existingLat), parseFloat(existingLng)], 16);
+}
+
+// ─── CLIC SUR CARTE ──────────────────────────────────────────────────────
+map.on('click', function(e) {
+    placeMarker(e.latlng.lat, e.latlng.lng);
+    showStatus('📍 Position définie en cliquant sur la carte.', 'success');
+});
+
+// ─── FONCTIONS ───────────────────────────────────────────────────────────
+function placeMarker(lat, lng) {
+    if (marker) marker.remove();
+    marker = L.marker([lat, lng], {icon: greenIcon, draggable: true}).addTo(map);
+    marker.bindPopup('<strong>📍 Votre bien</strong><br><small>Glissez pour ajuster la position</small>').openPopup();
+
+    // Mise à jour au drag
+    marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        updateCoords(pos.lat, pos.lng);
+        showStatus('✅ Position ajustée par glisser-déposer.', 'success');
+    });
+
+    updateCoords(lat, lng);
+    mapEl.classList.add('pinned');
+    markerPinned = true;
+}
+
+function updateCoords(lat, lng) {
+    const latR = parseFloat(lat).toFixed(7);
+    const lngR = parseFloat(lng).toFixed(7);
+    latInput.value = latR;
+    lngInput.value = lngR;
+    latDisp.textContent = latR;
+    lngDisp.textContent = lngR;
+    coordsRow.style.display = 'flex';
+    coordsOk.style.display = 'inline';
+}
+
+function showStatus(msg, type) {
+    statusBox.className = `map-status alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} visible`;
+    statusBox.innerHTML = msg;
+    setTimeout(() => { statusBox.className = 'map-status alert'; }, 5000);
+}
+
+// ─── GÉOCODAGE PAR ADRESSE ───────────────────────────────────────────────
+async function geocodeAddress() {
+    const city = document.getElementById('id_city');
+    const neighborhood = document.getElementById('id_neighborhood');
+
+    const cityText = city ? city.options[city.selectedIndex]?.text : '';
+    const neighborhoodText = neighborhood ? neighborhood.value.trim() : '';
+
+    if (!neighborhoodText && !cityText) {
+        showStatus('⚠️ Veuillez d'abord renseigner la ville et le quartier.', 'warning');
+        return;
+    }
+
+    const query = `${neighborhoodText}, ${cityText}, Togo`;
+    showStatus(`🔍 Recherche de "${query}"…`, 'info');
+
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=tg`;
+        const res = await fetch(url, {headers: {'Accept-Language': 'fr'}});
+        const data = await res.json();
+
+        if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            placeMarker(lat, lng);
+            map.setView([lat, lng], 16);
+            showStatus(`✅ Adresse trouvée : ${data[0].display_name.split(',').slice(0,3).join(', ')}`, 'success');
+        } else {
+            // Fallback : géocoder juste la ville
+            const cityUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityText + ', Togo')}&format=json&limit=1&countrycodes=tg`;
+            const cityRes = await fetch(cityUrl, {headers: {'Accept-Language': 'fr'}});
+            const cityData = await cityRes.json();
+            if (cityData && cityData.length > 0) {
+                const lat = parseFloat(cityData[0].lat);
+                const lng = parseFloat(cityData[0].lon);
+                map.setView([lat, lng], 14);
+                showStatus(`⚠️ Quartier non trouvé. Centré sur ${cityText}. Cliquez sur la carte pour placer votre bien.`, 'warning');
             } else {
-                pricePerNightContainer.style.display = 'none';
-                
-                if (category === 'SALE') {
-                    priceLabel.innerText = "Prix de vente total";
-                    documentTypeContainer.style.display = 'block';
-                } else {
-                    priceLabel.innerText = "Loyer mensuel";
-                    documentTypeContainer.style.display = 'none';
-                }
-            }
-
-            // Sync document type visibility even for furnished if sale? No, usually sale and furnished are exclusive.
-            // But let's be safe:
-            if (category !== 'SALE') {
-                documentTypeContainer.style.display = 'none';
+                showStatus('❌ Adresse introuvable. Cliquez manuellement sur la carte.', 'danger');
             }
         }
+    } catch(e) {
+        showStatus('❌ Erreur réseau. Cliquez sur la carte pour placer votre bien.', 'danger');
+    }
+}
 
-        categorySelect.addEventListener('change', updateFields);
-        updateFields(); // Initial call
-    });
+// ─── GPS NAVIGATEUR ──────────────────────────────────────────────────────
+function useMyGPS() {
+    if (!navigator.geolocation) {
+        showStatus('❌ La géolocalisation n\'est pas disponible sur ce navigateur.', 'danger');
+        return;
+    }
+    showStatus('📡 Détection de votre position GPS…', 'info');
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            placeMarker(lat, lng);
+            map.setView([lat, lng], 17);
+            showStatus('✅ Position GPS détectée. Glissez le marqueur pour affiner.', 'success');
+        },
+        function(err) {
+            showStatus('⚠️ Accès GPS refusé. Cliquez sur la carte pour placer votre bien.', 'warning');
+        },
+        {enableHighAccuracy: true, timeout: 8000}
+    );
+}
+
+// ─── LOGIQUE CATÉGORIE ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('id_listing_category');
+    const priceLabel = document.getElementById('price_label');
+    const pricePerNightContainer = document.getElementById('price_per_night_container');
+    const documentTypeContainer = document.getElementById('document_type_container');
+
+    function updateFields() {
+        const category = categorySelect.value;
+        if (category === 'FURNISHED') {
+            pricePerNightContainer.style.display = 'block';
+            priceLabel.innerText = 'Loyer mensuel (si applicable)';
+        } else {
+            pricePerNightContainer.style.display = 'none';
+            priceLabel.innerText = category === 'SALE' ? 'Prix de vente total' : 'Loyer mensuel';
+        }
+        documentTypeContainer.style.display = category === 'SALE' ? 'block' : 'none';
+    }
+    categorySelect.addEventListener('change', updateFields);
+    updateFields();
+
+    // Géocodage auto au changement de ville/quartier (avec debounce)
+    let geocodeTimer;
+    const cityEl = document.getElementById('id_city');
+    const neighborhoodEl = document.getElementById('id_neighborhood');
+    function scheduleGeocode() {
+        if (!markerPinned) {
+            clearTimeout(geocodeTimer);
+            geocodeTimer = setTimeout(geocodeAddress, 1200);
+        }
+    }
+    if (cityEl) cityEl.addEventListener('change', scheduleGeocode);
+    if (neighborhoodEl) neighborhoodEl.addEventListener('input', scheduleGeocode);
+});
 </script>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

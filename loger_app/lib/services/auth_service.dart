@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  static const String baseUrl = 'https://logersenegal.com/api/users';
+  static const String baseUrl = 'https://Logertogo.com/api/users';
   final _storage = const FlutterSecureStorage();
   
   AppUser? _currentUser;

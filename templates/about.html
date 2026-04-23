@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}À propos de Logersenegal | FAQ et Fonctionnalités{% endblock %}
+{% block title %}À propos de Logertogo | FAQ et Fonctionnalités{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -8,7 +8,7 @@
     <div class="container py-4 text-center">
         <h1 class="display-4 fw-bold mb-3" style="color: var(--color-dark-green);">L'immobilier sénégalais repensé, en toute confiance.</h1>
         <p class="lead text-muted mx-auto" style="max-width: 700px;">
-            <strong>Logersenegal</strong> a pour mission de sécuriser la relation entre bailleurs et locataires au Sénégal. Fini les litiges sans fin : grâce à la vérification d'identité et au suivi de solvabilité NILS, louer redevient un plaisir.
+            <strong>Logertogo</strong> a pour mission de sécuriser la relation entre bailleurs et locataires au Togo. Fini les litiges sans fin : grâce à la vérification d'identité et au suivi de solvabilité NILS, louer redevient un plaisir.
         </p>
     </div>
 </section>
@@ -30,7 +30,7 @@
                         <ol class="text-muted" style="line-height: 1.8;">
                             <li>Ousmane, propriétaire, publie son appartement sur la plateforme via son compte "Bailleur".</li>
                             <li>Amina, une locataire intéressée, visite le bien et souhaite le louer. Elle donne à Ousmane son numéro <strong>NILS</strong>.</li>
-                            <li>Ousmane saisis le NILS d'Amina dans <a href="{% url 'nils_search' %}" class="fw-bold text-decoration-none" style="color: var(--color-light-green);">Vérifier Candidat</a>, et voit que son score est Vert (Solvable).</li>
+                            <li>Ousmane saisis le NILS d'Amina dans <a href="#" class="fw-bold text-decoration-none" style="color: var(--color-light-green);">Vérifier Candidat</a>, et voit que son score est Vert (Solvable).</li>
                             <li>Il lui loue l'appartement et crée un <strong>Contrat (Filiation)</strong> sur son Tableau de Bord.</li>
                             <li>Chaque mois, Amina paie son loyer. Ousmane clique sur <strong>"Enregistrer un paiement"</strong>. Le score d'Amina augmente ! S'il y a un impayé, il peut déclarer un <strong>Incident</strong> qui la placera en statut d'attention.</li>
                         </ol>
@@ -47,7 +47,7 @@
                         </div>
                         <h4 class="fw-bold mb-3" style="color: var(--text-main);">Scénario : Vous êtes Locataire</h4>
                         <ol class="text-muted" style="line-height: 1.8;">
-                            <li>Modou cherche un logement, mais on lui demande 3 mois de caution. Il se crée un compte "Locataire" sur Logersenegal.</li>
+                            <li>Modou cherche un logement, mais on lui demande 3 mois de caution. Il se crée un compte "Locataire" sur Logertogo.</li>
                             <li>Il complète son formulaire KYC (Pièce d'identité et Selfie). Une fois validé, il obtient son <strong>score NILS (Numéro d'Identification de Locataire Solvable)</strong>, qui commence à 50/100 (Neutre).</li>
                             <li>Lors de sa visite, Modou explique au propriétaire qu'il a un profil NILS vérifié. Le propriétaire a confiance et exige moins de garantie.</li>
                             <li>Pendant la durée du bail, si Modou juge que le propriétaire a déclaré un incident faux, il dispose d'un bouton <strong>Contester</strong> dans ses Détails pour saisir la médiation.</li>
@@ -90,7 +90,7 @@
                         </h2>
                         <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
                             <div class="accordion-body text-muted">
-                                Non. Pour des raisons de confidentialité et de protection des données locales, <strong>seuls les Professionnels vérifiés</strong> (Bailleurs, Agences Immobilières, Courtiers validés par l'administration Logersenegal) ont le droit d'utiliser l'outil de <a href="{% url 'nils_search' %}" class="text-decoration-none">Recherche NILS</a>.
+                                Non. Pour des raisons de confidentialité et de protection des données locales, <strong>seuls les Professionnels vérifiés</strong> (Bailleurs, Agences Immobilières, Courtiers validés par l'administration Logertogo) ont le droit d'utiliser l'outil de <a href="#" class="text-decoration-none">Recherche NILS</a>.
                             </div>
                         </div>
                     </div>
@@ -104,7 +104,7 @@
                         </h2>
                         <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
                             <div class="accordion-body text-muted">
-                                Le locataire est immédiatement notifié. Il a la possibilité de se rendre dans l'onglet "Mes Contrats -> Détails" de son tableau de bord et de cliquer sur <strong>Contester ce signalement</strong>. Les comptes du tenant ne sont pas pénalisés le temps que l'équipe juridique de Logersenegal fasse la médiation (factures, reçus Wave/Orange Money demandés).
+                                Le locataire est immédiatement notifié. Il a la possibilité de se rendre dans l'onglet "Mes Contrats -> Détails" de son tableau de bord et de cliquer sur <strong>Contester ce signalement</strong>. Les comptes du tenant ne sont pas pénalisés le temps que l'équipe juridique de Logertogo fasse la médiation (factures, reçus Wave/Orange Money demandés).
                             </div>
                         </div>
                     </div>

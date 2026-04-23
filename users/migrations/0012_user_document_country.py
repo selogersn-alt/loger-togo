@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='document_country',
-            field=models.CharField(default='Sénégal', max_length=100, verbose_name='Pays de délivrance du document'),
+            field=models.CharField(default='Togo', max_length=100, verbose_name='Pays de délivrance du document'),
         ),
     ]

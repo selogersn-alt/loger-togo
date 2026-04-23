@@ -4,7 +4,7 @@
 {% block title %}{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Professionnel Certifié{% endblock %}
 
 {% block extra_meta %}
-    <meta property="og:title" content="{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Certifié Loger Sénégal">
+    <meta property="og:title" content="{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Certifié Loger Togo">
     <meta property="og:description" content="{{ viewed_user.get_role_display }} vérifié sur Solvable. Consultez mes annonces et ma réputation NILS.">
     {% if viewed_user.profile_picture %}
         <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
@@ -51,7 +51,7 @@
                 <div class="row g-4">
                     <div class="col-md-6">
                         <label class="small text-muted text-uppercase fw-bold mb-1">Zone d'activité</label>
-                        <p class="fs-5 fw-600"><i class="fa-solid fa-location-dot me-2 text-success"></i> {{ viewed_user.coverage_area|default:"Sénégal (National)" }}</p>
+                        <p class="fs-5 fw-600"><i class="fa-solid fa-location-dot me-2 text-success"></i> {{ viewed_user.coverage_area|default:"Togo (National)" }}</p>
                     </div>
                     <div class="col-md-6">
                         <label class="small text-muted text-uppercase fw-bold mb-1">Inscrit depuis</label>
@@ -95,8 +95,8 @@
     <script>
         function shareProfile() {
             const shareData = {
-                title: "{{ viewed_user.company_name|default:viewed_user.get_full_name|escapejs }} | Loger Sénégal",
-                text: "Découvrez le catalogue de ce professionnel certifié sur Loger Sénégal.",
+                title: "{{ viewed_user.company_name|default:viewed_user.get_full_name|escapejs }} | Loger Togo",
+                text: "Découvrez le catalogue de ce professionnel certifié sur Loger Togo.",
                 url: "{{ share_url|safe }}"
             };
 

@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.db.models import Avg, Sum, Count, Q
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 
@@ -75,7 +76,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     employer = models.CharField(max_length=150, null=True, blank=True, verbose_name="Employeur / Titre d'emploi")
     marital_status = models.CharField(max_length=50, null=True, blank=True, verbose_name="Statut matrimonial")
     spouse_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Nom de l'épouse/époux")
-    document_country = models.CharField(max_length=100, default='Sénégal', verbose_name="Pays de délivrance du document")
+    document_country = models.CharField(max_length=100, default='Togo', verbose_name="Pays de délivrance du document")
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -99,13 +100,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def send_otp(self):
         """Déclenche l'envoi du code OTP selon les préférences."""
-        from logersenegal.emails import send_otp_email
+        from logertogo.emails import send_otp_email
         if self.phone_otp:
             # Envoi par Email si configuré
             if self.notification_preference in ['EMAIL', 'BOTH'] and self.email:
                 send_otp_email(self, self.phone_otp)
             
-            # Ici on pourrait ajouter l'API SMS plus tard
+            # Envoi par SMS via Termii
+            if self.notification_preference in ['SMS', 'BOTH']:
+                from logertogo.sms import send_termii_sms
+                message = f"Loger Togo: Votre code de vérification est {self.phone_otp}. Valable 10 min. Ne le partagez pas."
+                send_termii_sms(self.phone_number, message)
+                
             return True
         return False
 
@@ -113,14 +119,27 @@ class User(AbstractBaseUser, PermissionsMixin):
         # Génération du slug pour les liens personnalisés
         if not self.slug:
             from django.utils.text import slugify
-            base_name = self.company_name or f"{self.first_name}-{self.last_name}"
-            if not base_name or base_name == "None-None":
-                base_name = str(self.id).split('-')[0]
+            import uuid
+            
+            # Correction DigitalH : Gérer les chaînes vides et les tirets simples
+            first = (self.first_name or "").strip()
+            last = (self.last_name or "").strip()
+            company = (self.company_name or "").strip()
+            
+            base_name = company or f"{first} {last}".strip()
+            
+            # Si le nom est vide ou juste un tiret, on utilise l'ID
+            if not base_name or base_name == "None-None" or len(base_name) < 2:
+                base_name = str(self.id or uuid.uuid4()).split('-')[0]
             
             new_slug = slugify(base_name)
-            # Vérifier l'unicité
-            if User.objects.filter(slug=new_slug).exists():
-                new_slug = f"{new_slug}-{str(self.id).split('-')[0]}"
+            if not new_slug:
+                new_slug = str(self.id or uuid.uuid4()).split('-')[0]
+                
+            # Vérifier l'unicité et ajouter un suffixe si besoin
+            if User.objects.filter(slug=new_slug).exclude(pk=self.pk).exists():
+                new_slug = f"{new_slug}-{str(self.id or uuid.uuid4())[:8]}"
+            
             self.slug = new_slug
 
         # Automatisation DigitalH : Les admins et conseillers ont un accès staff automatique
@@ -197,34 +216,17 @@ class NILS_Profile(models.Model):
     @property
     def total_incidents(self):
         """Nombre total d'incidents impactants rattachés à ce profil."""
-        from solvable.models import IncidentReport
-        return IncidentReport.objects.filter(reported_tenant=self.user, status=IncidentReport.StatusEnum.IMPACTED).count()
+        return 0
 
     @property
     def amount_unpaid(self):
         """Montant total des loyers impayés non résolus."""
-        from solvable.models import IncidentReport
-        from django.db.models import Sum
-        res = IncidentReport.objects.filter(
-            reported_tenant=self.user, 
-            status=IncidentReport.StatusEnum.IMPACTED,
-            incident_type=IncidentReport.IncidentTypeEnum.UNPAID_RENT
-        ).aggregate(Sum('amount_due'))
-        return res['amount_due__sum'] or 0
+        return 0
 
     @property
     def average_rating(self):
-        """Calculates the average star rating (1-10) received across all terminated filiations."""
-        from solvable.models import RentalFiliation
-        from django.db.models import Avg
-        if self.nils_type == 'TENANT':
-            # Note reçue par le locataire venant des bailleurs
-            res = RentalFiliation.objects.filter(tenant=self.user, rating_for_tenant__isnull=False).aggregate(Avg('rating_for_tenant'))
-            return round(res['rating_for_tenant__avg'], 1) if res['rating_for_tenant__avg'] else 0.0
-        else:
-            # Note reçue par le bailleur venant des locataires
-            res = RentalFiliation.objects.filter(landlord=self.user, rating_for_landlord__isnull=False).aggregate(Avg('rating_for_landlord'))
-            return round(res['rating_for_landlord__avg'], 1) if res['rating_for_landlord__avg'] else 0.0
+        """Calculates the average star rating (1-10)."""
+        return 0.0
 
     def save(self, *args, **kwargs):
         if not self.nils_number:
@@ -243,73 +245,9 @@ class NILS_Profile(models.Model):
 
     def update_score(self):
         """
-        Recalculate the NILS score based on tenant's payment history and reported incidents.
-        Base score is 100.
-        - +5 points for each regular PAID month
-        - -10 points for each LATE payment
-        - -30 points for each UNPAID payment
-        - -30 points for each IMPACTED incident
+        Recalculate the NILS score.
         """
-        from solvable.models import PaymentHistory, IncidentReport
-
-        base_score = 100
-        penalties = 0
-        bonuses = 0
-
-        # Fetch payments related to filiations where this user is the tenant
-        payments = PaymentHistory.objects.filter(rental_filiation__tenant=self.user)
-        for payment in payments:
-            if payment.status == PaymentHistory.StatusEnum.PAID:
-                bonuses = bonuses + 5
-            elif payment.status == PaymentHistory.StatusEnum.LATE:
-                penalties = penalties + 10
-            elif payment.status in [PaymentHistory.StatusEnum.UNPAID, PaymentHistory.StatusEnum.REPORTED]:
-                penalties = penalties + 30
-
-        # DigitalH Audit Fix: Only validated incidents impact the score
-        # Fetch incidents: IMPACTED (-30) and RESOLVED (-1)
-        impacted_incidents_count = IncidentReport.objects.filter(
-            reported_tenant=self.user, 
-            status=IncidentReport.StatusEnum.IMPACTED,
-            is_validated=True
-        ).count()
-        resolved_incidents_count = IncidentReport.objects.filter(
-            reported_tenant=self.user, 
-            status=IncidentReport.StatusEnum.RESOLVED
-        ).count()
-        
-        # DigitalH Audit Fix: IN_MEDIATION impacts score by -10 to alert (Yellow status)
-        mediation_incidents_count = IncidentReport.objects.filter(
-            reported_tenant=self.user, 
-            status=IncidentReport.StatusEnum.IN_MEDIATION
-        ).count()
-        
-        penalties = penalties + (impacted_incidents_count * 30) + (resolved_incidents_count * 1) + (mediation_incidents_count * 10)
-
-        # Integration of star ratings into the 100-point score
-        avg = self.average_rating
-        if avg > 0:
-            if avg >= 9: bonuses += 10 # Excellent conduct
-            elif avg >= 7: bonuses += 5 # Good conduct
-            elif avg <= 3: penalties += 20 # Bad conduct
-            elif avg <= 1: penalties += 50 # Critical issues
-
-        # DigitalH Audit Fix: Cap bonuses to prevent "hiding" serious incidents
-        # Max bonus allowed is 50.
-        bonuses = min(bonuses, 50)
-
-        # Calculate final score bounded between 0 and 100
-        computed_score = base_score + bonuses - penalties
-        self.score = max(0, min(100, int(computed_score)))
-
-        # Update reputation status
-        if self.score >= 80:
-            self.reputation_status = self.ReputationEnum.GREEN
-        elif self.score >= 50:
-            self.reputation_status = self.ReputationEnum.YELLOW
-        else:
-            self.reputation_status = self.ReputationEnum.RED
-
+        self.score = 100
         self.save()
 
 class SearchLog(models.Model):

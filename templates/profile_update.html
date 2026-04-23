@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Modifier mon Profil | Loger Sénégal{% endblock %}
+{% block title %}Modifier mon Profil | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -42,7 +42,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Lien personnalisé (Slug)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text" style="background: var(--bg-body); border-color: var(--border-color); color: var(--text-muted);">logersenegal.com/p/</span>
+                                    <span class="input-group-text" style="background: var(--bg-body); border-color: var(--border-color); color: var(--text-muted);">Logertogo.com/p/</span>
                                     {{ form.slug }}
                                 </div>
                                 <small class="text-muted">Lettres, chiffres et tirets uniquement.</small>
@@ -69,7 +69,7 @@
                             <div class="col-12">
                                 <label class="form-label fw-bold">Zone de couverture</label>
                                 {{ form.coverage_area }}
-                                <small class="text-muted">Ex: Dakar, Almadies, Saly, etc.</small>
+                                <small class="text-muted">Ex: Lomé, Almadies, Saly, etc.</small>
                             </div>
 
                             <div class="col-12 mt-3">

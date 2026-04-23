@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="{% static 'img/logo_square.png' %}">
     
     <!-- Balises SEO Stratégiques (Market-Driven) -->
-    <title>{% block title %}Loger Togo | Location & Vente Immobilière de Confiance à Lomé{% endblock %}</title>
+    <title>{% block title %}Loger Togo | Location & Vente de Confiance au Togo{% endblock %}</title>
     
     <!-- LCP Image Preload -->
     <link rel="preload" href="{% static 'img/og_banner.png' %}" as="image" fetchpriority="high">
@@ -34,7 +34,7 @@
     {% endif %}
     
     <!-- Open Graph (Pour le partage sur Whatsapp/Facebook) -->
-    <meta property="og:title" content="{% block og_title %}Loger Togo : L'Immobilier de Confiance au Togo{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Loger Togo : La Confiance Immobilière au Togo{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Location d'appartements et de maisons au Togo avec garantie de loyer, vérification d'identité et profil NILS.{% endblock %}">
     {% block extra_meta %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
@@ -392,11 +392,10 @@
             <a class="navbar-brand animate__animated animate__fadeInLeft d-flex align-items-center" href="{% url 'home' %}" aria-label="Accueil Loger Togo" style="text-decoration: none;">
                 <div class="d-flex align-items-center" style="gap: 12px;">
                     <!-- Icône Maison fournie par l'utilisateur -->
-                    <img src="{% static 'img/logo_icon.png' %}" alt="Icon Loger Togo" height="50" style="height: 50px; width: auto; border-radius: 8px;">
+                    <img src="{% static 'img/logo_icon.png' %}" alt="Icon Loger Togo" height="55" style="height: 55px; width: auto; border-radius: 8px;">
                     <!-- Typographie Loger Togo -->
                     <div class="d-flex flex-column justify-content-center">
-                        <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.8rem; line-height: 0.9; letter-spacing: -1px; color: var(--text-main);">Loger<span style="color: var(--color-light-green);">Togo</span></span>
-                        <span style="font-family: 'Outfit', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; color: var(--color-yellow); text-transform: uppercase; margin-top: 2px;">Immobilier</span>
+                        <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 2.1rem; line-height: 1; letter-spacing: -1px; color: var(--text-main);">Loger<span style="color: var(--color-light-green);">Togo</span></span>
                     </div>
                 </div>
             </a>

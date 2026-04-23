@@ -9,4 +9,4 @@ Disallow: /api/
 Allow: /
 
 # Indiquer le chemin du sitemap (dynamique)
-Sitemap: https://logertogo.com/sitemap.xml
+Sitemap: https://logertg.com/sitemap.xml

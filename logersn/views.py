@@ -102,14 +102,19 @@ def properties_list_view(request):
     return render(request, 'properties_list.html', context)
 
 def property_detail_view(request, property_id=None, slug=None):
-    if slug: property_obj = get_object_or_404(Property, slug=slug)
-    else: property_obj = get_object_or_404(Property, id=property_id)
+    # Optimisation Senior: Préchargement des relations pour éviter les requêtes N+1
+    base_qs = Property.objects.select_related('owner').prefetch_related('images', 'interior_equipments', 'reviews', 'availabilities')
+    
+    if slug: property_obj = get_object_or_404(base_qs, slug=slug)
+    else: property_obj = get_object_or_404(base_qs, id=property_id)
     
     property_obj.views_count += 1
     property_obj.save()
     
     is_favorite = request.user.is_authenticated and Favorite.objects.filter(user=request.user, property=property_obj).exists()
-    related_properties = Property.objects.filter(city=property_obj.city, is_published=True).exclude(id=property_obj.id)[:4]
+    
+    # Optimisation des propriétés similaires
+    related_properties = Property.objects.filter(city=property_obj.city, is_published=True).exclude(id=property_obj.id).select_related('owner').prefetch_related('images')[:4]
     
     return render(request, 'property_detail.html', {
         'property': property_obj, 

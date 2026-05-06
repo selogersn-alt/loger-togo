@@ -31,8 +31,15 @@ COPY . /app/
 COPY ./scripts/entrypoint.sh /scripts/entrypoint.sh
 RUN chmod +x /scripts/entrypoint.sh
 
+# Création d'un utilisateur non-root pour la sécurité en production
+RUN addgroup --system django && adduser --system --ingroup django django
+RUN chown -R django:django /app /scripts
+
 # Exposer le port par défaut de Gunicorn
 EXPOSE 8000
+
+# Basculer sur l'utilisateur non-root
+USER django
 
 # Utiliser le script entrypoint
 ENTRYPOINT ["/scripts/entrypoint.sh"]

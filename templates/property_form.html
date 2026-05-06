@@ -439,7 +439,7 @@ async function geocodeAddress() {
     const neighborhoodText = neighborhood ? neighborhood.value.trim() : '';
 
     if (!neighborhoodText && !cityText) {
-        showStatus('⚠️ {% trans "Veuillez d\'abord renseigner la ville et le quartier." %}', 'warning');
+        showStatus(`⚠️ {% trans "Veuillez d'abord renseigner la ville et le quartier." %}`, 'warning');
         return;
     }
 
@@ -468,18 +468,18 @@ async function geocodeAddress() {
                 map.setView([lat, lng], 14);
                 showStatus(`⚠️ {% trans "Quartier non trouvé. Centré sur" %} ${cityText}. {% trans "Cliquez sur la carte pour placer votre bien." %}`, 'warning');
             } else {
-                showStatus('❌ {% trans "Adresse introuvable. Cliquez manuellement sur la carte." %}', 'danger');
+                showStatus(`❌ {% trans "Adresse introuvable. Cliquez manuellement sur la carte." %}`, 'danger');
             }
         }
     } catch(e) {
-        showStatus('❌ {% trans "Erreur réseau. Cliquez sur la carte pour placer votre bien." %}', 'danger');
+        showStatus(`❌ {% trans "Erreur réseau. Cliquez sur la carte pour placer votre bien." %}`, 'danger');
     }
 }
 
 // ─── GPS NAVIGATEUR ──────────────────────────────────────────────────────
 function useMyGPS() {
     if (!navigator.geolocation) {
-        showStatus('❌ {% trans "La géolocalisation n\'est pas disponible sur ce navigateur." %}', 'danger');
+        showStatus(`❌ {% trans "La géolocalisation n'est pas disponible sur ce navigateur." %}`, 'danger');
         return;
     }
     showStatus('📡 {% trans "Détection de votre position GPS…" %}', 'info');

@@ -33,11 +33,11 @@ class PropertyForm(forms.ModelForm):
     kitchens = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     households = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     floor_level = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
-    has_garage = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    has_balcony = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    has_terrace = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    has_courtyard = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    has_garden = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_garage = forms.BooleanField(required=False, label=_("Garage / Parking"), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_balcony = forms.BooleanField(required=False, label=_("Balcon"), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_terrace = forms.BooleanField(required=False, label=_("Terrasse"), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_courtyard = forms.BooleanField(required=False, label=_("Cour"), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_garden = forms.BooleanField(required=False, label=_("Jardin"), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     
     def clean(self):
         cleaned_data = super().clean()

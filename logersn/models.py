@@ -107,12 +107,6 @@ class Property(models.Model):
             self.slug = f"{base_slug}-{str(self.id)[:8]}"
         super().save(*args, **kwargs)
 
-    def get_main_image(self):
-        primary_image = self.images.filter(is_primary=True).first()
-        if primary_image:
-            return primary_image
-        return self.images.first()
-        
     def get_icon_class(self):
         t = self.property_type
         if 'APARTMENT' in t:
@@ -140,8 +134,8 @@ class Property(models.Model):
                 return main_img.image_url.url
         except Exception:
             pass
-        # Placeholder de secours premium
-        return "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000&auto=format&fit=crop"
+        # Placeholder neutre et professionnel aux couleurs de la marque
+        return "https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=1000&auto=format&fit=crop"
 
 class PropertyImage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

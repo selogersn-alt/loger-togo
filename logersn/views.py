@@ -76,7 +76,7 @@ def properties_list_view(request):
     map_markers = []
     for p in properties:
         if p.latitude and p.longitude:
-            main_img = p.get_main_image()
+            img_url = p.get_main_image
             map_markers.append({
                 'id': str(p.id),
                 'lat': float(p.latitude),
@@ -87,7 +87,7 @@ def properties_list_view(request):
                 'neighborhood': p.neighborhood,
                 'category': p.listing_category,
                 'url': p.get_absolute_url(),
-                'img': main_img.image_url.url if main_img else None
+                'img': img_url
             })
 
     context = {

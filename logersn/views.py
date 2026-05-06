@@ -103,7 +103,7 @@ def properties_list_view(request):
 
 def property_detail_view(request, property_id=None, slug=None):
     # Optimisation Senior: Préchargement des relations pour éviter les requêtes N+1
-    base_qs = Property.objects.select_related('owner').prefetch_related('images', 'interior_equipments', 'reviews', 'availabilities')
+    base_qs = Property.objects.select_related('owner').prefetch_related('images', 'availabilities')
     
     if slug: property_obj = get_object_or_404(base_qs, slug=slug)
     else: property_obj = get_object_or_404(base_qs, id=property_id)

@@ -259,15 +259,7 @@
             <div class="gallery-container">
                 <!-- Main Image -->
                 <div>
-                    {% with main_image=property.get_main_image %}
-                        {% if main_image %}
-                            <img src="{{ main_image.image_url.url }}" alt="{{ property.title }}" class="main-image" id="expandedImg" width="800" height="500" fetchpriority="high" onerror="this.onerror=null; this.outerHTML='<div class=\'main-image d-flex align-items-center justify-content-center bg-light\' style=\'height:400px;\'><i class=\'fa-solid {{ property.get_icon_class }} text-muted\' style=\'font-size: 8rem; opacity: 0.3;\'></i></div>';">
-                        {% else %}
-                            <div class="main-image d-flex align-items-center justify-content-center bg-light" id="expandedImg" style="height: 400px;">
-                                <i class="fa-solid {{ property.get_icon_class }} text-muted" style="font-size: 8rem; opacity: 0.3;"></i>
-                            </div>
-                        {% endif %}
-                    {% endwith %}
+                    <img src="{{ property.get_main_image }}" alt="{{ property.title }}" class="main-image" id="expandedImg" width="800" height="500" fetchpriority="high" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000&auto=format&fit=crop';">
                 </div>
                 
                 <!-- Thumbnails -->
@@ -278,7 +270,8 @@
                          alt="{{ property.title }} - Photo {{ forloop.counter }}" 
                          class="thumbnail-img {% if forloop.first %}active{% endif %}" 
                          width="120" height="80" loading="lazy" decoding="async"
-                         onclick="changeImage(this)">
+                         onclick="changeImage(this)"
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=200&auto=format&fit=crop';">
                     {% endfor %}
                 </div>
                 {% endif %}

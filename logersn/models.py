@@ -131,6 +131,18 @@ class Property(models.Model):
             return 'fa-briefcase'
         return 'fa-house'
 
+    @property
+    def get_main_image(self):
+        """Retourne l'image principale ou la première image, sinon un placeholder."""
+        try:
+            main_img = self.images.filter(is_primary=True).first() or self.images.first()
+            if main_img and main_img.image_url:
+                return main_img.image_url.url
+        except Exception:
+            pass
+        # Placeholder de secours premium
+        return "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000&auto=format&fit=crop"
+
 class PropertyImage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')

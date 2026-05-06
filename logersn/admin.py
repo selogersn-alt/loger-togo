@@ -10,8 +10,11 @@ class PropertyImageInline(admin.TabularInline):
     readonly_fields = ('image_preview',)
 
     def image_preview(self, obj):
-        if obj.image_url:
-            return format_html('<img src="{}" style="max-height: 100px; border-radius: 5px;" />', obj.image_url.url)
+        try:
+            if obj.image_url:
+                return format_html('<img src="{}" style="max-height: 100px; border-radius: 5px;" onerror="this.style.display=\'none\'" />', obj.image_url.url)
+        except Exception:
+            pass
         return "-"
     image_preview.short_description = "Aperçu"
 
@@ -28,10 +31,11 @@ class PropertyAdmin(admin.ModelAdmin):
     actions = ['publish_properties', 'unpublish_properties', 'mark_as_paid', 'boost_selected']
 
     def get_thumbnail(self, obj):
-        first_img = obj.images.filter(is_primary=True).first() or obj.images.first()
-        if first_img and first_img.image_url:
-            return format_html('<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;" />', first_img.image_url.url)
-        return mark_safe('<div style="width: 50px; height: 50px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ccc;"><i class="fa fa-image"></i></div>')
+        try:
+            url = obj.get_main_image
+            return format_html('<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;" onerror="this.src=\'https://via.placeholder.com/50\'" />', url)
+        except Exception:
+            return mark_safe('<div style="width: 50px; height: 50px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ccc;"><i class="fa fa-image"></i></div>')
     get_thumbnail.short_description = "Aperçu"
 
     @admin.action(description="✅ Publier les annonces sélectionnées")

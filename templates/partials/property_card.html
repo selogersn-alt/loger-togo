@@ -2,28 +2,10 @@
 <div class="property-card shadow-sm border-0 h-100 animate__animated animate__fadeInUp position-relative" style="transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
     
     <div class="property-image-wrapper position-relative" style="height: 240px; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px;">
-        {% if property.images.all %}
-            <!-- Image Carousel -->
-            <div id="carousel-{{ property.id }}" class="carousel slide h-100" data-bs-ride="carousel" data-bs-interval="3000" style="pointer-events: none;">
-                <div class="carousel-inner h-100">
-                    {% for image in property.images.all %}
-                    <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}">
-                        <img src="{{ image.image_url.url }}" 
-                             class="property-img w-100 h-100" 
-                             alt="{{ property.title }}" 
-                             style="object-fit: cover;">
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% else %}
-            <div class="w-100 h-100 position-relative d-flex align-items-center justify-content-center" style="background: #e9ecef;">
-                <div class="text-center">
-                    <i class="fa-solid fa-camera text-muted opacity-25 d-block mb-2" style="font-size: 3rem;"></i>
-                    <span class="text-muted small fw-bold">{% trans "Photos en cours..." %}</span>
-                </div>
-            </div>
-        {% endif %}
+        <div class="w-100 h-100 position-relative">
+            <img src="{{ property.get_main_image }}" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;" alt="{{ property.title }}" loading="lazy">
+            <div class="card-img-overlay-custom"></div>
+        </div>
         
         <!-- Superpositions -->
         <div style="position: absolute; top: 12px; left: 12px; z-index: 5; display: flex; flex-direction: column; gap: 6px;">

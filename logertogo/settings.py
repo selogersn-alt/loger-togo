@@ -237,7 +237,7 @@ if USE_S3:
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
     # Si on utilise un domaine personnalisé R2 (fortement recommandé)
@@ -251,7 +251,7 @@ else:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
     MEDIA_URL = '/media/'

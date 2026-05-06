@@ -260,6 +260,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # WhiteNoise settings
 WHITENOISE_INDEX_FILE = False
+WHITENOISE_MANIFEST_STRICT = False
 
 # Email Configuration (Direct Server O2switch / SMTP local)
 if DEBUG:

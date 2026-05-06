@@ -13,6 +13,11 @@
     [data-theme="dark"] .iti__country-list { background-color: var(--bg-card); color: var(--text-main); }
     .input-group-text { border-left: none !important; background-color: var(--bg-body) !important; color: var(--text-muted); }
     #password { border-right: none !important; }
+    /* Cacher l'oeil natif de Edge/Windows */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+        display: none;
+    }
 </style>
 {% endblock %}
 
@@ -78,18 +83,16 @@
     const iti = window.intlTelInput(input, {
         initialCountry: "tg",
         preferredCountries: ["tg", "bj", "ci", "fr"],
-        separateDialCode: false, // On ne sépare pas le code pour laisser l'utilisateur libre
+        separateDialCode: false,
         autoPlaceholder: "polite",
         utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/utils.js",
     });
 
-    // Masquer/Afficher les drapeaux intelligemment
     input.addEventListener('input', function() {
         const val = this.value.trim();
         const flagContainer = document.querySelector('.iti__flag-container');
         
         if (val.includes('@') || val.startsWith('+')) {
-            // Si c'est un email ou un numéro déjà international, on n'affiche pas le sélecteur de pays interne
             if (flagContainer) flagContainer.style.display = 'none';
             input.style.paddingLeft = '15px';
         } else {
@@ -101,12 +104,9 @@
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         const phoneValue = input.value.trim();
         
-        // Si c'est un email, on laisse tel quel
         if (phoneValue.includes('@')) return;
 
-        // Si c'est un numéro
         if (phoneValue !== "") {
-            // On ne demande à ITI le numéro formaté QUE si l'utilisateur n'a pas mis de +
             if (!phoneValue.startsWith('+') && !phoneValue.startsWith('00')) {
                 const fullNumber = iti.getNumber();
                 if (fullNumber) {
@@ -117,23 +117,17 @@
     });
 
     function togglePassword(id, eyeId) {
-        const input = document.getElementById(id);
+        const inputField = document.getElementById(id);
         const eye = document.getElementById(eyeId);
-        if (input.type === "password") {
-            input.type = "text";
+        if (inputField.type === "password") {
+            inputField.type = "text";
             eye.classList.remove('fa-eye');
             eye.classList.add('fa-eye-slash');
         } else {
-            input.type = "password";
+            inputField.type = "password";
             eye.classList.remove('fa-eye-slash');
             eye.classList.add('fa-eye');
         }
     }
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        // Si le champ ressemble à un numéro (ne contient pas de @), on applique le format international
-        if (phoneInput.value.trim() !== "" && !phoneInput.value.includes('@')) {
-            phoneInput.value = iti.getNumber();
-        }
-    });
 </script>
 {% endblock %}

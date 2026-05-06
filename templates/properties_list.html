@@ -219,12 +219,12 @@
 <!-- ═══ CARTE INTERACTIVE ═══ -->
 <div class="container mt-3 mb-2">
   <div class="d-flex justify-content-end">
-    <button class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold" id="mapToggleBtn" onclick="toggleMap()">
-      <i class="fa-solid fa-map-location-dot me-2"></i>{% trans "Voir sur la carte" %}
+    <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold" id="mapToggleBtn" onclick="toggleMap()">
+      <i class="fa-solid fa-list me-2"></i>{% trans "Masquer la carte" %}
     </button>
   </div>
-  <div id="mapWrapper" style="display:none;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
-    <div id="leaflet-map" style="height:420px;"></div>
+  <div id="mapWrapper" style="display:block;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
+    <div id="leaflet-map" style="height:420px; z-index: 1;"></div>
   </div>
 </div>
 
@@ -579,5 +579,12 @@ function initMap() {
         map.fitBounds(bounds, {padding: [30, 30]});
     }
 }
+
+// Initialiser la carte au chargement de la page puisque c'est visible par défaut
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('mapWrapper').style.display !== 'none') {
+        initMap();
+    }
+});
 </script>
 {% endblock %}

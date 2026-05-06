@@ -138,14 +138,22 @@ WSGI_APPLICATION = 'logertogo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-import dj_database_url
+# Database override for production
+db_url = os.environ.get('DATABASE_URL')
+if db_url:
+    DATABASES = {
+        'default': dj_database_url.parse(db_url)
+    }
+    DATABASES['default']['CONN_MAX_AGE'] = 600
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR}/db.sqlite3',
-        conn_max_age=600
-    )
-}
+print(f"Database Engine: {DATABASES['default'].get('ENGINE', 'Postgres/Custom')}")
 
 
 AUTHENTICATION_BACKENDS = [

@@ -131,12 +131,24 @@ def create_property_view(request):
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES)
         if form.is_valid():
-            p = form.save(commit=False); p.owner = request.user; p.save()
-            images = request.FILES.getlist('images')
-            for i, img in enumerate(images):
-                PropertyImage.objects.create(property=p, image_url=img, is_primary=(i == 0))
-            return redirect('initiate_payment', property_id=p.id, payment_type='PUBLICATION')
-    else: form = PropertyForm()
+            try:
+                p = form.save(commit=False)
+                p.owner = request.user
+                p.save()
+                
+                images = request.FILES.getlist('images')
+                for i, img in enumerate(images):
+                    PropertyImage.objects.create(property=p, image_url=img, is_primary=(i == 0))
+                
+                messages.success(request, _("Votre annonce a été créée avec succès ! Elle est en attente de validation."))
+                return redirect('initiate_payment', property_id=p.id, payment_type='PUBLICATION')
+            except Exception as e:
+                # Si erreur de stockage (S3), on garde l'annonce mais on log l'erreur
+                print(f"Erreur d'enregistrement d'image: {e}")
+                messages.warning(request, _("L'annonce a été créée, mais il y a eu un problème lors de l'envoi des images. Veuillez réessayer de les ajouter dans 'Modifier'."))
+                return redirect('dashboard')
+    else: 
+        form = PropertyForm()
     return render(request, 'property_form.html', {'form': form, 'togo_neighborhoods': TOGO_NEIGHBORHOODS})
 
 @login_required

@@ -67,10 +67,15 @@ def verified_professionals_view(request):
 
 @login_required
 def dashboard_view(request):
-    """Hub central redirigeant vers le bon tableau de bord selon le rôle."""
-    if request.user.role == 'TENANT':
-        return redirect('management:tenant_dashboard')
-    return redirect('management:landlord_dashboard')
+    """Hub central affichant les statistiques et les accès rapides."""
+    # Calcul des statistiques pour le Pro / Bailleur
+    user_properties = request.user.properties.all()
+    total_views = user_properties.aggregate(Sum('views_count'))['views_count__sum'] or 0
+    
+    return render(request, 'dashboard.html', {
+        'total_views': total_views,
+        'properties_count': user_properties.count(),
+    })
 
 # --- PAIEMENTS FEDAPAY ---
 

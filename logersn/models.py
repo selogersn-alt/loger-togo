@@ -139,35 +139,27 @@ class PropertyImage(models.Model):
 
     def save(self, *args, **kwargs):
         """Conversion automatique en WebP et redimensionnement intelligent (Sécurisé)."""
-        if self.image_url:
+        if self.image_url and self._state.adding:
             try:
-                # On ne tente la conversion que si Pillow est disponible et le fichier n'est pas déjà webp
                 if not self.image_url.name.lower().endswith('.webp'):
                     img = Image.open(self.image_url)
+                    if img.mode in ("RGBA", "P"): img = img.convert("RGB")
                     
-                    # 1. Conversion en RGB
-                    if img.mode in ("RGBA", "P"):
-                        img = img.convert("RGB")
-                    
-                    # 2. Redimensionnement
                     max_width = 1200
                     if img.width > max_width:
                         output_size = (max_width, int((max_width / img.width) * img.height))
                         img = img.resize(output_size, Image.LANCZOS)
                     
-                    # 3. Flux mémoire
                     output = io.BytesIO()
-                    img.save(output, format='WEBP', quality=85)
+                    img.save(output, format='WEBP', quality=80)
                     output.seek(0)
                     
-                    # 4. Changement de nom et sauvegarde du champ
-                    current_name = os.path.splitext(self.image_url.name)[0]
+                    current_name = os.path.splitext(os.path.basename(self.image_url.name))[0]
                     new_filename = f"{current_name}.webp"
                     self.image_url.save(new_filename, ContentFile(output.read()), save=False)
             except Exception as e:
-                # En cas d'erreur (PIL manquant, erreur de format, etc.), on ignore et on garde l'original
-                print(f"WebP conversion failed for {self.image_url.name}: {e}")
-            
+                print(f"WebP conversion failed: {e}")
+        
         super().save(*args, **kwargs)
 
     def __str__(self):

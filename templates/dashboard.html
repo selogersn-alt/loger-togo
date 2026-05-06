@@ -3,47 +3,86 @@
 
 {% block content %}
 <div class="container py-5">
+    <!-- Stat Cards for Pros -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="background:var(--bg-card);border-radius:20px; transition: transform 0.3s;">
+                <div class="icon-box bg-success-light text-success mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-bullhorn fa-lg"></i>
+                </div>
+                <h6 class="text-muted text-uppercase small fw-bold">{% trans "Mes Annonces" %}</h6>
+                <h2 class="display-6 fw-bold text-success mb-0">{{ request.user.properties.count }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="background:var(--bg-card);border-radius:20px; transition: transform 0.3s;">
+                <div class="icon-box bg-primary-light text-primary mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-eye fa-lg"></i>
+                </div>
+                <h6 class="text-muted text-uppercase small fw-bold">{% trans "Vues Totales" %}</h6>
+                <h2 class="display-6 fw-bold text-primary mb-0">{{ total_views|default:0 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="background:var(--bg-card);border-radius:20px; transition: transform 0.3s;">
+                <div class="icon-box bg-warning-light text-warning mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-star fa-lg"></i>
+                </div>
+                <h6 class="text-muted text-uppercase small fw-bold">{% trans "Statut" %}</h6>
+                <div class="mt-2">
+                    <span class="badge rounded-pill {% if request.user.is_verified_pro %}bg-success{% else %}bg-warning{% endif %} px-3 py-2">
+                        {{ request.user.get_role_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card bg-surface border-0 shadow-sm p-4 p-md-5 text-center">
-                <div class="mb-4">
-                    <div class="bg-success-light text-success d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px;">
-                        <i class="fas fa-user-circle fa-3x"></i>
+        <div class="col-lg-12">
+            <div class="card bg-surface border-0 shadow-lg p-4 p-md-5" style="border-radius: 25px;">
+                <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+                    <div>
+                        <h1 class="h2 text-main fw-bold mb-1">{% trans "Bienvenue sur votre Espace" %} {% if request.user.role != 'TENANT' %}Pro{% endif %}</h1>
+                        <p class="text-muted m-0">{% trans "Gérez vos activités immobilières en toute simplicité." %}</p>
                     </div>
-                    <h1 class="h2 text-main">{% trans "Bienvenue sur votre Espace Loger Togo" %}</h1>
-                    <p class="text-muted lead">{% trans "Choisissez le service que vous souhaitez utiliser aujourd'hui." %}</p>
+                    {% if request.user.role != 'TENANT' %}
+                    <a href="{% url 'create_property' %}" class="btn btn-success rounded-pill px-4 py-2 fw-bold">
+                        <i class="fas fa-plus me-2"></i>{% trans "Publier un bien" %}
+                    </a>
+                    {% endif %}
                 </div>
 
                 <div class="row g-4 mt-2">
                     <!-- Section Annonces -->
                     <div class="col-md-6">
-                        <div class="card bg-body border-0 h-100 p-4 transition-hover">
-                            <div class="icon-box bg-primary-light text-primary mx-auto mb-3">
-                                <i class="fas fa-bullhorn fa-2x"></i>
+                        <div class="card bg-body border-0 h-100 p-4 transition-hover shadow-sm" style="border-radius: 20px;">
+                            <div class="icon-box bg-primary-light text-primary mb-3">
+                                <i class="fas fa-list-check fa-2x"></i>
                             </div>
-                            <h4 class="h5">{% trans "Mes Annonces" %}</h4>
-                            <p class="text-muted small">{% trans "Gérez vos publications immobilières, boostez vos biens et suivez vos statistiques de vues." %}</p>
-                            <a href="{% url 'properties_list' %}?owner={{ request.user.id }}" class="btn btn-outline-primary mt-auto">
-                                {% trans "Accéder aux Annonces" %}
+                            <h4 class="h5 fw-bold">{% trans "Mes Publications" %}</h4>
+                            <p class="text-muted small">{% trans "Suivez l'état de vos annonces, modifiez-les ou boostez leur visibilité." %}</p>
+                            <a href="{% url 'properties_list' %}?owner={{ request.user.id }}" class="btn btn-outline-primary mt-auto rounded-pill">
+                                {% trans "Gérer mes annonces" %}
                             </a>
                         </div>
                     </div>
 
-                    <!-- Section Gestion Locative (Rentila-like) -->
+                    <!-- Section Gestion Locative -->
                     <div class="col-md-6">
-                        <div class="card bg-body border-0 h-100 p-4 transition-hover">
-                            <div class="icon-box bg-success-light text-success mx-auto mb-3">
+                        <div class="card bg-body border-0 h-100 p-4 transition-hover shadow-sm" style="border-radius: 20px;">
+                            <div class="icon-box bg-success-light text-success mb-3">
                                 <i class="fas fa-file-contract fa-2x"></i>
                             </div>
-                            <h4 class="h5">{% trans "Gestion Locative" %}</h4>
-                            <p class="text-muted small">{% trans "Gérez vos baux, contrats, quittances de loyer et incidents techniques en temps réel." %}</p>
+                            <h4 class="h5 fw-bold">{% trans "Gestion Locative" %}</h4>
+                            <p class="text-muted small">{% trans "Gérez vos baux, contrats, quittances de loyer et incidents techniques." %}</p>
                             {% if request.user.role == 'TENANT' %}
-                                <a href="{% url 'management:tenant_dashboard' %}" class="btn btn-success mt-auto">
-                                    {% trans "Espace Locataire" %}
+                                <a href="{% url 'management:tenant_dashboard' %}" class="btn btn-success mt-auto rounded-pill">
+                                    {% trans "Mon Espace Locataire" %}
                                 </a>
                             {% else %}
-                                <a href="{% url 'management:landlord_dashboard' %}" class="btn btn-success mt-auto">
-                                    {% trans "Espace Bailleur" %}
+                                <a href="{% url 'management:landlord_dashboard' %}" class="btn btn-success mt-auto rounded-pill">
+                                    {% trans "Mon Espace Bailleur" %}
                                 </a>
                             {% endif %}
                         </div>
@@ -51,13 +90,12 @@
                 </div>
 
                 <div class="mt-5 pt-4 border-top">
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="{% url 'update_profile' %}" class="text-muted text-decoration-none small">
-                            <i class="fas fa-cog me-1"></i>{% trans "Paramètres du Profil" %}
+                    <div class="d-flex justify-content-center gap-4 flex-wrap">
+                        <a href="{% url 'update_profile' %}" class="text-muted text-decoration-none small fw-bold">
+                            <i class="fas fa-user-gear me-2"></i>{% trans "Mon Profil" %}
                         </a>
-                        <span class="text-muted">|</span>
-                        <a href="{% url 'logout' %}" class="text-danger text-decoration-none small">
-                            <i class="fas fa-sign-out-alt me-1"></i>{% trans "Déconnexion" %}
+                        <a href="{% url 'logout' %}" class="text-danger text-decoration-none small fw-bold">
+                            <i class="fas fa-power-off me-2"></i>{% trans "Déconnexion" %}
                         </a>
                     </div>
                 </div>
@@ -68,10 +106,11 @@
 
 <style>
     .bg-surface { background-color: var(--bg-surface); }
-    .bg-primary-light { background-color: rgba(13, 110, 253, 0.1); }
-    .bg-success-light { background-color: rgba(40, 167, 69, 0.1); }
+    .bg-primary-light { background-color: rgba(13, 110, 253, 0.08); }
+    .bg-success-light { background-color: rgba(40, 167, 69, 0.08); }
+    .bg-warning-light { background-color: rgba(255, 193, 7, 0.08); }
     .icon-box { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
-    .transition-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
-    .transition-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    .transition-hover { transition: all 0.3s ease; }
+    .transition-hover:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; border: 1px solid var(--color-light-green) !important; }
 </style>
 {% endblock %}

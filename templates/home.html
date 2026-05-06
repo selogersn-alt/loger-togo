@@ -1,280 +1,177 @@
 {% extends 'base.html' %}
 {% load static i18n property_tags %}
 
-{% block title %}{% trans "Loger Togo | Les meilleures annonces immobilières au Togo | Lomé & Régions" %}{% endblock %}
-
-{% block meta_description %}{% trans "Retrouvez votre futur appartement, villa ou terrain au Togo sur Loger Togo. Des milliers d'annonces vérifiées à Lomé, Kara, Kpalimé et partout au pays." %}{% endblock %}
+{% block title %}{% trans "Loger Togo - Plateforme Immobilière de Prestige au Togo" %}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <style>
-    /* Hero Section Styling - Modern & Impactful */
+    /* Hero Section Styling - Lush Green with Watermark */
     .hero-section {
-        background-position: center;
-        background-size: cover;
+        background: linear-gradient(135deg, #1e5631 0%, #2d8a4e 100%);
         position: relative;
+        overflow: hidden;
+        padding: 100px 0;
+        min-height: 450px;
+        display: flex;
+        align-items: center;
+    }
+    .hero-section::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L90 45 L90 85 L10 85 L10 45 Z' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='1.5'/%3E%3Ctext x='50' y='65' font-size='8' fill='rgba(255,255,255,0.05)' text-anchor='middle' font-family='sans-serif' font-weight='bold'%3ETOGO%3C/text%3E%3C/svg%3E");
+        background-size: 300px;
+        opacity: 0.8;
     }
 
     /* Modern Search Engine */
-    .search-engine-card {
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .search-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        padding: 12px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        max-width: 950px;
+        margin: 0 auto;
     }
-    .search-engine-card:focus-within {
-        transform: translateY(-5px);
-        box-shadow: 0 40px 80px rgba(0,0,0,0.35) !important;
-    }
-
-    .form-select:focus, .form-control:focus {
-        border-color: transparent;
-        box-shadow: none;
-    }
-
-    /* Boosted Card Premium Styling */
-    .boosted-card {
+    .search-input-group {
         background: white;
-        border-radius: 24px !important;
-        overflow: hidden;
-        border: 2px solid transparent !important;
-        transition: all 0.4s ease;
-    }
-    .boosted-card:hover {
-        border-color: var(--color-yellow) !important;
-        transform: translateY(-10px);
-    }
-
-    /* Features Section */
-    .feature-card {
-        background: var(--bg-card);
-        padding: 40px 30px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 10px 30px var(--shadow-color);
-        height: 100%;
-        transition: transform 0.3s ease;
-        border: 1px solid var(--border-color);
-    }
-
-    .feature-card:hover {
-        transform: translateY(-10px);
-    }
-
-    .feature-icon-wrapper {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
+        border-radius: 18px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin: 0 auto 25px auto;
-        font-size: 2rem;
+        padding: 4px 10px;
+        flex: 1;
     }
-
-    .icon-green { background: rgba(127, 212, 125, 0.15); color: var(--color-light-green); }
-    .icon-yellow { background: rgba(245, 196, 47, 0.15); color: var(--color-yellow); }
-    .icon-dark { background: rgba(11, 70, 41, 0.15); color: var(--text-main); }
-
-    @media (max-width: 768px) {
-        .hero-section { padding: 80px 0 60px 0 !important; min-height: 450px; }
-        .hero-title { font-size: 2.2rem !important; margin-bottom: 15px; }
-        .hero-subtitle { font-size: 1.1rem !important; margin-bottom: 30px; }
-        .search-engine-card { 
-            border-radius: 25px !important; 
-            padding: 15px !important;
-        }
-        .search-engine-card .border-end { border-right: none !important; border-bottom: 1px solid #eee; margin-bottom: 10px; padding-bottom: 10px; }
+    .search-input-group i { color: #1e5631; margin-right: 10px; }
+    .search-input-group select, .search-input-group input {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 12px 5px;
+        font-weight: 500;
+        color: #333;
+    }
+    .btn-search {
+        background: #ffc107;
+        color: #1e5631;
+        border: none;
+        border-radius: 18px;
+        padding: 14px 35px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+    .btn-search:hover {
+        background: #ffca2c;
+        transform: scale(1.02);
+    }
+    .trust-badge-mini {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 30px;
+        padding: 6px 15px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-
 <!-- HERO SECTION -->
-<section class="hero-section" style="background-color: var(--color-hero-bg); background-image: linear-gradient(rgba(11, 70, 41, 0.8), rgba(11, 70, 41, 0.9)), url('{% static "img/pattern_bg.png" %}'); background-size: cover; padding: 100px 0 120px 0;">
-    <div class="container text-center">
-        <h1 class="hero-title animate__animated animate__fadeInDown" style="color: #ffffff; font-size: clamp(2.5rem, 6vw, 4.8rem); font-weight: 800; line-height: 1.1; margin-bottom: 20px;">
-            Trouvez votre <span style="color: var(--color-yellow);">logement idéal</span> au Togo
-        </h1>
-        <p class="hero-subtitle animate__animated animate__fadeInUp animate__delay-1s" style="color: #ffffff; font-size: 1.4rem; opacity: 0.95; max-width: 800px; margin: 0 auto 60px auto;">
-            La plateforme immobilière la plus sécurisée pour louer ou acheter en toute sérénité.
-        </p>
-        
-        <!-- Premium Search Bar (Pill Style) -->
-        <div class="search-pod-container animate__animated animate__zoomIn animate__delay-1s" style="max-width: 1100px; margin: 0 auto;">
-            <form method="get" action="{% url 'properties_list' %}" class="search-pod d-flex flex-wrap align-items-center p-2" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.2);">
-                <div class="search-input-group flex-grow-1 d-flex flex-wrap" style="gap: 8px; width: 100%;">
-                    <div class="search-item flex-fill">
-                        <div class="bg-white px-3 py-2 text-start h-100" style="border-radius: 20px;">
-                            <label class="small fw-bold text-muted d-block mb-0" style="font-size: 0.65rem; text-transform: uppercase;">{% trans "Je cherche..." %}</label>
-                            <select name="listing_category" class="form-select border-0 p-0 fw-bold bg-transparent" style="box-shadow: none; font-size: 0.9rem; color: #333;">
-                                <option value="ALL">{% trans "Toutes catégories" %}</option>
-                                <option value="RENT">{% trans "Location" %}</option>
-                                <option value="SALE">{% trans "Vente" %}</option>
-                                <option value="FURNISHED">{% trans "Meublé" %}</option>
-                            </select>
-                        </div>
+<section class="hero-section text-white">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="text-center mb-5">
+            <h1 class="display-3 fw-bold mb-3">Trouvez votre <span style="color: #ffc107;">logement idéal</span> au Togo</h1>
+            <p class="lead opacity-90">La plateforme immobilière la plus sécurisée pour louer ou acheter en toute sérénité.</p>
+        </div>
+
+        <div class="search-container">
+            <form action="{% url 'properties_list' %}" method="GET" class="row g-2 align-items-center">
+                <div class="col-lg-3">
+                    <div class="search-input-group">
+                        <i class="fas fa-home"></i>
+                        <select name="listing_category">
+                            <option value="ALL">{% trans "Toutes catégories" %}</option>
+                            <option value="RENT">{% trans "En location" %}</option>
+                            <option value="SALE">{% trans "En vente" %}</option>
+                            <option value="FURNISHED">{% trans "Meublé" %}</option>
+                        </select>
                     </div>
-                    <div class="search-item flex-fill">
-                        <div class="bg-white px-3 py-2 text-start h-100" style="border-radius: 20px;">
-                            <label class="small fw-bold text-muted d-block mb-0" style="font-size: 0.65rem; text-transform: uppercase;">{% trans "Type" %}</label>
-                            <select name="property_type" class="form-select border-0 p-0 fw-bold bg-transparent" style="box-shadow: none; font-size: 0.9rem; color: #333;">
-                                <option value="ALL">{% trans "Tous" %}</option>
-                                {% for code, name in property_types %}
-                                    <option value="{{ code }}">{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="search-input-group">
+                        <i class="fas fa-building"></i>
+                        <select name="property_type">
+                            <option value="ALL">{% trans "Tous les types" %}</option>
+                            <option value="APPARTEMENT">{% trans "Appartement" %}</option>
+                            <option value="VILLA">{% trans "Villa" %}</option>
+                            <option value="STUDIO">{% trans "Studio" %}</option>
+                            <option value="BUREAU">{% trans "Bureau" %}</option>
+                            <option value="TERRAIN">{% trans "Terrain" %}</option>
+                        </select>
                     </div>
-                    <div class="search-item flex-fill">
-                        <div class="bg-white px-3 py-2 text-start h-100" style="border-radius: 20px;">
-                            <label class="small fw-bold text-muted d-block mb-0" style="font-size: 0.65rem; text-transform: uppercase;">{% trans "Où ?" %}</label>
-                            <select name="city" class="form-select border-0 p-0 fw-bold bg-transparent" style="box-shadow: none; font-size: 0.9rem; color: #333;">
-                                <option value="ALL">{% trans "Tout le Togo" %}</option>
-                                {% for code, name in cities %}
-                                    <option value="{{ code }}">{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="search-input-group">
+                        <i class="fas fa-location-dot"></i>
+                        <input type="text" name="neighborhood" placeholder="{% trans "Où ? (Quartier, Ville)" %}">
                     </div>
-                    <div class="search-action flex-fill">
-                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold d-flex align-items-center justify-content-center" style="background-color: var(--color-yellow); border: none; color: #000; border-radius: 20px; transition: all 0.3s ease;">
-                            <i class="fa-solid fa-magnifying-glass me-2"></i> {% trans "RECHERCHER" %}
-                        </button>
-                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <button type="submit" class="btn btn-search w-100">
+                        <i class="fas fa-search me-2"></i> {% trans "Rechercher" %}
+                    </button>
                 </div>
             </form>
         </div>
-    </div>
-</section>
 
-<!-- BOOSTED PROPERTIES -->
-{% if boosted_properties %}
-<section class="py-5" style="background: var(--bg-body); border-bottom: 2px solid var(--color-yellow);">
-    <div class="container">
-        <div class="d-flex align-items-center mb-4">
-            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold me-3">
-                <i class="fa-solid fa-bolt me-1"></i> {% trans "À LA UNE" %}
-            </span>
-            <h4 class="fw-bold m-0" style="color: var(--text-main);">{% trans "Annonces Premium" %}</h4>
-        </div>
-        <div class="swiper boostedSwiper pb-5">
-            <div class="swiper-wrapper">
-                {% for prop in boosted_properties %}
-                <div class="swiper-slide">
-                    <a href="{% url 'property_detail' prop.id %}" class="boosted-card shadow-sm d-block text-decoration-none">
-                        <div class="position-relative" style="height:250px; overflow:hidden; border-radius: 15px 15px 0 0;">
-                            {% with img=prop.get_main_image %}
-                                {% if img %}
-                                    <img src="{{ img.image_url.url }}" alt="{{ prop.title }}" style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
-                                {% else %}
-                                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop" alt="Placeholder" style="width:100%; height:100%; object-fit:cover; filter: brightness(0.8);">
-                                    <div class="position-absolute top-50 start-50 translate-middle text-white text-center">
-                                        <i class="fa-solid fa-camera fs-1 opacity-50"></i>
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-warning text-dark shadow-sm">
-                                    <i class="fa-solid fa-crown me-1"></i> PREMIUM
-                                </span>
-                            </div>
-                            <div class="position-absolute bottom-0 end-0 m-3">
-                                <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold shadow">
-                                    {{ prop.price|format_price }} F{% if prop.listing_category != 'SALE' %}/{% trans "mois" %}{% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="p-3 bg-white" style="border-radius: 0 0 15px 15px;">
-                            <h6 class="fw-bold text-truncate mb-1" style="color: var(--text-main);">{{ prop.title }}</h6>
-                            <p class="small text-muted mb-0"><i class="fa-solid fa-location-dot text-success me-1"></i>{{ prop.neighborhood }}, {{ prop.city }}</p>
-                        </div>
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
-            <!-- Pagination & Navigation -->
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-next" style="color: var(--color-dark-green);"></div>
-            <div class="swiper-button-prev" style="color: var(--color-dark-green);"></div>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- PROFESSIONALS SECTION -->
-<section class="py-4 bg-white" style="border-bottom: 1px solid #eee;">
-    <div class="container-fluid">
-        <div class="pro-marquee" style="display:flex; overflow:hidden; padding: 10px 0;">
-            <div class="pro-track" style="display:flex; gap:50px; animation: scroll-pro 40s linear infinite;">
-                {% for pro in featured_pros %}
-                <div class="text-center" style="flex: 0 0 120px;">
-                    <a href="{% url 'public_profile' pro.id %}" class="text-decoration-none">
-                        <div class="position-relative mx-auto mb-2" style="width:80px; height:80px;">
-                            {% if pro.profile_picture %}
-                                <img src="{{ pro.profile_picture.url }}" width="80" height="80" loading="lazy" decoding="async" class="rounded-circle shadow-sm border border-2 border-white w-100 h-100" style="object-fit:cover;" alt="{% trans "Profil de" %} {{ pro.company_name|default:pro.first_name }}">
-                            {% else %}
-                                <div class="rounded-circle bg-light shadow-sm w-100 h-100 d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-user-tie text-muted opacity-25 fs-3"></i>
-                                </div>
-                            {% endif %}
-                            <div style="position:absolute; bottom:0; right:0; background:#28a745; color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border:2px solid white; font-size:0.6rem;">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                        </div>
-                        <div class="small fw-bold text-dark text-truncate">{{ pro.company_name|default:pro.get_full_name }}</div>
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <div class="trust-badge-mini"><i class="fas fa-check-circle text-warning me-2"></i>+15 000 Annonces</div>
+            <div class="trust-badge-mini"><i class="fas fa-user-shield text-warning me-2"></i>Pros Vérifiés</div>
+            <div class="trust-badge-mini"><i class="fas fa-shield-halved text-warning me-2"></i>Protection NILS</div>
         </div>
     </div>
 </section>
 
-<style>
-    @keyframes scroll-pro { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-</style>
-
-<!-- MAIN LISTINGS -->
-<section id="annonces" class="py-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-end mb-5">
-            <div>
-                <h2 class="fw-bold m-0" style="color: var(--text-main);">{% trans "Dernières Annonces" %}</h2>
-                <p class="text-muted mb-0">{% trans "Découvrez les nouveaux biens disponibles au Togo." %}</p>
-            </div>
-            <a href="{% url 'properties_list' %}" class="btn btn-outline-success rounded-pill px-4">
-                {% trans "Tout voir" %} <i class="fa-solid fa-arrow-right ms-2"></i>
-            </a>
+<!-- MAIN CONTENT -->
+<div class="container py-5">
+    <!-- FEATURED PROPERTIES -->
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">{% trans "Annonces à la une" %}</h2>
+            <p class="text-muted">{% trans "Les meilleures opportunités sélectionnées pour vous." %}</p>
         </div>
+        <a href="{% url 'properties_list' %}" class="btn btn-outline-success rounded-pill px-4">{% trans "Tout voir" %}</a>
+    </div>
 
+    <div class="row g-4">
+        {% for property in featured_properties %}
+        <div class="col-md-6 col-lg-3">
+            {% include 'partials/property_card.html' with property=property %}
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p class="text-muted">{% trans "Aucune annonce à la une pour le moment." %}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- RECENT PROPERTIES -->
+    <div class="mt-5 pt-4">
+        <h2 class="fw-bold mb-4">{% trans "Dernières publications" %}</h2>
         <div class="row g-4">
-            {% for property in page_obj %}
-            <div class="col-lg-4 col-md-6">
-                {% include 'partials/property_card.html' %}
-            </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <i class="fa-solid fa-house-chimney-crack text-muted mb-4" style="font-size: 5rem;"></i>
-                <h4>{% trans "Aucune annonce trouvée" %}</h4>
-                <p class="text-muted">{% trans "Essayez de modifier vos critères de recherche." %}</p>
+            {% for property in recent_properties %}
+            <div class="col-md-6 col-lg-3">
+                {% include 'partials/property_card.html' with property=property %}
             </div>
             {% endfor %}
         </div>
-
-        {% if page_obj.has_other_pages %}
-        <nav class="mt-5">
-            <ul class="pagination justify-content-center gap-2">
-                {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link rounded-pill px-4" href="?page={{ page_obj.previous_page_number }}#annonces">{% trans "Précédent" %}</a></li>
-                {% endif %}
-                <li class="page-item active"><span class="page-link rounded-pill px-4" style="background:var(--color-dark-green); border:none;">{{ page_obj.number }}</span></li>
-                {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link rounded-pill px-4" href="?page={{ page_obj.next_page_number }}#annonces">{% trans "Suivant" %}</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
     </div>
-</section>
+</div>
 
 <!-- HOW IT WORKS -->
 <section class="py-5 bg-white">
@@ -284,78 +181,28 @@
             <p class="text-muted">{% trans "La plateforme n°1 pour vos recherches immobilières au Togo." %}</p>
         </div>
         <div class="row g-4">
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper icon-green">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </div>
-                    <h4 class="fw-bold">{% trans "Recherche Intuitive" %}</h4>
-                    <p class="text-muted">{% trans "Trouvez exactement ce que vous cherchez grâce à nos filtres avancés par ville, quartier et budget." %}</p>
+            <div class="col-md-4 text-center">
+                <div class="icon-box bg-light text-success mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px;">
+                    <i class="fas fa-handshake fa-2x"></i>
                 </div>
+                <h4>{% trans "Confiance & Sécurité" %}</h4>
+                <p class="text-muted">{% trans "Chaque annonce est vérifiée manuellement par nos équipes pour éviter toute fraude." %}</p>
             </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper icon-yellow">
-                        <i class="fa-solid fa-shield-check"></i>
-                    </div>
-                    <h4 class="fw-bold">{% trans "Annonces Vérifiées" %}</h4>
-                    <p class="text-muted">{% trans "Chaque annonce est examinée pour vous garantir des informations fiables et éviter les mauvaises surprises." %}</p>
+            <div class="col-md-4 text-center">
+                <div class="icon-box bg-light text-success mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px;">
+                    <i class="fas fa-bolt fa-2x"></i>
                 </div>
+                <h4>{% trans "Rapidité" %}</h4>
+                <p class="text-muted">{% trans "Trouvez votre futur chez-vous en quelques clics grâce à nos filtres avancés." %}</p>
             </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper icon-dark">
-                        <i class="fa-solid fa-comments"></i>
-                    </div>
-                    <h4 class="fw-bold">{% trans "Contact Direct" %}</h4>
-                    <p class="text-muted">{% trans "Communiquez instantanément avec les propriétaires et agents via notre messagerie intégrée." %}</p>
+            <div class="col-md-4 text-center">
+                <div class="icon-box bg-light text-success mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px;">
+                    <i class="fas fa-headset fa-2x"></i>
                 </div>
+                <h4>{% trans "Support 24/7" %}</h4>
+                <p class="text-muted">{% trans "Nos conseillers vous accompagnent tout au long de votre projet immobilier." %}</p>
             </div>
         </div>
     </div>
 </section>
-
-<!-- CALL TO ACTION -->
-<section class="py-5" style="background: linear-gradient(135deg, var(--color-dark-green), #083820); color: white;">
-    <div class="container py-5 text-center">
-        <h2 class="display-5 fw-bold mb-4">{% trans "Vous avez un bien à proposer ?" %}</h2>
-        <p class="fs-4 opacity-75 mb-5">{% trans "Publiez votre annonce en quelques minutes et touchez des milliers de locataires et acheteurs potentiels au Togo." %}</p>
-        <a href="{% url 'create_property' %}" class="btn btn-secondary-custom px-5 py-3 fs-5">
-            {% trans "Publier mon annonce maintenant" %} <i class="fa-solid fa-plus ms-2"></i>
-        </a>
-    </div>
-</section>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const swiper = new Swiper('.boostedSwiper', {
-            slidesPerView: 1,
-            spaceBetween: 20,
-            loop: true,
-            autoplay: {
-                delay: 4000,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            breakpoints: {
-                640: {
-                    slidesPerView: 2,
-                },
-                1024: {
-                    slidesPerView: 3,
-                },
-            }
-        });
-    });
-</script>
 {% endblock %}

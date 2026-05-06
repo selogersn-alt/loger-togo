@@ -17,10 +17,10 @@
                 </div>
             </div>
         {% else %}
-            <div class="w-100 h-100 position-relative">
-                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600&auto=format&fit=crop" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.9);" alt="Placeholder">
-                <div class="position-absolute top-50 start-50 translate-middle">
-                    <i class="fa-solid fa-house-chimney text-white opacity-25" style="font-size: 3rem;"></i>
+            <div class="w-100 h-100 position-relative d-flex align-items-center justify-content-center" style="background: #e9ecef;">
+                <div class="text-center">
+                    <i class="fa-solid fa-camera text-muted opacity-25 d-block mb-2" style="font-size: 3rem;"></i>
+                    <span class="text-muted small fw-bold">{% trans "Photos en cours..." %}</span>
                 </div>
             </div>
         {% endif %}

@@ -327,6 +327,13 @@ const mapEl     = document.getElementById('map-picker');
 // ─── INIT MAP ────────────────────────────────────────────────────────────
 map = L.map('map-picker').setView(LOME_CENTER, 13);
 
+// Fix pour l'affichage (force le rafraîchissement après un court délai)
+setTimeout(() => { 
+    map.invalidateSize(); 
+    if (markerPinned) map.setView(marker.getLatLng(), 16);
+}, 800);
+window.addEventListener('resize', () => { map.invalidateSize(); });
+
 // Using a more aesthetic tile layer: CartoDB Voyager
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,

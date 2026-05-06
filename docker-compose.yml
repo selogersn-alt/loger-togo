@@ -1,12 +1,34 @@
 version: '3.8'
 
 services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=logertogo
+      - POSTGRES_USER=logeruser
+      - POSTGRES_PASSWORD=logerpassword
+    restart: always
+
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: /scripts/entrypoint.sh
     volumes:
       - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      - DATABASE_URL=postgres://logeruser:logerpassword@db:5432/logertogo
+      - DEBUG=0
+      - DJANGO_SETTINGS_MODULE=logertogo.settings
+    depends_on:
+      - db
     ports:
       - "8000:8000"
-    environment:
-      - DEBUG=1
+    restart: always
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

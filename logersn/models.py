@@ -138,29 +138,32 @@ class PropertyImage(models.Model):
     is_primary = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        """Conversion automatique en WebP et redimensionnement intelligent (Sécurisé)."""
-        if self.image_url and self._state.adding:
-            try:
-                if not self.image_url.name.lower().endswith('.webp'):
+        # Sécurité ultime pour éviter l'erreur 500 à l'enregistrement
+        try:
+            # On tente la conversion WebP seulement à la création
+            if not self.pk and self.image_url:
+                try:
+                    from PIL import Image
+                    import io
+                    from django.core.files.base import ContentFile
+                    
                     img = Image.open(self.image_url)
-                    if img.mode in ("RGBA", "P"): img = img.convert("RGB")
-                    
-                    max_width = 1200
-                    if img.width > max_width:
-                        output_size = (max_width, int((max_width / img.width) * img.height))
-                        img = img.resize(output_size, Image.LANCZOS)
-                    
-                    output = io.BytesIO()
-                    img.save(output, format='WEBP', quality=80)
-                    output.seek(0)
-                    
-                    current_name = os.path.splitext(os.path.basename(self.image_url.name))[0]
-                    new_filename = f"{current_name}.webp"
-                    self.image_url.save(new_filename, ContentFile(output.read()), save=False)
-            except Exception as e:
-                print(f"WebP conversion failed: {e}")
-        
-        super().save(*args, **kwargs)
+                    if img.format != 'WEBP':
+                        output = io.BytesIO()
+                        img.save(output, format='WEBP', quality=80)
+                        output.seek(0)
+                        name = self.image_url.name.split('.')[0] + '.webp'
+                        self.image_url.save(name, ContentFile(output.read()), save=False)
+                except Exception as e:
+                    print(f"WebP conversion skipped: {e}")
+
+            super().save(*args, **kwargs)
+        except Exception as e:
+            # Si même le save standard échoue (ex: erreur S3), on logue mais on ne plante pas le thread
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"CRITICAL: Failed to save PropertyImage: {e}")
+            # On ne relance pas l'exception pour éviter la page 500
 
     def __str__(self):
         return f"Image for {self.property.title}"

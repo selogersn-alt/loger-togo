@@ -32,7 +32,7 @@ def properties_list_view(request):
     max_price = request.GET.get('max_price')
     q = request.GET.get('q')
     
-    properties = Property.objects.all().select_related('owner').prefetch_related('images')
+    properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
     
     # Filtres de base
     if listing_category and listing_category != 'ALL': properties = properties.filter(listing_category=listing_category)

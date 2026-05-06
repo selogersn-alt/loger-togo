@@ -29,7 +29,7 @@ def home_view(request):
     listing_category = request.GET.get('listing_category')
     query = request.GET.get('query', '')
 
-    all_properties = Property.objects.all().select_related('owner').prefetch_related('images')
+    all_properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
     if city and city != 'ALL':
         all_properties = all_properties.filter(city=city)
     if property_type and property_type != 'ALL':

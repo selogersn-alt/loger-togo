@@ -3,7 +3,7 @@
 {% block title %}{% trans "Publier une annonce" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
 <style>
   .form-control, .form-select {
     background-color: var(--bg-body) !important;
@@ -324,7 +324,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────
 const LOME_CENTER = [6.1375, 1.2123];  // Lomé, Togo
@@ -341,20 +341,40 @@ const statusBox = document.getElementById('map-status');
 const mapEl     = document.getElementById('map-picker');
 
 // ─── INIT MAP ────────────────────────────────────────────────────────────
-map = L.map('map-picker').setView(LOME_CENTER, 13);
+document.addEventListener('DOMContentLoaded', function() {
+    map = L.map('map-picker').setView(LOME_CENTER, 13);
 
-// Fix pour l'affichage (force le rafraîchissement après un court délai)
-setTimeout(() => { 
-    map.invalidateSize(); 
-    if (markerPinned) map.setView(marker.getLatLng(), 16);
-}, 800);
-window.addEventListener('resize', () => { map.invalidateSize(); });
+    // Using a more aesthetic tile layer: CartoDB Voyager
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
 
-// Using a more aesthetic tile layer: CartoDB Voyager
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
-}).addTo(map);
+    // Restaurer coords existantes (édition)
+    const existingLat = "{{ form.instance.latitude|default:'' }}";
+    const existingLng = "{{ form.instance.longitude|default:'' }}";
+    if (existingLat && existingLat !== 'None' && existingLng && existingLng !== 'None') {
+        const lat = parseFloat(existingLat.replace(',', '.'));
+        const lng = parseFloat(existingLng.replace(',', '.'));
+        if (!isNaN(lat) && !isNaN(lng)) {
+            placeMarker(lat, lng);
+            map.setView([lat, lng], 16);
+        }
+    }
+
+    // ─── CLIC SUR CARTE ──────────────────────────────────────────────────────
+    map.on('click', function(e) {
+        placeMarker(e.latlng.lat, e.latlng.lng);
+        showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
+    });
+
+    // Fix pour l'affichage (force le rafraîchissement)
+    setTimeout(() => { 
+        map.invalidateSize(); 
+    }, 500);
+});
+
+window.addEventListener('resize', () => { if(map) map.invalidateSize(); });
 
 // Custom green pin icon
 const greenIcon = L.divIcon({
@@ -372,25 +392,6 @@ const greenIcon = L.divIcon({
     iconAnchor: [16, 32],
     popupAnchor: [0, -34]
 });
-
-// Restaurer coords existantes (édition)
-const existingLat = "{{ form.instance.latitude|default:'' }}";
-const existingLng = "{{ form.instance.longitude|default:'' }}";
-if (existingLat && existingLat !== 'None' && existingLng && existingLng !== 'None') {
-    const lat = parseFloat(existingLat.replace(',', '.'));
-    const lng = parseFloat(existingLng.replace(',', '.'));
-    if (!isNaN(lat) && !isNaN(lng)) {
-        placeMarker(lat, lng);
-        map.setView([lat, lng], 16);
-    }
-}
-
-// ─── CLIC SUR CARTE ──────────────────────────────────────────────────────
-map.on('click', function(e) {
-    placeMarker(e.latlng.lat, e.latlng.lng);
-    showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
-});
-
 // ─── FONCTIONS ───────────────────────────────────────────────────────────
 function placeMarker(lat, lng) {
     if (marker) marker.remove();

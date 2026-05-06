@@ -232,28 +232,14 @@ if USE_S3:
         'CacheControl': 'max-age=86400',
     }
     
-    try:
-        import storages
-        STORAGES = {
-            "default": {
-                "BACKEND": "storages.backends.s3.S3Boto3Storage",
-            },
-            "staticfiles": {
-                "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-            },
-        }
-    except ImportError:
-        # Fallback au stockage local si le module est absent (évite l'erreur 500)
-        USE_S3 = False
-        STORAGES = {
-            "default": {
-                "BACKEND": "django.core.files.storage.FileSystemStorage",
-            },
-            "staticfiles": {
-                "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-            },
-        }
-        MEDIA_URL = '/media/'
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
     # Configuration des URLs de média pour S3
     if USE_S3:
         if AWS_S3_CUSTOM_DOMAIN:

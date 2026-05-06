@@ -156,8 +156,18 @@ def edit_property_view(request, property_id):
     p = get_object_or_404(Property, id=property_id, owner=request.user)
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES, instance=p)
-        if form.is_valid(): form.save(); return redirect('/mon-compte/?section=ads')
-    else: form = PropertyForm(instance=p)
+        if form.is_valid():
+            p = form.save()
+            # Ajout de nouvelles images si présentes
+            images = request.FILES.getlist('images')
+            if images:
+                # On ne supprime pas les anciennes, on ajoute juste les nouvelles
+                for img in images:
+                    PropertyImage.objects.create(property=p, image_url=img)
+            messages.success(request, _("Annonce modifiée avec succès !"))
+            return redirect('/mon-compte/')
+    else:
+        form = PropertyForm(instance=p)
     return render(request, 'property_form.html', {
         'form': form, 'is_edit': True, 'property': p, 'togo_neighborhoods': TOGO_NEIGHBORHOODS
     })

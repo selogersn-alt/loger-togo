@@ -23,9 +23,11 @@ class UserManager(BaseUserManager):
         import random
         user.phone_otp = str(random.randint(100000, 999999))
         
+        user.is_phone_verified = True # Auto-verify phone since we abandoned SMS
         user.save(using=self._db)
-        # Envoi automatique si email présent
-        user.send_otp()
+        # Automatic send if email present
+        if user.email:
+            user.send_otp()
         return user
 
     def create_superuser(self, phone_number, password=None, **extra_fields):
@@ -107,11 +109,11 @@ class User(AbstractBaseUser, PermissionsMixin):
             if self.notification_preference in ['EMAIL', 'BOTH'] and self.email:
                 send_otp_email(self, self.phone_otp)
             
-            # Envoi par SMS via Termii
-            if self.notification_preference in ['SMS', 'BOTH']:
-                from logertogo.sms import send_termii_sms
-                message = f"Loger Togo: Votre code de vérification est {self.phone_otp}. Valable 10 min. Ne le partagez pas."
-                send_termii_sms(self.phone_number, message)
+            # SMS send via Termii (DEACTIVATED)
+            # if self.notification_preference in ['SMS', 'BOTH']:
+            #     from logertogo.sms import send_termii_sms
+            #     message = f"Loger Togo: Votre code de vérification est {self.phone_otp}. Valable 10 min. Ne le partagez pas."
+            #     send_termii_sms(self.phone_number, message)
                 
             return True
         return False

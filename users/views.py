@@ -97,25 +97,16 @@ def verify_phone_view(request):
 def password_recovery_view(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         phone = request.GET.get('phone')
-        user = User.objects.filter(phone_number=phone).first()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        email = request.GET.get('email')
+        user = User.objects.filter(email=email).first()
         if user:
-            # Mask email if exists
-            email_masked = ""
-            if user.email:
-                parts = user.email.split('@')
-                email_masked = f"{parts[0][:2]}***@{parts[1]}"
-            
-            return JsonResponse({
-                'exists': True,
-                'has_email': bool(user.email),
-                'email_masked': email_masked
-            })
+            return JsonResponse({'exists': True})
         return JsonResponse({'exists': False})
 
     if request.method == 'POST':
-        phone = request.POST.get('phone')
-        method = request.POST.get('method', 'whatsapp') # default to whatsapp for safety
-        user = User.objects.filter(phone_number=phone).first()
+        email = request.POST.get('email')
+        user = User.objects.filter(email=email).first()
         
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -123,18 +114,14 @@ def password_recovery_view(request):
             reset_url = reverse('password_reset_confirm_public', kwargs={'uidb64': uid, 'token': token})
             full_reset_url = request.build_absolute_uri(reset_url)
             
-            if method == 'email' and user.email:
-                from logertogo.emails import send_password_reset_email
-                if send_password_reset_email(user, full_reset_url):
-                    messages.success(request, _("Un lien de réinitialisation a été envoyé à votre adresse email."))
-                else:
-                    messages.error(request, _("Erreur lors de l'envoi de l'email. Veuillez utiliser WhatsApp."))
+            from logertogo.emails import send_password_reset_email
+            if send_password_reset_email(user, full_reset_url):
+                messages.success(request, _("Un lien de réinitialisation a été envoyé à votre adresse email."))
+                return render(request, 'recovery.html', {'success': True})
             else:
-                # DigitalH standard: Show the link for WhatsApp copy-paste or just inform
-                messages.info(request, _("Lien de réinitialisation prêt pour le support WhatsApp."))
-                return render(request, 'recovery.html', {'reset_url': full_reset_url, 'show_wa_link': True})
+                messages.error(request, _("Erreur lors de l'envoi de l'email. Veuillez contacter le support."))
         else:
-            messages.error(request, _("Numéro inconnu."))
+            messages.error(request, _("Adresse email inconnue."))
             
     return render(request, 'recovery.html')
 

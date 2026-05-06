@@ -1,116 +1,311 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 
-{% block content %}
-<div class="container py-5">
-    <!-- Stat Cards for Pros -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 text-center h-100" style="background:var(--bg-card);border-radius:20px; transition: transform 0.3s;">
-                <div class="icon-box bg-success-light text-success mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-bullhorn fa-lg"></i>
-                </div>
-                <h6 class="text-muted text-uppercase small fw-bold">{% trans "Mes Annonces" %}</h6>
-                <h2 class="display-6 fw-bold text-success mb-0">{{ request.user.properties.count }}</h2>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 text-center h-100" style="background:var(--bg-card);border-radius:20px; transition: transform 0.3s;">
-                <div class="icon-box bg-primary-light text-primary mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-eye fa-lg"></i>
-                </div>
-                <h6 class="text-muted text-uppercase small fw-bold">{% trans "Vues Totales" %}</h6>
-                <h2 class="display-6 fw-bold text-primary mb-0">{{ total_views|default:0 }}</h2>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-4 text-center h-100" style="background:var(--bg-card);border-radius:20px; transition: transform 0.3s;">
-                <div class="icon-box bg-warning-light text-warning mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-star fa-lg"></i>
-                </div>
-                <h6 class="text-muted text-uppercase small fw-bold">{% trans "Statut" %}</h6>
-                <div class="mt-2">
-                    <span class="badge rounded-pill {% if request.user.is_verified_pro %}bg-success{% else %}bg-warning{% endif %} px-3 py-2">
-                        {{ request.user.get_role_display }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block title %}{% trans "Tableau de Bord" %} | Loger Togo{% endblock %}
 
-    <div class="row justify-content-center">
-        <div class="col-lg-12">
-            <div class="card bg-surface border-0 shadow-lg p-4 p-md-5" style="border-radius: 25px;">
-                <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-                    <div>
-                        <h1 class="h2 text-main fw-bold mb-1">{% trans "Bienvenue sur votre Espace" %} {% if request.user.role != 'TENANT' %}Pro{% endif %}</h1>
-                        <p class="text-muted m-0">{% trans "Gérez vos activités immobilières en toute simplicité." %}</p>
+{% block content %}
+<style>
+    .dashboard-wrapper {
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-wrapper::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 500px;
+        height: 500px;
+        background: url('{% static "img/logo_3d.png" %}') no-repeat center;
+        background-size: contain;
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .dashboard-wrapper > .container {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+<div class="dashboard-wrapper py-5" style="background: var(--bg-body); min-height: 100vh;">
+    <div class="container">
+        
+        <!-- HEADER : Bonjour & Statut -->
+        <div class="d-flex justify-content-between align-items-end mb-5 animate__animated animate__fadeIn">
+            <div>
+                <h1 class="display-5 fw-800 text-main mb-2">
+                    {% trans "Bonjour" %}, <span class="text-success">{{ request.user.first_name|default:request.user.username }}</span>
+                </h1>
+                <p class="text-muted lead mb-0">
+                    {% if request.user.role == 'TENANT' %}
+                        {% trans "Trouvez votre prochain chez-vous en toute sérénité." %}
+                    {% else %}
+                        {% trans "Gérez votre empire immobilier avec élégance." %}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="text-end d-none d-md-block">
+                <span class="badge rounded-pill bg-white shadow-sm text-dark p-3 border">
+                    <i class="fas fa-shield-halved text-success me-2"></i>
+                    {% trans "Compte" %} {{ request.user.get_role_display }}
+                </span>
+            </div>
+        </div>
+
+        {% if request.user.role != 'TENANT' %}
+        <!-- ════════════════════════════════════════════
+             INTERFACE PRO : LUXE & PUISSANCE
+        ════════════════════════════════════════════ -->
+        
+        <!-- Quick Stats Glassmorphism -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stat-icon bg-soft-success"><i class="fas fa-house-circle-check"></i></div>
+                        <div class="ms-3">
+                            <h6 class="text-muted small mb-0">{% trans "Annonces" %}</h6>
+                            <h3 class="fw-bold mb-0">{{ request.user.properties.count }}</h3>
+                        </div>
                     </div>
-                    {% if request.user.role != 'TENANT' %}
-                    <a href="{% url 'create_property' %}" class="btn btn-success rounded-pill px-4 py-2 fw-bold">
-                        <i class="fas fa-plus me-2"></i>{% trans "Publier un bien" %}
-                    </a>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: 70%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stat-icon bg-soft-primary"><i class="fas fa-calendar-check"></i></div>
+                        <div class="ms-3">
+                            <h6 class="text-muted small mb-0">{% trans "Réservations" %}</h6>
+                            <h3 class="fw-bold mb-0">{{ total_reservations }}</h3>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-primary" style="width: 40%"></div>
+                    </div>
+                    {% if pending_reservations > 0 %}
+                    <small class="text-danger fw-bold mt-2 d-block animate__animated animate__pulse animate__infinite">
+                        <i class="fas fa-bell me-1"></i> {{ pending_reservations }} {% trans "en attente" %}
+                    </small>
                     {% endif %}
                 </div>
-
-                <div class="row g-4 mt-2">
-                    <!-- Section Annonces -->
-                    <div class="col-md-6">
-                        <div class="card bg-body border-0 h-100 p-4 transition-hover shadow-sm" style="border-radius: 20px;">
-                            <div class="icon-box bg-primary-light text-primary mb-3">
-                                <i class="fas fa-list-check fa-2x"></i>
-                            </div>
-                            <h4 class="h5 fw-bold">{% trans "Mes Publications" %}</h4>
-                            <p class="text-muted small">{% trans "Suivez l'état de vos annonces, modifiez-les ou boostez leur visibilité." %}</p>
-                            <a href="{% url 'properties_list' %}?owner={{ request.user.id }}" class="btn btn-outline-primary mt-auto rounded-pill">
-                                {% trans "Gérer mes annonces" %}
-                            </a>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stat-icon bg-soft-info"><i class="fas fa-handshake"></i></div>
+                        <div class="ms-3">
+                            <h6 class="text-muted small mb-0">{% trans "Visites" %}</h6>
+                            <h3 class="fw-bold mb-0">{{ pending_visits }}</h3>
                         </div>
                     </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-info" style="width: 60%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stat-icon bg-soft-danger"><i class="fas fa-wallet"></i></div>
+                        <div class="ms-3">
+                            <h6 class="text-muted small mb-0">{% trans "Revenus" %}</h6>
+                            <h3 class="fw-bold mb-0">0 <small class="fs-6">CFA</small></h3>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-danger" style="width: 25%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Section Gestion Locative -->
-                    <div class="col-md-6">
-                        <div class="card bg-body border-0 h-100 p-4 transition-hover shadow-sm" style="border-radius: 20px;">
-                            <div class="icon-box bg-success-light text-success mb-3">
-                                <i class="fas fa-file-contract fa-2x"></i>
+        <!-- Main Pro Grid -->
+        <div class="row g-4">
+            <!-- Colonne de Gauche : Gestion Active -->
+            <div class="col-lg-8">
+                <div class="glass-card p-4 p-md-5 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold m-0"><i class="fas fa-sliders text-success me-2"></i>{% trans "Centre de Commandes" %}</h4>
+                        <a href="{% url 'create_property' %}" class="btn btn-success rounded-pill px-4 shadow-sm">
+                            <i class="fas fa-plus me-2"></i>{% trans "Nouvelle Annonce" %}
+                        </a>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up">
+                                <div class="tool-icon bg-primary text-white"><i class="fas fa-calendar-days"></i></div>
+                                <h5 class="fw-bold mt-3">{% trans "Calendrier & Planning" %}</h5>
+                                <p class="text-muted small">{% trans "Gérez vos disponibilités et validez vos dates de réservation." %}</p>
+                                <a href="#" class="stretched-link text-primary fw-bold text-decoration-none">{% trans "Ouvrir le planning" %} <i class="fas fa-chevron-right ms-1"></i></a>
                             </div>
-                            <h4 class="h5 fw-bold">{% trans "Gestion Locative" %}</h4>
-                            <p class="text-muted small">{% trans "Gérez vos baux, contrats, quittances de loyer et incidents techniques." %}</p>
-                            {% if request.user.role == 'TENANT' %}
-                                <a href="{% url 'management:tenant_dashboard' %}" class="btn btn-success mt-auto rounded-pill">
-                                    {% trans "Mon Espace Locataire" %}
-                                </a>
-                            {% else %}
-                                <a href="{% url 'management:landlord_dashboard' %}" class="btn btn-success mt-auto rounded-pill">
-                                    {% trans "Mon Espace Bailleur" %}
-                                </a>
-                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up">
+                                <div class="tool-icon bg-warning text-white"><i class="fas fa-percentage"></i></div>
+                                <h5 class="fw-bold mt-3">{% trans "Tarification Dynamique" %}</h5>
+                                <p class="text-muted small">{% trans "Appliquez des remises de dernière minute ou saisonnières." %}</p>
+                                <a href="{% url 'properties_list' %}?owner={{ request.user.id }}" class="stretched-link text-warning fw-bold text-decoration-none">{% trans "Gérer mes prix" %} <i class="fas fa-chevron-right ms-1"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up">
+                                <div class="tool-icon bg-success text-white"><i class="fas fa-file-invoice-dollar"></i></div>
+                                <h5 class="fw-bold mt-3">{% trans "Gestion Locative" %}</h5>
+                                <p class="text-muted small">{% trans "Baux, quittances et suivi des paiements de vos locataires." %}</p>
+                                <a href="{% url 'management:landlord_dashboard' %}" class="stretched-link text-success fw-bold text-decoration-none">{% trans "Espace Gestion" %} <i class="fas fa-chevron-right ms-1"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up">
+                                <div class="tool-icon bg-dark text-white"><i class="fas fa-comments"></i></div>
+                                <h5 class="fw-bold mt-3">{% trans "Messages & Leads" %}</h5>
+                                <p class="text-muted small">{% trans "Répondez aux demandes de visite et aux réservations." %}</p>
+                                <a href="#" class="stretched-link text-dark fw-bold text-decoration-none">{% trans "Voir les messages" %} <i class="fas fa-chevron-right ms-1"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="mt-5 pt-4 border-top">
-                    <div class="d-flex justify-content-center gap-4 flex-wrap">
-                        <a href="{% url 'update_profile' %}" class="text-muted text-decoration-none small fw-bold">
-                            <i class="fas fa-user-gear me-2"></i>{% trans "Mon Profil" %}
+            <!-- Colonne de Droite : Profil & Paramètres -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-user-circle text-success me-2"></i>{% trans "Mon Profil Pro" %}</h5>
+                    <div class="text-center mb-4">
+                        <div class="avatar-large mx-auto mb-3 shadow">
+                            <img src="{% if request.user.profile_image %}{{ request.user.profile_image.url }}{% else %}{% static 'img/default_avatar.png' %}{% endif %}" class="rounded-circle w-100 h-100 object-fit-cover">
+                        </div>
+                        <h5 class="fw-bold mb-1">{{ request.user.get_full_name }}</h5>
+                        <p class="text-muted small">{{ request.user.email }}</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush bg-transparent">
+                        <a href="{% url 'update_profile' %}" class="list-group-item list-group-item-action bg-transparent border-0 px-0 py-3 d-flex align-items-center">
+                            <i class="fas fa-id-card-clip text-success me-3"></i> {% trans "Modifier mes infos" %}
+                            <i class="fas fa-chevron-right ms-auto text-muted small"></i>
                         </a>
-                        <a href="{% url 'logout' %}" class="text-danger text-decoration-none small fw-bold">
-                            <i class="fas fa-power-off me-2"></i>{% trans "Déconnexion" %}
+                        <a href="#" class="list-group-item list-group-item-action bg-transparent border-0 px-0 py-3 d-flex align-items-center">
+                            <i class="fas fa-lock text-success me-3"></i> {% trans "Sécurité" %}
+                            <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                        </a>
+                        <a href="{% url 'logout' %}" class="list-group-item list-group-item-action bg-transparent border-0 px-0 py-3 d-flex align-items-center text-danger">
+                            <i class="fas fa-power-off me-3"></i> {% trans "Déconnexion" %}
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+
+        {% else %}
+        <!-- ════════════════════════════════════════════
+             INTERFACE LOCATAIRE : SIMPLE & EFFICACE
+        ════════════════════════════════════════════ -->
+        
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="glass-card p-4 p-md-5 h-100">
+                    <h4 class="fw-bold mb-4"><i class="fas fa-heart text-danger me-2"></i>{% trans "Mon Activité" %}</h4>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up text-center">
+                                <div class="tool-icon bg-danger text-white mx-auto"><i class="fas fa-heart"></i></div>
+                                <h5 class="fw-bold mt-3">{% trans "Mes Favoris" %}</h5>
+                                <p class="text-muted small">{% trans "Les biens que vous avez gardé de côté." %}</p>
+                                <a href="#" class="btn btn-outline-danger btn-sm rounded-pill mt-2">{% trans "Voir mes favoris" %}</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up text-center">
+                                <div class="tool-icon bg-info text-white mx-auto"><i class="fas fa-clock-rotate-left"></i></div>
+                                <h5 class="fw-bold mt-3">{% trans "Mes Demandes" %}</h5>
+                                <p class="text-muted small">{% trans "Suivez vos demandes de visite et de réservation." %}</p>
+                                <a href="#" class="btn btn-outline-info btn-sm rounded-pill mt-2">{% trans "Mes demandes" %}</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5 p-4 rounded-4 border bg-light text-center">
+                        <p class="mb-0 text-muted">{% trans "Vous cherchez quelque chose de précis ?" %}</p>
+                        <a href="{% url 'properties_list' %}" class="btn btn-success rounded-pill px-4 mt-3 fw-bold">
+                            <i class="fas fa-search me-2"></i>{% trans "Lancer une recherche" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-4">{% trans "Gestion locative" %}</h5>
+                    <div class="p-4 rounded-4 bg-soft-success mb-4 text-center">
+                        <i class="fas fa-file-contract fa-3x text-success mb-3"></i>
+                        <h6 class="fw-bold">{% trans "Espace Locataire" %}</h6>
+                        <p class="text-muted small mb-3">{% trans "Accédez à vos quittances et contrats de location." %}</p>
+                        <a href="{% url 'management:tenant_dashboard' %}" class="btn btn-success btn-sm w-100 rounded-pill">{% trans "Entrer" %}</a>
+                    </div>
+                    <a href="{% url 'update_profile' %}" class="btn btn-outline-dark w-100 rounded-pill mb-2"><i class="fas fa-user-gear me-2"></i>{% trans "Mon Profil" %}</a>
+                    <a href="{% url 'logout' %}" class="btn btn-link text-danger w-100 text-decoration-none small fw-bold">{% trans "Déconnexion" %}</a>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+
     </div>
 </div>
 
 <style>
-    .bg-surface { background-color: var(--bg-surface); }
-    .bg-primary-light { background-color: rgba(13, 110, 253, 0.08); }
-    .bg-success-light { background-color: rgba(40, 167, 69, 0.08); }
-    .bg-warning-light { background-color: rgba(255, 193, 7, 0.08); }
-    .icon-box { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
-    .transition-hover { transition: all 0.3s ease; }
-    .transition-hover:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; border: 1px solid var(--color-light-green) !important; }
+    /* Senior UI : Glassmorphism & Modern Styling */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    
+    .bg-soft-success { background: rgba(40, 167, 69, 0.1); }
+    .bg-soft-primary { background: rgba(13, 110, 253, 0.1); }
+    .bg-soft-warning { background: rgba(255, 193, 7, 0.1); }
+    .bg-soft-danger { background: rgba(220, 53, 69, 0.1); }
+    
+    .stat-icon {
+        width: 50px; height: 50px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 12px;
+        font-size: 1.25rem;
+    }
+    
+    .tool-icon {
+        width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 18px;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .transition-up { transition: all 0.3s ease; }
+    .transition-up:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
+    
+    .avatar-large {
+        width: 100px; height: 100px;
+        border: 4px solid white;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    
+    .fw-800 { font-weight: 800; }
+    .progress { background: rgba(0,0,0,0.05); }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .glass-card { padding: 25px !important; }
+    }
 </style>
 {% endblock %}

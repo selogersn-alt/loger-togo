@@ -35,14 +35,23 @@
         
         <!-- Prix -->
         <div class="property-price-tag" style="position: absolute; bottom: 12px; right: 12px; background: var(--color-dark-green); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; z-index: 5; box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
-            {% if property.listing_category == 'SALE' %}
-                {{ property.price|format_price }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA</small>
-            {% elif property.listing_category == 'FURNISHED' %}
-                {{ property.price_per_night|default:property.price|format_price }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA/{% trans "Nuit" %}</small>
+            {% if property.discount_price and property.discount_price < property.price %}
+                <span style="font-size: 0.7rem; text-decoration: line-through; opacity: 0.6; display: block; line-height: 1;">{{ property.price|format_price }}</span>
+                {{ property.discount_price|format_price }}
             {% else %}
-                {{ property.price|format_price }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA/{% trans "Mois" %}</small>
+                {{ property.price|format_price }}
             {% endif %}
+            
+            <small style="font-size: 0.65rem; opacity: 0.8;">
+                FCFA{% if property.listing_category == 'FURNISHED' %}/{% trans "Nuit" %}{% elif property.listing_category != 'SALE' %}/{% trans "Mois" %}{% endif %}
+            </small>
         </div>
+
+        {% if property.discount_price and property.discount_price < property.price %}
+        <div class="promo-badge" style="position: absolute; top: 12px; right: 50px; background: #ff4757; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; z-index: 5; animation: pulse 2s infinite;">
+            <i class="fas fa-fire me-1"></i>PROMO -{{ property.discount_percentage }}%
+        </div>
+        {% endif %}
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.4)); z-index: 1;"></div>
     </div>
 

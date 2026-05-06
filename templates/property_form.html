@@ -79,6 +79,22 @@
                 </div>
               </div>
 
+              <!-- ─ REMISES (Senior Module) ─ -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color:var(--color-light-green);">
+                  <i class="fa-solid fa-tag me-1"></i>{{ form.discount_percentage.label }}
+                </label>
+                <div class="input-group">
+                  {{ form.discount_percentage }}
+                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:white;border-radius:0 10px 10px 0;">%</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-muted">{{ form.discount_price.label }}</label>
+                {{ form.discount_price }}
+                <small class="text-muted">{% trans "Calculé automatiquement selon le pourcentage." %}</small>
+              </div>
+
               <!-- ─ TYPE + DOCUMENT ─ -->
               <div class="col-md-6">
                 <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.property_type.label }}</label>
@@ -499,6 +515,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categorySelect) {
         categorySelect.addEventListener('change', updateFields);
         updateFields();
+    }
+
+    // Calcul dynamique de la remise (Senior UI)
+    const priceInput = document.getElementById('id_price');
+    const discountInput = document.getElementById('id_discount_percentage');
+    const finalPriceInput = document.getElementById('id_discount_price');
+
+    function calculateFinalPrice() {
+        const price = parseFloat(priceInput.value) || 0;
+        const discount = parseFloat(discountInput.value) || 0;
+        if (discount > 0) {
+            const final = price - (price * discount / 100);
+            finalPriceInput.value = Math.round(final);
+        } else {
+            finalPriceInput.value = price;
+        }
+    }
+    if (priceInput && discountInput) {
+        priceInput.addEventListener('input', calculateFinalPrice);
+        discountInput.addEventListener('input', calculateFinalPrice);
     }
 
     // Géocodage auto au changement de ville/quartier (avec debounce)

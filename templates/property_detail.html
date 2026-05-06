@@ -67,6 +67,22 @@
         color: white;
         padding: 40px 0;
         margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .property-header::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 5%;
+        transform: translateY(-50%);
+        width: 300px;
+        height: 300px;
+        background: url('{% static "img/logo_3d.png" %}') no-repeat center;
+        background-size: contain;
+        opacity: 0.08;
+        pointer-events: none;
     }
 
     .gallery-container {
@@ -245,13 +261,18 @@
             <!-- Priority Price for Mobile -->
             <div class="details-card d-lg-none mb-3">
                 <div class="price-tag mb-0">
-                    {% if property.listing_category == 'SALE' %}
-                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">({% trans "Vente" %})</span>
-                    {% elif property.listing_category == 'FURNISHED' %}
-                        {{ property.price_per_night|default:property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "nuitée" %}</span>
+                    {% if property.discount_price and property.discount_price < property.price %}
+                        <div class="text-white opacity-50 text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>
+                        <span class="text-warning">{{ property.discount_price|format_price }} FCFA</span>
                     {% else %}
-                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "mois" %}</span>
+                        {{ property.price|format_price }} FCFA
                     {% endif %}
+                    
+                    <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">
+                        {% if property.listing_category == 'SALE' %}({% trans "Vente" %})
+                        {% elif property.listing_category == 'FURNISHED' %}/{% trans "nuitée" %}
+                        {% else %}/{% trans "mois" %}{% endif %}
+                    </span>
                 </div>
             </div>
 
@@ -428,17 +449,53 @@
                 </span>
                 
                 <div class="price-tag">
-                    {% if property.listing_category == 'SALE' %}
-                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">({% trans "Vente" %})</span>
-                    {% elif property.listing_category == 'FURNISHED' %}
-                        {{ property.price_per_night|default:property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "nuitée" %}</span>
+                    {% if property.discount_price and property.discount_price < property.price %}
+                        <div class="text-muted text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>
+                        <span class="text-success">{{ property.discount_price|format_price }} FCFA</span>
                     {% else %}
-                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "mois" %}</span>
+                        {{ property.price|format_price }} FCFA
+                    {% endif %}
+                    
+                    <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">
+                        {% if property.listing_category == 'SALE' %}({% trans "Vente" %})
+                        {% elif property.listing_category == 'FURNISHED' %}/{% trans "nuitée" %}
+                        {% else %}/{% trans "mois" %}{% endif %}
+                    </span>
+                </div>
+
+                <!-- MODULE DE RÉSERVATION / VISITE (Airbnb-style) -->
+                <div class="booking-module bg-light p-3 rounded-4 mb-3 border">
+                    {% if property.listing_category == 'FURNISHED' %}
+                        <h6 class="fw-bold mb-3"><i class="fas fa-calendar-check text-success me-2"></i>{% trans "Réserver ce séjour" %}</h6>
+                        <form action="{% url 'request_reservation' property.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="small text-muted">{% trans "Arrivée" %}</label>
+                                    <input type="date" name="check_in" class="form-control form-control-sm border-0 shadow-sm" id="check_in" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="small text-muted">{% trans "Départ" %}</label>
+                                    <input type="date" name="check_out" class="form-control form-control-sm border-0 shadow-sm" id="check_out" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold py-2 mb-2">{% trans "Réserver maintenant" %}</button>
+                        </form>
+                    {% else %}
+                        <h6 class="fw-bold mb-3"><i class="fas fa-clock text-primary me-2"></i>{% trans "Planifier une visite" %}</h6>
+                        <form action="{% url 'request_visit' property.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="small text-muted">{% trans "Date & Heure souhaitée" %}</label>
+                                <input type="datetime-local" name="visit_date" class="form-control form-control-sm border-0 shadow-sm" id="visit_date" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 mb-2">{% trans "Demander une visite" %}</button>
+                        </form>
                     {% endif %}
                 </div>
                 
-                <a href="{% url 'initiate-chat' property.id %}" class="btn btn-primary-custom w-100 mb-3 py-3 fs-5">
-                    <i class="fa-solid fa-comments me-2"></i> {% trans "Contacter le professionnel" %}
+                <a href="{% url 'initiate-chat' property.id %}" class="btn btn-outline-dark w-100 mb-3 py-2">
+                    <i class="fa-solid fa-comments me-2"></i> {% trans "Message rapide" %}
                 </a>
                 
                 {% if user.is_authenticated and user.role == 'TENANT' %}

@@ -88,6 +88,10 @@ class Property(models.Model):
 
     is_paid = models.BooleanField(default=False, verbose_name=_("Frais de publication payés"))
     
+    # Tarification Dynamique (Meublés)
+    discount_percentage = models.PositiveIntegerField(default=0, verbose_name=_("Remise (%)"))
+    discount_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Prix après remise (CFA)"))
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -99,6 +103,13 @@ class Property(models.Model):
         return reverse('property_detail', kwargs={'property_id': self.id})
 
     def save(self, *args, **kwargs):
+        # Calcul automatique du prix remisé (Senior Logic)
+        if self.discount_percentage > 0 and self.price > 0:
+            reduction = (self.price * self.discount_percentage) / 100
+            self.discount_price = self.price - reduction
+        elif not self.discount_price:
+            self.discount_price = self.price
+
         if not self.slug:
             base_slug = slugify(self.title)
             if not base_slug:
@@ -315,3 +326,46 @@ class PropertyApplication(models.Model):
 
     def __str__(self):
         return f"Candidature de {self.tenant} pour {self.property.title}"
+
+class PropertyAvailability(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='availabilities')
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_available = models.BooleanField(default=True)
+    
+    class Meta:
+        verbose_name = _("Disponibilité")
+        verbose_name_plural = _("Disponibilités")
+
+class Reservation(models.Model):
+    class StatusEnum(models.TextChoices):
+        PENDING = 'PENDING', _('En attente')
+        CONFIRMED = 'CONFIRMED', _('Confirmée')
+        CANCELLED = 'CANCELLED', _('Annulée')
+        COMPLETED = 'COMPLETED', _('Terminée')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='reservations')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
+    check_in = models.DateField()
+    check_out = models.DateField()
+    total_price = models.DecimalField(max_digits=20, decimal_places=2)
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Réservation")
+        verbose_name_plural = _("Réservations")
+
+class VisitRequest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='visit_requests')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='visit_requests')
+    proposed_date = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=Reservation.StatusEnum.choices, default=Reservation.StatusEnum.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Demande de visite")
+        verbose_name_plural = _("Demandes de visite")

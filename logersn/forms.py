@@ -72,6 +72,7 @@ class PropertyForm(forms.ModelForm):
             'refrigerator', 'washing_machine', 'microwave', 'tv_cable',
             'generator', 'water_tank',
             'latitude', 'longitude',
+            'discount_percentage', 'discount_price',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ex: Superbe appartement F4 vue mer...')}),
@@ -100,6 +101,8 @@ class PropertyForm(forms.ModelForm):
             'tv_cable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'generator': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'water_tank': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'discount_percentage': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            'discount_price': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
         }
         labels = {
             'title': _("Titre de l'annonce"),
@@ -128,4 +131,6 @@ class PropertyForm(forms.ModelForm):
             'has_terrace': _("Terrasse"),
             'has_courtyard': _("Cour"),
             'has_garden': _("Jardin"),
+            'discount_percentage': _("Pourcentage de remise (%)"),
+            'discount_price': _("Prix final après remise (FCFA)"),
         }

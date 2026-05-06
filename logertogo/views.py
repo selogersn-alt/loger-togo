@@ -13,7 +13,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 
-from logersn.models import Property, Favorite, Transaction
+from logersn.models import Property, Favorite, Transaction, Reservation, VisitRequest, PropertyAvailability
 from logersn.forms import PropertyForm
 from users.models import User, KYCProfile
 from chat.models import Conversation, Message
@@ -67,14 +67,21 @@ def verified_professionals_view(request):
 
 @login_required
 def dashboard_view(request):
-    """Hub central affichant les statistiques et les accès rapides."""
-    # Calcul des statistiques pour le Pro / Bailleur
+    """Hub central affichant les statistiques et les accès rapides (Senior UI Logic)."""
     user_properties = request.user.properties.all()
     total_views = user_properties.aggregate(Sum('views_count'))['views_count__sum'] or 0
+    
+    # Statistiques avancées pour le tableau de bord Pro (Airbnb-style)
+    pending_reservations = Reservation.objects.filter(property__owner=request.user, status='PENDING').count()
+    total_reservations = Reservation.objects.filter(property__owner=request.user).count()
+    pending_visits = VisitRequest.objects.filter(property__owner=request.user, status='PENDING').count()
     
     return render(request, 'dashboard.html', {
         'total_views': total_views,
         'properties_count': user_properties.count(),
+        'pending_reservations': pending_reservations,
+        'total_reservations': total_reservations,
+        'pending_visits': pending_visits,
     })
 
 # --- PAIEMENTS FEDAPAY ---

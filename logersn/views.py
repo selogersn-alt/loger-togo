@@ -236,3 +236,55 @@ def apply_to_property_view(request, property_id):
                 conv.participants.add(request.user, p.owner)
                 
     return redirect(p.get_absolute_url())
+
+@login_required
+def request_reservation_view(request, property_id):
+    """Gère la soumission d'une demande de réservation (Airbnb-style)."""
+    p = get_object_or_404(Property, id=property_id)
+    if request.method == 'POST':
+        check_in = request.POST.get('check_in')
+        check_out = request.POST.get('check_out')
+        
+        if not check_in or not check_out:
+            messages.error(request, _("Veuillez sélectionner vos dates."))
+            return redirect(p.get_absolute_url())
+            
+        # Calcul du prix total (Senior Logic)
+        try:
+            d1 = datetime.datetime.strptime(check_in, '%Y-%m-%d')
+            d2 = datetime.datetime.strptime(check_out, '%Y-%m-%d')
+            nights = (d2 - d1).days
+            if nights <= 0: raise ValueError
+            
+            total = (p.discount_price or p.price) * nights # Ou logique par nuitée si définie
+            
+            Reservation.objects.create(
+                property=p,
+                user=request.user,
+                check_in=check_in,
+                check_out=check_out,
+                total_price=total
+            )
+            messages.success(request, _("Demande de réservation envoyée pour %(nights)s nuits !") % {'nights': nights})
+        except ValueError:
+            messages.error(request, _("Dates invalides."))
+            
+    return redirect(p.get_absolute_url())
+
+@login_required
+def request_visit_view(request, property_id):
+    """Gère la planification d'une visite pour location/vente."""
+    p = get_object_or_404(Property, id=property_id)
+    if request.method == 'POST':
+        visit_date = request.POST.get('visit_date')
+        if visit_date:
+            VisitRequest.objects.create(
+                property=p,
+                user=request.user,
+                proposed_date=visit_date
+            )
+            messages.success(request, _("Votre demande de visite a été transmise !"))
+        else:
+            messages.error(request, _("Veuillez choisir une date."))
+            
+    return redirect(p.get_absolute_url())

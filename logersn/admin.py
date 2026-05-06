@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite, PropertyEquipment, PropertyReview, PropertyAlert
+from django.utils.translation import gettext_lazy as _
+from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite, PropertyEquipment, PropertyReview, PropertyAlert, Reservation, PropertyAvailability, VisitRequest
 from logertogo.emails import send_property_published_email
 
 class PropertyImageInline(admin.TabularInline):
@@ -24,10 +25,16 @@ class PropertyEquipmentInline(admin.TabularInline):
 
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ('get_thumbnail', 'title', 'owner', 'listing_category', 'price', 'is_paid', 'is_boosted', 'is_published')
+    list_display = ('get_thumbnail', 'title', 'owner', 'listing_category', 'price', 'discount_price', 'is_paid', 'is_boosted', 'is_published')
     list_filter = ('listing_category', 'property_type', 'is_published', 'is_paid', 'is_boosted', 'is_featured_popup', 'city', 'created_at')
     search_fields = ('title', 'description', 'city', 'neighborhood')
     inlines = [PropertyImageInline, PropertyEquipmentInline]
+    readonly_fields = ('discount_price',)
+    fieldsets = (
+        (_('Informations de base'), {'fields': ('title', 'owner', 'listing_category', 'property_type', 'city', 'neighborhood', 'description')}),
+        (_('Tarification & Remises'), {'fields': ('price', 'discount_percentage', 'discount_price', 'price_per_night')}),
+        (_('Statut & Visibilité'), {'fields': ('is_published', 'is_paid', 'is_boosted', 'boost_until', 'is_featured_popup', 'popup_until')}),
+    )
     actions = ['publish_properties', 'unpublish_properties', 'mark_as_paid', 'boost_selected']
 
     def get_thumbnail(self, obj):
@@ -192,3 +199,19 @@ class PropertyAlertAdmin(admin.ModelAdmin):
                 alert.created_at.strftime('%d/%m/%Y')
             ])
         return response
+@admin.register(Reservation)
+class ReservationAdmin(admin.ModelAdmin):
+    list_display = ('property', 'user', 'check_in', 'check_out', 'total_price', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('property__title', 'user__email')
+
+@admin.register(VisitRequest)
+class VisitRequestAdmin(admin.ModelAdmin):
+    list_display = ('property', 'user', 'proposed_date', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('property__title', 'user__email')
+
+@admin.register(PropertyAvailability)
+class PropertyAvailabilityAdmin(admin.ModelAdmin):
+    list_display = ('property', 'start_date', 'end_date', 'is_available')
+    list_filter = ('is_available',)

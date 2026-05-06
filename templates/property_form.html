@@ -16,8 +16,7 @@
     border-color: var(--color-light-green) !important;
   }
   .section-divider { border-color: var(--border-color) !important; }
-  #map-picker { height: 360px; border-radius: 14px; border: 2px solid var(--border-color); }
-  #map-picker.pinned { border-color: var(--color-light-green); box-shadow: 0 0 0 4px rgba(127,212,125,.2); }
+  #mapWrapper.pinned { border-color: var(--color-light-green) !important; box-shadow: 0 0 0 4px rgba(127,212,125,.2) !important; }
   .map-status { font-size:.82rem; padding: 6px 12px; border-radius: 8px; margin-top: 8px; display: none; }
   .map-status.visible { display:block; }
   .geocode-btn { transition: all .25s; }
@@ -151,11 +150,13 @@
                     </div>
                   </div>
 
-                  <!-- Carte Leaflet -->
-                  <div id="map-picker"></div>
+                  <!-- Carte Leaflet uniformisée -->
+                  <div id="mapWrapper" style="display:block;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);border:2px solid var(--border-color);">
+                      <div id="map-picker" style="height:360px; z-index: 1; background-color: #e5e5e5;"></div>
+                  </div>
 
                   <!-- Statut géolocalisation -->
-                  <div id="map-status" class="map-status alert mb-0 py-2 px-3"></div>
+                  <div id="map-status" class="map-status alert mb-0 py-2 px-3 mt-2"></div>
 
                   <!-- Coordonnées affichées -->
                   <div class="d-flex gap-3 mt-2" id="coords-display" style="display:none!important;">
@@ -326,31 +327,42 @@
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-// ─── CONFIG ──────────────────────────────────────────────────────────────
-const LOME_CENTER = [6.1375, 1.2123];  // Lomé, Togo
-let map, marker;
+// ─── CONFIG & GLOBALS ──────────────────────────────────────────────────
+let map, marker, greenIcon;
 let markerPinned = false;
+const LOME_CENTER = [6.1375, 1.2123];
 
-const latInput  = document.getElementById('id_latitude');
-const lngInput  = document.getElementById('id_longitude');
-const latDisp   = document.getElementById('lat-display');
-const lngDisp   = document.getElementById('lng-display');
-const coordsOk  = document.getElementById('coords-ok');
-const coordsRow = document.getElementById('coords-display');
-const statusBox = document.getElementById('map-status');
-const mapEl     = document.getElementById('map-picker');
-
-// ─── INIT MAP ────────────────────────────────────────────────────────────
+// ─── INIT MAP (Sécurisé dans DOMContentLoaded) ──────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-    map = L.map('map-picker').setView(LOME_CENTER, 13);
+    // Initialisation conditionnelle
+    const mapContainer = document.getElementById('map-picker');
+    if (!mapContainer) return;
 
-    // Using a more aesthetic tile layer: CartoDB Voyager
+    // Définition de l'icône
+    greenIcon = L.divIcon({
+        html: `<div style="
+            width:32px;height:32px;border-radius:50% 50% 50% 0;
+            background:linear-gradient(135deg,#198754,#0b4629);
+            border:3px solid white;
+            box-shadow:0 3px 12px rgba(0,0,0,.35);
+            transform:rotate(-45deg);
+            display:flex;align-items:center;justify-content:center;
+        ">
+            <i class='fa-solid fa-house' style='color:white;font-size:11px;transform:rotate(45deg);'></i>
+        </div>`,
+        className: '',
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -34]
+    });
+
+    // Initialisation carte
+    map = L.map('map-picker').setView(LOME_CENTER, 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+        attribution: '© OpenStreetMap contributors © CARTO'
     }).addTo(map);
 
-    // Restaurer coords existantes (édition)
+    // Restaurer coords existantes
     const existingLat = "{{ form.instance.latitude|default:'' }}";
     const existingLng = "{{ form.instance.longitude|default:'' }}";
     if (existingLat && existingLat !== 'None' && existingLng && existingLng !== 'None') {
@@ -362,70 +374,61 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ─── CLIC SUR CARTE ──────────────────────────────────────────────────────
     map.on('click', function(e) {
         placeMarker(e.latlng.lat, e.latlng.lng);
-        showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
+        window.showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
     });
 
-    // Fix pour l'affichage (force le rafraîchissement)
-    setTimeout(() => { 
-        map.invalidateSize(); 
-    }, 500);
+    setTimeout(() => { map.invalidateSize(); }, 600);
 });
 
 window.addEventListener('resize', () => { if(map) map.invalidateSize(); });
 
-// Custom green pin icon
-const greenIcon = L.divIcon({
-    html: `<div style="
-        width:32px;height:32px;border-radius:50% 50% 50% 0;
-        background:linear-gradient(135deg,#198754,#0b4629);
-        border:3px solid white;
-        box-shadow:0 3px 12px rgba(0,0,0,.35);
-        transform:rotate(-45deg);
-        display:flex;align-items:center;justify-content:center;
-    ">
-        <i class='fa-solid fa-house' style='color:white;font-size:11px;transform:rotate(45deg);'></i>
-    </div>`,
-    className: '',
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -34]
-});
-// ─── FONCTIONS ───────────────────────────────────────────────────────────
-function placeMarker(lat, lng) {
+// ─── FONCTIONS (Exposées pour onClick) ──────────────────────────────────
+window.placeMarker = function(lat, lng) {
+    if (!map) return;
     if (marker) marker.remove();
     marker = L.marker([lat, lng], {icon: greenIcon, draggable: true}).addTo(map);
     marker.bindPopup('<strong>📍 {% trans "Votre bien" %}</strong><br><small>{% trans "Glissez pour ajuster la position" %}</small>').openPopup();
 
-    // Mise à jour au drag
     marker.on('dragend', function() {
         const pos = marker.getLatLng();
-        updateCoords(pos.lat, pos.lng);
-        showStatus('✅ {% trans "Position ajustée par glisser-déposer." %}', 'success');
+        window.updateCoords(pos.lat, pos.lng);
+        window.showStatus('✅ {% trans "Position ajustée." %}', 'success');
     });
 
-    updateCoords(lat, lng);
-    mapEl.classList.add('pinned');
+    window.updateCoords(lat, lng);
+    const mapEl = document.getElementById('mapWrapper');
+    if(mapEl) mapEl.classList.add('pinned');
     markerPinned = true;
-}
+};
 
-function updateCoords(lat, lng) {
+window.updateCoords = function(lat, lng) {
     const latR = parseFloat(lat).toFixed(7);
     const lngR = parseFloat(lng).toFixed(7);
-    latInput.value = latR;
-    lngInput.value = lngR;
-    latDisp.textContent = latR;
-    lngDisp.textContent = lngR;
-    coordsRow.style.display = 'flex';
-    coordsOk.style.display = 'inline';
-}
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    if(latInput) latInput.value = latR;
+    if(lngInput) lngInput.value = lngR;
+    
+    const latDisp = document.getElementById('lat-display');
+    const lngDisp = document.getElementById('lng-display');
+    if(latDisp) latDisp.textContent = latR;
+    if(lngDisp) lngDisp.textContent = lngR;
+    
+    const coordsRow = document.getElementById('coords-display');
+    const coordsOk = document.getElementById('coords-ok');
+    if(coordsRow) coordsRow.style.display = 'flex';
+    if(coordsOk) coordsOk.style.display = 'inline';
+};
 
-function showStatus(msg, type) {
+window.showStatus = function(msg, type) {
+    const statusBox = document.getElementById('map-status');
+    if (!statusBox) return;
     statusBox.className = `map-status alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} visible`;
     statusBox.innerHTML = msg;
     setTimeout(() => { statusBox.className = 'map-status alert'; }, 5000);
-}
+};
 
 // ─── GÉOCODAGE PAR ADRESSE ───────────────────────────────────────────────
 async function geocodeAddress() {

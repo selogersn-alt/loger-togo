@@ -22,6 +22,8 @@ services:
       - DATABASE_URL=postgres://logeruser:logerpassword@db:5432/logertogo
       - DEBUG=0
       - DJANGO_SETTINGS_MODULE=logertogo.settings
+    env_file:
+      - .env
     depends_on:
       - db
     ports:

@@ -35,7 +35,7 @@
         <div class="d-flex justify-content-between align-items-end mb-5 animate__animated animate__fadeIn">
             <div>
                 <h1 class="display-5 fw-800 text-main mb-2">
-                    {% trans "Bonjour" %}, <span class="text-success">{{ request.user.first_name|default:request.user.username }}</span>
+                    {% trans "Bonjour" %}, <span class="text-success">{{ request.user.get_short_name }}</span>
                 </h1>
                 <p class="text-muted lead mb-0">
                     {% if request.user.role == 'TENANT' %}

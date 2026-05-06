@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['157.180.127.70', 'logertg.com', 'www.logertg.com', 'logertogo.com', 'www.logertogo.com', 'localhost', '127.0.0.1']
 SITE_URL = 'https://logertg.com'

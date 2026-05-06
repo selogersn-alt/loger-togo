@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, KYCProfile, NILS_Profile, SolvencyDocument, SearchLog
+from .models import User, KYCProfile
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from django.utils.html import format_html
@@ -28,7 +28,6 @@ class UserAdmin(BaseUserAdmin):
         ('Vérification & Sécurité', {'fields': ('phone_otp', 'is_phone_verified')}),
         ('Identité', {'fields': ('first_name', 'last_name', 'cni_number', 'profile_picture')}),
         ('Statut Professionnel', {'fields': ('role', 'is_verified_pro', 'company_name', 'coverage_area')}),
-        ('Badge Solvable & Capacité Financière', {'fields': ('is_solvable', 'solvency_income_avg', 'solvency_max_rent', 'solvency_expiry_date')}),
         ('Permissions Admin', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'), 'classes': ('collapse',)}),
     )
     add_fieldsets = (
@@ -207,105 +206,81 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(KYCProfile)
 class KYCProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'vision_api_status', 'verified_at')
-    list_filter = ('vision_api_status',)
+    list_display = ('user_link', 'cni_front_thumb', 'selfie_thumb', 'vision_api_status', 'verified_at')
+    list_filter = ('vision_api_status', 'verified_at')
+    search_fields = ('user__phone_number', 'user__first_name', 'user__last_name')
     actions = ['approve_kyc', 'reject_kyc']
-    readonly_fields = ('cni_front_preview', 'cni_back_preview', 'selfie_preview')
+    readonly_fields = ('verified_at', 'cni_front_preview', 'cni_back_preview', 'selfie_preview')
+    
+    fieldsets = (
+        ('Utilisateur', {'fields': ('user', 'verified_at')}),
+        ('Statut', {'fields': ('vision_api_status', 'rejection_reason')}),
+        ('Documents d\'Identité', {
+            'fields': (
+                ('cni_front_image', 'cni_front_preview'),
+                ('cni_back_image', 'cni_back_preview'),
+                ('selfie_image', 'selfie_preview'),
+            )
+        }),
+    )
+
+    def user_link(self, obj):
+        return format_html('<a href="{}">{}</a>', f"/admin/users/user/{obj.user.id}/change/", obj.user.get_full_name())
+    user_link.short_description = "Utilisateur"
+
+    def cni_front_thumb(self, obj):
+        if obj.cni_front_image:
+            return format_html('<img src="{}" style="width: 50px; height: 35px; object-fit: cover; border-radius: 4px;"/>', obj.cni_front_image.url)
+        return "-"
+    cni_front_thumb.short_description = "CNI (Recto)"
+
+    def selfie_thumb(self, obj):
+        if obj.selfie_image:
+            return format_html('<img src="{}" style="width: 35px; height: 35px; object-fit: cover; border-radius: 50%;"/>', obj.selfie_image.url)
+        return "-"
+    selfie_thumb.short_description = "Selfie"
 
     def cni_front_preview(self, obj):
         if obj.cni_front_image:
-            return format_html('<img src="{}" style="max-height: 200px;"/>', obj.cni_front_image.url)
+            return format_html('<img src="{}" style="max-height: 300px; border-radius: 10px; border: 1px solid #ddd;"/>', obj.cni_front_image.url)
         return "Aucune image"
-    cni_front_preview.short_description = "CNI Recto"
+    cni_front_preview.short_description = "Aperçu CNI Recto"
 
     def cni_back_preview(self, obj):
         if obj.cni_back_image:
-            return format_html('<img src="{}" style="max-height: 200px;"/>', obj.cni_back_image.url)
+            return format_html('<img src="{}" style="max-height: 300px; border-radius: 10px; border: 1px solid #ddd;"/>', obj.cni_back_image.url)
         return "Aucune image"
-    cni_back_preview.short_description = "CNI Verso"
+    cni_back_preview.short_description = "Aperçu CNI Verso"
 
     def selfie_preview(self, obj):
         if obj.selfie_image:
-            return format_html('<img src="{}" style="max-height: 200px;"/>', obj.selfie_image.url)
+            return format_html('<img src="{}" style="max-height: 300px; border-radius: 10px; border: 1px solid #ddd;"/>', obj.selfie_image.url)
         return "Aucune image"
-    selfie_preview.short_description = "Selfie"
+    selfie_preview.short_description = "Aperçu Selfie"
 
-    @admin.action(description="✅ Approuver les profils KYC sélectionnés")
+    @admin.action(description="✅ Approuver et donner le Badge PRO")
     def approve_kyc(self, request, queryset):
+        count = 0
         for profile in queryset:
             profile.vision_api_status = KYCProfile.StatusEnum.APPROVED
             profile.verified_at = timezone.now()
             profile.save()
             
+            # Activer automatiquement le badge pro de l'utilisateur
+            user = profile.user
+            user.is_verified_pro = True
+            user.save()
+            count += 1
+        self.message_user(request, f"{count} profil(s) KYC approuvés et badges PRO activés.")
+            
     @admin.action(description="❌ Rejeter les profils KYC sélectionnés")
     def reject_kyc(self, request, queryset):
-        for profile in queryset:
-            profile.vision_api_status = KYCProfile.StatusEnum.REJECTED
-            profile.save()
+        updated = queryset.update(vision_api_status=KYCProfile.StatusEnum.REJECTED)
+        self.message_user(request, f"{updated} profil(s) KYC rejetés.")
 
 
-@admin.register(SearchLog)
-class SearchLogAdmin(admin.ModelAdmin):
-    list_display = ('timestamp', 'searcher', 'query', 'results_found', 'ip_address')
-    list_filter = ('timestamp', 'searcher')
-    search_fields = ('query', 'ip_address')
-    readonly_fields = ('timestamp', 'searcher', 'query', 'results_found', 'ip_address')
 
 
-@admin.register(NILS_Profile)
-class NILS_ProfileAdmin(admin.ModelAdmin):
-    list_display = ('nils_number', 'user', 'reputation_badge', 'score')
-    search_fields = ('nils_number', 'user__email', 'user__phone_number')
-    list_filter = ('reputation_status',)
-
-    def reputation_badge(self, obj):
-        colors = {
-            'GREEN': ('#28a745', 'Excellent'),
-            'YELLOW': ('#ffc107', 'Moyen (Attention)'),
-            'RED': ('#dc3545', 'Critique (Dépôt Plainte)')
-        }
-        color, label = colors.get(obj.reputation_status, ('#6c757d', 'Inconnu'))
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 11px;">{}</span>',
-            color, label
-        )
-    reputation_badge.short_description = "Réputation"
 
 
-@admin.register(SolvencyDocument)
-class SolvencyDocumentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'doc_type', 'status', 'uploaded_at')
-    list_filter = ('status', 'doc_type')
-    actions = ['verify_and_badge', 'reject_document']
-    
-    @admin.action(description="✅ Valider et accorder le Badge Solvable (Calcul auto 70% et 3 mois)")
-    def verify_and_badge(self, request, queryset):
-        from datetime import timedelta
-        for doc in queryset:
-            doc.status = 'VERIFIED'
-            doc.verified_at = timezone.now()
-            
-            user = doc.user
-            user.is_solvable = True
-            
-            if user.solvency_income_avg > 0:
-                user.solvency_max_rent = user.solvency_income_avg * 70 / 100
-                user.solvency_expiry_date = timezone.now().date() + timedelta(days=90)
-            
-            user.save()
-            doc.save()
-            
-            if doc.file:
-                import os
-                try:
-                    if os.path.exists(doc.file.path):
-                        os.remove(doc.file.path)
-                    doc.file = None
-                    doc.save()
-                except:
-                    pass
-        self.message_user(request, "Documents validés. Les badges sont actifs pour 3 mois avec calcul auto de capacité.")
 
-    @admin.action(description="❌ Rejeter le document")
-    def reject_document(self, request, queryset):
-        queryset.update(status='REJECTED')

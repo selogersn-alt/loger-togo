@@ -4,7 +4,7 @@
 ---
 
 ## 1. VISION STRATÉGIQUE
-**Loger Togo**, propulsé par l'écosystème **DigitalH**, est une plateforme immobilière de confiance totale. Elle résout le problème majeur du marché sénégalais : **l'insécurité transactionnelle**. 
+**Loger Togo**, propulsé par l'écosystème **DigitalH**, est une plateforme immobilière de confiance totale. Elle résout le problème majeur du marché togolais : **l'insécurité transactionnelle**. 
 
 La plateforme repose sur trois piliers :
 1.  **La Confiance (NILS)** : Vérification d'identité certifiée par IA.

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Professionnel Certifié{% endblock %}
+{% block title %}{{ viewed_user.company_name|default:viewed_user.get_full_name }} | {% trans "Profil Professionnel Certifié" %}{% endblock %}
 
 {% block extra_meta %}
-    <meta property="og:title" content="{{ viewed_user.company_name|default:viewed_user.get_full_name }} | Profil Certifié Loger Togo">
-    <meta property="og:description" content="{{ viewed_user.get_role_display }} vérifié sur Loger Togo. Consultez mes annonces et mon profil de confiance.">
+    <meta property="og:title" content="{{ viewed_user.company_name|default:viewed_user.get_full_name }} | {% trans "Profil Certifié Loger Togo" %}">
+    <meta property="og:description" content="{{ viewed_user.get_role_display }} {% trans "vérifié sur Loger Togo. Consultez mes annonces et mon profil de confiance." %}">
     {% if viewed_user.profile_picture %}
         <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
         <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}">
@@ -39,22 +39,22 @@
                         {% endif %}
                     </div>
                     <h3 class="fw-bold mb-1">{{ viewed_user.company_name|default:viewed_user.get_full_name }}</h3>
-                    <p class="text-success fw-bold text-uppercase small letter-spacing-1">{{ viewed_user.get_role_display }} Certifié</p>
+                    <p class="text-success fw-bold text-uppercase small letter-spacing-1">{{ viewed_user.get_role_display }} {% trans "Certifié" %}</p>
                     
                     <div class="d-flex justify-content-center gap-2 mt-3">
                         <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-star text-warning me-1"></i> 4.9/5</span>
-                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-shield-halved text-success me-1"></i> Vérifié</span>
+                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="fa-solid fa-shield-halved text-success me-1"></i> {% trans "Vérifié" %}</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-8 p-5">
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <label class="small text-muted text-uppercase fw-bold mb-1">Zone d'activité</label>
+                        <label class="small text-muted text-uppercase fw-bold mb-1">{% trans "Zone d'activité" %}</label>
                         <p class="fs-5 fw-600"><i class="fa-solid fa-location-dot me-2 text-success"></i> {{ viewed_user.coverage_area|default:"Togo (National)" }}</p>
                     </div>
                     <div class="col-md-6">
-                        <label class="small text-muted text-uppercase fw-bold mb-1">Inscrit depuis</label>
+                        <label class="small text-muted text-uppercase fw-bold mb-1">{% trans "Inscrit depuis" %}</label>
                         <p class="fs-5 fw-600"><i class="fa-solid fa-calendar-check me-2 text-success"></i> {{ viewed_user.date_joined|date:"M Y" }}</p>
                     </div>
                     <div class="col-12 py-2">
@@ -63,29 +63,29 @@
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded-4 text-center">
                             <div class="fs-2 fw-bold text-success">{{ stats.total_properties }}</div>
-                            <div class="small text-muted text-uppercase fw-bold">Annonces</div>
+                            <div class="small text-muted text-uppercase fw-bold">{% trans "Annonces" %}</div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded-4 text-center">
                             <div class="fs-2 fw-bold text-success">{{ stats.experience_years|add:"1" }}</div>
-                            <div class="small text-muted text-uppercase fw-bold">Années d'Exp.</div>
+                            <div class="small text-muted text-uppercase fw-bold">{% trans "Années d'Exp." %}</div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 bg-light rounded-4 text-center">
                             <div class="fs-2 fw-bold text-success">100%</div>
-                            <div class="small text-muted text-uppercase fw-bold">Réactivité</div>
+                            <div class="small text-muted text-uppercase fw-bold">{% trans "Réactivité" %}</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="mt-5">
                     <a href="tel:{{ viewed_user.phone_number }}" class="btn btn-primary-custom px-5 py-3 fs-5 me-2">
-                        <i class="fa-solid fa-phone me-2"></i> Contacter
+                        <i class="fa-solid fa-phone me-2"></i> {% trans "Contacter" %}
                     </a>
                     <button class="btn btn-outline-dark px-4 py-3 rounded-pill fw-bold" onclick="shareProfile()">
-                        <i class="fa-solid fa-share-nodes me-2"></i> Partager
+                        <i class="fa-solid fa-share-nodes me-2"></i> {% trans "Partager" %}
                     </button>
                 </div>
             </div>
@@ -96,7 +96,7 @@
         function shareProfile() {
             const shareData = {
                 title: "{{ viewed_user.company_name|default:viewed_user.get_full_name|escapejs }} | Loger Togo",
-                text: "Découvrez le catalogue de ce professionnel certifié sur Loger Togo.",
+                text: "{% trans "Découvrez le catalogue de ce professionnel certifié sur Loger Togo." %}",
                 url: "{{ share_url|safe }}"
             };
 
@@ -112,7 +112,7 @@
                 el.select();
                 document.execCommand('copy');
                 document.body.removeChild(el);
-                alert('Lien du profil copié dans le presse-papier !');
+                alert('{% trans "Lien du profil copié dans le presse-papier !" %}');
             }
         }
     </script>
@@ -120,8 +120,8 @@
     <!-- Annonces de ce professionnel -->
     <div class="row align-items-end mb-4">
         <div class="col">
-            <h2 class="fw-bold m-0"><i class="fa-solid fa-house-user text-success me-2"></i> Catalogue de ce professionnel</h2>
-            <p class="text-muted">Consultez tous les biens actuellement gérés par {{ viewed_user.first_name|default:"ce professionnel" }}.</p>
+            <h2 class="fw-bold m-0"><i class="fa-solid fa-house-user text-success me-2"></i> {% trans "Catalogue de ce professionnel" %}</h2>
+            <p class="text-muted">{% trans "Consultez tous les biens actuellement gérés par" %} {{ viewed_user.first_name|default:viewed_user.company_name }}.</p>
         </div>
     </div>
 
@@ -146,14 +146,14 @@
                 <div class="card-body p-4">
                     <h5 class="fw-bold text-truncate">{{ prop.title }}</h5>
                     <p class="small text-muted mb-3"><i class="fa-solid fa-location-dot me-1"></i> {{ prop.neighborhood }}, {{ prop.city }}</p>
-                    <a href="{% url 'property_detail' prop.id %}" class="btn btn-outline-success w-100 rounded-pill fw-bold">Voir les détails</a>
+                    <a href="{% url 'property_detail' prop.id %}" class="btn btn-outline-success w-100 rounded-pill fw-bold">{% trans "Voir les détails" %}</a>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-12 text-center py-5">
             <i class="fa-solid fa-ghost fs-1 text-muted opacity-25 mb-3"></i>
-            <p class="text-muted">Aucune annonce disponible en ce moment.</p>
+            <p class="text-muted">{% trans "Aucune annonce disponible en ce moment." %}</p>
         </div>
         {% endfor %}
     </div>

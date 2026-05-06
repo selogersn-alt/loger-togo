@@ -383,7 +383,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
         child: Icon(icon, color: Colors.white, size: 24),
       ),
     );

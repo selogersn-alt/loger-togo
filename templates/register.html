@@ -1,6 +1,20 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Inscription | Logertogo{% endblock %}
+{% block title %}{% trans "Inscription" %} | Logertogo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput.css">
+<style>
+    .iti { width: 100%; display: block; }
+    /* Fix pour empêcher le drapeau de chevaucher le numéro */
+    #phone { padding-left: 95px !important; }
+    .iti__active { background-color: rgba(127, 212, 125, 0.1); }
+    [data-theme="dark"] .iti__country-list { background-color: var(--bg-card); color: var(--text-main); }
+    .input-group-text { border-left: none !important; background-color: var(--bg-body) !important; color: var(--text-muted); }
+    .password-input { border-right: none !important; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -10,8 +24,8 @@
                 <div class="card-body p-sm-5 p-4">
                     <div class="text-center mb-4">
                         <i class="fa-solid fa-user-plus mb-3" style="color: var(--color-yellow); font-size: 3rem;"></i>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Créer un compte</h2>
-                        <p class="text-muted">Rejoignez la plateforme immobilière de confiance au Togo.</p>
+                        <h2 class="fw-bold" style="color: var(--text-main);">{% trans "Créer un compte" %}</h2>
+                        <p class="text-muted">{% trans "Rejoignez la plateforme immobilière de confiance au Togo." %}</p>
                     </div>
 
                     {% if messages %}
@@ -23,83 +37,88 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="POST" action="{% url 'register' %}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="phone" class="form-label fw-bold" style="color: var(--text-main);">Numéro de Téléphone (Identifiant) <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="phone" name="phone" required placeholder="+228 97 15 16 10" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label fw-bold" style="color: var(--text-main);">Adresse Email <span class="text-muted fw-normal">(Optionnel)</span></label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="nom@exemple.com" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="role" class="form-label fw-bold" style="color: var(--text-main);">Quel est votre statut ? <span class="text-danger">*</span></label>
-                            <select class="form-select" id="role" name="role" required style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;" onchange="toggleProFields()">
-                                <option value="TENANT" selected>Locataire (Cherche un bien)</option>
-                                <option value="LANDLORD">Bailleur / Propriétaire</option>
-                                <option value="AGENCY">Agence Immobilière</option>
-                                <option value="BROKER">Courtier</option>
-                                <option value="AGENT">Agent (Indépendant)</option>
-                            </select>
-                        </div>
+                        <form method="POST" action="{% url 'register' %}" id="registerForm">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
 
-                        <!-- Champs spécifiques aux professionnels -->
-                        <div id="proFields" style="display: none; background-color: rgba(127, 212, 125, 0.05); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
-                            <h6 class="fw-bold mb-3" style="color: var(--color-dark-green);"><i class="fa-solid fa-briefcase me-2"></i>Informations Professionnelles</h6>
                             <div class="mb-3">
-                                <label for="company_name" class="form-label" style="color: var(--text-main);">Nom de l'entreprise ou Cabinet <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Ex: Logertogo, Agence X..." style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                                <label for="phone" class="form-label fw-bold" style="color: var(--text-main);">{% trans "Numéro de Téléphone" %}</label>
+                                <input type="tel" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" id="phone" name="phone_number" value="{{ form.phone_number.value|default:'' }}" placeholder="97 15 16 10" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                                {% for error in form.phone_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                             </div>
-                            <div class="mb-2">
-                                <label for="coverage_area" class="form-label" style="color: var(--text-main);">Zone de couverture <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="coverage_area" name="coverage_area" placeholder="Ex: Lomé, Ngor, Almadies, Rufisque..." style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
-                                <small class="text-muted d-block mt-1"><i class="fa-solid fa-circle-info me-1"></i>Permet aux usagers de vous trouver dans notre annuaire de professionnels vérifiés.</small>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-bold" style="color: var(--text-main);">{% trans "Adresse Email" %}</label>
+                                <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="nom@exemple.com" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                                <small class="text-muted">{% trans "Requis si vous n'avez pas de numéro de téléphone." %}</small>
+                                {% for error in form.email.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                             </div>
-                        </div>
-                        
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="no_email" name="no_email" style="border-color: var(--color-light-green);">
-                            <label class="form-check-label text-muted small" for="no_email">
-                                Je n'ai pas d'adresse email
-                            </label>
-                        </div>
+                            
+                            <div class="mb-3">
+                                <label for="role" class="form-label fw-bold" style="color: var(--text-main);">{% trans "Quel est votre statut ?" %} <span class="text-danger">*</span></label>
+                                <select class="form-select {% if form.role.errors %}is-invalid{% endif %}" id="role" name="role" required style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;" onchange="toggleProFields()">
+                                    {% for value, label in form.fields.role.choices %}
+                                        <option value="{{ value }}" {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% for error in form.role.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                            </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <label for="password" class="form-label fw-bold" style="color: var(--text-main);">Mot de passe</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="password" name="password" required placeholder="Min. 8 car." minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
-                                    <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password', 'eye-reg')">
-                                        <i class="fa-solid fa-eye text-muted" id="eye-reg"></i>
-                                    </span>
+                            <!-- Champs spécifiques aux professionnels -->
+                            <div id="proFields" style="display: none; background-color: rgba(127, 212, 125, 0.05); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                                <h6 class="fw-bold mb-3" style="color: var(--color-dark-green);"><i class="fa-solid fa-briefcase me-2"></i>{% trans "Informations Professionnelles" %}</h6>
+                                <div class="mb-3">
+                                    <label for="company_name" class="form-label" style="color: var(--text-main);">{% trans "Nom de l'entreprise ou Cabinet" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control {% if form.company_name.errors %}is-invalid{% endif %}" id="company_name" name="company_name" value="{{ form.company_name.value|default:'' }}" placeholder="{% trans "Ex: Logertogo, Agence X..." %}" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                                    {% for error in form.company_name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="mb-2">
+                                    <label for="coverage_area" class="form-label" style="color: var(--text-main);">{% trans "Zone de couverture" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control {% if form.coverage_area.errors %}is-invalid{% endif %}" id="coverage_area" name="coverage_area" value="{{ form.coverage_area.value|default:'' }}" placeholder="{% trans "Ex: Lomé, Hedzranawoé, Baguida, Agoè..." %}" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                                    {% for error in form.coverage_area.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="password_confirm" class="form-label fw-bold" style="color: var(--text-main);">Confirmation</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="password_confirm" name="password_confirm" required placeholder="Répéter" minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
-                                    <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password_confirm', 'eye-reg-conf')">
-                                        <i class="fa-solid fa-eye text-muted" id="eye-reg-conf"></i>
-                                    </span>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="password" class="form-label fw-bold" style="color: var(--text-main);">{% trans "Mot de passe" %}</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" id="password" name="password1" required placeholder="{% trans "Min. 8 car." %}" minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
+                                        <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password', 'eye-reg')">
+                                            <i class="fa-solid fa-eye text-muted" id="eye-reg"></i>
+                                        </span>
+                                    </div>
+                                    {% for error in form.password1.errors %}<div class="small text-danger mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="password_confirm" class="form-label fw-bold" style="color: var(--text-main);">{% trans "Confirmation" %}</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" id="password_confirm" name="password2" required placeholder="{% trans "Répéter" %}" minlength="8" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
+                                        <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password_confirm', 'eye-reg-conf')">
+                                            <i class="fa-solid fa-eye text-muted" id="eye-reg-conf"></i>
+                                        </span>
+                                    </div>
+                                    {% for error in form.password2.errors %}<div class="small text-danger mt-1">{{ error }}</div>{% endfor %}
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" value="" id="terms" required style="border-color: var(--color-light-green);">
-                            <label class="form-check-label text-muted small" for="terms">
-                                J'accepte les <a href="#" style="color: var(--color-light-green);">Conditions d'utilisation</a> et la politique de confidentialité de Logertogo.
-                            </label>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-secondary-custom w-100 py-3 mb-3" style="font-size: 1.1rem; border-radius: 12px; color: var(--color-dark-green);">S'inscrire gratuitement</button>
-                    </form>
+                            
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" value="" id="terms" required style="border-color: var(--color-light-green);">
+                                <label class="form-check-label text-muted small" for="terms">
+                                    {% trans "J'accepte les" %} <a href="#" style="color: var(--color-light-green);">{% trans "Conditions d'utilisation" %}</a> {% trans "et la politique de confidentialité de Logertogo." %}
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-secondary-custom w-100 py-3 mb-3" style="font-size: 1.1rem; border-radius: 12px; color: var(--color-dark-green);">{% trans "S'inscrire gratuitement" %}</button>
+                        </form>
 
                     <div class="text-center mt-4">
-                        <p class="mb-0" style="color: var(--text-muted);">Vous avez déjà un compte ? <a href="{% url 'login' %}" class="fw-bold text-decoration-none" style="color: var(--color-dark-green);">Se Connecter</a></p>
+                        <p class="mb-0" style="color: var(--text-muted);">{% trans "Vous avez déjà un compte ?" %} <a href="{% url 'login' %}" class="fw-bold text-decoration-none" style="color: var(--color-dark-green);">{% trans "Se Connecter" %}</a></p>
                     </div>
                 </div>
             </div>
@@ -109,7 +128,26 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js"></script>
 <script>
+    const phoneInput = document.querySelector("#phone");
+    const iti = window.intlTelInput(phoneInput, {
+        initialCountry: "tg",
+        preferredCountries: ["tg", "bj", "ci", "fr"],
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/utils.js",
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const phoneValue = phoneInput.value.trim();
+        if (phoneValue !== "") {
+            // On ne formate que si le numéro ne commence pas déjà par +
+            // (évite le doublon +228+228 au rechargement du formulaire avec erreurs)
+            if (!phoneValue.startsWith('+')) {
+                phoneInput.value = iti.getNumber();
+            }
+        }
+    });
+
     function toggleProFields() {
         const role = document.getElementById('role').value;
         const proFields = document.getElementById('proFields');
@@ -122,7 +160,7 @@
             coverageInput.required = true;
         } else if (role === 'LANDLORD') {
             proFields.style.display = 'block';
-            companyInput.required = false; // Name optional for simple landlords
+            companyInput.required = false; 
             coverageInput.required = true;
         } else {
             proFields.style.display = 'none';
@@ -130,8 +168,23 @@
             coverageInput.required = false;
         }
     }
+
+    function togglePassword(id, eyeId) {
+        const input = document.getElementById(id);
+        const eye = document.getElementById(eyeId);
+        if (input.type === "password") {
+            input.type = "text";
+            eye.classList.remove('fa-eye');
+            eye.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            eye.classList.remove('fa-eye-slash');
+            eye.classList.add('fa-eye');
+        }
+    }
     
-    // Call on load in case browser autofills dropdown
-    document.addEventListener('DOMContentLoaded', toggleProFields);
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleProFields();
+    });
 </script>
 {% endblock %}

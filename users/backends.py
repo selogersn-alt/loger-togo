@@ -1,34 +1,25 @@
-import logging
 from django.contrib.auth.backends import ModelBackend
-from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
-User = get_user_model()
-
-logger = logging.getLogger(__name__)
-
-class EmailOrPhoneModelBackend(ModelBackend):
+class PhoneOrEmailBackend(ModelBackend):
     """
-    Custom authentication backend that allows users to log in using either their
-    phone number or their email address.
+    Authentification personnalisée permettant de se connecter soit avec le numéro de téléphone,
+    soit avec l'adresse email.
     """
     def authenticate(self, request, username=None, password=None, **kwargs):
-        # DRF TokenObtainPairView sends identifier in 'username' field
-        # Web login view sends phone in 'phone_number' field via authenticate call
-        
-        identifier = username or kwargs.get('phone_number')
-        
-        if identifier is None:
-            return None
-
+        UserModel = get_user_model()
+        if username is None:
+            username = kwargs.get(UserModel.USERNAME_FIELD)
+            
         try:
-            # Try to fetch user by phone_number OR email
-            user = User.objects.filter(Q(phone_number=identifier) | Q(email=identifier)).first()
-            if user and user.check_password(password) and self.user_can_authenticate(user):
+            # On cherche l'utilisateur par téléphone OU par email
+            user = UserModel.objects.get(Q(phone_number=username) | Q(email=username))
+            if user.check_password(password):
                 return user
-        except Exception as e:
-            # Shield against BDD errors during login (e.g. missing columns on server)
-            import logging
-            logging.error(f"Auth Backend Error: {e}")
+        except UserModel.DoesNotExist:
             return None
+        except UserModel.MultipleObjectsReturned:
+            # En cas théorique de doublon (ne devrait pas arriver avec les contraintes Unique)
+            return UserModel.objects.filter(Q(phone_number=username) | Q(email=username)).first()
         return None

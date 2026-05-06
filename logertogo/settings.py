@@ -60,12 +60,12 @@ INSTALLED_APPS = [
     'logersn',
     'chat',
     'ads',
+    'management',
+    'blog',
     'drf_spectacular',
 ]
 
 SITE_ID = 1
-
-
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -96,7 +96,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # Utile pour le développement mobile
 CORS_ALLOW_CREDENTIALS = True
 
 
-SITE_ID = 1
+
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -105,6 +105,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -124,6 +125,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
                 'ads.context_processors.ads_processor',
             ],
         },
@@ -138,19 +140,20 @@ WSGI_APPLICATION = 'logertogo.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'gaak4328_loger_app'),
-        'USER': os.environ.get('DB_USER', 'gaak4328_loger_app'), 
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'logertogo'),
+        'USER': os.environ.get('DB_USER', 'postgres'), 
         'PASSWORD': os.environ.get('DB_PASSWORD', ''), 
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES 'utf8mb4'",
-            'charset': 'utf8mb4',
-        }
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '9946'),
     }
 }
 
+
+AUTHENTICATION_BACKENDS = [
+    'users.backends.PhoneOrEmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -187,6 +190,15 @@ TIME_ZONE = 'Africa/Lome'
 USE_I18N = True
 
 USE_TZ = True
+
+LANGUAGES = [
+    ('fr', 'Français'),
+    ('en', 'English'),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 
 # Static files (CSS, JavaScript, Images)
@@ -239,61 +251,18 @@ SERVER_EMAIL = 'contact@logertogo.com'
 
 # Auth Settings
 AUTHENTICATION_BACKENDS = [
-    'users.backends.EmailOrPhoneModelBackend',
+    'users.backends.PhoneOrEmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
-JAZZMIN_SETTINGS = {
-    "site_title": "Back-office Logertogo",
-    "site_header": "Logertogo",
-    "site_brand": "Administration Logertogo",
-    "welcome_sign": "Espace Opérateur Technique & Juridique",
-    "copyright": "HDIGITAL - Logertogo (Togo)",
-    "search_model": ["users.User", "users.NILS_Profile"],
-    "show_ui_builder": False,
-    "icons": {
-        "users.user": "fas fa-user-tie",
-        "users.kycprofile": "fas fa-id-card-clip",
-        "users.nils_profile": "fas fa-star-half-stroke",
-        "logersn.property": "fas fa-building",
-        "logersn.propertyimage": "fas fa-images",
-        "chat.conversation": "fas fa-comments",
-        "chat.message": "fas fa-comment-dots",
-    },
-    "order_with_respect_to": ["users", "logersn", "chat"],
-    "default_icon_parents": "fas fa-folder-open",
-    "default_icon_children": "fas fa-bullseye",
-    "topmenu_links": [
-        {"name": "Accueil Admin", "url": "admin:index", "permissions": ["users.view_user"]},
-        {"name": "Statistiques Réelles", "url": "/admin/statistiques/", "permissions": ["users.view_user"], "new_window": False},
-    ],
-    "related_modal_active": True,
-}
 
-JAZZMIN_UI_TWEAKS = {
-    "theme": "flatly", 
-    "navbar": "navbar-dark navbar-success",
-    "sidebar": "sidebar-dark-success",
-    "brand_colour": "navbar-success",
-    "accent": "accent-success",
-    "navbar_fixed": True,
-    "sidebar_fixed": True,
-    "sidebar_nav_child_indent": True,
-    "button_classes": {
-        "primary": "btn-success",
-        "secondary": "btn-outline-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success"
-    }
-}
+
 # Spectacular Settings (Point 8)
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Solvable Loger Togo API',
+    'TITLE': 'Loger Togo API',
     'DESCRIPTION': 'Documentation technique des services immobiliers de prestige par DigitalH.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
@@ -337,27 +306,27 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
 
 # --- PWA CONFIGURATION ---
-# PWA_APP_NAME = 'Solvable Togo'
-# PWA_APP_SHORT_NAME = 'Solvable'
-# PWA_APP_DESCRIPTION = "Plateforme d'Immobilier de Confiance au Togo"
-# PWA_APP_THEME_COLOR = '#0b4629'
-# PWA_APP_BACKGROUND_COLOR = '#ffffff'
-# PWA_APP_DISPLAY = 'standalone'
-# PWA_APP_SCOPE = '/'
-# PWA_APP_ORIENTATION = 'any'
-# PWA_APP_START_URL = '/'
-# PWA_APP_STATUS_BAR_COLOR = 'default'
-# PWA_APP_ICONS = [
-#     {
-#         'src': '/static/img/icon-192x192.png',
-#         'sizes': '192x192'
-#     },
-#     {
-#         'src': '/static/img/icon-512x512.png',
-#         'sizes': '512x512'
-#     }
-# ]
-# PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
+PWA_APP_NAME = 'Loger Togo'
+PWA_APP_SHORT_NAME = 'LogerTogo'
+PWA_APP_DESCRIPTION = "Plateforme d'Immobilier de Confiance au Togo"
+PWA_APP_THEME_COLOR = '#0b4629'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/img/icon-192x192.png',
+        'sizes': '192x192'
+    },
+    {
+        'src': '/static/img/icon-512x512.png',
+        'sizes': '512x512'
+    }
+]
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
 
 JAZZMIN_SETTINGS = {
     "site_title": "Loger Togo Admin",
@@ -369,6 +338,7 @@ JAZZMIN_SETTINGS = {
     "search_model": ["users.User", "logersn.Property"],
     "topmenu_links": [
         {"name": "Dashboard",  "url": "admin:index"},
+        {"name": "Statistiques Réelles", "url": "/admin/statistiques/", "permissions": ["users.view_user"], "new_window": False},
         {"name": "Voir le site", "url": "/", "new_window": True},
     ],
     "show_sidebar": True,

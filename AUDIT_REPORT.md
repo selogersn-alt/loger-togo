@@ -4,7 +4,7 @@
 ---
 
 ## 1. VISION D'ENSEMBLE
-La plateforme **Loger Togo** est une solution complète pour le marché immobilier sénégalais, intégrant la vérification d'identité (NILS), le suivi de solvabilité (SOLVABLE) et un moteur de monétisation (PÉAGE). L'architecture Django est solide mais présente des signes de "monolithisme" (un seul gros fichier de vues) et des failles de sécurité critiques dans le tunnel de paiement.
+La plateforme **Loger Togo** est une solution complète pour le marché immobilier togolais, intégrant la vérification d'identité (Badge Pro), le suivi de confiance et un moteur de monétisation (PÉAGE). L'architecture Django est solide mais présente des signes de "monolithisme" (un seul gros fichier de vues) et des failles de sécurité critiques dans le tunnel de paiement.
 
 ---
 

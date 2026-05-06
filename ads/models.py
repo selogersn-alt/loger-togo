@@ -11,7 +11,9 @@ class Advertisement(models.Model):
         ('BOTTOM', 'Bas de page'),
         ('BETWEEN_LISTINGS', 'Entre les annonces (In-Feed)'),
         ('POPUP', 'Pop-up promotionnel'),
+        ('POP_UNDER', 'Pop-under (Nouvel onglet)'),
         ('SIDEBAR', 'Barre latérale (Sidebar)'),
+        ('STICKY_FOOTER', 'Barre flottante (Sticky Footer)'),
     ]
 
     title = models.CharField(max_length=255, verbose_name="Titre de la publicité")
@@ -58,3 +60,25 @@ class SEOSetting(models.Model):
 
     def __str__(self):
         return self.title
+
+class SiteAnnouncement(models.Model):
+    class TypeChoices(models.TextChoices):
+        TICKER = 'TICKER', 'Bandeau défilant (Ticker)'
+        POPUP = 'POPUP', 'Alerte Pop-up'
+    
+    title = models.CharField(max_length=255, verbose_name="Titre/Sujet")
+    content = models.TextField(verbose_name="Contenu (Supporte HTML/JS)")
+    announcement_type = models.CharField(max_length=10, choices=TypeChoices.choices, default=TypeChoices.TICKER)
+    
+    is_active = models.BooleanField(default=True, verbose_name="Activer l'annonce")
+    background_color = models.CharField(max_length=20, default="#198754", verbose_name="Couleur de fond (Hex)")
+    text_color = models.CharField(max_length=20, default="#ffffff", verbose_name="Couleur du texte (Hex)")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Annonce du Site (Ticker/Alerte)"
+        verbose_name_plural = "Annonces du Site (Ticker/Alerte)"
+
+    def __str__(self):
+        return f"{self.get_announcement_type_display()} - {self.title}"

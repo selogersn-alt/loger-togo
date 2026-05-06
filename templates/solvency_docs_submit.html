@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Obtenir mon Badge Solvable | Logertogo{% endblock %}
+{% block title %}{% trans "Obtenir mon Badge Loger Togo" %} | Logertogo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -14,8 +14,8 @@
                             <i class="fa-solid fa-medal fa-2x text-white"></i>
                         </div>
                         <div>
-                            <h3 class="fw-bold mb-0">Badge Locataire Solvable</h3>
-                            <p class="mb-0 opacity-75">Certifiez votre sérieux pour rassurer les bailleurs.</p>
+                            <h3 class="fw-bold mb-0">{% trans "Badge Locataire Loger Togo" %}</h3>
+                            <p class="mb-0 opacity-75">{% trans "Certifiez votre sérieux pour rassurer les bailleurs." %}</p>
                         </div>
                     </div>
                 </div>
@@ -23,24 +23,26 @@
                 <div class="card-body p-4 p-lg-5">
                     <div class="alert alert-info border-0 rounded-3 mb-4">
                         <i class="fa-solid fa-shield-halved me-2"></i>
+                        {% blocktrans %}
                         <strong>Confidentialité DigitalH :</strong> Vos documents sont cryptés et utilisés uniquement pour validation. Ils seront <strong>supprimés définitivement</strong> une fois votre badge attribué.
+                        {% endblocktrans %}
                     </div>
 
-                    {% if not user.is_solvable %}
+                    {% if not user.is_Loger Togo %}
                     <form method="POST" enctype="multipart/form-data" class="mb-5">
                         {% csrf_token %}
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Type de document</label>
+                                <label class="form-label fw-bold">{% trans "Type de document" %}</label>
                                 {{ form.doc_type }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Fichier (PDF ou Image)</label>
+                                <label class="form-label fw-bold">{% trans "Fichier (PDF ou Image)" %}</label>
                                 {{ form.file }}
                             </div>
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary-custom w-100 py-3">
-                                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>Soumettre le document
+                                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>{% trans "Soumettre le document" %}
                                 </button>
                             </div>
                         </div>
@@ -48,19 +50,19 @@
                     {% else %}
                     <div class="text-center py-4 mb-5">
                         <div class="display-1 text-success mb-3"><i class="fa-solid fa-circle-check"></i></div>
-                        <h4 class="fw-bold">Félicitations !</h4>
-                        <p class="text-muted">Votre profil est certifié <strong>Solvable</strong>. Ce badge est visible par tous les bailleurs sur vos candidatures.</p>
+                        <h4 class="fw-bold">{% trans "Félicitations !" %}</h4>
+                        <p class="text-muted">{% trans "Votre profil est certifié <strong>Loger Togo</strong>. Ce badge est visible par tous les bailleurs sur vos candidatures." %}</p>
                     </div>
                     {% endif %}
 
-                    <h5 class="fw-bold mb-4">Historique de vos documents</h5>
+                    <h5 class="fw-bold mb-4">{% trans "Historique de vos documents" %}</h5>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Document</th>
-                                    <th>Date</th>
-                                    <th>Statut</th>
+                                    <th>{% trans "Document" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Statut" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,17 +75,17 @@
                                     <td class="small">{{ doc.uploaded_at|date:"d/m/Y H:i" }}</td>
                                     <td>
                                         {% if doc.status == 'VERIFIED' %}
-                                            <span class="badge bg-success rounded-pill"><i class="fa-solid fa-check me-1"></i>Vérifié</span>
+                                            <span class="badge bg-success rounded-pill"><i class="fa-solid fa-check me-1"></i>{% trans "Vérifié" %}</span>
                                         {% elif doc.status == 'REJECTED' %}
-                                            <span class="badge bg-danger rounded-pill" title="{{ doc.rejection_reason }}"><i class="fa-solid fa-xmark me-1"></i>Rejeté</span>
+                                            <span class="badge bg-danger rounded-pill" title="{{ doc.rejection_reason }}"><i class="fa-solid fa-xmark me-1"></i>{% trans "Rejeté" %}</span>
                                         {% else %}
-                                            <span class="badge bg-warning text-dark rounded-pill"><i class="fa-solid fa-clock me-1"></i>En attente</span>
+                                            <span class="badge bg-warning text-dark rounded-pill"><i class="fa-solid fa-clock me-1"></i>{% trans "En attente" %}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="3" class="text-center py-4 text-muted small">Aucun document soumis pour le moment.</td>
+                                    <td colspan="3" class="text-center py-4 text-muted small">{% trans "Aucun document soumis pour le moment." %}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

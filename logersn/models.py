@@ -4,6 +4,7 @@ import os
 from PIL import Image
 from django.core.files.base import ContentFile
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.text import slugify
 from django.conf import settings
@@ -14,78 +15,78 @@ from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 
 class Property(models.Model):
     class CategoryEnum(models.TextChoices):
-        RENT = 'RENT', 'A louer'
-        SALE = 'SALE', 'A vendre'
-        FURNISHED = 'FURNISHED', 'Meublé'
+        RENT = 'RENT', _('En location')
+        SALE = 'SALE', _('En vente')
+        FURNISHED = 'FURNISHED', _('Meublé')
 
     class DocumentTypeEnum(models.TextChoices):
-        BAIL = 'BAIL', 'BAIL'
-        TITRE_FONCIER_INDIVIDUEL = 'TITRE_FONCIER_INDIVIDUEL', 'TITRE FONCIER INDIVIDUEL'
-        TITRE_FONCIER_GLOBAL = 'TITRE_FONCIER_GLOBAL', 'TITRE FONCIER GLOBAL'
-        ACTE_DE_VENTE = 'ACTE_DE_VENTE', 'ACTE DE VENTE'
-        DELIBERATION = 'DELIBERATION', 'DELIBERATION'
+        BAIL = 'BAIL', _('Bail')
+        TITRE_FONCIER_INDIVIDUEL = 'TITRE_FONCIER_INDIVIDUEL', _('Titre Foncier Individuel')
+        TITRE_FONCIER_GLOBAL = 'TITRE_FONCIER_GLOBAL', _('Titre Foncier Global')
+        ACTE_DE_VENTE = 'ACTE_DE_VENTE', _('Acte de Vente')
+        DELIBERATION = 'DELIBERATION', _('Délibération')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
     description = models.TextField()
-    listing_category = models.CharField(max_length=20, choices=CategoryEnum.choices, default=CategoryEnum.RENT)
-    property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)
-    city = models.CharField(max_length=100, choices=CITY_CHOICES, default='LOME')
-    neighborhood = models.CharField(max_length=100, verbose_name="Quartier")
-    document_type = models.CharField(max_length=50, choices=DocumentTypeEnum.choices, null=True, blank=True, verbose_name="Type de document")
-    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Prix (CFA)")
+    listing_category = models.CharField(max_length=20, choices=CategoryEnum.choices, default=CategoryEnum.RENT, db_index=True)
+    property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES, db_index=True)
+    city = models.CharField(max_length=100, choices=CITY_CHOICES, default='LOME', db_index=True)
+    neighborhood = models.CharField(max_length=100, verbose_name=_("Quartier"))
+    document_type = models.CharField(max_length=50, choices=DocumentTypeEnum.choices, null=True, blank=True, verbose_name=_("Type de document"))
+    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_("Prix (CFA)"))
     
     # Pour les meublés uniquement
-    price_per_night = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name="Prix par nuitée (Meublé)")
-    surface = models.IntegerField(default=0, blank=True, verbose_name="Surface (m2)")
-    bedrooms = models.IntegerField(default=0, blank=True, verbose_name="Nombre de chambres")
-    toilets = models.IntegerField(default=0, blank=True, verbose_name="Nombre de toilettes")
-    total_rooms = models.IntegerField(default=1, blank=True, verbose_name="Nombre total de pièces")
-    households = models.IntegerField(default=0, blank=True, verbose_name="Nombre de ménages")
-    floor_level = models.IntegerField(default=0, blank=True, verbose_name="Niveau d'étage")
-    has_garage = models.BooleanField(default=False, blank=True, verbose_name="Garage disponible")
+    price_per_night = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Prix par nuitée (Meublé)"))
+    surface = models.IntegerField(default=0, blank=True, verbose_name=_("Surface (m2)"))
+    bedrooms = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de chambres"))
+    toilets = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de toilettes"))
+    total_rooms = models.IntegerField(default=1, blank=True, verbose_name=_("Nombre total de pièces"))
+    households = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de ménages"))
+    floor_level = models.IntegerField(default=0, blank=True, verbose_name=_("Niveau d'étage"))
+    has_garage = models.BooleanField(default=False, blank=True, verbose_name=_("Garage disponible"))
     # Nouvelles pièces
-    salons = models.IntegerField(default=0, blank=True, verbose_name="Nombre de salons")
-    kitchens = models.IntegerField(default=0, blank=True, verbose_name="Nombre de cuisines")
+    salons = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de salons"))
+    kitchens = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de cuisines"))
     
     # Nouveaux extérieurs
-    has_balcony = models.BooleanField(default=False, blank=True, verbose_name="Balcon")
-    has_terrace = models.BooleanField(default=False, blank=True, verbose_name="Terrasse")
-    has_courtyard = models.BooleanField(default=False, blank=True, verbose_name="Cour")
-    has_garden = models.BooleanField(default=False, blank=True, verbose_name="Jardin")
+    has_balcony = models.BooleanField(default=False, blank=True, verbose_name=_("Balcon"))
+    has_terrace = models.BooleanField(default=False, blank=True, verbose_name=_("Terrasse"))
+    has_courtyard = models.BooleanField(default=False, blank=True, verbose_name=_("Cour"))
+    has_garden = models.BooleanField(default=False, blank=True, verbose_name=_("Jardin"))
     
-    is_published = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False, db_index=True)
     
     # Équipements et caractéristiques (Amenities)
-    wifi = models.BooleanField(default=False, verbose_name="WiFi")
-    swimming_pool = models.BooleanField(default=False, verbose_name="Piscine")
-    gym = models.BooleanField(default=False, verbose_name="Salle de sport")
-    air_conditioning = models.BooleanField(default=False, verbose_name="Climatisation")
-    refrigerator = models.BooleanField(default=False, verbose_name="Réfrigérateur")
-    washing_machine = models.BooleanField(default=False, verbose_name="Machine à laver")
-    microwave = models.BooleanField(default=False, verbose_name="Micro-ondes")
-    tv_cable = models.BooleanField(default=False, verbose_name="TV par câble")
-    generator = models.BooleanField(default=False, verbose_name="Groupe électrogène")
-    water_tank = models.BooleanField(default=False, verbose_name="Réservoir d'eau")
+    wifi = models.BooleanField(default=False, verbose_name=_("WiFi"))
+    swimming_pool = models.BooleanField(default=False, verbose_name=_("Piscine"))
+    gym = models.BooleanField(default=False, verbose_name=_("Salle de sport"))
+    air_conditioning = models.BooleanField(default=False, verbose_name=_("Climatisation"))
+    refrigerator = models.BooleanField(default=False, verbose_name=_("Réfrigérateur"))
+    washing_machine = models.BooleanField(default=False, verbose_name=_("Machine à laver"))
+    microwave = models.BooleanField(default=False, verbose_name=_("Micro-ondes"))
+    tv_cable = models.BooleanField(default=False, verbose_name=_("TV par câble"))
+    generator = models.BooleanField(default=False, verbose_name=_("Groupe électrogène"))
+    water_tank = models.BooleanField(default=False, verbose_name=_("Réservoir d'eau"))
     
     # Géolocalisation (Optionnel)
     latitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True)
     longitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True)
 
     # Statistiques et Performance
-    views_count = models.PositiveIntegerField(default=0, verbose_name="Nombre de vues")
-    clicks_count = models.PositiveIntegerField(default=0, verbose_name="Nombre de clics d'action")
+    views_count = models.PositiveIntegerField(default=0, verbose_name=_("Nombre de vues"))
+    clicks_count = models.PositiveIntegerField(default=0, verbose_name=_("Nombre de clics d'action"))
 
     # Options de Monétisation DigitalH
-    is_boosted = models.BooleanField(default=False, verbose_name="Annonce Boostée")
-    boost_until = models.DateTimeField(null=True, blank=True, verbose_name="Boost valide jusqu'au")
+    is_boosted = models.BooleanField(default=False, verbose_name=_("Annonce Boostée"))
+    boost_until = models.DateTimeField(null=True, blank=True, verbose_name=_("Boost valide jusqu'au"))
     
-    is_featured_popup = models.BooleanField(default=False, verbose_name="Mise en avant Pop-up")
-    popup_until = models.DateTimeField(null=True, blank=True, verbose_name="Pop-up valide jusqu'au")
+    is_featured_popup = models.BooleanField(default=False, verbose_name=_("Mise en avant Pop-up"))
+    popup_until = models.DateTimeField(null=True, blank=True, verbose_name=_("Pop-up valide jusqu'au"))
 
-    is_paid = models.BooleanField(default=False, verbose_name="Frais de publication payés")
+    is_paid = models.BooleanField(default=False, verbose_name=_("Frais de publication payés"))
     
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -174,38 +175,42 @@ class PropertyImage(models.Model):
 
 class Transaction(models.Model):
     class TypeEnum(models.TextChoices):
-        PUBLICATION = 'PUBLICATION', 'Frais de Publication'
-        BOOST = 'BOOST', 'Boost d\'Annonce'
-        POPUP = 'POPUP', 'Mise en avant Pop-up'
+        PUBLICATION = 'PUBLICATION', _('Frais de Publication')
+        BOOST = 'BOOST', _('Boost d\'Annonce')
+        POPUP = 'POPUP', _('Mise en avant Pop-up')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     property = models.ForeignKey(Property, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
     transaction_type = models.CharField(max_length=20, choices=TypeEnum.choices)
     amount = models.DecimalField(max_digits=20, decimal_places=2)
-    reference = models.CharField(max_length=100, unique=True, verbose_name="Référence FedaPay / Interne")
-    status = models.CharField(max_length=20, choices=[('PENDING', 'En attente'), ('SUCCESS', 'Réussite'), ('FAILED', 'Échec')], default='PENDING')
-    days = models.IntegerField(default=1, verbose_name="Nombre de jours")
+    reference = models.CharField(max_length=100, unique=True, verbose_name=_("Référence FedaPay / Interne"))
+    status = models.CharField(max_length=20, choices=[('PENDING', _('En attente')), ('SUCCESS', _('Réussite')), ('FAILED', _('Échec'))], default='PENDING')
+    days = models.IntegerField(default=1, verbose_name=_("Nombre de jours"))
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Transaction"
-        verbose_name_plural = "Transactions (Comptabilité)"
+        verbose_name = _("Transaction")
+        verbose_name_plural = _("Transactions (Comptabilité)")
 
     def __str__(self):
         return f"{self.user} - {self.transaction_type} - {self.amount}F"
 
 class PricingConfig(models.Model):
-    publication_fee_rent = models.DecimalField(max_digits=20, decimal_places=2, default=100.00, verbose_name="Prix Publication (Location)")
-    publication_fee_sale = models.DecimalField(max_digits=20, decimal_places=2, default=500.00, verbose_name="Prix Publication (Vente)")
-    publication_fee_furnished = models.DecimalField(max_digits=20, decimal_places=2, default=300.00, verbose_name="Prix Publication (Meublé)")
+    # Publication
+    publication_fee_rent = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Prix Publication (Location)"))
+    publication_fee_sale = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Prix Publication (Vente)"))
+    publication_fee_furnished = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Prix Publication (Meublé)"))
     
-    boost_daily_fee = models.DecimalField(max_digits=20, decimal_places=2, default=100.00, verbose_name="Prix Boost par jour")
-    popup_daily_fee = models.DecimalField(max_digits=20, decimal_places=2, default=500.00, verbose_name="Prix Pop-up par jour")
+    # Boosts (Prix par jour)
+    boost_daily_fee = models.DecimalField(max_digits=20, decimal_places=0, default=1000, verbose_name=_("Boost Standard (par jour)"))
+    boost_popup_fee = models.DecimalField(max_digits=20, decimal_places=0, default=5000, verbose_name=_("Boost Pop-up (par jour)"))
+    boost_infeed_fee = models.DecimalField(max_digits=20, decimal_places=0, default=3000, verbose_name=_("Boost In-Feed (par jour)"))
+    boost_top_banner_fee = models.DecimalField(max_digits=20, decimal_places=0, default=7000, verbose_name=_("Boost Top Banner (par jour)"))
 
     class Meta:
-        verbose_name = "Paramètres des Tarifs"
-        verbose_name_plural = "Paramètres des Tarifs (DigitalH)"
+        verbose_name = _("Paramètres des Tarifs")
+        verbose_name_plural = _("Paramètres des Tarifs (DigitalH)")
 
     def __str__(self):
         return "Configuration des tarifs DigitalH"
@@ -224,9 +229,9 @@ class Favorite(models.Model):
 class PropertyEquipment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='interior_equipments')
-    name = models.CharField(max_length=100, help_text="Ex: Réfrigérateur, Climatiseur, TV...")
-    brand = models.CharField(max_length=100, blank=True, null=True, help_text="Marque optionnelle")
-    icon_class = models.CharField(max_length=50, default='fa-plug', help_text="Icône FontAwesome (ex: fa-tv, fa-snowflake)")
+    name = models.CharField(max_length=100, help_text=_("Ex: Réfrigérateur, Climatiseur, TV..."))
+    brand = models.CharField(max_length=100, blank=True, null=True, help_text=_("Marque optionnelle"))
+    icon_class = models.CharField(max_length=50, default='fa-plug', help_text=_("Icône FontAwesome (ex: fa-tv, fa-snowflake)"))
     
     def __str__(self):
         return f"{self.name} for {self.property.title}"
@@ -234,7 +239,7 @@ class PropertyEquipment(models.Model):
 
 class PropertyReview(models.Model):
     """Avis et notation laissés sur une annonce par un locataire/acheteur."""
-    RATING_CHOICES = [(i, f"{i} étoile{'s' if i > 1 else ''}") for i in range(1, 6)]
+    RATING_CHOICES = [(i, f"{i} " + (_("étoile") if i == 1 else _("étoiles"))) for i in range(1, 6)]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='reviews')
@@ -248,8 +253,8 @@ class PropertyReview(models.Model):
     class Meta:
         unique_together = ('property', 'reviewer')
         ordering = ['-created_at']
-        verbose_name = "Avis"
-        verbose_name_plural = "Avis & Notations"
+        verbose_name = _("Avis")
+        verbose_name_plural = _("Avis & Notations")
 
     def __str__(self):
         return f"{self.reviewer} → {self.property.title} ({self.rating}★)"
@@ -257,22 +262,22 @@ class PropertyReview(models.Model):
 
 class PropertyAlert(models.Model):
     """Abonnement aux alertes email pour les nouvelles annonces."""
-    email = models.EmailField(verbose_name="Email")
-    city = models.CharField(max_length=100, choices=CITY_CHOICES, blank=True, default='', verbose_name="Ville")
-    property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES, blank=True, default='', verbose_name="Type de bien")
+    email = models.EmailField(verbose_name=_("Email"))
+    city = models.CharField(max_length=100, choices=CITY_CHOICES, blank=True, default='', verbose_name=_("Ville"))
+    property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES, blank=True, default='', verbose_name=_("Type de bien"))
     listing_category = models.CharField(
         max_length=20,
-        choices=[('', 'Toutes'), ('RENT', 'Location'), ('SALE', 'Vente'), ('FURNISHED', 'Meublé')],
-        blank=True, default='', verbose_name="Catégorie"
+        choices=[('', _('Toutes')), ('RENT', _('Location')), ('SALE', _('Vente')), ('FURNISHED', _('Meublé'))],
+        blank=True, default='', verbose_name=_("Catégorie")
     )
-    max_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name="Budget max (FCFA)")
-    token = models.CharField(max_length=64, unique=True, verbose_name="Token désabonnement")
+    max_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Budget max (FCFA)"))
+    token = models.CharField(max_length=64, unique=True, verbose_name=_("Token désabonnement"))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Alerte Immobilière"
-        verbose_name_plural = "Alertes Immobilières (Abonnements)"
+        verbose_name = _("Alerte Immobilière")
+        verbose_name_plural = _("Alertes Immobilières (Abonnements)")
 
     def __str__(self):
         parts = [self.email]
@@ -287,3 +292,25 @@ class PropertyAlert(models.Model):
             import secrets
             self.token = secrets.token_urlsafe(32)
         super().save(*args, **kwargs)
+
+class PropertyApplication(models.Model):
+    """Candidature d'un locataire pour un bien spécifique."""
+    class StatusEnum(models.TextChoices):
+        PENDING = 'PENDING', _('En attente')
+        ACCEPTED = 'ACCEPTED', _('Acceptée')
+        REJECTED = 'REJECTED', _('Refusée')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='applications')
+    tenant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    message = models.TextField(blank=True, verbose_name="Message / Motivation")
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Candidature")
+        verbose_name_plural = _("Candidatures")
+        unique_together = ('property', 'tenant')
+
+    def __str__(self):
+        return f"Candidature de {self.tenant} pour {self.property.title}"

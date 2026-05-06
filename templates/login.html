@@ -1,17 +1,31 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Connexion | Logertogo{% endblock %}
+{% block title %}{% trans "Connexion" %} | Logertogo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput.css">
+<style>
+    .iti { width: 100%; display: block; }
+    .iti__active { background-color: rgba(127, 212, 125, 0.1); }
+    /* Fix pour empêcher le drapeau de chevaucher le texte */
+    #username { padding-left: 95px !important; }
+    [data-theme="dark"] .iti__country-list { background-color: var(--bg-card); color: var(--text-main); }
+    .input-group-text { border-left: none !important; background-color: var(--bg-body) !important; color: var(--text-muted); }
+    #password { border-right: none !important; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <div class="card border-0 shadow-lg" style="border-radius: 20px; background-color: var(--bg-card);">
-                <div class="card-body p-5">
+                <div class="card-body p-sm-5 p-4">
                     <div class="text-center mb-4">
-                        <i class="fa-solid fa-house-circle-check mb-3" style="color: var(--color-light-green); font-size: 3rem;"></i>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Bon retour !</h2>
-                        <p class="text-muted">Connectez-vous à votre espace personnel.</p>
+                        <i class="fa-solid fa-shield-halved mb-3" style="color: var(--color-light-green); font-size: 3rem;"></i>
+                        <h2 class="fw-bold" style="color: var(--text-main);">{% trans "Connexion" %}</h2>
+                        <p class="text-muted">{% trans "Email ou téléphone pour accéder à votre espace." %}</p>
                     </div>
 
                     {% if messages %}
@@ -23,35 +37,103 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="POST" action="{% url 'login' %}">
+                    <form method="POST" action="{% url 'login' %}" id="loginForm">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="phone" class="form-label fw-bold" style="color: var(--text-main);">Numéro de téléphone (Identifiant)</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" required placeholder="+228 97 15 16 10" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                            <label class="form-label fw-bold" style="color: var(--text-main);">{% trans "Identifiant" %}</label>
+                            <input type="text" class="form-control" id="username" name="phone" required placeholder="{% trans "Email ou Numéro de téléphone" %}" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px;">
+                            <input type="hidden" id="full_phone" name="full_phone">
                         </div>
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label for="password" class="form-label fw-bold mb-0" style="color: var(--text-main);">Mot de passe</label>
-                                <a href="{% url 'password_recovery' %}" class="small text-decoration-none" style="color: var(--color-light-green);">Oublié ?</a>
+                                <label for="password" class="form-label fw-bold mb-0" style="color: var(--text-main);">{% trans "Mot de passe" %}</label>
+                                <a href="{% url 'password_recovery' %}" class="small text-decoration-none" style="color: var(--color-light-green);">{% trans "Oublié ?" %}</a>
                             </div>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" required placeholder="Votre mot de passe" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
+                                <input type="password" class="form-control" id="password" name="password" required placeholder="{% trans "Votre mot de passe" %}" style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color); padding: 12px; border-radius: 10px 0 0 10px; border-right: none;">
                                 <span class="input-group-text bg-body-tertiary" style="border-color: var(--border-color); cursor: pointer; border-left: none; border-radius: 0 10px 10px 0;" onclick="togglePassword('password', 'eye-login')">
                                     <i class="fa-solid fa-eye text-muted" id="eye-login"></i>
                                 </span>
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary-custom w-100 py-3 mb-3" style="font-size: 1.1rem; border-radius: 12px;">Se Connecter</button>
+                        <button type="submit" class="btn btn-primary-custom w-100 py-3 mb-3" style="font-size: 1.1rem; border-radius: 12px;">{% trans "Se Connecter" %}</button>
                     </form>
 
                     <div class="text-center mt-4 pt-3 border-top" style="border-color: var(--border-color) !important;">
-                        <p class="mb-2" style="color: var(--text-muted);">Vous n'avez pas encore de compte ?</p>
-                        <a href="{% url 'register' %}" class="btn btn-outline-success w-100 py-2" style="border-radius: 12px; font-weight: 600;">Créer un compte</a>
+                        <p class="mb-2" style="color: var(--text-muted);">{% trans "Vous n'avez pas encore de compte ?" %}</p>
+                        <a href="{% url 'register' %}" class="btn btn-outline-success w-100 py-2" style="border-radius: 12px; font-weight: 600;">{% trans "Créer un compte" %}</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js"></script>
+<script>
+    const input = document.querySelector("#username");
+    const iti = window.intlTelInput(input, {
+        initialCountry: "tg",
+        preferredCountries: ["tg", "bj", "ci", "fr"],
+        separateDialCode: false, // On ne sépare pas le code pour laisser l'utilisateur libre
+        autoPlaceholder: "polite",
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/utils.js",
+    });
+
+    // Masquer/Afficher les drapeaux intelligemment
+    input.addEventListener('input', function() {
+        const val = this.value.trim();
+        const flagContainer = document.querySelector('.iti__flag-container');
+        
+        if (val.includes('@') || val.startsWith('+')) {
+            // Si c'est un email ou un numéro déjà international, on n'affiche pas le sélecteur de pays interne
+            if (flagContainer) flagContainer.style.display = 'none';
+            input.style.paddingLeft = '15px';
+        } else {
+            if (flagContainer) flagContainer.style.display = 'block';
+            input.style.paddingLeft = '52px';
+        }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const phoneValue = input.value.trim();
+        
+        // Si c'est un email, on laisse tel quel
+        if (phoneValue.includes('@')) return;
+
+        // Si c'est un numéro
+        if (phoneValue !== "") {
+            // On ne demande à ITI le numéro formaté QUE si l'utilisateur n'a pas mis de +
+            if (!phoneValue.startsWith('+') && !phoneValue.startsWith('00')) {
+                const fullNumber = iti.getNumber();
+                if (fullNumber) {
+                    input.value = fullNumber;
+                }
+            }
+        }
+    });
+
+    function togglePassword(id, eyeId) {
+        const input = document.getElementById(id);
+        const eye = document.getElementById(eyeId);
+        if (input.type === "password") {
+            input.type = "text";
+            eye.classList.remove('fa-eye');
+            eye.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            eye.classList.remove('fa-eye-slash');
+            eye.classList.add('fa-eye');
+        }
+    }
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Si le champ ressemble à un numéro (ne contient pas de @), on applique le format international
+        if (phoneInput.value.trim() !== "" && !phoneInput.value.includes('@')) {
+            phoneInput.value = iti.getNumber();
+        }
+    });
+</script>
 {% endblock %}

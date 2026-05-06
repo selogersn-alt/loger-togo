@@ -84,7 +84,7 @@ class _ExploreProfessionalsScreenState extends State<ExploreProfessionalsScreen>
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 8)),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 8)),
                   ],
                 ),
                 child: Column(
@@ -93,7 +93,7 @@ class _ExploreProfessionalsScreenState extends State<ExploreProfessionalsScreen>
                       children: [
                         CircleAvatar(
                           radius: 35,
-                          backgroundColor: const Color(0xFF198754).withOpacity(0.1),
+                          backgroundColor: const Color(0xFF198754).withValues(alpha: 0.1),
                           backgroundImage: pro['profile_picture'] != null 
                             ? CachedNetworkImageProvider(pro['profile_picture']) 
                             : null,
@@ -119,7 +119,7 @@ class _ExploreProfessionalsScreenState extends State<ExploreProfessionalsScreen>
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF198754).withOpacity(0.1),
+                                      color: const Color(0xFF198754).withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Row(
@@ -172,7 +172,7 @@ class _ExploreProfessionalsScreenState extends State<ExploreProfessionalsScreen>
                                 // TODO: Messaging
                               },
                               icon: CircleAvatar(
-                                backgroundColor: const Color(0xFF198754).withOpacity(0.1),
+                                backgroundColor: const Color(0xFF198754).withValues(alpha: 0.1),
                                 radius: 18,
                                 child: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF198754), size: 16),
                               ),

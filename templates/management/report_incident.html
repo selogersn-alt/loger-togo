@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-surface border-0 shadow-sm p-4">
+                <h2 class="h4 mb-4">{% trans "Signaler un Incident / Panne" %}</h2>
+                <p class="text-muted small mb-4">{% trans "Votre signalement sera immédiatement transmis à" %} <strong>{{ lease.landlord.get_full_name }}</strong>.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{% trans "Nature de l'incident" %}</label>
+                        <input type="text" name="title" class="form-control" placeholder="{% trans "Ex: Fuite d'eau sous l'évier, Panne clim..." %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{% trans "Description détaillée" %}</label>
+                        <textarea name="description" class="form-control" rows="5" placeholder="{% trans "Décrivez précisément le problème et où il se situe..." %}" required></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{% trans "Niveau de priorité" %}</label>
+                        <select name="priority" class="form-select">
+                            <option value="LOW">{% trans "Basse - Pas urgent" %}</option>
+                            <option value="MEDIUM" selected>{% trans "Moyenne - À régler bientôt" %}</option>
+                            <option value="HIGH">{% trans "Haute - Urgent" %}</option>
+                            <option value="URGENT">{% trans "URGENT - Danger ou inconfort majeur" %}</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-3 fw-bold">
+                            {% trans "Envoyer le signalement" %}
+                        </button>
+                        <a href="{% url 'management:tenant_dashboard' %}" class="btn btn-light">{% trans "Annuler" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

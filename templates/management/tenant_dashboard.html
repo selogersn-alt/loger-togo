@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container-fluid py-0" style="background-color: #f8f9fa; min-height: 100vh;">
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-xl-2 border-end bg-white d-none d-lg-block" style="min-height: 100vh; position: sticky; top: 0;">
+            <div class="p-4 text-center">
+                <div class="position-relative d-inline-block mb-3">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; font-size: 2rem; font-weight: bold;">
+                            {{ user.phone_number|slice:":1" }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h6 class="fw-bold mb-1">{{ user.get_full_name }}</h6>
+                <p class="small text-muted mb-4">{% trans "Locataire Certifié" %}</p>
+                
+                <nav class="nav flex-column sidebar-nav text-start">
+                    <a class="nav-link {% if section == 'home' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=home">
+                        <i class="fas fa-th-large me-3"></i>{% trans "Vue d'ensemble" %}
+                    </a>
+                    <a class="nav-link {% if section == 'rentals' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=rentals">
+                        <i class="fas fa-key me-3"></i>{% trans "Mes Locations" %}
+                    </a>
+                    <a class="nav-link {% if section == 'dossier' %}active{% endif %} mb-2 rounded-3 p-3" href="{% url 'management:tenant_dossier' %}">
+                        <i class="fas fa-file-invoice me-3"></i>{% trans "Mon Dossier" %}
+                    </a>
+                    <a class="nav-link {% if section == 'messages' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=messages">
+                        <i class="fas fa-comment-dots me-3"></i>{% trans "Messagerie" %}
+                    </a>
+                    <a class="nav-link {% if section == 'applications' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=applications">
+                        <i class="fas fa-paper-plane me-3"></i>{% trans "Candidatures" %}
+                    </a>
+                    <hr class="my-4">
+                    <a class="nav-link text-danger mb-2 rounded-3 p-3" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt me-3"></i>{% trans "Déconnexion" %}
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="col-lg-9 col-xl-10 p-4 p-lg-5">
+            {% if section == 'home' %}
+                <h4 class="fw-bold mb-4">{% trans "Bonjour," %} {{ user.first_name }} 👋</h4>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                            <div class="icon-box-dash bg-success-light text-success mb-3">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <h3 class="fw-bold mb-1">{{ stats.active_leases }}</h3>
+                            <p class="text-muted small mb-0">{% trans "Location(s) active(s)" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                            <div class="icon-box-dash bg-primary-light text-primary mb-3">
+                                <i class="fas fa-paper-plane"></i>
+                            </div>
+                            <h3 class="fw-bold mb-1">{{ stats.total_applications }}</h3>
+                            <p class="text-muted small mb-0">{% trans "Candidatures envoyées" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                            <div class="icon-box-dash bg-info-light text-info mb-3">
+                                <i class="fas fa-shield-halved"></i>
+                            </div>
+                            <h3 class="fw-bold mb-1">{% if user.is_solvable %}{% trans "Vérifié" %}{% else %}{% trans "A vérifier" %}{% endif %}</h3>
+                            <p class="text-muted small mb-0">{% trans "Statut de solvabilité" %}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                    <h5 class="fw-bold mb-4">{% trans "Mes Locations Actives" %}</h5>
+                    {% for lease in leases %}
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between border rounded-4 p-3 mb-3">
+                        <div class="d-flex align-items-center mb-3 mb-md-0">
+                            <div class="rounded-3 bg-light p-3 me-3">
+                                <i class="fas fa-building text-success fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ lease.property.title }}</h6>
+                                <p class="text-muted small mb-0">{{ lease.property.neighborhood }}, {{ lease.property.city }}</p>
+                            </div>
+                        </div>
+                        <div class="text-md-end">
+                            <span class="d-block fw-bold text-success">{{ lease.rent_amount|floatformat:0 }} F / {% trans "mois" %}</span>
+                            <a href="{% url 'management:download_lease_pdf' lease.id %}" class="btn btn-sm btn-link text-dark p-0" target="_blank">
+                                <i class="fas fa-file-pdf me-1"></i>{% trans "Contrat PDF" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0">{% trans "Aucun contrat de bail actif." %}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            {% elif section == 'rentals' %}
+                <h4 class="fw-bold mb-4">{% trans "Historique des Paiements" %}</h4>
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Période" %}</th>
+                                    <th>{% trans "Montant Payé" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Statut" %}</th>
+                                    <th class="text-end pe-4">{% trans "Quittance" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td class="ps-4">{{ payment.period_start|date:"F Y" }}</td>
+                                    <td><span class="fw-bold">{{ payment.amount_paid|floatformat:0 }} F</span></td>
+                                    <td>{{ payment.date_paid|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if payment.status == 'PAID' %}
+                                            <span class="badge bg-success-light text-success rounded-pill px-3">{% trans "Payé" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning-light text-warning rounded-pill px-3">{% trans "Partiel" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="{% url 'management:download_receipt_pdf' payment.id %}" class="btn btn-sm btn-outline-dark rounded-pill" target="_blank">
+                                            <i class="fas fa-download me-1"></i>PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            {% elif section == 'applications' %}
+                <h4 class="fw-bold mb-4">{% trans "Mes Candidatures" %}</h4>
+                <div class="row g-4">
+                    {% for app in applications %}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6 class="fw-bold mb-0">{{ app.property.title }}</h6>
+                                <span class="badge bg-info-light text-info rounded-pill px-3">{{ app.get_status_display }}</span>
+                            </div>
+                            <p class="small text-muted mb-4">{{ app.message|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <small class="text-muted">{% trans "Envoyée le" %} {{ app.created_at|date:"d/m/Y" }}</small>
+                                <a href="{{ app.property.get_absolute_url }}" class="btn btn-sm btn-light">{% trans "Voir l'annonce" %}</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar-nav .nav-link { color: #555; font-weight: 500; transition: all 0.2s; }
+    .sidebar-nav .nav-link:hover { background-color: rgba(40, 167, 69, 0.05); color: #114629; }
+    .sidebar-nav .nav-link.active { background-color: #114629 !important; color: white !important; box-shadow: 0 4px 15px rgba(17, 70, 41, 0.3); }
+    .icon-box-dash { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.2rem; }
+    .bg-success-light { background-color: rgba(40, 167, 69, 0.1); }
+    .bg-primary-light { background-color: rgba(13, 110, 253, 0.1); }
+    .bg-info-light { background-color: rgba(13, 202, 240, 0.1); }
+    .bg-warning-light { background-color: rgba(255, 193, 7, 0.1); }
+</style>
+{% endblock %}

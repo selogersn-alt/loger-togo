@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Signaler un Professionnel | Logertogo{% endblock %}
+{% block title %}{% trans "Signaler un Professionnel" %} | Logertogo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -9,44 +9,44 @@
         <div class="col-md-7">
             <div class="card border-0 shadow-lg rounded-4 animate__animated animate__fadeIn">
                 <div class="card-header bg-danger text-white p-4 border-0">
-                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-flag me-2"></i>Signaler une Fraude</h3>
-                    <p class="mb-0 opacity-75">Aidez-nous à protéger la communauté immobilière du Togo.</p>
+                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-flag me-2"></i>{% trans "Signaler une Fraude" %}</h3>
+                    <p class="mb-0 opacity-75">{% trans "Aidez-nous à protéger la communauté immobilière du Togo." %}</p>
                 </div>
                 <div class="card-body p-4 p-lg-5">
                     <div class="alert alert-warning border-0 rounded-3 mb-4 small">
                         <i class="fa-solid fa-circle-exclamation me-2"></i>
-                        Attention : Tout signalement abusif ou calomnieux sans preuve réelle pourra entraîner la suspension de votre propre compte.
+                        {% trans "Attention : Tout signalement abusif ou calomnieux sans preuve réelle pourra entraîner la suspension de votre propre compte." %}
                     </div>
 
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Nom complet du Pro ou de l'Agence</label>
+                            <label class="form-label fw-bold">{% trans "Nom complet du Pro ou de l'Agence" %}</label>
                             {{ form.reported_pro_name }}
                         </div>
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Téléphone (WhatsApp)</label>
+                                <label class="form-label fw-bold">{% trans "Téléphone (WhatsApp)" %}</label>
                                 {{ form.reported_pro_phone }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Email (Optionnel)</label>
+                                <label class="form-label fw-bold">{% trans "Email (Optionnel)" %}</label>
                                 {{ form.reported_pro_email }}
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Description des faits (Dette, Arnaque, etc.)</label>
+                            <label class="form-label fw-bold">{% trans "Description des faits (Dette, Arnaque, etc.)" %}</label>
                             {{ form.fraud_description }}
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Preuve du litige (Reçu, Screenshot, Contrat)</label>
+                            <label class="form-label fw-bold">{% trans "Preuve du litige (Reçu, Screenshot, Contrat)" %}</label>
                             {{ form.proof_file }}
-                            <div class="form-text small">Obligatoire pour validation par nos administrateurs.</div>
+                            <div class="form-text small">{% trans "Obligatoire pour validation par nos administrateurs." %}</div>
                         </div>
                         
                         <div class="d-grid">
                             <button type="submit" class="btn btn-danger py-3 fw-bold rounded-pill shadow-sm">
-                                Soumettre le signalement <i class="fa-solid fa-paper-plane ms-2"></i>
+                                {% trans "Soumettre le signalement" %} <i class="fa-solid fa-paper-plane ms-2"></i>
                             </button>
                         </div>
                     </form>
@@ -54,7 +54,7 @@
             </div>
             
             <div class="text-center mt-4">
-                <a href="{% url 'fraud_list' %}" class="btn btn-link text-muted"><i class="fa-solid fa-arrow-left me-2"></i>Retour à la liste noire</a>
+                <a href="{% url 'fraud_list' %}" class="btn btn-link text-muted"><i class="fa-solid fa-arrow-left me-2"></i>{% trans "Retour à la liste noire" %}</a>
             </div>
         </div>
     </div>

@@ -1,44 +1,45 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Conditions Générales d'Utilisation | Logertogo{% endblock %}
+{% block title %}{% trans "Conditions Générales d'Utilisation" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5 font-inter">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card border-0 shadow-sm p-4 p-md-5" style="background-color: var(--bg-card); border-radius: 20px;">
-                <h1 class="fw-bold mb-4" style="color: var(--text-main);">Conditions Générales d'Utilisation (CGU)</h1>
-                <p class="text-muted small">Dernière mise à jour : Avril 2026</p>
+                <h1 class="fw-bold mb-4" style="color: var(--text-main);">{% trans "Conditions Générales d'Utilisation (CGU)" %}</h1>
+                <p class="text-muted small">{% trans "Dernière mise à jour : Avril 2026" %}</p>
                 
                 <hr class="my-4" style="border-color: var(--border-color);">
 
                 <div class="legal-content" style="color: var(--text-main); line-height: 1.8;">
-                    <h4 class="fw-bold mt-4">1. Objet de la plateforme</h4>
-                    <p>Logertogo est une plateforme immobilière opérée par DigitalH. Elle propose un système de certification d'identité (KYC), des badges de confiance et des outils de gestion visant à sécuriser les relations entre bailleurs particuliers ou professionnels, agences, courtiers et locataires au Togo.</p>
+                    <h4 class="fw-bold mt-4">1. {% trans "Objet de la plateforme" %}</h4>
+                    <p>{% trans "Loger Togo est une plateforme immobilière opérée par DigitalH. Elle propose un système de certification d'identité (KYC), des badges de confiance et des outils de gestion visant à sécuriser les relations entre bailleurs particuliers ou professionnels, agences, courtiers et locataires au Togo." %}</p>
 
-                    <h4 class="fw-bold mt-4">2. Processus d’Inscription et de Confiance</h4>
-                    <p>Pour garantir un environnement sûr, chaque utilisateur doit suivre un parcours de validation :</p>
+                    <h4 class="fw-bold mt-4">2. {% trans "Processus d’Inscription et de Confiance" %}</h4>
+                    <p>{% trans "Pour garantir un environnement sûr, chaque utilisateur doit suivre un parcours de validation :" %}</p>
                     <ul>
-                        <li><strong>Création de compte</strong> avec un numéro de téléphone vérifié.</li>
-                        <li><strong>Vérification d’identité</strong> via le dépôt d'une pièce d'identité officielle et un selfie de vérification.</li>
-                        <li><strong>Attribution d'un profil de confiance</strong> basé sur la fiabilité des informations fournies et l'historique de comportement sur la plateforme.</li>
+                        <li><strong>{% trans "Création de compte" %}</strong> {% trans "avec un numéro de téléphone vérifié." %}</li>
+                        <li><strong>{% trans "Vérification d’identité" %}</strong> {% trans "via le dépôt d'une pièce d'identité officielle et un selfie de vérification." %}</li>
+                        <li><strong>{% trans "Attribution d'un profil de confiance" %}</strong> {% trans "basé sur la fiabilité des informations fournies et l'historique de comportement sur la plateforme." %}</li>
                     </ul>
 
-                    <h4 class="fw-bold mt-4">3. Services et Monétisation</h4>
-                    <p>Logertogo propose divers services de publication, de mise en avant (Boost) et de certification de profil professionnel. Les conditions tarifaires de ces services sont consultables sur le tableau de bord de l'utilisateur au moment de la souscription et peuvent varier en fonction des offres promotionnelles ou de la catégorie de bien.</p>
+                    <h4 class="fw-bold mt-4">3. {% trans "Services et Monétisation" %}</h4>
+                    <p>{% trans "Loger Togo propose divers services de publication, de mise en avant (Boost) et de certification de profil professionnel. Les conditions tarifaires de ces services sont consultables sur le tableau de bord de l'utilisateur au moment de la souscription et peuvent varier en fonction des offres promotionnelles ou de la catégorie de bien." %}</p>
 
-                    <h4 class="fw-bold mt-4">4. Indice de Fiabilité</h4>
-                    <p>Les utilisateurs acceptent que leur comportement sur la plateforme impacte leur badge de confiance. Ce système vise à valoriser les acteurs sérieux et à sécuriser le marché immobilier au Togo.</p>
+                    <h4 class="fw-bold mt-4">4. {% trans "Indice de Fiabilité" %}</h4>
+                    <p>{% trans "Les utilisateurs acceptent que leur comportement sur la plateforme impacte leur badge de confiance. Ce système vise à valoriser les acteurs sérieux et à sécuriser le marché immobilier au Togo." %}</p>
 
-                    <h4 class="fw-bold mt-4">5. Responsabilité</h4>
-                    <p>Logertogo agit en tant qu'intermédiaire technologique. Nous mettons en œuvre les meilleurs outils pour vérifier les profils, mais la décision finale de transaction appartient aux parties (Bailleur/Locataire).</p>
+                    <h4 class="fw-bold mt-4">5. {% trans "Responsabilité" %}</h4>
+                    <p>{% trans "Loger Togo agit en tant qu'intermédiaire technologique. Nous mettons en œuvre les meilleurs outils pour vérifier les profils, mais la décision finale de transaction appartient aux parties (Bailleur/Locataire)." %}</p>
 
-                    <h4 class="fw-bold mt-4">6. Médiation</h4>
-                    <p>En cas de litige, Logertogo met à disposition un salon de médiation numérique pour faciliter la résolution amiable des conflits entre les parties.</p>
+                    <h4 class="fw-bold mt-4">6. {% trans "Médiation" %}</h4>
+                    <p>{% trans "En cas de litige, Loger Togo met à disposition un salon de médiation numérique pour faciliter la résolution amiable des conflits entre les parties." %}</p>
                 </div>
                 
                 <div class="mt-5 text-center">
-                    <a href="{% url 'home' %}" class="btn btn-primary-custom px-5">Accepter et retourner à l'accueil</a>
+                    <a href="{% url 'home' %}" class="btn btn-primary-custom px-5">{% trans "Accepter et retourner à l'accueil" %}</a>
                 </div>
             </div>
         </div>

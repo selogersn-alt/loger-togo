@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Guide Agences Immobilières | Solvable LogerSN{% endblock %}
+{% block title %}{% trans "Guide Agences Immobilières | Loger Togo" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -41,8 +41,8 @@
 {% block content %}
 <div class="guide-header">
     <div class="container">
-        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Solution pour Agences</h1>
-        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">Digitalisez vos mises en relation et trouvez des locataires fiables instantanément.</p>
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">{% trans "Solution pour Agences" %}</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">{% trans "Digitalisez vos mises en relation et trouvez des locataires fiables instantanément." %}</p>
     </div>
 </div>
 
@@ -52,8 +52,8 @@
         <div class="col-md-4">
             <div class="step-card">
                 <div class="step-icon mx-auto"><i class="fa-solid fa-building-user"></i></div>
-                <h4 class="fw-bold mb-3">Enregistrement Pro</h4>
-                <p class="text-muted">Créez votre compte sur /inscription/. Renseignez les informations de votre structure (adresse, description).</p>
+                <h4 class="fw-bold mb-3">{% trans "Enregistrement Pro" %}</h4>
+                <p class="text-muted">{% trans "Créez votre compte sur /inscription/. Renseignez les informations de votre structure (adresse, description)." %}</p>
             </div>
         </div>
         
@@ -61,8 +61,8 @@
         <div class="col-md-4">
             <div class="step-card">
                 <div class="step-icon mx-auto"><i class="fa-solid fa-file-shield"></i></div>
-                <h4 class="fw-bold mb-3">Crédibilité & Visibilité</h4>
-                <p class="text-muted">Fournissez vos documents officiels pour obtenir le badge certifié et gagner en visibilité auprès des clients.</p>
+                <h4 class="fw-bold mb-3">{% trans "Crédibilité & Visibilité" %}</h4>
+                <p class="text-muted">{% trans "Fournissez vos documents officiels pour obtenir le badge certifié et gagner en visibilité auprès des clients." %}</p>
             </div>
         </div>
         
@@ -70,20 +70,20 @@
         <div class="col-md-4">
             <div class="step-card">
                 <div class="step-icon mx-auto"><i class="fa-solid fa-house-medical-circle-check"></i></div>
-                <h4 class="fw-bold mb-3">Publication</h4>
-                <p class="text-muted">Mettez vos annonces en ligne et commencez à recevoir des demandes de locataires au profil de confiance vérifié.</p>
+                <h4 class="fw-bold mb-3">{% trans "Publication" %}</h4>
+                <p class="text-muted">{% trans "Mettez vos annonces en ligne et commencez à recevoir des demandes de locataires au profil de confiance vérifié." %}</p>
             </div>
         </div>
     </div>
 
     <div class="p-5 text-center mt-5 bg-light" style="border-radius: 30px;">
-        <h2 class="fw-bold mb-4">Gagnez en crédibilité</h2>
-        <p class="lead mb-4">Loger Togo accompagne les agences modernes pour sécuriser leurs parcs locatifs.</p>
+        <h2 class="fw-bold mb-4">{% trans "Gagnez en crédibilité" %}</h2>
+        <p class="lead mb-4">{% trans "Loger Togo accompagne les agences modernes pour sécuriser leurs parcs locatifs." %}</p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 py-3 fs-5" style="border-radius: 50px;">Inscrire mon Agence</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 py-3 fs-5" style="border-radius: 50px;">{% trans "Inscrire mon Agence" %}</a>
         </div>
         <div class="mt-4">
-            <small class="text-muted">Support dédié aux agences : <a href="mailto:serviceclient@Logertogo.com" class="fw-bold">serviceclient@Logertogo.com</a></small>
+            <small class="text-muted">{% trans "Support dédié aux agences :" %} <a href="mailto:serviceclient@Logertogo.com" class="fw-bold">serviceclient@Logertogo.com</a></small>
         </div>
     </div>
 </div>

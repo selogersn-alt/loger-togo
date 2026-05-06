@@ -1,21 +1,22 @@
 {% extends 'emails/base_email.html' %}
+{% load i18n %}
 
 {% block content %}
-    <h2 style="color: #0b4629; margin-bottom: 20px;">Félicitations ! Votre annonce est en ligne.</h2>
-    <p>Bonjour {{ user.get_full_name }},</p>
-    <p>Nous avons le plaisir de vous informer que votre annonce <strong>"{{ property.title }}"</strong> a été validée et est désormais visible par des milliers de locataires potentiels sur Loger Togo.</p>
+    <h2 style="color: #0b4629; margin-bottom: 20px;">{% trans "Félicitations ! Votre annonce est en ligne." %}</h2>
+    <p>{% blocktrans %}Bonjour {{ user_name }},{% endblocktrans %}</p>
+    <p>{% blocktrans %}Nous avons le plaisir de vous informer que votre annonce <strong>"{{ property_title }}"</strong> a été validée et est désormais visible par des milliers de locataires potentiels sur Loger Togo.{% endblocktrans %}</p>
     
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #e9ecef;">
-        <p style="margin: 0;"><strong>Récapitulatif :</strong></p>
-        <p style="margin: 5px 0;">📍 Quartier : {{ property.neighborhood }}</p>
-        <p style="margin: 5px 0;">💰 Prix : {{ property.price|floatformat:0 }} FCFA</p>
+        <p style="margin: 0;"><strong>{% trans "Récapitulatif :" %}</strong></p>
+        <p style="margin: 5px 0;">📍 {% trans "Quartier :" %} {{ neighborhood }}</p>
+        <p style="margin: 5px 0;">💰 {% trans "Prix :" %} {{ price }} FCFA</p>
     </div>
     
     <div style="text-align: center;">
-        <a href="{{ site_url }}{% url 'property_detail' property.id %}" class="button">Voir mon annonce sur le site</a>
+        <a href="{{ property_url }}" class="button">{% trans "Voir mon annonce sur le site" %}</a>
     </div>
     
-    <p style="margin-top: 30px;">Vous pouvez modifier les détails ou ajouter des photos à tout moment depuis votre tableau de bord.</p>
+    <p style="margin-top: 30px;">{% trans "Vous pouvez modifier les détails ou ajouter des photos à tout moment depuis votre tableau de bord." %}</p>
     
-    <p>Merci de votre confiance,<br>L'équipe Loger Togo.</p>
+    <p>{% trans "Merci de votre confiance," %}<br>{% trans "L'équipe Loger Togo." %}</p>
 {% endblock %}

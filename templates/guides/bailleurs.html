@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Guide Bailleurs | Loger Togo{% endblock %}
+{% block title %}{% trans "Guide Bailleurs | Loger Togo" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -54,8 +54,8 @@
 {% block content %}
 <div class="guide-header">
     <div class="container">
-        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Guide du Bailleur</h1>
-        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">La confiance au service de vos locations. Trouvez des locataires fiables sans risque.</p>
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">{% trans "Guide du Bailleur" %}</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">{% trans "La confiance au service de vos locations. Trouvez des locataires fiables sans risque." %}</p>
     </div>
 </div>
 
@@ -66,8 +66,8 @@
             <div class="step-card">
                 <div class="step-number">1</div>
                 <div class="step-icon mx-auto"><i class="fa-solid fa-user-gear"></i></div>
-                <h4 class="fw-bold mb-3">Créez votre compte</h4>
-                <p class="text-muted">Inscrivez-vous sur /inscription/ et choisissez le profil <strong>Bailleur (particulier ou professionnel)</strong>.</p>
+                <h4 class="fw-bold mb-3">{% trans "Créez votre compte" %}</h4>
+                <p class="text-muted">{% blocktrans %}Inscrivez-vous sur /inscription/ et choisissez le profil <strong>Bailleur (particulier ou professionnel)</strong>.{% endblocktrans %}</p>
             </div>
         </div>
         
@@ -76,8 +76,8 @@
             <div class="step-card">
                 <div class="step-number">2</div>
                 <div class="step-icon mx-auto"><i class="fa-solid fa-id-card-clip"></i></div>
-                <h4 class="fw-bold mb-3">Vérifiez votre profil</h4>
-                <p class="text-muted">Soumettez vos documents d'identité (CNI ou Passeport). La vérification est obligatoire pour publier des annonces et obtenir le badge de confiance.</p>
+                <h4 class="fw-bold mb-3">{% trans "Vérifiez votre profil" %}</h4>
+                <p class="text-muted">{% trans "Soumettez vos documents d'identité (CNI ou Passeport). La vérification est obligatoire pour publier des annonces et obtenir le badge de confiance." %}</p>
             </div>
         </div>
         
@@ -86,8 +86,8 @@
             <div class="step-card">
                 <div class="step-number">3</div>
                 <div class="step-icon mx-auto"><i class="fa-solid fa-house-circle-check"></i></div>
-                <h4 class="fw-bold mb-3">Publiez vos biens</h4>
-                <p class="text-muted">Ajoutez vos annonces immobilières en quelques clics et commencez à recevoir des demandes qualifiées.</p>
+                <h4 class="fw-bold mb-3">{% trans "Publiez vos biens" %}</h4>
+                <p class="text-muted">{% trans "Ajoutez vos annonces immobilières en quelques clics et commencez à recevoir des demandes qualifiées." %}</p>
             </div>
         </div>
     </div>
@@ -95,34 +95,34 @@
     <!-- Benefits -->
     <div class="row mt-5 align-items-center bg-dark text-white rounded-5 p-5 g-5">
         <div class="col-lg-6">
-            <h2 class="fw-bold mb-4 text-white">Louez en toute sérénité</h2>
+            <h2 class="fw-bold mb-4 text-white">{% trans "Louez en toute sérénité" %}</h2>
             <div class="d-flex mb-4">
                 <div class="me-3 text-success fs-4"><i class="fa-solid fa-shield-check"></i></div>
                 <div>
-                    <h5 class="fw-bold mb-1 text-white">Profil de confiance</h5>
-                    <p class="opacity-75 mb-0">Un niveau de fiabilité est associé à votre compte pour garantir votre crédibilité.</p>
+                    <h5 class="fw-bold mb-1 text-white">{% trans "Profil de confiance" %}</h5>
+                    <p class="opacity-75 mb-0">{% trans "Un niveau de fiabilité est associé à votre compte pour garantir votre crédibilité." %}</p>
                 </div>
             </div>
             <div class="d-flex mb-4">
                 <div class="me-3 text-success fs-4"><i class="fa-solid fa-users-check"></i></div>
                 <div>
-                    <h5 class="fw-bold mb-1 text-white">Confiance Mutuelle</h5>
-                    <p class="opacity-75 mb-0">Échangez sereinement avec des locataires sérieux via notre messagerie sécurisée.</p>
+                    <h5 class="fw-bold mb-1 text-white">{% trans "Confiance Mutuelle" %}</h5>
+                    <p class="opacity-75 mb-0">{% trans "Échangez sereinement avec des locataires sérieux via notre messagerie sécurisée." %}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-6 text-center">
              <div class="p-5 bg-white bg-opacity-10 border border-secondary rounded-4 shadow-sm">
-                <h3 class="fw-bold mb-4 text-white">Sécurisez vos revenus</h3>
-                <p class="mb-4 opacity-75">Rejoignez le réseau de confiance Loger Togo.</p>
-                <a href="{% url 'register' %}" class="btn btn-primary-custom btn-lg px-5 py-3 fs-5">Devenir Bailleur Certifié</a>
+                <h3 class="fw-bold mb-4 text-white">{% trans "Sécurisez vos revenus" %}</h3>
+                <p class="mb-4 opacity-75">{% trans "Rejoignez le réseau de confiance Loger Togo." %}</p>
+                <a href="{% url 'register' %}" class="btn btn-primary-custom btn-lg px-5 py-3 fs-5">{% trans "Devenir Bailleur Certifié" %}</a>
              </div>
         </div>
     </div>
 
     <!-- Help Section -->
     <div class="text-center mt-5">
-        <p class="text-muted">Des questions sur la garantie de fiabilité ? <a href="mailto:serviceclient@Logertogo.com" class="text-success fw-bold">serviceclient@Logertogo.com</a></p>
+        <p class="text-muted">{% trans "Des questions sur la garantie de fiabilité ?" %} <a href="mailto:serviceclient@Logertogo.com" class="text-success fw-bold">serviceclient@Logertogo.com</a></p>
     </div>
 </div>
 {% endblock %}

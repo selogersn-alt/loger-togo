@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Property
 
 class MultipleFileInput(forms.FileInput):
@@ -19,7 +20,7 @@ class MultipleFileField(forms.FileField):
 
 class PropertyForm(forms.ModelForm):
     images = MultipleFileField(
-        label="Photos du bien (Obligatoire, vous pouvez en sélectionner plusieurs)",
+        label=_("Photos du bien (Obligatoire, vous pouvez en sélectionner plusieurs)"),
         required=True,
         widget=MultipleFileInput(attrs={'class': 'form-control', 'accept': 'image/*'})
     )
@@ -73,22 +74,22 @@ class PropertyForm(forms.ModelForm):
             'latitude', 'longitude',
         ]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Superbe appartement F4 vue mer...'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ex: Superbe appartement F4 vue mer...')}),
             'listing_category': forms.Select(attrs={'class': 'form-select'}),
             'property_type': forms.Select(attrs={'class': 'form-select'}),
             'document_type': forms.Select(attrs={'class': 'form-select'}),
             'city': forms.Select(attrs={'class': 'form-select'}),
-            'neighborhood': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Adidogomé'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 350000'}),
-            'price_per_night': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 45000'}),
-            'surface': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'm2'}),
+            'neighborhood': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ex: Adidogomé')}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 350000')}),
+            'price_per_night': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 45000')}),
+            'surface': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('m2')}),
             'bedrooms': forms.NumberInput(attrs={'class': 'form-control'}),
             'toilets': forms.NumberInput(attrs={'class': 'form-control'}),
             'total_rooms': forms.NumberInput(attrs={'class': 'form-control'}),
             'households': forms.NumberInput(attrs={'class': 'form-control'}),
             'floor_level': forms.NumberInput(attrs={'class': 'form-control'}),
             'has_garage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Décrivez le bien...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': _('Décrivez le bien...')}),
             'wifi': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'swimming_pool': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'gym': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -101,25 +102,30 @@ class PropertyForm(forms.ModelForm):
             'water_tank': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'title': 'Titre de l\'annonce',
-            'listing_category': 'Nature de l\'annonce',
-            'property_type': 'Type de bien',
-            'city': 'Ville',
-            'neighborhood': 'Quartier',
-            'document_type': 'Type de document (Vente uniquement)',
-            'price': 'Prix / Loyer mensuel (FCFA)',
-            'price_per_night': 'Prix par nuitée (Meublé)',
-            'description': 'Description détaillée',
-            'wifi': 'WiFi',
-            'swimming_pool': 'Piscine',
-            'gym': 'Salle de sport',
-            'air_conditioning': 'Climatisation',
-            'refrigerator': 'Réfrigérateur',
-            'washing_machine': 'Machine à laver',
-            'microwave': 'Micro-ondes',
-            'tv_cable': 'TV par câble',
-            'generator': 'Groupe électrogène',
-            'water_tank': 'Réservoir d\'eau',
-            'households': 'Nombre de ménages',
-            'floor_level': 'Niveau d\'étage',
+            'title': _("Titre de l'annonce"),
+            'listing_category': _("Nature de l'annonce"),
+            'property_type': _("Type de bien"),
+            'city': _("Ville"),
+            'neighborhood': _("Quartier"),
+            'document_type': _("Type de document (Vente uniquement)"),
+            'price': _("Prix / Loyer mensuel (FCFA)"),
+            'price_per_night': _("Prix par nuitée (Meublé)"),
+            'description': _("Description détaillée"),
+            'wifi': _("WiFi"),
+            'swimming_pool': _("Piscine"),
+            'gym': _("Salle de sport"),
+            'air_conditioning': _("Climatisation"),
+            'refrigerator': _("Réfrigérateur"),
+            'washing_machine': _("Machine à laver"),
+            'microwave': _("Micro-ondes"),
+            'tv_cable': _("TV par câble"),
+            'generator': _("Groupe électrogène"),
+            'water_tank': _("Réservoir d'eau"),
+            'households': _("Nombre de ménages"),
+            'floor_level': _("Niveau d'étage"),
+            'has_garage': _("Garage / Parking"),
+            'has_balcony': _("Balcon"),
+            'has_terrace': _("Terrasse"),
+            'has_courtyard': _("Cour"),
+            'has_garden': _("Jardin"),
         }

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-surface border-0 shadow-sm p-4 p-md-5">
+                <h2 class="text-main mb-4">{% trans "Créer un nouveau Bail" %}</h2>
+                <p class="text-muted mb-4">{% trans "Remplissez les informations ci-dessous pour officialiser une nouvelle location sur la plateforme." %}</p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Sélectionner la Propriété" %}</label>
+                        <select name="property_id" class="form-select" required>
+                            {% for prop in properties %}
+                            <option value="{{ prop.id }}" {% if prop.id|stringformat:"s" == selected_property_id %}selected{% endif %}>
+                                {{ prop.title }} ({{ prop.city }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Numéro du Locataire (Togo)" %}</label>
+                            <input type="text" name="tenant_phone" class="form-control" placeholder="ex: 90000000" required>
+                            <small class="text-muted">{% trans "Le locataire doit avoir un compte 'Locataire' sur Loger Togo." %}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Loyer Mensuel (FCFA)" %}</label>
+                            <input type="number" name="rent_amount" class="form-control" placeholder="{% trans "Laissez vide pour utiliser le prix de l'annonce" %}">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Date de début" %}</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Date de fin (Optionnelle)" %}</label>
+                            <input type="date" name="end_date" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Dépôt de garantie / Caution (FCFA)" %}</label>
+                        <input type="number" name="deposit_amount" class="form-control" value="0">
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="fw-bold mb-3 text-success"><i class="fas fa-file-signature me-2"></i>{% trans "Personnalisation du Contrat" %}</h5>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Nom de l'agence ou En-tête personnalisé" %}</label>
+                        <input type="text" name="custom_header_text" class="form-control" placeholder="ex: Agence Digitale Immobilière - Lomé">
+                        <small class="text-muted">{% trans "S'affichera en haut du contrat PDF avec votre logo." %}</small>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label">{% trans "Clauses particulières / Conditions spécifiques" %}</label>
+                        <textarea name="custom_contract_terms" class="form-control" rows="5" placeholder="{% trans "Saisissez ici les clauses additionnelles (ex: Interdiction d'animaux, modalités de préavis spécifiques...)" %}"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            {% trans "Générer le Bail et Notifier le Locataire" %}
+                        </button>
+                        <a href="{% url 'management:landlord_dashboard' %}" class="btn btn-link text-muted">{% trans "Annuler" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,10 +1,11 @@
+{% load i18n %}
 {% for msg in mediation_messages %}
     <div class="mb-3 d-flex {% if msg.sender == request.user %}justify-content-end{% endif %}">
         <div class="p-3 rounded shadow-sm" style="max-width: 80%; {% if msg.is_from_mediator %}background-color: #fff3cd; border-left: 4px solid #ffc107;{% elif msg.sender == request.user %}background-color: #e2f3f5; color: #055160;{% else %}background-color: #f8f9fa;{% endif %}">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="fw-bold small">
                     {% if msg.is_from_mediator %}
-                        <i class="fa-solid fa-scale-balanced text-warning"></i> Médiateur DigitalH
+                        <i class="fa-solid fa-scale-balanced text-warning"></i> {% trans "Médiateur DigitalH" %}
                     {% else %}
                         {{ msg.sender.first_name|default:msg.sender.phone_number }}
                     {% endif %}
@@ -17,6 +18,6 @@
 {% empty %}
     <div class="text-center py-5 text-muted">
         <i class="fa-solid fa-comments fa-3x mb-3 opacity-25"></i>
-        <p>Aucun message. Commencez la discussion ici pour résoudre le différend.</p>
+        <p>{% trans "Aucun message. Commencez la discussion ici pour résoudre le différend." %}</p>
     </div>
 {% endfor %}

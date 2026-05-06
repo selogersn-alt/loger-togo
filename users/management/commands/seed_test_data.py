@@ -85,8 +85,11 @@ class Command(BaseCommand):
                 user.save()
             agencies.append(user)
 
-        # 4. Create 10 Properties
+        # 4. Create 15 Properties (including 3 Boosted)
         prop_titles = [
+            "💎 Penthouse de Prestige - Vue Panoramique Lomé",
+            "✨ Villa Royale avec Piscine à Baguida",
+            "🌟 Résidence Meublée Grand Standing - Agoè",
             "Appartement F4 Moderne à Agoè",
             "Studio Meublé à Deckon",
             "Villa de Standing à Baguida",
@@ -96,17 +99,23 @@ class Command(BaseCommand):
             "Duplex de Luxe à Hedzranawoé",
             "Hangar Industriel Zone Franche Lomé",
             "Terrain Constructible 500m2 à Tsévié",
-            "Local Commercial RDC Avenue de la Libération"
+            "Local Commercial RDC Avenue de la Libération",
+            "Maison de ville élégante - Nyékonakpoé",
+            "Terrain Titré - Davié"
         ]
         
         all_pros = agents + landlords + agencies
-        # Real Choices from constants
         cities = ['LOME', 'KARA', 'SOKODE', 'ANEHO', 'KPALIME', 'TSEVIE', 'DAPAONG']
-        p_types = ['APARTMENT_F4', 'STUDIO', 'VILLA', 'BUREAU', 'CHAMBRE_SDB', 'APARTMENT_F3', 'DUPLEX', 'COMMERCIAL', 'TERRAIN', 'COMMERCIAL']
-        neighborhoods = ['Agoè-Assiyéyé', 'Deckon', 'Baguida', 'Hanoukopé', 'Amoutiévé', 'Aného', 'Hedzranawoé', 'Akodésséwa', 'Tsévié', 'Centre-Ville']
+        p_types = ['DUPLEX', 'VILLA', 'APARTMENT_F4', 'APARTMENT_F4', 'STUDIO', 'VILLA', 'BUREAU', 'CHAMBRE_SDB', 'APARTMENT_F3', 'DUPLEX', 'COMMERCIAL', 'TERRAIN', 'COMMERCIAL', 'VILLA', 'TERRAIN']
+        neighborhoods = ['Cité OUA', 'Baguida Mer', 'Agoè-2000', 'Agoè-Assiyéyé', 'Deckon', 'Baguida', 'Hanoukopé', 'Amoutiévé', 'Aného', 'Hedzranawoé', 'Akodésséwa', 'Tsévié', 'Centre-Ville', 'Nyékonakpoé', 'Davié']
 
-        for i in range(10):
+        from django.utils import timezone
+        import datetime
+
+        for i in range(len(prop_titles)):
             owner = random.choice(all_pros)
+            is_boosted = (i < 3)  # Les 3 premiers sont boostés
+            
             prop, created = Property.objects.get_or_create(
                 title=prop_titles[i],
                 defaults={
@@ -114,21 +123,20 @@ class Command(BaseCommand):
                     'property_type': p_types[i],
                     'city': cities[i % len(cities)],
                     'neighborhood': neighborhoods[i],
-                    'price': random.randint(150000, 2000000),
-                    'surface': random.randint(50, 450),
-                    'bedrooms': random.randint(1, 5),
-                    'toilets': random.randint(1, 4),
-                    'total_rooms': random.randint(2, 8),
-                    'has_garage': random.choice([True, False]),
-                    'description': "Ceci est une annonce fictive générée pour tester l'interface visuelle et le rendu des listes. Détails du bien : propre, sécurisé, accès facile.",
-                    'is_published': True
+                    'price': random.randint(3000000, 10000000) if is_boosted else random.randint(150000, 2000000),
+                    'surface': random.randint(200, 800) if is_boosted else random.randint(50, 450),
+                    'bedrooms': random.randint(3, 7) if is_boosted else random.randint(1, 5),
+                    'toilets': random.randint(3, 6) if is_boosted else random.randint(1, 4),
+                    'total_rooms': random.randint(5, 12) if is_boosted else random.randint(2, 8),
+                    'has_garage': True if is_boosted else random.choice([True, False]),
+                    'description': "PREMIUM : " + prop_titles[i] + ". " if is_boosted else "",
+                    'is_published': True,
+                    'is_boosted': is_boosted,
+                    'boost_until': timezone.now() + datetime.timedelta(days=30) if is_boosted else None
                 }
             )
             if created:
-                # Add a dummy image placeholder
-                # We can't easily upload real files via script without absolute paths, 
-                # but we can try to find existing ones or just leave it.
-                # Since the user asked "image", I'll try to add a record.
-                pass
+                prop.description += "Ceci est une annonce générée pour tester l'interface visuelle. Bien d'exception situé dans l'un des meilleurs quartiers, offrant confort et sécurité absolue."
+                prop.save()
 
-        self.stdout.write(self.style.SUCCESS("Fictional data seeded successfully!"))
+        self.stdout.write(self.style.SUCCESS(f"Fictional data ({len(prop_titles)} properties) seeded successfully!"))

@@ -1,14 +1,18 @@
-# Fichier regroupant les données de choix pour les annonces
+from django.utils.translation import gettext_lazy as _
 
 PROPERTY_TYPE_CHOICES = [
-    ('STUDIO', 'Studio'),
-    ('APPARTEMENT', 'Appartement'),
-    ('CHAMBRE', 'Chambre'),
-    ('IMMEUBLE', 'Immeuble'),
-    ('TERRAIN', 'Terrain'),
-    ('PARCELLES', 'Parcelles'),
-    ('VILLA', 'Villa'),
-    ('MAISON', 'Maison'),
+    ('STUDIO', _('Studio')),
+    ('APPARTEMENT', _('Appartement')),
+    ('CHAMBRE', _('Chambre')),
+    ('IMMEUBLE', _('Immeuble')),
+    ('TERRAIN', _('Terrain')),
+    ('PARCELLES', _('Parcelles')),
+    ('VILLA', _('Villa')),
+    ('MAISON', _('Maison')),
+    ('HOTEL', _('Hôtel')),
+    ('AUBERGE', _('Auberge')),
+    ('MUSEE', _('Musée')),
+    ('BUSINESS', _('Espace Business / Bureau')),
 ]
 
 CITY_CHOICES = [
@@ -38,28 +42,27 @@ CITY_CHOICES = [
 ]
 
 AMENITIES_CHOICES = [
-    ('WIFI', 'WiFi'),
-    ('POOL', 'Piscine'),
-    ('GYM', 'Salle de sport / Gym'),
-    ('GARAGE', 'Garage / Parking'),
-    ('AC', 'Climatisation'),
-    ('SECURITY', 'Gardiennage / Sécurité'),
-    ('GENERATOR', 'Groupe électrogène'),
-    ('WATER_TANK', 'Réservoir d\'eau / Surpresseur'),
-    ('TV_CABLE', 'TV par câble'),
-    ('WASHING_MACHINE', 'Machine à laver'),
-    ('DRYER', 'Sèche-linge'),
-    ('MICROWAVE', 'Micro-ondes'),
-    ('REFRIGERATOR', 'Réfrigérateur'),
-    ('SAUNA', 'Sauna'),
-    ('LAWN', 'Pelouse / Jardin'),
-    ('OUTDOOR_SHOWER', 'Douche extérieure'),
-    ('WINDOW_COVERINGS', 'Stores / Rideaux'),
+    ('WIFI', _('WiFi')),
+    ('POOL', _('Piscine')),
+    ('GYM', _('Salle de sport / Gym')),
+    ('GARAGE', _('Garage / Parking')),
+    ('AC', _('Climatisation')),
+    ('SECURITY', _('Gardiennage / Sécurité')),
+    ('GENERATOR', _('Groupe électrogène')),
+    ('WATER_TANK', _('Réservoir d\'eau / Surpresseur')),
+    ('TV_CABLE', _('TV par câble')),
+    ('WASHING_MACHINE', _('Machine à laver')),
+    ('DRYER', _('Sèche-linge')),
+    ('MICROWAVE', _('Micro-ondes')),
+    ('REFRIGERATOR', _('Réfrigérateur')),
+    ('SAUNA', _('Sauna')),
+    ('LAWN', _('Pelouse / Jardin')),
+    ('OUTDOOR_SHOWER', _('Douche extérieure')),
+    ('WINDOW_COVERINGS', _('Stores / Rideaux')),
 ]
 
 COUNTRY_CHOICES = [
     ('TG', 'Togo'),
-    ('SN', 'Togo'),
     ('BJ', 'Bénin'),
     ('CI', 'Côte d\'Ivoire'),
     ('BF', 'Burkina Faso'),
@@ -79,6 +82,14 @@ COUNTRY_CHOICES = [
     ('ES', 'Espagne'),
     ('IT', 'Italie'),
     ('OTHER', 'Autre'),
+]
+
+TOGO_NEIGHBORHOODS = [
+    "Adidogomé", "Agoè", "Agoè-Assiyéyé", "Agoè-Logopé", "Amoutiévé", "Anfamé", "Avedji", "Baguida", "Be", "Bè-Kpota", 
+    "Cassablanca", "Deckon", "Djidjole", "Dogbé", "Gbadago", "Hanoukopé", "Hedzranawoé", "Kanyikopé", "Kegue", "Kodjoviakopé", 
+    "Lomé-Port", "Nyakonakpoé", "N'lessi", "Octaviano-Neto", "Tokoin", "Tokoin-Casablanca", "Tokoin-Forever", "Tokoin-Hopital", 
+    "Tokoin-N'kafu", "Tokoin-Ouest", "Zongo", "Aflao", "Adamavo", "Adakpamé", "Ségbé", "Légbassito", "Vakpossito", "Totsi", 
+    "Sanguéra", "Zanguéra", "Ablogamé", "Akodésséwa", "Katanga", "Kpéhénou", "Souza-Nétimé"
 ]
 
 

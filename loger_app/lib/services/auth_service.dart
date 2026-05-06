@@ -86,8 +86,34 @@ class AuthService {
         _currentUser = AppUser.fromJson(json.decode(response.body));
         return true;
       } else if (response.statusCode == 401) {
-        // Token expired, should try to refresh (simplified for now)
+        // Token expiré, tentative de rafraîchissement
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          return await fetchProfile(); // Réessayer après refresh
+        }
         await logout();
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> refreshToken() async {
+    final refreshToken = await _storage.read(key: 'refresh_token');
+    if (refreshToken == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/token/refresh/'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'refresh': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        await _storage.write(key: 'access_token', value: data['access']);
+        return true;
       }
       return false;
     } catch (e) {

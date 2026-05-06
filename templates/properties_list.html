@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n property_tags %}
 
 {% block title %}{{ seo_title }} | Loger Togo{% endblock %}
 
@@ -186,6 +186,10 @@
 </style>
 {% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'partials/breadcrumbs.html' with breadcrumbs=breadcrumbs %}
+{% endblock %}
+
 {% block content %}
 <div class="page-header mt-4 text-center text-md-start">
     <div class="container py-4">
@@ -193,12 +197,12 @@
             <ol class="breadcrumb mb-2" itemscope itemtype="https://schema.org/BreadcrumbList">
                 <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
                     <a href="/" class="text-white text-decoration-none opacity-75" itemprop="item">
-                        <span itemprop="name">Accueil</span>
+                        <span itemprop="name">{% trans "Accueil" %}</span>
                     </a>
                     <meta itemprop="position" content="1" />
                 </li>
                 <li class="breadcrumb-item active text-white" aria-current="page" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                    <span itemprop="name">Annonces</span>
+                    <span itemprop="name">{% trans "Annonces" %}</span>
                     <meta itemprop="position" content="2" />
                 </li>
             </ol>
@@ -216,7 +220,7 @@
 <div class="container mt-3 mb-2">
   <div class="d-flex justify-content-end">
     <button class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold" id="mapToggleBtn" onclick="toggleMap()">
-      <i class="fa-solid fa-map-location-dot me-2"></i>Voir sur la carte
+      <i class="fa-solid fa-map-location-dot me-2"></i>{% trans "Voir sur la carte" %}
     </button>
   </div>
   <div id="mapWrapper" style="display:none;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
@@ -229,31 +233,33 @@
 <div class="container mb-5">
     <div class="boosted-scroller-container animate__animated animate__fadeIn">
         <div class="px-4 mb-3 d-flex justify-content-between align-items-center">
-            <h5 class="text-white fw-800 m-0"><i class="fa-solid fa-bolt text-warning me-2"></i>SÉLECTION PREMIUM DU JOUR</h5>
-            <span class="badge bg-white text-dark rounded-pill small">Top {{ boosted_slider.count }}</span>
+            <h5 class="text-white fw-800 m-0"><i class="fa-solid fa-bolt text-warning me-2"></i>{% trans "SÉLECTION PREMIUM DU JOUR" %}</h5>
+            <span class="badge bg-white text-dark rounded-pill small">{% trans "Top" %} {{ boosted_slider.count }}</span>
         </div>
         <div class="boosted-track">
             {% for boost_prop in boosted_slider %}
                 <div class="boosted-item shadow-sm">
                     <a href="{% url 'property_detail' boost_prop.id %}" class="text-decoration-none">
                         <div class="boosted-img-wrapper">
-                            {% if boost_prop.images.first %}
-                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}" width="340" height="220" loading="lazy" decoding="async">
-                            {% else %}
-                                <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
-                                </div>
-                            {% endif %}
+                            {% with img=boost_prop.get_main_image %}
+                                {% if img %}
+                                    <img src="{{ img.image_url.url }}" alt="{{ boost_prop.title }}" width="340" height="220" loading="lazy" decoding="async">
+                                {% else %}
+                                    <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                        <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
                             <div class="position-absolute top-0 start-0 m-2">
-                                <span class="badge bg-success small py-1 px-2">Certifié</span>
+                                <span class="badge bg-success small py-1 px-2">{% trans "Certifié" %}</span>
                             </div>
                         </div>
                         <div class="boosted-info bg-white">
                             <h6 class="fw-bold mb-1 text-truncate" style="color: var(--color-dark-green);">{{ boost_prop.title }}</h6>
                             <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-1"></i> {{ boost_prop.neighborhood }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="boosted-price">{{ boost_prop.price|floatformat:0 }} F</span>
-                                <span class="btn btn-xs btn-outline-success rounded-pill p-1 px-2" style="font-size: 0.6rem;">Voir +</span>
+                                <span class="boosted-price">{{ boost_prop.price|format_price }} F</span>
+                                <span class="btn btn-xs btn-outline-success rounded-pill p-1 px-2" style="font-size: 0.6rem;">{% trans "Voir +" %}</span>
                             </div>
                         </div>
                     </a>
@@ -264,20 +270,22 @@
                 <div class="boosted-item shadow-sm">
                     <a href="{% url 'property_detail' boost_prop.id %}" class="text-decoration-none">
                         <div class="boosted-img-wrapper">
-                            {% if boost_prop.images.first %}
-                                <img src="{{ boost_prop.images.first.image_url.url }}" alt="{{ boost_prop.title }}" width="340" height="220" loading="lazy" decoding="async">
-                            {% else %}
-                                <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
-                                </div>
-                            {% endif %}
+                            {% with img=boost_prop.get_main_image %}
+                                {% if img %}
+                                    <img src="{{ img.image_url.url }}" alt="{{ boost_prop.title }}" width="340" height="220" loading="lazy" decoding="async">
+                                {% else %}
+                                    <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                        <i class="fa-solid fa-building text-muted opacity-25" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
                         </div>
                         <div class="boosted-info bg-white">
                             <h6 class="fw-bold mb-1 text-truncate" style="color: var(--color-dark-green);">{{ boost_prop.title }}</h6>
                             <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-1"></i> {{ boost_prop.neighborhood }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="boosted-price">{{ boost_prop.price|floatformat:0 }} F</span>
-                                <span class="btn btn-xs btn-outline-success rounded-pill p-1 px-2" style="font-size: 0.6rem;">Voir +</span>
+                                <span class="boosted-price">{{ boost_prop.price|format_price }} F</span>
+                                <span class="btn btn-xs btn-outline-success rounded-pill p-1 px-2" style="font-size: 0.6rem;">{% trans "Voir +" %}</span>
                             </div>
                         </div>
                     </a>
@@ -292,40 +300,49 @@
     <!-- Barre de Filtres Réelle -->
     <div class="row align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--border-color);">
         <div class="col-md-2 mb-3 mb-md-0">
-            <h5 class="mb-0 fw-bold">Annonces</h5>
-            <span class="text-muted small">{{ properties.count }} résultat(s)</span>
+            <h5 class="mb-0 fw-bold">{% trans "Annonces" %}</h5>
+            <span class="text-muted small">{{ properties.count }} {% trans "résultat(s)" %}</span>
         </div>
         <div class="col-md-10">
             <form method="GET" action="{% url 'properties_list' %}" class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="small text-muted fw-bold">Ville</label>
+                    <label class="small text-muted fw-bold">{% trans "Ville" %}</label>
                     <select name="city" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="ALL">Toutes les villes</option>
+                        <option value="ALL">{% trans "Toutes les villes" %}</option>
                         {% for code, name in cities %}
                         <option value="{{ code }}" {% if current_filters.city == code %}selected{% endif %}>{{ name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="small text-muted fw-bold">Quartier</label>
+                    <label class="small text-muted fw-bold">{% trans "Quartier" %}</label>
                     <select name="neighborhood" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="ALL">Tous les quartiers</option>
+                        <option value="ALL">{% trans "Tous les quartiers" %}</option>
                         {% for code, name in neighborhoods %}
                         <option value="{{ name }}" {% if current_filters.neighborhood == name %}selected{% endif %}>{{ name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small text-muted fw-bold">Type</label>
+                    <label class="small text-muted fw-bold">{% trans "Nature" %}</label>
+                    <select name="listing_category" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
+                        <option value="ALL">{% trans "Tout" %}</option>
+                        <option value="RENT" {% if current_filters.listing_category == 'RENT' %}selected{% endif %}>{% trans "En location" %}</option>
+                        <option value="SALE" {% if current_filters.listing_category == 'SALE' %}selected{% endif %}>{% trans "En vente" %}</option>
+                        <option value="FURNISHED" {% if current_filters.listing_category == 'FURNISHED' %}selected{% endif %}>{% trans "Meublé" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="small text-muted fw-bold">{% trans "Type" %}</label>
                     <select name="property_type" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
-                        <option value="ALL">Tous types</option>
+                        <option value="ALL">{% trans "Tous types" %}</option>
                         {% for code, name in property_types %}
                         <option value="{{ code }}" {% if current_filters.property_type == code %}selected{% endif %}>{{ name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small text-muted fw-bold">Prix Max</label>
+                    <label class="small text-muted fw-bold">{% trans "Prix Max" %}</label>
                     <input type="number" name="max_price" class="form-control" placeholder="FCFA" value="{{ current_filters.max_price }}" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
                 </div>
                 <div class="col-md-2 d-flex gap-1">
@@ -341,12 +358,12 @@
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content" style="background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color);">
                             <div class="modal-header border-0 pb-0">
-                                <h5 class="modal-title fw-bold">Filtres Avancés</h5>
+                                <h5 class="modal-title fw-bold">{% trans "Filtres Avancés" %}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body p-4">
                                 <div class="row g-3">
-                                    <h6 class="fw-bold mb-2">Équipements & Commodités</h6>
+                                    <h6 class="fw-bold mb-2">{% trans "Équipements & Commodités" %}</h6>
                                     <div class="col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="wifi" value="on" id="f_wifi" {% if current_filters.wifi %}checked{% endif %}>
@@ -356,32 +373,32 @@
                                     <div class="col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="swimming_pool" value="on" id="f_pool" {% if current_filters.swimming_pool %}checked{% endif %}>
-                                            <label class="form-check-label" for="f_pool">Piscine</label>
+                                            <label class="form-check-label" for="f_pool">{% trans "Piscine" %}</label>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="air_conditioning" value="on" id="f_ac" {% if current_filters.air_conditioning %}checked{% endif %}>
-                                            <label class="form-check-label" for="f_ac">Climatisation</label>
+                                            <label class="form-check-label" for="f_ac">{% trans "Climatisation" %}</label>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="has_garage" value="on" id="f_garage" {% if current_filters.has_garage %}checked{% endif %}>
-                                            <label class="form-check-label" for="f_garage">Garage / Parking</label>
+                                            <label class="form-check-label" for="f_garage">{% trans "Garage / Parking" %}</label>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="generator" value="on" id="f_gen" {% if current_filters.generator %}checked{% endif %}>
-                                            <label class="form-check-label" for="f_gen">Groupe Électrogène</label>
+                                            <label class="form-check-label" for="f_gen">{% trans "Groupe Électrogène" %}</label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer border-0">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
-                                <button type="submit" class="btn btn-success px-4">Appliquer</button>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Fermer" %}</button>
+                                <button type="submit" class="btn btn-success px-4">{% trans "Appliquer" %}</button>
                             </div>
                         </div>
                     </div>
@@ -389,6 +406,19 @@
             </form>
         </div>
     </div>
+
+    <!-- Message de Fallback (Suggestions Approximatives) -->
+    {% if is_fallback %}
+    <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4 animate__animated animate__fadeIn">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-wand-magic-sparkles fs-4 me-3"></i>
+            <div>
+                <h6 class="fw-bold mb-1">{% trans "Aucun résultat exact pour" %} "{{ search_query }}"</h6>
+                <p class="mb-0 small">{% trans "Voici quelques suggestions approximatives pour vous aider dans votre recherche." %}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Grille des propriétés -->
     <div class="row g-4">
@@ -400,7 +430,7 @@
         {% if forloop.counter|divisibleby:6 and ads_in_feed %}
             <div class="col-12 mt-4 mb-4 animate__animated animate__fadeIn">
                 <div class="ad-container text-center py-3 bg-light rounded-4 shadow-sm border border-2 border-dashed border-success">
-                    <small class="text-uppercase fw-bold text-success d-block mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">Sponsorisé par DigitalH</small>
+                    <small class="text-uppercase fw-bold text-success d-block mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">{% trans "Sponsorisé par DigitalH" %}</small>
                     {% with ads_in_feed|random as ad %}
                         {% if ad.ad_type == 'BANNER' %}
                         <a href="{{ ad.target_url }}" target="_blank">
@@ -422,8 +452,8 @@
             <div style="font-size: 3rem; color: var(--border-color); margin-bottom: 20px;">
                 <i class="fa-solid fa-house-circle-exclamation"></i>
             </div>
-            <h4 class="fw-bold">Aucune annonce disponible</h4>
-            <p class="text-muted">Il n'y a pas de propriétés publiées pour le moment. Revenez plus tard !</p>
+            <h4 class="fw-bold">{% trans "Aucune annonce disponible" %}</h4>
+            <p class="text-muted">{% trans "Il n'y a pas de propriétés publiées pour le moment. Revenez plus tard !" %}</p>
         </div>
         {% endfor %}
     </div>
@@ -434,8 +464,8 @@
             <div class="card border-0 shadow-sm" style="border-radius:20px; background:linear-gradient(135deg, var(--color-dark-green), #198754);">
                 <div class="card-body p-4 p-md-5 row align-items-center">
                     <div class="col-lg-6 mb-4 mb-lg-0 text-white">
-                        <h3 class="fw-bold mb-2"><i class="fa-solid fa-bell text-warning me-2"></i>Alerte Immobilière</h3>
-                        <p class="mb-0 opacity-75">Soyez le premier informé ! Recevez un email dès qu'un bien correspondant à vos critères de recherche actuels est publié.</p>
+                        <h3 class="fw-bold mb-2"><i class="fa-solid fa-bell text-warning me-2"></i>{% trans "Alerte Immobilière" %}</h3>
+                        <p class="mb-0 opacity-75">{% trans "Soyez le premier informé ! Recevez un email dès qu'un bien correspondant à vos critères de recherche actuels est publié." %}</p>
                     </div>
                     <div class="col-lg-6">
                         <form action="{% url 'subscribe_alert' %}" method="POST" class="d-flex flex-column gap-3">
@@ -446,10 +476,10 @@
                             
                             <div class="input-group input-group-lg shadow-sm" style="border-radius:14px; overflow:hidden;">
                                 <span class="input-group-text bg-white border-0 text-success"><i class="fa-solid fa-envelope"></i></span>
-                                <input type="email" name="email" class="form-control border-0 px-3" placeholder="Votre adresse email" required {% if user.is_authenticated %}value="{{ user.email }}"{% endif %}>
-                                <button type="submit" class="btn btn-warning fw-bold px-4">Créer l'alerte</button>
+                                <input type="email" name="email" class="form-control border-0 px-3" placeholder="{% trans "Votre adresse email" %}" required {% if user.is_authenticated %}value="{{ user.email }}"{% endif %}>
+                                <button type="submit" class="btn btn-warning fw-bold px-4">{% trans "Créer l'alerte" %}</button>
                             </div>
-                            <small class="text-white opacity-50 text-end"><i class="fa-solid fa-shield-halved me-1"></i>100% gratuit, désabonnement en 1 clic.</small>
+                            <small class="text-white opacity-50 text-end"><i class="fa-solid fa-shield-halved me-1"></i>{% trans "100% gratuit, désabonnement en 1 clic." %}</small>
                         </form>
                     </div>
                 </div>
@@ -463,7 +493,7 @@
             <div class="p-4 rounded-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
                 <h4 class="fw-bold mb-3" style="color: var(--color-dark-green);">
                     <i class="fa-solid fa-circle-info me-2 text-warning"></i>
-                    À propos du marché immobilier au Togo
+                    {% trans "À propos du marché immobilier au Togo" %}
                 </h4>
                 <p class="text-muted mb-0 lh-lg">
                     {{ seo_market_description }}
@@ -471,13 +501,13 @@
                 <hr class="my-4 opacity-5">
                 <div class="row g-3 small text-muted">
                     <div class="col-md-4">
-                        <i class="fa-solid fa-shield-halved text-success me-2"></i> Annonces vérifiées et certifiées.
+                        <i class="fa-solid fa-shield-halved text-success me-2"></i> {% trans "Annonces vérifiées et certifiées." %}
                     </div>
                     <div class="col-md-4">
-                        <i class="fa-solid fa-users-check text-success me-2"></i> Réseau de confiance NILS.
+                        <i class="fa-solid fa-users-check text-success me-2"></i> {% trans "Réseau de confiance Confiance." %}
                     </div>
                     <div class="col-md-4">
-                        <i class="fa-solid fa-handshake text-success me-2"></i> Accompagnement DigitalH Group.
+                        <i class="fa-solid fa-handshake text-success me-2"></i> {% trans "Accompagnement DigitalH Group." %}
                     </div>
                 </div>
             </div>
@@ -501,12 +531,12 @@ function toggleMap() {
     const btn = document.getElementById('mapToggleBtn');
     if (wrapper.style.display === 'none') {
         wrapper.style.display = 'block';
-        btn.innerHTML = '<i class="fa-solid fa-list me-2"></i>Masquer la carte';
+        btn.innerHTML = '<i class="fa-solid fa-list me-2"></i>{% trans "Masquer la carte" %}';
         btn.classList.replace('btn-outline-success', 'btn-success');
         if (!mapInitialized) initMap();
     } else {
         wrapper.style.display = 'none';
-        btn.innerHTML = '<i class="fa-solid fa-map-location-dot me-2"></i>Voir sur la carte';
+        btn.innerHTML = '<i class="fa-solid fa-map-location-dot me-2"></i>{% trans "Voir sur la carte" %}';
         btn.classList.replace('btn-success', 'btn-outline-success');
     }
 }
@@ -515,9 +545,9 @@ function initMap() {
     mapInitialized = true;
     // Centre sur Lomé par défaut
     map = L.map('leaflet-map').setView([6.137, 1.222], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 18,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(map);
 
     if (MAP_MARKERS.length === 0) {
@@ -539,7 +569,7 @@ function initMap() {
                 <strong style="font-size:13px;">${m.title}</strong>
                 <div style="font-size:12px;color:#555;margin:2px 0;">${m.type} · ${m.neighborhood}</div>
                 <div style="font-weight:700;color:#198754;margin:4px 0;">${m.price.toLocaleString('fr-FR')} FCFA</div>
-                <a href="${m.url}" style="display:block;background:#198754;color:white;text-align:center;padding:6px;border-radius:6px;text-decoration:none;font-size:12px;margin-top:6px;">Voir l'annonce →</a>
+                <a href="${m.url}" style="display:block;background:#198754;color:white;text-align:center;padding:6px;border-radius:6px;text-decoration:none;font-size:12px;margin-top:6px;">{% trans "Voir l'annonce" %} →</a>
             </div>`;
         L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
         bounds.push([m.lat, m.lng]);

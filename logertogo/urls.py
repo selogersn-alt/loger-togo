@@ -24,7 +24,7 @@ from logersn.sitemaps import StaticViewSitemap, PropertySitemap, ProfessionalSit
 from rest_framework.routers import DefaultRouter
 from logersn.api import PropertyViewSet, PropertyImageViewSet, ProfessionalsViewSet
 from chat.api import ConversationViewSet
-from users.api import SolvencyDocumentViewSet
+
 
 # API Router configuration
 router = DefaultRouter()
@@ -32,7 +32,7 @@ router.register(r'properties', PropertyViewSet, basename='api-property')
 router.register(r'property-images', PropertyImageViewSet, basename='api-property-image')
 router.register(r'professionals', ProfessionalsViewSet, basename='api-professional')
 router.register(r'conversations', ConversationViewSet, basename='api-conversation')
-router.register(r'solvency-documents', SolvencyDocumentViewSet, basename='api-solvency-doc')
+
 
 
 sitemaps = {
@@ -40,20 +40,27 @@ sitemaps = {
     'properties': PropertySitemap,
     'professionals': ProfessionalSitemap,
 }
-from .views import (
-    home_view, properties_list_view, property_detail_view, 
-    login_view, register_view, logout_view, 
-    dashboard_view, create_property_view, send_message_view,
-    initiate_chat_view, start_support_view, verify_phone_view,
-    kyc_submit_view, about_view, verified_professionals_view,
-    public_profile_view, update_profile_view,
-    edit_property_view, delete_property_view,
+from logertogo.views import (
+    home_view, dashboard_view, about_view, verified_professionals_view,
+    start_support_view, kyc_submit_view, 
     initiate_payment_view, checkout_payment_view, payment_callback_view, payment_success_view, 
-    password_recovery_view, password_reset_confirm_view, admin_generate_reset_link,
-    cgu_view, privacy_view, toggle_favorite_view, chat_poll_view,
+    payment_request_sent_view,
+    cgu_view, privacy_view, chat_poll_view,
     guide_locataires_view, guide_bailleurs_view, guide_agences_view, guide_courtiers_view,
-    submit_review_view, subscribe_alert_view, unsubscribe_alert_view,
 )
+from users.views import (
+    login_view, register_view, logout_view, update_profile_view,
+    public_profile_view, verify_phone_view, 
+    password_recovery_view, password_reset_confirm_view,
+    admin_generate_reset_link
+)
+from logersn.views import (
+    properties_list_view, property_detail_view, create_property_view,
+    edit_property_view, delete_property_view, toggle_favorite_view,
+    submit_review_view, subscribe_alert_view, unsubscribe_alert_view,
+    apply_to_property_view,
+)
+from chat.views import send_message_view, initiate_chat_view
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from ads.views import ads_txt_view  # Certification Google
 from .admin_views import admin_statistics_view, admin_marketing_email_view
@@ -85,6 +92,7 @@ urlpatterns = [
     path('annonces/<uuid:property_id>/modifier/', edit_property_view, name='edit_property'),
     path('annonces/<uuid:property_id>/supprimer/', delete_property_view, name='delete_property'),
     path('annonces/<uuid:property_id>/avis/', submit_review_view, name='submit_review'),
+    path('annonces/<uuid:property_id>/candidater/', apply_to_property_view, name='apply_to_property'),
     
     # Certification Ads (Google AdSense)
     path('ads.txt', ads_txt_view, name='ads_txt'),
@@ -119,6 +127,7 @@ urlpatterns = [
     path('paiement/callback/', payment_callback_view, name='payment_callback'),
     path('payments/callback/', payment_callback_view), # Alias international pour éviter les 404
     path('paiement/succes/<uuid:transaction_id>/', payment_success_view, name='payment_success'),
+    path('paiements/demande-envoyee/', payment_request_sent_view, name='payment_request_sent'),
     
     # Nouvelles Routes UX & Légal
     path('cgu/', cgu_view, name='cgu'),
@@ -126,8 +135,8 @@ urlpatterns = [
     path('favori/basculer/<uuid:property_id>/', toggle_favorite_view, name='toggle_favorite'),
     path('chat/poll/<uuid:conversation_id>/', chat_poll_view, name='chat-poll'),
     
-    # Nouvelles Routes Signalement & Solvabilité
-
+    # Nouvelles Routes Signalement & Gestion Locative (Rentila-like)
+    path('gestion/', include('management.urls')),
     
     # Guides d'utilisation
     path('guide/locataires/', guide_locataires_view, name='guide_locataires'),
@@ -153,6 +162,8 @@ urlpatterns = [
         template_name='pwa/sw.js',
         content_type='application/javascript'
     ), name='pwa-sw'),
+    path('blog/', include('blog.urls', namespace='blog')),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

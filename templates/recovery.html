@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Récupération Assistée | Logertogo{% endblock %}
+{% block title %}{% trans "Récupération Assistée" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5 mt-5">
@@ -12,14 +13,14 @@
                         <div class="bg-light-green rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; background-color: rgba(251, 191, 36, 0.1);">
                             <i class="fa-solid fa-key" style="color: var(--color-yellow); font-size: 2.5rem;"></i>
                         </div>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Solvable Recovery</h2>
-                        <p class="text-muted small">Retrouvez l'accès à votre compte en 1 minute.</p>
+                        <h2 class="fw-bold" style="color: var(--text-main);">Loger Togo Recovery</h2>
+                        <p class="text-muted small">{% trans "Retrouvez l'accès à votre compte en 1 minute." %}</p>
                     </div>
 
                     <form id="recovery_form" method="POST">
                         {% csrf_token %}
                         <div id="check_area" class="mb-4">
-                            <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">Votre numéro au Togo</label>
+                            <label for="recovery_phone" class="form-label fw-bold small text-uppercase mb-2">{% trans "Votre numéro au Togo" %}</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-2 border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);"><i class="fa-solid fa-phone"></i></span>
                                 <input type="tel" id="recovery_phone" name="phone" class="form-control py-3 border-2" placeholder="77XXXXXXX" required style="border-radius: 0 12px 12px 0; border-color: var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
@@ -28,44 +29,44 @@
                         </div>
 
                         <div id="action_area" class="d-none animate__animated animate__fadeIn">
-                            <p class="text-muted small mb-3">Choisissez votre méthode de réinitialisation :</p>
+                            <p class="text-muted small mb-3">{% trans "Choisissez votre méthode de réinitialisation :" %}</p>
                             
                             <!-- Option Email (si disponible) -->
                             <div id="email_option" class="d-none mb-3">
                                 <button type="submit" name="method" value="email" class="btn btn-outline-success w-100 py-3 rounded-pill fw-bold mb-3">
-                                    <i class="fa-solid fa-envelope me-2"></i> Recevoir par E-mail (<span id="masked_email"></span>)
+                                    <i class="fa-solid fa-envelope me-2"></i> {% trans "Recevoir par E-mail" %} (<span id="masked_email"></span>)
                                 </button>
                                 <div class="text-center mb-3">
-                                    <span class="px-3 bg-white text-muted small">OU</span>
+                                    <span class="px-3 bg-white text-muted small">{% trans "OU" %}</span>
                                     <hr class="mt-n2">
                                 </div>
                             </div>
 
                             <button type="button" onclick="startRecovery()" class="btn w-100 py-3 rounded-pill fw-bold" style="background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
-                                <i class="fa-brands fa-whatsapp me-2"></i> Réinitialiser via WhatsApp
+                                <i class="fa-brands fa-whatsapp me-2"></i> {% trans "Réinitialiser via WhatsApp" %}
                             </button>
                         </div>
                     </form>
 
                     <div id="wa_sent_area" class="{% if not show_wa_link %}d-none{% endif %} animate__animated animate__fadeIn text-center mt-3">
                         <div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: 15px;">
-                            <i class="fa-solid fa-info-circle me-2"></i> Votre lien est prêt. Cliquez ci-dessous pour l'envoyer au support.
+                            <i class="fa-solid fa-info-circle me-2"></i> {% trans "Votre lien est prêt. Cliquez ci-dessous pour l'envoyer au support." %}
                         </div>
                         <a href="#" id="final_wa_btn" target="_blank" class="btn btn-success w-100 py-3 rounded-pill fw-bold">
-                            Cliquer ici pour ouvrir WhatsApp
+                            {% trans "Cliquer ici pour ouvrir WhatsApp" %}
                         </a>
                     </div>
 
                     <div id="error_area" class="d-none animate__animated animate__shakeX">
                         <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: rgba(220, 53, 69, 0.05); color: #dc3545;">
-                            <i class="fa-solid fa-circle-exclamation me-2"></i> Ce numéro n'est pas reconnu.
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> {% trans "Ce numéro n'est pas reconnu." %}
                         </div>
-                        <a href="{% url 'register' %}" class="btn btn-outline-secondary w-100 py-3 rounded-pill fw-bold">Créer un nouveau compte</a>
+                        <a href="{% url 'register' %}" class="btn btn-outline-secondary w-100 py-3 rounded-pill fw-bold">{% trans "Créer un nouveau compte" %}</a>
                     </div>
 
                     <div class="text-center mt-4">
                         <a href="{% url 'login' %}" class="text-decoration-none small text-muted">
-                            <i class="fa-solid fa-arrow-left me-1"></i> Retour à la connexion
+                            <i class="fa-solid fa-arrow-left me-1"></i> {% trans "Retour à la connexion" %}
                         </a>
                     </div>
                 </div>
@@ -110,7 +111,7 @@
                 actionArea.classList.remove('d-none');
                 errorArea.classList.add('d-none');
                 phoneInput.style.borderColor = '#28a745';
-                phoneFeedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Compte trouvé</span>';
+                phoneFeedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> {% trans "Compte trouvé" %}</span>';
                 
                 if (data.has_email) {
                     emailOption.classList.remove('d-none');
@@ -122,7 +123,7 @@
                 errorArea.classList.remove('d-none');
                 actionArea.classList.add('d-none');
                 phoneInput.style.borderColor = '#dc3545';
-                phoneFeedback.innerHTML = '<span class="text-danger">Inconnu.</span>';
+                phoneFeedback.innerHTML = '<span class="text-danger">{% trans "Inconnu." %}</span>';
             }
         });
     }
@@ -130,17 +131,36 @@
     function startRecovery() {
         const phone = phoneInput.value.trim();
         const siteUrl = window.location.origin;
-        // Si on a déjà un reset_url généré par le backend au refresh
-        let resetUrl = "{{ reset_url|default:'' }}";
+        const resetUrl = "{{ reset_url|safe }}";
         
-        const message = `SOLVABLE RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nSource : ${siteUrl}\n\nMerci de m'envoyer un lien de connexion.`;
+        let message = `Loger Togo RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nSource : ${siteUrl}\n\nMerci de m'aider à retrouver mon accès.`;
+        
+        if (resetUrl) {
+            message += `\nLien généré : ${resetUrl}`;
+        }
         
         const supportWhatsApp = "22897151610"; 
         const waUrl = `https://wa.me/${supportWhatsApp}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
         
-        // Optionnel: montrer le bouton final si refresh
-        if(waSentArea) waSentArea.classList.remove('d-none');
+        if (waSentArea) {
+            waSentArea.classList.remove('d-none');
+            const finalBtn = document.getElementById('final_wa_btn');
+            if (finalBtn) finalBtn.href = waUrl;
+        }
     }
+
+    // Si on arrive avec un lien déjà prêt (après POST)
+    {% if show_wa_link %}
+    document.addEventListener('DOMContentLoaded', function() {
+        const phone = "{{ request.POST.phone }}";
+        const resetUrl = "{{ reset_url|safe }}";
+        const message = `Loger Togo RECOVERY REQUEST\n------------------------\nNuméro : ${phone}\nAction : Mot de passe oublié\nLien prêt : ${resetUrl}`;
+        const waUrl = `https://wa.me/22897151610?text=${encodeURIComponent(message)}`;
+        
+        const finalBtn = document.getElementById('final_wa_btn');
+        if (finalBtn) finalBtn.href = waUrl;
+    });
+    {% endif %}
 </script>
 {% endblock %}

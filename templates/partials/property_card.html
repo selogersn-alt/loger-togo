@@ -1,26 +1,27 @@
-{% load static %}
+{% load static i18n property_tags %}
 <div class="property-card shadow-sm border-0 h-100 animate__animated animate__fadeInUp position-relative" style="transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
     
     <div class="property-image-wrapper position-relative" style="height: 240px; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px;">
         {% if property.images.all %}
-            <!-- Image Carousel (DÉFILAGE AUTOMATIQUE - Pointer events none pour favoriser le clic annonce) -->
+            <!-- Image Carousel -->
             <div id="carousel-{{ property.id }}" class="carousel slide h-100" data-bs-ride="carousel" data-bs-interval="3000" style="pointer-events: none;">
                 <div class="carousel-inner h-100">
                     {% for image in property.images.all %}
                     <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}">
                         <img src="{{ image.image_url.url }}" 
                              class="property-img w-100 h-100" 
-                             alt="{{ property.title }} - {{ property.get_property_type_display }} à {{ property.city }} | Loger Togo" 
-                             width="400" height="240" loading="lazy" decoding="async"
-                             style="object-fit: cover;" 
-                             onerror="this.onerror=null; this.outerHTML='<div class=\'w-100 h-100 d-flex align-items-center justify-content-center bg-light\'><i class=\'fa-solid {{ property.get_icon_class }}\' style=\'font-size: 4rem; color: var(--border-color);\'></i></div>';">
+                             alt="{{ property.title }}" 
+                             style="object-fit: cover;">
                     </div>
                     {% endfor %}
                 </div>
             </div>
         {% else %}
-            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                <i class="fa-solid {{ property.get_icon_class }}" style="font-size: 4rem; color: var(--border-color);"></i>
+            <div class="w-100 h-100 position-relative">
+                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600&auto=format&fit=crop" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.9);" alt="Placeholder">
+                <div class="position-absolute top-50 start-50 translate-middle">
+                    <i class="fa-solid fa-house-chimney text-white opacity-25" style="font-size: 3rem;"></i>
+                </div>
             </div>
         {% endif %}
         
@@ -31,13 +32,15 @@
             </div>
             
             {% if property.listing_category == 'SALE' %}
-            <div class="category-tag-buy" style="background: var(--color-yellow); color: var(--color-dark-green); padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">A VENDRE</div>
+            <div class="category-tag-buy" style="background: var(--color-yellow); color: var(--color-dark-green); padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">{% trans "EN VENTE" %}</div>
             {% elif property.listing_category == 'FURNISHED' %}
-            <div class="category-tag-furnished" style="background: #BB2D3B; color: white; padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">MEUBLÉ</div>
+            <div class="category-tag-furnished" style="background: #BB2D3B; color: white; padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">{% trans "MEUBLÉ" %}</div>
+            {% elif property.listing_category == 'RENT' %}
+            <div class="category-tag-rent" style="background: var(--color-light-green); color: white; padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">{% trans "EN LOCATION" %}</div>
             {% endif %}
             {% if property.is_boosted %}
             <div class="ads-tag" style="background: var(--color-yellow); color: var(--color-dark-green); padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 900; text-transform: uppercase;">
-                PREMIUM
+                {% trans "PREMIUM" %}
             </div>
             {% endif %}
         </div>
@@ -51,11 +54,11 @@
         <!-- Prix -->
         <div class="property-price-tag" style="position: absolute; bottom: 12px; right: 12px; background: var(--color-dark-green); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; z-index: 5; box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
             {% if property.listing_category == 'SALE' %}
-                {{ property.price|floatformat:0 }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA</small>
+                {{ property.price|format_price }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA</small>
             {% elif property.listing_category == 'FURNISHED' %}
-                {{ property.price_per_night|floatformat:0 }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA/Nuit</small>
+                {{ property.price_per_night|default:property.price|format_price }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA/{% trans "Nuit" %}</small>
             {% else %}
-                {{ property.price|floatformat:0 }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA/Mois</small>
+                {{ property.price|format_price }} <small style="font-size: 0.65rem; opacity: 0.8;">FCFA/{% trans "Mois" %}</small>
             {% endif %}
         </div>
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.4)); z-index: 1;"></div>
@@ -78,7 +81,7 @@
         <div class="d-flex justify-content-between align-items-center" style="position: relative; z-index: 10;">
             <div class="d-flex gap-1">
                 {% if property.id %}
-                <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce : {{ property.title }}" target="_blank" class="btn btn-sm btn-outline-success border-0 px-2" style="background: rgba(25, 135, 84, 0.05);">
+                <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce :" %} {{ property.title }}" target="_blank" class="btn btn-sm btn-outline-success border-0 px-2" style="background: rgba(25, 135, 84, 0.05);">
                     <i class="fa-brands fa-whatsapp fs-5"></i>
                 </a>
                 {% endif %}
@@ -86,11 +89,11 @@
                     <i class="fa-solid fa-phone fs-6"></i>
                 </a>
             </div>
-            <span class="btn btn-success btn-sm px-3 rounded-pill fw-bold shadow-sm" style="font-size: 0.75rem;">Détails <i class="fa-solid fa-chevron-right ms-1"></i></span>
+            <span class="btn btn-success btn-sm px-3 rounded-pill fw-bold shadow-sm" style="font-size: 0.75rem;">{% trans "Détails" %} <i class="fa-solid fa-chevron-right ms-1"></i></span>
         </div>
     </div>
 
-    <!-- LIEN GLOBAL (SUR TOUTES LES COUCHES SAUF BOUTONS) -->
+    <!-- LIEN GLOBAL -->
     {% if property.id %}
         <a href="{{ property.get_absolute_url }}" class="stretched-link" style="z-index: 7;"></a>
     {% endif %}

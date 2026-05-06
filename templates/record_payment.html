@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Enregistrer un Paiement | Solvable{% endblock %}
+{% block title %}{% trans "Enregistrer un Paiement" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -10,8 +11,8 @@
                 <div class="card-body p-sm-5 p-4">
                     <div class="text-center mb-4">
                         <i class="fa-solid fa-file-invoice-dollar text-success mb-3" style="font-size: 3rem;"></i>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Enregistrer un Paiement</h2>
-                        <p class="text-muted">Déclarez manuellement le statut de paiement des loyers de vos locataires et attachez des preuves (reçus, captures d'écran).</p>
+                        <h2 class="fw-bold" style="color: var(--text-main);">{% trans "Enregistrer un Paiement" %}</h2>
+                        <p class="text-muted">{% trans "Déclarez manuellement le statut de paiement des loyers de vos locataires et attachez des preuves (reçus, captures d'écran)." %}</p>
                     </div>
 
                     {% if has_filiations %}
@@ -35,17 +36,17 @@
 
                             <div class="d-grid mt-4">
                                 <button type="submit" class="btn btn-success py-3" style="border-radius: 50px; font-weight: 600;">
-                                    <i class="fa-solid fa-check-circle me-2"></i> Valider le Paiement
+                                    <i class="fa-solid fa-check-circle me-2"></i> {% trans "Valider le Paiement" %}
                                 </button>
                             </div>
                         </form>
                     {% else %}
                         <div class="alert alert-light text-center border mt-4 p-4" style="background-color: var(--bg-body); border-radius: 10px; border-color: var(--border-color) !important;">
                             <i class="fa-solid fa-circle-xmark text-muted mb-3 d-block" style="font-size: 2rem;"></i>
-                            <p class="text-muted mb-0">Vous n'avez aucun contrat locatif actif enregistré (Filiation Solvable). Vous ne pouvez pas gérer de paiements.</p>
+                            <p class="text-muted mb-0">{% trans "Vous n'avez aucun contrat locatif actif enregistré (Filiation Loger Togo). Vous ne pouvez pas gérer de paiements." %}</p>
                         </div>
                         <div class="text-center mt-4">
-                            <a href="{% url 'dashboard' %}" class="btn btn-outline-dark" style="color: var(--text-main); border-color: var(--border-color);">Retour au tableau de bord</a>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-dark" style="color: var(--text-main); border-color: var(--border-color);">{% trans "Retour au tableau de bord" %}</a>
                         </div>
                     {% endif %}
                 </div>

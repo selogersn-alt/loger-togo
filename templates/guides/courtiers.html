@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Guide Courtiers & Agents | Solvable LogerSN{% endblock %}
+{% block title %}{% trans "Guide Courtiers & Agents | Loger Togo" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -40,8 +40,8 @@
 {% block content %}
 <div class="guide-header">
     <div class="container">
-        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Guide du Courtier</h1>
-        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">Augmentez votre niveau de fiabilité et concluez vos affaires 2 fois plus vite.</p>
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">{% trans "Guide du Courtier" %}</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">{% trans "Augmentez votre niveau de fiabilité et concluez vos affaires 2 fois plus vite." %}</p>
     </div>
 </div>
 
@@ -51,8 +51,8 @@
         <div class="col-md-4">
             <div class="step-card">
                 <div class="step-icon mx-auto"><i class="fa-solid fa-user-plus"></i></div>
-                <h4 class="fw-bold mb-3">Inscription Courtier</h4>
-                <p class="text-muted">Inscrivez-vous sur /inscription/. Utilisez votre numéro de téléphone comme identifiant sécurisé.</p>
+                <h4 class="fw-bold mb-3">{% trans "Inscription Courtier" %}</h4>
+                <p class="text-muted">{% trans "Inscrivez-vous sur /inscription/. Utilisez votre numéro de téléphone comme identifiant sécurisé." %}</p>
             </div>
         </div>
         
@@ -60,8 +60,8 @@
         <div class="col-md-4">
             <div class="step-card">
                 <div class="step-icon mx-auto"><i class="fa-solid fa-shield-check"></i></div>
-                <h4 class="fw-bold mb-3">Vérification Identity</h4>
-                <p class="text-muted">CNI + Selfie. Une identité validée est la clé pour rassurer vos futurs clients.</p>
+                <h4 class="fw-bold mb-3">{% trans "Vérification Identity" %}</h4>
+                <p class="text-muted">{% trans "CNI + Selfie. Une identité validée est la clé pour rassurer vos futurs clients." %}</p>
             </div>
         </div>
         
@@ -69,8 +69,8 @@
         <div class="col-md-4">
             <div class="step-card">
                 <div class="step-icon mx-auto"><i class="fa-solid fa-bullhorn"></i></div>
-                <h4 class="fw-bold mb-3">Publication Digitale</h4>
-                <p class="text-muted">Ajoutez vos biens et accélérez vos commissions en échangeant avec des profils sérieux.</p>
+                <h4 class="fw-bold mb-3">{% trans "Publication Digitale" %}</h4>
+                <p class="text-muted">{% trans "Ajoutez vos biens et accélérez vos commissions en échangeant avec des profils sérieux." %}</p>
             </div>
         </div>
     </div>
@@ -80,15 +80,15 @@
         <div class="card-body p-0">
             <div class="row g-0">
                 <div class="col-lg-5 p-5 bg-warning d-flex flex-column justify-content-center text-white">
-                    <h2 class="fw-bold mb-4">Gagnez en crédibilité</h2>
-                    <p>Démarquez-vous des annonceurs anonymes grâce au badge de confiance Loger Togo.</p>
+                    <h2 class="fw-bold mb-4">{% trans "Gagnez en crédibilité" %}</h2>
+                    <p>{% trans "Démarquez-vous des annonceurs anonymes grâce au badge de confiance Loger Togo." %}</p>
                 </div>
                 <div class="col-lg-7 p-5 bg-white">
-                    <h3 class="fw-bold mb-4">Rejoignez le réseau n°1</h3>
-                    <p class="text-muted mb-4">Une identité certifiée vous permet de sécuriser vos mises en relation et de fidéliser vos bailleurs.</p>
-                    <a href="{% url 'register' %}" class="btn btn-warning btn-lg px-5 py-3 fs-5 text-white" style="border-radius: 50px;">Lancer mon activité Pro</a>
+                    <h3 class="fw-bold mb-4">{% trans "Rejoignez le réseau n°1" %}</h3>
+                    <p class="text-muted mb-4">{% trans "Une identité certifiée vous permet de sécuriser vos mises en relation et de fidéliser vos bailleurs." %}</p>
+                    <a href="{% url 'register' %}" class="btn btn-warning btn-lg px-5 py-3 fs-5 text-white" style="border-radius: 50px;">{% trans "Lancer mon activité Pro" %}</a>
                     <div class="mt-3">
-                        <small class="text-muted">Assistance courtiers : <a href="mailto:serviceclient@Logertogo.com" class="text-warning">serviceclient@Logertogo.com</a></small>
+                        <small class="text-muted">{% trans "Assistance courtiers :" %} <a href="mailto:serviceclient@Logertogo.com" class="text-warning">serviceclient@Logertogo.com</a></small>
                     </div>
                 </div>
             </div>

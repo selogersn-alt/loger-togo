@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Vérification du Téléphone | Solvable{% endblock %}
+{% block title %}{% trans "Vérification du Téléphone" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <section class="py-5" style="background-color: var(--bg-body);">
@@ -15,15 +16,15 @@
                             </div>
                         </div>
                         
-                        <h2 class="fw-bold mb-3" style="color: var(--text-main);">Vérification de sécurité</h2>
+                        <h2 class="fw-bold mb-3" style="color: var(--text-main);">{% trans "Vérification de sécurité" %}</h2>
                         <p class="text-muted mb-4">
-                            Pour activer pleinement votre compte, veuillez saisir le code de vérification à 6 chiffres qui vous a été communiqué par l'administrateur Solvable.
+                            {% trans "Pour activer pleinement votre compte, veuillez saisir le code de vérification à 6 chiffres qui vous a été communiqué par l'administrateur Loger Togo." %}
                         </p>
 
                         <form method="POST">
                             {% csrf_token %}
                             <div class="mb-4">
-                                <label for="otp_code" class="form-label small text-uppercase fw-bold text-muted">Code de vérification (OTP)</label>
+                                <label for="otp_code" class="form-label small text-uppercase fw-bold text-muted">{% trans "Code de vérification (OTP)" %}</label>
                                 <input type="text" name="otp_code" id="otp_code" class="form-control form-control-lg text-center fw-bold" 
                                        placeholder="000000" maxlength="6" required 
                                        style="letter-spacing: 0.5rem; border-radius: 12px; border: 2px solid var(--border-color); background-color: var(--bg-body); color: var(--text-main);">
@@ -31,7 +32,7 @@
                             
                             <button type="submit" class="btn btn-lg w-100 py-3 fw-bold" 
                                     style="background-color: var(--color-light-green); color: var(--color-dark-green); border-radius: 12px;">
-                                Valider mon numéro
+                                {% trans "Valider mon numéro" %}
                             </button>
                         </form>
 
@@ -41,17 +42,17 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="resend_otp">
                                 <button type="submit" class="btn btn-link text-success text-decoration-none small">
-                                    <i class="fa-solid fa-envelope me-1"></i> Recevoir le code par E-mail
+                                    <i class="fa-solid fa-envelope me-1"></i> {% trans "Recevoir le code par E-mail" %}
                                 </button>
                             </form>
                             {% endif %}
                             
                             <p class="small text-muted mb-0">
-                                Vous n'avez pas encore reçu votre code ? <br>
-                                Réclamez-le sur WhatsApp pour une validation manuelle.
+                                {% trans "Vous n'avez pas encore reçu votre code ?" %} <br>
+                                {% trans "Réclamez-le sur WhatsApp pour une validation manuelle." %}
                             </p>
                             <a href="https://wa.me/22897151610" target="_blank" class="btn btn-link text-decoration-none mt-2" style="color: #25D366;">
-                                <i class="fa-brands fa-whatsapp me-2"></i>Contacter l'administrateur
+                                <i class="fa-brands fa-whatsapp me-2"></i>{% trans "Contacter l'administrateur" %}
                             </a>
                         </div>
                     </div>

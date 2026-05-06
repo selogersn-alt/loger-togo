@@ -219,3 +219,102 @@ def send_account_created_email(user):
     </div>
     """
     return send_simple_email("🎉 Bienvenue sur Loger Togo !", html, user.email)
+
+
+# ─── GESTION LOCATIVE ───────────────────────────────────────────────────────
+
+def send_rent_paid_email(payment):
+    """Notifie le locataire et le bailleur d'un paiement de loyer."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    lease = payment.lease
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:linear-gradient(135deg,#0b4629,#198754);padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">🧾 Quittance de Loyer</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{lease.tenant.get_full_name()}</strong>,</p>
+        <p>Un paiement de loyer a été enregistré pour la période du <strong>{payment.period_start.strftime('%d/%m/%Y')}</strong> au <strong>{payment.period_end.strftime('%d/%m/%Y')}</strong>.</p>
+        <div style="background:#f0fdf4;padding:16px;border-radius:8px;text-align:center;margin:20px 0;">
+            <span style="display:block;color:#198754;font-size:14px;font-weight:bold;">MONTANT REÇU</span>
+            <span style="font-size:28px;font-weight:800;color:#0b4629;">{int(payment.amount_paid):,} FCFA</span>
+        </div>
+        <p>Vous pouvez télécharger votre quittance de loyer PDF directement sur votre espace locataire.</p>
+        <p style="text-align:center;">
+          <a href="{site_url}/gestion/locataire/" style="background:#198754;color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:bold;display:inline-block;">
+            Accéder à mon espace →
+          </a>
+        </p>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Gestion Locative DigitalH · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    # Envoyer au locataire
+    send_simple_email(f"🧾 Paiement reçu - {payment.period_start.strftime('%m/%Y')} | Loger Togo", html, lease.tenant.email)
+    # Envoyer copie au bailleur
+    send_simple_email(f"🧾 Copie : Paiement enregistré - {lease.tenant.get_full_name()}", html, lease.landlord.email)
+    return True
+
+
+def send_incident_reported_email(incident):
+    """Notifie le bailleur d'un nouvel incident signalé."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    lease = incident.lease
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:#dc3545;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">⚠️ Incident Signalé</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{lease.landlord.get_full_name()}</strong>,</p>
+        <p>Un nouvel incident a été signalé par votre locataire <strong>{lease.tenant.get_full_name()}</strong> pour le bien situé à <strong>{lease.property.neighborhood}</strong>.</p>
+        <div style="background:#fff5f5;border-left:4px solid #dc3545;padding:16px;border-radius:4px;margin:16px 0;">
+          <strong>{incident.title}</strong><br>
+          <span style="color:#666;">Priorité : {incident.get_priority_display()}</span>
+        </div>
+        <p>Connectez-vous à votre tableau de bord pour mettre à jour le statut de l'intervention.</p>
+        <p style="text-align:center;">
+          <a href="{site_url}/gestion/bailleur/" style="background:#0b4629;color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:bold;display:inline-block;">
+            Gérer les incidents →
+          </a>
+        </p>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Support Maintenance · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    return send_simple_email(f"⚠️ Incident : {incident.title} | Loger Togo", html, lease.landlord.email)
+
+
+def send_incident_status_update_email(incident):
+    """Notifie le locataire d'un changement de statut de son incident."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    lease = incident.lease
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:#0d6efd;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">🔧 Mise à jour maintenance</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{lease.tenant.get_full_name()}</strong>,</p>
+        <p>Le statut de votre signalement <strong>"{incident.title}"</strong> a été mis à jour par le bailleur :</p>
+        <div style="background:#e7f1ff;padding:16px;border-radius:8px;text-align:center;margin:20px 0;">
+            <span style="display:block;color:#0d6efd;font-size:14px;font-weight:bold;">NOUVEAU STATUT</span>
+            <span style="font-size:24px;font-weight:800;color:#052c65;">{incident.get_status_display()}</span>
+        </div>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Suivi Maintenance · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    return send_simple_email(f"🔧 Suivi maintenance : {incident.title}", html, lease.tenant.email)
+
+def send_payment_reminder_email(payment):
+    """Notifie un locataire que son loyer est impayé."""
+    return send_html_email(
+        f"⚠️ Rappel : Loyer impayé - {payment.lease.property.title}",
+        "emails/payment_reminder.html",
+        {'payment': payment, 'tenant': payment.lease.tenant},
+        payment.lease.tenant.email
+    )

@@ -15,7 +15,7 @@ def generate_receipt_pdf(payment):
     # En-tête (Logo / Nom de l'app)
     c.setFont("Helvetica-Bold", 24)
     c.setFillColor(colors.HexColor("#083820"))
-    c.drawString(2 * cm, height - 3 * cm, "SOLVABLE")
+    c.drawString(2 * cm, height - 3 * cm, "LOGER TOGO")
     
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.gray)
@@ -27,7 +27,7 @@ def generate_receipt_pdf(payment):
     c.drawCentredString(width / 2.0, height - 6 * cm, "QUITTANCE DE LOYER")
     
     # Ligne de séparation
-    c.setStrokeColor(colors.HexColor("#7fd47d"))
+    c.setStrokeColor(colors.HexColor("#198754"))
     c.setLineWidth(2)
     c.line(2 * cm, height - 6.5 * cm, width - 2 * cm, height - 6.5 * cm)
     
@@ -53,11 +53,7 @@ def generate_receipt_pdf(payment):
     c.drawString(7 * cm, text_y, locataire_name)
     
     text_y -= 1 * cm
-    if tenant.nils_profile:
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(2 * cm, text_y, "Numéro NILS :")
-        c.setFont("Helvetica", 12)
-        c.drawString(7 * cm, text_y, tenant.nils_profile.nils_number)
+
     
     text_y -= 1.5 * cm
     c.setFont("Helvetica-Bold", 12)
@@ -86,13 +82,13 @@ def generate_receipt_pdf(payment):
     c.setFillColor(colors.black)
     c.setFont("Helvetica", 10)
     text_bottom = 4 * cm
-    c.drawString(2 * cm, text_bottom, f"Fait le {payment.payment_date.strftime('%d/%m/%Y') if payment.payment_date else payment.created_at.strftime('%d/%m/%Y')} via la plateforme Solvable.")
+    c.drawString(2 * cm, text_bottom, f"Fait le {payment.payment_date.strftime('%d/%m/%Y') if payment.payment_date else payment.created_at.strftime('%d/%m/%Y')} via la plateforme Loger Togo.")
     c.drawString(2 * cm, text_bottom - 0.5 * cm, "Cette quittance annule tout reçu donné précédemment pour ce même mois.")
     
     c.setStrokeColor(colors.lightgrey)
     c.line(2 * cm, 2 * cm, width - 2 * cm, 2 * cm)
     c.setFont("Helvetica-Oblique", 8)
-    c.drawCentredString(width / 2.0, 1.5 * cm, "Document généré électroniquement par Solvable - Loger Togo")
+    c.drawCentredString(width / 2.0, 1.5 * cm, "Document généré électroniquement par Loger Togo")
     
     c.showPage()
     c.save()

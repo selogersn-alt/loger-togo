@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2.5cm;
+        }
+        body {
+            font-family: 'Times New Roman', serif;
+            color: #222;
+            line-height: 1.5;
+            text-align: justify;
+        }
+        .title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+        }
+        .parties {
+            margin-bottom: 30px;
+        }
+        .party {
+            margin-bottom: 15px;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.8rem;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+        .signatures {
+            margin-top: 80px;
+            width: 100%;
+        }
+        .signature-col {
+            width: 50%;
+            vertical-align: top;
+        }
+        .signature-space {
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <table style="width: 100%; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 10px;">
+        <tr>
+            <td style="width: 25%; vertical-align: middle;">
+                {% if lease.landlord.profile_picture %}
+                    <img src="{{ lease.landlord.profile_picture.path }}" style="width: 80px; height: auto;">
+                {% endif %}
+            </td>
+            <td style="width: 75%; text-align: right; vertical-align: middle;">
+                <div style="font-size: 1.4rem; font-weight: bold; color: #157347;">
+                    {% if lease.custom_header_text %}{{ lease.custom_header_text }}{% else %}{{ lease.landlord.get_full_name }}{% endif %}
+                </div>
+                <div style="font-size: 0.9rem; color: #666;">
+                    {{ lease.landlord.phone_number }} | {{ lease.landlord.email|default:"" }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="title">CONTRAT DE BAIL À USAGE D'HABITATION</div>
+
+    <div class="parties">
+        <div class="section-title">ENTRE LES SOUSSIGNÉS :</div>
+        <div class="party">
+            <strong>LE BAILLEUR :</strong><br>
+            M./Mme/Sté {{ lease.landlord.get_full_name }}<br>
+            Demeurant à : {{ lease.landlord.city|default:"Lomé, Togo" }}<br>
+            Téléphone : {{ lease.landlord.phone_number }}
+        </div>
+        
+        <div class="party">
+            <strong>LE LOCATAIRE :</strong><br>
+            M./Mme {{ lease.tenant.get_full_name }}<br>
+            Profession : {{ lease.tenant.profession|default:"Non précisée" }}<br>
+            Téléphone : {{ lease.tenant.phone_number }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">ARTICLE 1 : OBJET DU CONTRAT</div>
+        <p>Le bailleur loue au locataire les locaux désignés ci-après : <strong>{{ lease.property.property_type }}</strong> situé à <strong>{{ lease.property.neighborhood }}, {{ lease.property.city }}</strong>.</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">ARTICLE 2 : DURÉE</div>
+        <p>Le présent bail est consenti pour une durée déterminée commençant le <strong>{{ lease.start_date|date:"d/m/Y" }}</strong> 
+        {% if lease.end_date %}et se terminant le <strong>{{ lease.end_date|date:"d/m/Y" }}</strong>{% else %}pour une durée indéterminée{% endif %}.</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">ARTICLE 3 : LOYER ET CHARGES</div>
+        <p>Le loyer mensuel est fixé à la somme de <strong>{{ lease.rent_amount }} FCFA</strong>. 
+        Le locataire s'acquittera en sus de ses consommations d'eau et d'électricité (T-Money/Flooz ou factures directes).</p>
+        <p>Le dépôt de garantie (caution) est fixé à <strong>{{ lease.deposit_amount }} FCFA</strong>.</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">ARTICLE 4 : OBLIGATIONS DU LOCATAIRE</div>
+        <p>Le locataire est tenu de :<br>
+        1. Payer le loyer aux termes convenus.<br>
+        2. User paisiblement des locaux loués suivant la destination prévue au contrat.<br>
+        3. Répondre des dégradations et pertes qui surviennent pendant la durée du contrat.</p>
+    </div>
+
+    {% if lease.custom_contract_terms %}
+    <div class="section">
+        <div class="section-title">ARTICLE 5 : CLAUSES PARTICULIÈRES</div>
+        <p>{{ lease.custom_contract_terms|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    <p style="margin-top: 40px;">Fait à Lomé, le {{ today|date:"d F Y" }}, en deux exemplaires originaux.</p>
+
+    <table class="signatures">
+        <tr>
+            <td class="signature-col">
+                <strong>Le Bailleur</strong><br>
+                (Lu et approuvé)
+                <div class="signature-space"></div>
+            </td>
+            <td class="signature-col" style="text-align: right;">
+                <strong>Le Locataire</strong><br>
+                (Lu et approuvé)
+                <div class="signature-space"></div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        Document généré par la plateforme Loger Togo (DigitalH Group). 
+        La validité juridique est soumise à la signature manuscrite des parties.
+    </div>
+</body>
+</html>

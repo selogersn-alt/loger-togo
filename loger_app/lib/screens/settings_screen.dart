@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 
 import 'legal_screen.dart';
 import 'help_screen.dart';
+import 'kyc_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -82,6 +83,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _useBiometrics,
             Icons.fingerprint_rounded,
             (val) => _updateSetting('use_biometrics', val),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            child: ListTile(
+              leading: const Icon(Icons.verified_user_rounded, color: Color(0xFF27C66E)),
+              title: const Text('Vérification d\'identité', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('Obtenez votre badge certifié', style: TextStyle(fontSize: 11)),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const KycScreen())),
+            ),
           ),
           
           const SizedBox(height: 32),
@@ -160,13 +172,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)],
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 35,
-            backgroundColor: const Color(0xFF004D40).withOpacity(0.1),
+            backgroundColor: const Color(0xFF004D40).withValues(alpha: 0.1),
             child: Text(user.firstName[0], style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF004D40))),
           ),
           const SizedBox(width: 20),
@@ -219,7 +231,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: Icon(icon, color: const Color(0xFF004D40)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         subtitle: Text(sub, style: const TextStyle(fontSize: 11)),
-        trailing: Switch.adaptive(value: val, activeColor: const Color(0xFF004D40), onChanged: onChanged),
+        trailing: Switch.adaptive(value: val, activeTrackColor: const Color(0xFF004D40), onChanged: onChanged),
       ),
     );
   }

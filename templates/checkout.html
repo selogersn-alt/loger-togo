@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Propulser votre annonce - DigitalH{% endblock %}
+{% block title %}{% trans "Propulser votre annonce" %} - DigitalH{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -20,7 +20,7 @@
                         {% endif %}
                     </div>
                     <h2 class="fw-800">
-                        {% if payment_type == 'BOOST' %}Booster l'Annonce{% elif payment_type == 'POPUP' %}Mise en avant Pop-up{% else %}Frais de Publication{% endif %}
+                        {% if payment_type == 'BOOST' %}{% trans "Booster l'Annonce" %}{% elif payment_type == 'POPUP' %}{% trans "Mise en avant Pop-up" %}{% else %}{% trans "Frais de Publication" %}{% endif %}
                     </h2>
                     <p class="opacity-75 mb-0">{{ property.title }}</p>
                 </div>
@@ -31,21 +31,21 @@
                         
                         <!-- Tarification Display -->
                         <div class="p-3 bg-light rounded-3 mb-4 text-center">
-                            <span class="text-muted small text-uppercase fw-bold">Tarif unitaire</span>
-                            <div class="h3 fw-800 mb-0" id="unitPrice">{{ unit_price|floatformat:0 }} <small>FCFA{% if payment_type != 'PUBLICATION' %}/jour{% endif %}</small></div>
+                            <span class="text-muted small text-uppercase fw-bold">{% trans "Tarif unitaire" %}</span>
+                            <div class="h3 fw-800 mb-0" id="unitPrice">{{ unit_price|floatformat:0 }} <small>FCFA{% if payment_type != 'PUBLICATION' %}/{% trans "jour" %}{% endif %}</small></div>
                         </div>
 
                         {% if payment_type != 'PUBLICATION' %}
                         <!-- Sélection de la Durée -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small">COMBRE DE JOURS DE VISIBILITÉ</label>
+                            <label class="form-label fw-bold text-muted small">{% trans "NOMBRE DE JOURS DE VISIBILITÉ" %}</label>
                             <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
                                 <span class="input-group-text border-0 bg-white ps-4"><i class="fa-solid fa-calendar-day text-success"></i></span>
                                 <input type="number" name="days" id="daysCounter" class="form-control border-0 fw-bold" value="1" min="1" max="100" style="font-size: 1.2rem;">
                             </div>
                             <div class="mt-2 text-center text-muted small">
                                 <span class="badge bg-soft-success text-success px-3 py-2 rounded-pill">
-                                    <i class="fa-solid fa-clock me-1"></i> Idéal pour maximiser vos vues
+                                    <i class="fa-solid fa-clock me-1"></i> {% trans "Idéal pour maximiser vos vues" %}
                                 </span>
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                         <!-- Résumé de commande -->
                         <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-soft-success rounded-3 border border-success border-opacity-10">
                             <div>
-                                <span class="fw-bold d-block">MONTANT TOTAL</span>
+                                <span class="fw-bold d-block">{% trans "MONTANT TOTAL" %}</span>
                             </div>
                             <div class="text-end">
                                 <span class="h2 fw-900 mb-0 text-success" id="totalPrice">{{ unit_price|floatformat:0 }}</span>
@@ -69,17 +69,17 @@
                         {% if unit_price <= 0 %}
                         <!-- Message Promo Promo (Mode Gratuit) -->
                         <div class="alert alert-success border-0 shadow-sm animate__animated animate__pulse animate__infinite" style="background-color: rgba(127, 212, 125, 0.1);">
-                            <i class="fa-solid fa-gift me-2 text-success"></i> <strong>PROMO : TOUT GRATUIT !</strong> Profitez de l'activation immédiate sans frais.
+                            <i class="fa-solid fa-gift me-2 text-success"></i> <strong>{% trans "PROMO : TOUT GRATUIT !" %}</strong> {% trans "Profitez de l'activation immédiate sans frais." %}
                         </div>
                         {% endif %}
 
                         <!-- Submit Button -->
                          <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 shadow transition-transform hover-scale">
-                             <i class="fa-solid fa-lock me-2"></i> {% if unit_price > 0 %}Passer au Paiement Sécurisé{% else %}Activer le Service Immédiatement{% endif %}
+                             <i class="fa-solid fa-lock me-2"></i> {% if unit_price > 0 %}{% trans "Passer au Paiement Sécurisé" %}{% else %}{% trans "Activer le Service Immédiatement" %}{% endif %}
                          </button>
 
                          <div class="text-center mt-3">
-                             <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted small hover-underline"><i class="fa-solid fa-arrow-left me-1"></i> Annuler et revenir</a>
+                             <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted small hover-underline"><i class="fa-solid fa-arrow-left me-1"></i> {% trans "Annuler et revenir" %}</a>
                          </div>
                     </form>
                 </div>

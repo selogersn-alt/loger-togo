@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Annuaire des Professionnels Vérifiés | Logertogo{% endblock %}
+{% block title %}{% trans "Annuaire des Professionnels Vérifiés" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -12,24 +13,24 @@
 <section class="py-5" style="background-color: var(--bg-body);">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-main);">Annuaire des Professionnels Logertogo</h1>
+            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-main);">{% trans "Annuaire des Professionnels Loger Togo" %}</h1>
             <p class="lead text-muted mx-auto" style="max-width: 700px;">
-                Trouvez un professionnel de l'immobilier de confiance avec qui collaborer. Tous les profils listés ici ont été vérifiés et certifiés par notre équipe.
+                {% trans "Trouvez un professionnel de l'immobilier de confiance avec qui collaborer. Tous les profils listés ici ont été vérifiés et certifiés par notre équipe." %}
             </p>
         </div>
 
         <div class="row pt-4 mb-4">
             <div class="col-md-6 mb-3">
                 <select id="roleFilter" class="form-select border-0 shadow-sm" style="background-color: var(--bg-card); color: var(--text-main); padding: 12px; border-radius: 10px;" onchange="filterPros()">
-                    <option value="ALL">Tous les statuts</option>
-                    <option value="AGENCY">Agences Immobilières</option>
-                    <option value="BROKER">Courtiers</option>
-                    <option value="AGENT">Agents (Indépendants)</option>
-                    <option value="LANDLORD">Bailleurs</option>
+                    <option value="ALL">{% trans "Tous les statuts" %}</option>
+                    <option value="AGENCY">{% trans "Agences Immobilières" %}</option>
+                    <option value="BROKER">{% trans "Courtiers" %}</option>
+                    <option value="AGENT">{% trans "Agents (Indépendants)" %}</option>
+                    <option value="LANDLORD">{% trans "Bailleurs" %}</option>
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <input type="text" id="zoneFilter" class="form-control border-0 shadow-sm" placeholder="Rechercher par zone de couverture..." style="background-color: var(--bg-card); color: var(--text-main); padding: 12px; border-radius: 10px;" onkeyup="filterPros()">
+                <input type="text" id="zoneFilter" class="form-control border-0 shadow-sm" placeholder="{% trans "Rechercher par zone de couverture..." %}" style="background-color: var(--bg-card); color: var(--text-main); padding: 12px; border-radius: 10px;" onkeyup="filterPros()">
             </div>
         </div>
 
@@ -48,31 +49,31 @@
                             {% endif %}
                         </div>
                         <h5 class="fw-bold mb-1 text-truncate px-2" style="color: var(--text-main);">
-                            {% if pro.company_name %}{{ pro.company_name }}{% else %}{{ pro.email|default:"Professionnel" }}{% endif %}
+                            {% if pro.company_name %}{{ pro.company_name }}{% else %}{{ pro.get_full_name|default:_("Professionnel") }}{% endif %}
                         </h5>
                         <div class="mb-2">
                             <span class="badge bg-secondary">{{ pro.get_role_display }}</span>
-                            <span class="badge bg-primary" title="Professionnel Vérifié par Logertogo"><i class="fa-solid fa-certificate"></i> Vérifié</span>
+                            <span class="badge bg-primary" title="{% trans "Professionnel Vérifié par Loger Togo" %}"><i class="fa-solid fa-certificate"></i> {% trans "Vérifié" %}</span>
                         </div>
                         <div class="mb-3">
-                            <small class="text-muted fw-bold d-block">{{ pro.nils_profile.nils_number }}</small>
+                            <small class="text-muted fw-bold d-block">{{ pro.Confiance_profile.Confiance_number }}</small>
                             <div class="text-warning mt-1">
                                 {% for i in "1234567891"|make_list %}
-                                    {% if forloop.counter <= pro.nils_profile.average_rating %}
+                                    {% if forloop.counter <= pro.Confiance_profile.average_rating %}
                                         <i class="fa-solid fa-star tiny"></i>
-                                    {% elif forloop.counter|add:"-0.5" <= pro.nils_profile.average_rating %}
+                                    {% elif forloop.counter|add:"-0.5" <= pro.Confiance_profile.average_rating %}
                                         <i class="fa-solid fa-star-half-stroke tiny"></i>
                                     {% else %}
                                         <i class="fa-regular fa-star tiny"></i>
                                     {% endif %}
                                 {% endfor %}
-                                <span class="ms-1 tiny text-muted">({{ pro.nils_profile.average_rating }}/10)</span>
+                                <span class="ms-1 tiny text-muted">({{ pro.Confiance_profile.average_rating }}/10)</span>
                             </div>
                         </div>
                         
                         <div class="text-start mb-4" style="font-size: 0.95rem;">
                             {% if pro.coverage_area %}
-                                <p class="mb-2 text-muted"><i class="fa-solid fa-map-location-dot me-2" style="color: var(--color-light-green);"></i> <strong>Zone:</strong> <span class="text-truncate">{{ pro.coverage_area }}</span></p>
+                                <p class="mb-2 text-muted"><i class="fa-solid fa-map-location-dot me-2" style="color: var(--color-light-green);"></i> <strong>{% trans "Zone:" %}</strong> <span class="text-truncate">{{ pro.coverage_area }}</span></p>
                             {% endif %}
                             <p class="mb-2 text-muted"><i class="fa-solid fa-phone me-2" style="color: var(--color-light-green);"></i> {{ pro.phone_number }}</p>
                             {% if pro.email %}
@@ -83,7 +84,7 @@
                         <div class="d-flex flex-column gap-2 mt-auto">
                             <div class="d-flex justify-content-center gap-2">
                                 <!-- Link to Whatsapp -->
-                                <a href="https://wa.me/{{ pro.phone_number|cut:' ' }}?text=Bonjour, je vous ai trouvé sur Solvable Logertogo." target="_blank" class="btn btn-sm text-white flex-grow-1" style="background-color: #25D366; border-radius: 8px;">
+                                <a href="https://wa.me/{{ pro.phone_number|cut:' ' }}?text={% trans "Bonjour, je vous ai trouvé sur Loger Togo." %}" target="_blank" class="btn btn-sm text-white flex-grow-1" style="background-color: #25D366; border-radius: 8px;">
                                     <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
                                 </a>
                                 <!-- Link to call -->
@@ -93,7 +94,7 @@
                             </div>
                             <!-- Link to their properties -->
                             <a href="{% url 'properties_list' %}?owner={{ pro.id }}" class="btn btn-sm btn-primary-custom w-100" style="border-radius: 8px; font-weight: 600;">
-                                <i class="fa-solid fa-house-user me-1"></i> Voir ses produits publiés
+                                <i class="fa-solid fa-house-user me-1"></i> {% trans "Voir ses produits publiés" %}
                             </a>
                         </div>
                     </div>
@@ -105,13 +106,13 @@
         <!-- Empty state message (hidden initially) -->
         <div id="noResultsMsg" class="text-center py-5 d-none">
             <i class="fa-solid fa-folder-open mb-3" style="font-size: 3rem; color: var(--border-color);"></i>
-            <h5 class="text-muted">Aucun professionnel ne correspond à vos critères.</h5>
+            <h5 class="text-muted">{% trans "Aucun professionnel ne correspond à vos critères." %}</h5>
         </div>
 
         {% else %}
         <div class="text-center py-5">
             <i class="fa-solid fa-folder-open mb-3" style="font-size: 3rem; color: var(--border-color);"></i>
-            <h5 class="text-muted">Aucun professionnel vérifié n'est disponible pour le moment.</h5>
+            <h5 class="text-muted">{% trans "Aucun professionnel vérifié n'est disponible pour le moment." %}</h5>
         </div>
         {% endif %}
     </div>

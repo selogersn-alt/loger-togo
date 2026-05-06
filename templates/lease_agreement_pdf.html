@@ -31,7 +31,7 @@
             margin-top: 5px;
             text-transform: uppercase;
         }
-        .nils-info {
+        .Confiance-info {
             font-size: 9pt;
             color: #555;
             margin-top: 5px;
@@ -39,7 +39,7 @@
         h3 {
             font-size: 12pt;
             text-transform: uppercase;
-            border-bottom: 1px solid #7fd47d;
+            border-bottom: 1px solid #198754;
             padding-bottom: 5px;
             margin-top: 20px;
         }
@@ -84,7 +84,7 @@
             padding: 10px;
             text-align: center;
         }
-        .badge-nils {
+        .badge-Confiance {
             background-color: #0B4629;
             color: #fff;
             padding: 3px 10px;
@@ -96,9 +96,9 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">SOLVABLE</div>
+        <div class="logo">Loger Togo</div>
         <div class="title">CONTRAT DE LOCATION À USAGE D’HABITATION</div>
-        <div class="nils-info">Certifié par le réseau de confiance <strong>Loger Togo (DigitalH)</strong></div>
+        <div class="Confiance-info">Certifié par le réseau de confiance <strong>Loger Togo (DigitalH)</strong></div>
     </div>
 
     <div class="content">
@@ -106,7 +106,7 @@
         
         <div class="party">
             <strong>M/Mme/Société :</strong> <span class="variable">{{ filiation.landlord.get_full_name|upper }}</span><br>
-            <strong>NILS Propriétaire :</strong> <span class="badge-nils">{{ filiation.landlord.nils_profile.nils_number|default:"EN ATTENTE" }}</span><br>
+            <strong>Confiance Propriétaire :</strong> <span class="badge-Confiance">{{ filiation.landlord.Confiance_profile.Confiance_number|default:"EN ATTENTE" }}</span><br>
             Ci-après dénommé <strong>LE BAILLEUR</strong>, d’une part.
         </div>
 
@@ -116,7 +116,7 @@
             <strong>M/Mme :</strong> <span class="variable">{{ filiation.tenant.get_full_name|upper }}</span>, 
             titulaire d’une pièce d’identité <strong>{{ filiation.tenant.document_country|default:"Togoaise" }}</strong> 
             N° <span class="variable">{{ filiation.tenant.cni_number|default:"___________" }}</span><br>
-            <strong>NILS Locataire :</strong> <span class="badge-nils">{{ filiation.tenant.nils_profile.nils_number|default:"EN ATTENTE" }}</span><br>
+            <strong>Confiance Locataire :</strong> <span class="badge-Confiance">{{ filiation.tenant.Confiance_profile.Confiance_number|default:"EN ATTENTE" }}</span><br>
             Ci-après dénommé <strong>LE LOCATAIRE</strong>, d’autre part.
         </div>
 
@@ -139,7 +139,7 @@
 
         <p><strong>3) OBLIGATIONS :</strong> Le bailleur s'oblige à délivrer un logement en bon état et assurer une jouissance paisible. Le locataire s'oblige à payer le loyer, user paisiblement des lieux et répondre des dégradations.</p>
 
-        <p><strong>4) CLAUSE DE TRANPARENCE NILS :</strong> Les parties acceptent que l'exécution de ce contrat soit tracée sur la plateforme Solvable. Tout incident de paiement ou dégradation sera reporté au profil NILS des parties concernées.</p>
+        <p><strong>4) CLAUSE DE TRANPARENCE Confiance :</strong> Les parties acceptent que l'exécution de ce contrat soit tracée sur la plateforme Loger Togo. Tout incident de paiement ou dégradation sera reporté au profil Confiance des parties concernées.</p>
 
         <h3>CONDITIONS PARTICULIÈRES</h3>
         <p><strong>LOYER :</strong> Le montant mensuel est fixé à <span class="variable">{{ filiation.monthly_rent|floatformat:0 }} FCFA</span> payable au plus tard le 05 de chaque mois.</p>
@@ -169,7 +169,7 @@
 
     <div class="footer">
         Document ID: SOLV-{{ filiation.id }}<br>
-        <strong>Solvable Togo (DigitalH)</strong> - www.Logertogo.com - La Trust-Tech Immobilière.
+        <strong>Loger Togo Togo (DigitalH)</strong> - www.Logertogo.com - La Trust-Tech Immobilière.
     </div>
 </body>
 </html>

@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}À propos de Logertogo | FAQ et Fonctionnalités{% endblock %}
+{% block title %}{% trans "À propos de Logertogo | FAQ et Fonctionnalités" %}{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
 <section class="py-5 bg-light" style="background-color: var(--bg-body) !important;">
     <div class="container py-4 text-center">
-        <h1 class="display-4 fw-bold mb-3" style="color: var(--color-dark-green);">Loger Togo : L'immobilier repensé, en toute confiance.</h1>
+        <h1 class="display-4 fw-bold mb-3" style="color: var(--color-dark-green);">{% trans "Loger Togo : L'immobilier repensé, en toute confiance." %}</h1>
         <p class="lead text-muted mx-auto" style="max-width: 700px;">
-            <strong>Logertogo</strong> a pour mission de sécuriser la relation entre bailleurs et locataires au Togo. Fini les litiges sans fin : grâce à la vérification d'identité et au profil de confiance, louer redevient un plaisir.
+            {% blocktrans %}<strong>Logertogo</strong> a pour mission de sécuriser la relation entre bailleurs et locataires au Togo. Fini les litiges sans fin : grâce à la vérification d'identité et au profil de confiance, louer redevient un plaisir.{% endblocktrans %}
         </p>
     </div>
 </section>
@@ -16,7 +17,7 @@
 <!-- Features Examples Section -->
 <section class="py-5" style="background-color: var(--bg-card);">
     <div class="container">
-        <h2 class="fw-bold text-center mb-5" style="color: var(--text-main);">Comment ça fonctionne : Cas Concrets</h2>
+        <h2 class="fw-bold text-center mb-5" style="color: var(--text-main);">{% trans "Comment ça fonctionne : Cas Concrets" %}</h2>
         
         <div class="row g-5">
             <!-- Exemple Propriétaire -->
@@ -26,13 +27,13 @@
                         <div class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm mb-4" style="width: 60px; height: 60px; border-radius: 50%;">
                             <i class="fa-solid fa-house-chimney-user fs-3" style="color: var(--color-dark-green);"></i>
                         </div>
-                        <h4 class="fw-bold mb-3" style="color: var(--text-main);">Scénario : Vous êtes Propriétaire ou Agence</h4>
+                        <h4 class="fw-bold mb-3" style="color: var(--text-main);">{% trans "Scénario : Vous êtes Propriétaire ou Agence" %}</h4>
                         <ol class="text-muted" style="line-height: 1.8;">
-                            <li>Ousmane, propriétaire, se crée un compte "Bailleur" et fait vérifier son identité pour obtenir son badge de confiance.</li>
-                            <li>Il publie son annonce gratuitement (ou via un pack visibilité) sur la plateforme.</li>
-                            <li>Amina, une locataire intéressée, contacte Ousmane via la messagerie intégrée pour poser ses questions.</li>
-                            <li>Ousmane peut consulter le profil d'Amina et discuter en direct pour organiser une visite.</li>
-                            <li>Une fois l'accord trouvé, ils peuvent utiliser les outils de gestion de Loger Togo pour sécuriser leur relation.</li>
+                            <li>{% trans "Ousmane, propriétaire, se crée un compte \"Bailleur\" et fait vérifier son identité pour obtenir son badge de confiance." %}</li>
+                            <li>{% trans "Il publie son annonce gratuitement (ou via un pack visibilité) sur la plateforme." %}</li>
+                            <li>{% trans "Amina, une locataire intéressée, contacte Ousmane via la messagerie intégrée pour poser ses questions." %}</li>
+                            <li>{% trans "Ousmane peut consulter le profil d'Amina et discuter en direct pour organiser une visite." %}</li>
+                            <li>{% trans "Une fois l'accord trouvé, ils peuvent utiliser les outils de gestion de Loger Togo pour sécuriser leur relation." %}</li>
                         </ol>
                     </div>
                 </div>
@@ -45,12 +46,12 @@
                         <div class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm mb-4" style="width: 60px; height: 60px; border-radius: 50%;">
                             <i class="fa-solid fa-user-shield fs-3" style="color: var(--color-yellow);"></i>
                         </div>
-                        <h4 class="fw-bold mb-3" style="color: var(--text-main);">Scénario : Vous êtes Locataire</h4>
+                        <h4 class="fw-bold mb-3" style="color: var(--text-main);">{% trans "Scénario : Vous êtes Locataire" %}</h4>
                         <ol class="text-muted" style="line-height: 1.8;">
-                            <li>Modou cherche un logement à Lomé. Il crée son compte en quelques secondes, sans vérification bloquante.</li>
-                            <li>Il parcourt les milliers d'annonces vérifiées et utilise les filtres pour trouver le bien idéal.</li>
-                            <li>Dès qu'un bien lui plaît, il contacte directement le propriétaire ou l'agence via le bouton "Contacter".</li>
-                            <li>Modou discute en toute sécurité sur la plateforme et organise ses visites l'esprit tranquille.</li>
+                            <li>{% trans "Modou cherche un logement à Lomé. Il crée son compte en quelques secondes, sans vérification bloquante." %}</li>
+                            <li>{% trans "Il parcourt les milliers d'annonces vérifiées et utilise les filtres pour trouver le bien idéal." %}</li>
+                            <li>{% trans "Dès qu'un bien lui plaît, il contacte directement le propriétaire ou l'agence via le bouton \"Contacter\"." %}</li>
+                            <li>{% trans "Modou discute en toute sécurité sur la plateforme et organise ses visites l'esprit tranquille." %}</li>
                         </ol>
                     </div>
                 </div>
@@ -62,7 +63,7 @@
 <!-- FAQ Section -->
 <section class="py-5 bg-light" style="background-color: var(--bg-body) !important;" id="faq">
     <div class="container py-4">
-        <h2 class="fw-bold text-center mb-5" style="color: var(--text-main);">Foire Aux Questions (FAQ)</h2>
+        <h2 class="fw-bold text-center mb-5" style="color: var(--text-main);">{% trans "Foire Aux Questions (FAQ)" %}</h2>
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="accordion shadow-sm" id="accordionFAQ" style="border-radius: 12px; overflow: hidden;">
@@ -71,12 +72,12 @@
                     <div class="accordion-item" style="background-color: var(--bg-card); border-color: var(--border-color);">
                         <h2 class="accordion-header" id="headingOne">
                             <button class="accordion-button fw-bold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="background-color: transparent; color: var(--text-main);">
-                                Qu'est-ce que le profil NILS ?
+                                {% trans "Qu'est-ce que le Badge de Confiance ?" %}
                             </button>
                         </h2>
                         <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionFAQ">
                             <div class="accordion-body text-muted">
-                                Le <strong>Numéro d'Identification de Locataire Solvable (NILS)</strong> est votre "CV" locatif en ligne. Il se base sur la vérification de votre identité (KYC) et sur vos antécédents de paiement de loyer. Un bon score NILS vous permet de louer plus facilement et d'inspirer confiance aux courtiers et propriétaires.
+                                {% blocktrans %}Le <strong>Badge de Confiance Professionnel</strong> est une certification délivrée aux agences et bailleurs après vérification rigoureuse de leurs documents d'identité et de leur existence légale. Cela garantit aux locataires qu'ils traitent avec des professionnels sérieux et évite les arnaques.{% endblocktrans %}
                             </div>
                         </div>
                     </div>
@@ -85,12 +86,12 @@
                     <div class="accordion-item" style="background-color: var(--bg-card); border-color: var(--border-color);">
                         <h2 class="accordion-header" id="headingTwo">
                             <button class="accordion-button fw-bold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style="background-color: transparent; color: var(--text-main);">
-                                Est-ce qu'un locataire peut consulter le NILS d'un autre utilisateur ?
+                                {% trans "Dois-je vérifier mon compte pour contacter un pro ?" %}
                             </button>
                         </h2>
                         <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
                             <div class="accordion-body text-muted">
-                                Non. Pour des raisons de confidentialité et de protection des données locales, <strong>seuls les Professionnels vérifiés</strong> (Bailleurs, Agences Immobilières, Courtiers validés par l'administration Logertogo) ont le droit d'utiliser l'outil de <a href="#" class="text-decoration-none">Recherche NILS</a>.
+                                {% trans "Non. En tant que locataire ou acheteur, vous pouvez créer votre compte en quelques secondes et commencer à discuter avec les professionnels immédiatement. La vérification n'est obligatoire que pour les professionnels (Agences, Bailleurs) souhaitant publier des annonces et obtenir le badge de confiance." %}
                             </div>
                         </div>
                     </div>
@@ -99,26 +100,12 @@
                     <div class="accordion-item" style="background-color: var(--bg-card); border-color: var(--border-color);">
                         <h2 class="accordion-header" id="headingThree">
                             <button class="accordion-button fw-bold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" style="background-color: transparent; color: var(--text-main);">
-                                Que se passe-t-il si un bailleur déclare un impayé injustifié (Incident) ?
+                                {% trans "Les annonces sont-elles vérifiées ?" %}
                             </button>
                         </h2>
                         <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
                             <div class="accordion-body text-muted">
-                                Le locataire est immédiatement notifié. Il a la possibilité de se rendre dans l'onglet "Mes Contrats -> Détails" de son tableau de bord et de cliquer sur <strong>Contester ce signalement</strong>. Les comptes du tenant ne sont pas pénalisés le temps que l'équipe juridique de Logertogo fasse la médiation (factures, reçus Wave/Orange Money demandés).
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Question 4 -->
-                    <div class="accordion-item" style="background-color: var(--bg-card); border-color: var(--border-color);">
-                        <h2 class="accordion-header" id="headingFour">
-                            <button class="accordion-button fw-bold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour" style="background-color: transparent; color: var(--text-main);">
-                                La plateforme a-t-elle accès directement à mes comptes bancaires / paiements locaux ?
-                            </button>
-                        </h2>
-                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionFAQ">
-                            <div class="accordion-body text-muted">
-                                Pas du tout ! Dans sa version actuelle, tout système est <strong>déclaratif avec preuve</strong>. Les paiements de loyer se font à l'extérieur (Cash, chèque ou Mobile Money), et le bailleur enregistre manuellement le reçu du paiement réussi sur la plateforme avec une capture d'écran, ce qui permet à l'historique sans faille de s'enregistrer pour le locataire. Zéro comission cachée.
+                                {% trans "Oui. Notre équipe modère chaque annonce publiée sur la plateforme pour s'assurer de la qualité des photos, de la cohérence des prix et de la réalité du bien. Nous luttons activement contre les fausses annonces pour vous offrir une expérience sereine." %}
                             </div>
                         </div>
                     </div>

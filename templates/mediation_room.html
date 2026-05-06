@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-
-{% block title %}Salle de Médiation | Solvable{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Salle de Médiation" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -8,34 +8,23 @@
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 12px;">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-dark-green);">Détails du Litige</h5>
-                    <p class="text-muted mb-1"><strong>Type :</strong> {{ item.get_incident_type_display|default:item.get_status_display }}</p>
-                    <p class="text-muted mb-1"><strong>Contrat :</strong> {{ filiation.property.title }}</p>
+                    <h5 class="fw-bold mb-3" style="color: var(--color-dark-green);">{% trans "Détails de l'incident" %}</h5>
+                    <p class="text-muted mb-1"><strong>{% trans "Sujet :" %}</strong> {{ incident.title }}</p>
+                    <p class="text-muted mb-1"><strong>{% trans "Statut :" %}</strong> {{ incident.get_status_display }}</p>
+                    <p class="text-muted mb-1"><strong>{% trans "Bien :" %}</strong> {{ lease.property.title }}</p>
                     <hr>
-                    <h6 class="fw-bold">Motif de Contestation :</h6>
-                    <p class="small bg-light p-2 rounded">{{ item.contestation_reason }}</p>
-                    {% if is_mediator %}
-                        <div class="mt-4">
-                            <h6 class="fw-bold">Actions Médiateur :</h6>
-                            <form method="POST" action="{% url 'update_incident_status' %}" class="d-grid gap-2">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ item.id }}">
-                                <input type="hidden" name="role" value="mediator">
-                                <button name="action" value="resolve" class="btn btn-success btn-sm">Marquer comme RÉSOLU</button>
-                                <button name="action" value="impact" class="btn btn-danger btn-sm">Confirmer SIGNALEMENT</button>
-                            </form>
-                        </div>
-                    {% endif %}
+                    <h6 class="fw-bold">{% trans "Description :" %}</h6>
+                    <p class="small bg-light p-2 rounded">{{ incident.description }}</p>
                 </div>
             </div>
-            <a href="{% url 'filiation_details' filiation.id %}" class="btn btn-link mt-3"><i class="fa-solid fa-arrow-left"></i> Retour au contrat</a>
+            <a href="{% if user == lease.landlord %}{% url 'management:landlord_dashboard' %}{% else %}{% url 'management:tenant_dashboard' %}{% endif %}" class="btn btn-link mt-3"><i class="fa-solid fa-arrow-left"></i> {% trans "Retour au dashboard" %}</a>
         </div>
 
         <div class="col-md-8">
             <div class="card border-0 shadow-sm overflow-hidden" style="background-color: var(--bg-card); border-radius: 12px; height: 600px; display: flex; flex-direction: column;">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
-                    <div class="bg-warning text-dark px-2 py-1 rounded small me-2 font-weight-bold">MÉDIATION ACTIVE</div>
-                    <h5 class="mb-0 fw-bold" style="color: var(--text-main);">Espace de Communication</h5>
+                    <div class="bg-warning text-dark px-2 py-1 rounded small me-2 font-weight-bold">{% trans "MÉDIATION ACTIVE" %}</div>
+                    <h5 class="mb-0 fw-bold" style="color: var(--text-main);">{% trans "Espace de Communication" %}</h5>
                 </div>
                 
                 <div class="card-body p-0 d-flex flex-column" style="flex: 1; overflow-y: auto;">
@@ -47,8 +36,8 @@
                 <div class="card-footer bg-white border-top p-3">
                     <form method="POST" class="d-flex gap-2">
                         {% csrf_token %}
-                        <input type="text" name="content" class="form-control" placeholder="Entrez votre message de médiation..." required>
-                        <button type="submit" class="btn btn-primary px-4">Envoyer</button>
+                        <input type="text" name="content" class="form-control" placeholder="{% trans "Entrez votre message de médiation..." %}" required>
+                        <button type="submit" class="btn btn-primary-custom px-4">{% trans "Envoyer" %}</button>
                     </form>
                 </div>
             </div>

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blog Immobilier Togo | Conseils, Guides & Actualités{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0 mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-muted text-decoration-none small fw-bold">Accueil</a></li>
+        <li class="breadcrumb-item active text-main small fw-bold" aria-current="page">Blog</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <h1 class="h2 fw-bold mb-4">Actualités & Conseils Immobiliers</h1>
+            
+            <div class="row g-4">
+                {% for post in posts %}
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm overflow-hidden animate__animated animate__fadeInUp">
+                        {% if post.featured_image %}
+                        <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-muted opacity-25"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-success-light text-success me-2">{{ post.category.name }}</span>
+                                <small class="text-muted">{{ post.created_at|date:"d M Y" }}</small>
+                            </div>
+                            <h5 class="card-title fw-bold">
+                                <a href="{{ post.get_absolute_url }}" class="text-decoration-none text-main">{{ post.title }}</a>
+                            </h5>
+                            <p class="card-text text-muted small">
+                                {{ post.content|striptags|truncatechars:120 }}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pb-4 px-4">
+                            <a href="{{ post.get_absolute_url }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">Lire la suite</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Aucun article publié pour le moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <!-- Categories -->
+                <div class="card border-0 shadow-sm p-4 mb-4">
+                    <h5 class="fw-bold mb-3">Catégories</h5>
+                    <ul class="list-unstyled mb-0">
+                        {% for cat in categories %}
+                        <li class="mb-2">
+                            <a href="?category={{ cat.slug }}" class="text-decoration-none text-muted d-flex justify-content-between align-items-center">
+                                {{ cat.name }}
+                                <span class="badge bg-light text-dark rounded-pill">{{ cat.posts_count }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Recent Posts -->
+                <div class="card border-0 shadow-sm p-4">
+                    <h5 class="fw-bold mb-3">Derniers Articles</h5>
+                    {% for recent in recent_posts %}
+                    <div class="d-flex align-items-center mb-3">
+                        {% if recent.featured_image %}
+                        <img src="{{ recent.featured_image.url }}" class="rounded me-3" width="60" height="60" style="object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0 small fw-bold">
+                                <a href="{{ recent.get_absolute_url }}" class="text-decoration-none text-main">{{ recent.title }}</a>
+                            </h6>
+                            <small class="text-muted">{{ recent.created_at|date:"d M Y" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-success-light { background-color: rgba(25, 135, 84, 0.1); }
+</style>
+{% endblock %}

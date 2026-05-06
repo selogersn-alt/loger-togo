@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Contester | Solvable{% endblock %}
+{% block title %}{% trans "Contester" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -10,37 +11,37 @@
                 <div class="card-body p-sm-5 p-4">
                     <div class="text-center mb-4">
                         <i class="fa-solid fa-gavel text-danger mb-3" style="font-size: 3rem;"></i>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Contester {% if item_type == 'payment' %}ce Paiement{% else %}ce Signalement{% endif %}</h2>
-                        <p class="text-muted">En tant que locataire, vous avez le droit de contester toute déclaration erronée. Notre équipe de médiation interviendra.</p>
+                        <h2 class="fw-bold" style="color: var(--text-main);">{% if item_type == 'payment' %}{% trans "Contester ce Paiement" %}{% else %}{% trans "Contester ce Signalement" %}{% endif %}</h2>
+                        <p class="text-muted">{% trans "En tant que locataire, vous avez le droit de contester toute déclaration erronée. Notre équipe de médiation interviendra." %}</p>
                     </div>
 
                     <div class="alert alert-light border mb-4" style="background-color: var(--bg-body); border-radius: 10px; border-color: var(--border-color) !important;">
                         {% if item_type == 'payment' %}
-                            <strong>Mois concerné :</strong> {{ item.month_year|date:"M Y" }}<br>
-                            <strong>Statut déclaré par le bailleur :</strong> {{ item.get_status_display }}
+                            <strong>{% trans "Mois concerné :" %}</strong> {{ item.month_year|date:"M Y" }}<br>
+                            <strong>{% trans "Statut déclaré par le bailleur :" %}</strong> {{ item.get_status_display }}
                         {% else %}
-                            <strong>Type d'incident :</strong> {{ item.get_incident_type_display }}<br>
-                            <strong>Détails :</strong> {{ item.description|truncatechars:100 }}
+                            <strong>{% trans "Type d'incident :" %}</strong> {{ item.get_incident_type_display }}<br>
+                            <strong>{% trans "Détails :" %}</strong> {{ item.description|truncatechars:100 }}
                         {% endif %}
                     </div>
 
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-4">
-                            <label for="contestation_reason" class="form-label fw-bold" style="color: var(--text-main);">Motif de votre contestation <span class="text-danger">*</span></label>
-                            <textarea id="contestation_reason" name="contestation_reason" class="form-control" rows="5" placeholder="Expliquez pourquoi cette déclaration est fausse (ex: J'ai déjà payé via Wave le 02 du mois, voici la référence...)" required style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);"></textarea>
+                            <label for="contestation_reason" class="form-label fw-bold" style="color: var(--text-main);">{% trans "Motif de votre contestation" %} <span class="text-danger">*</span></label>
+                            <textarea id="contestation_reason" name="contestation_reason" class="form-control" rows="5" placeholder="{% trans "Expliquez pourquoi cette déclaration est fausse (ex: J'ai déjà payé via Wave le 02 du mois, voici la référence...)" %}" required style="background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);"></textarea>
                         </div>
 
                         <div class="alert alert-warning small bg-transparent mt-4" style="border-radius: 10px; border-color: #ffc107 !important; color: var(--text-main);">
-                            <i class="fa-solid fa-circle-info me-2 text-warning"></i> <strong>Important :</strong> Des preuves réelles de votre contestation (reçus de transfert, conversations) vous seront demandées par notre équipe juridique.
+                            <i class="fa-solid fa-circle-info me-2 text-warning"></i> <strong>{% trans "Important :" %}</strong> {% trans "Des preuves réelles de votre contestation (reçus de transfert, conversations) vous seront demandées par notre équipe juridique." %}
                         </div>
 
                         <div class="d-grid mt-4 gap-2">
                             <button type="submit" class="btn btn-danger py-3" style="border-radius: 50px; font-weight: 600;">
-                                <i class="fa-solid fa-paper-plane me-2"></i> Envoyer ma contestation
+                                <i class="fa-solid fa-paper-plane me-2"></i> {% trans "Envoyer ma contestation" %}
                             </button>
                             <a href="{% url 'filiation_details' filiation.id %}" class="btn btn-outline-secondary py-3" style="border-radius: 50px;">
-                                Annuler
+                                {% trans "Annuler" %}
                             </a>
                         </div>
                     </form>

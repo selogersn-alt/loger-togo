@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #114629;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #114629;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .info-grid {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .info-box {
+            width: 45%;
+            vertical-align: top;
+        }
+        .label {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .value {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .receipt-body {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 40px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #114629;
+            text-align: right;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.85rem;
+            text-align: center;
+            color: #777;
+        }
+        .signature-box {
+            margin-top: 60px;
+            text-align: right;
+        }
+        .signature-line {
+            width: 200px;
+            border-top: 1px solid #333;
+            display: inline-block;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Quittance de Loyer</h1>
+        <p>Loger Togo - Gestion Immobilière DigitalH</p>
+    </div>
+
+    <table class="info-grid">
+        <tr>
+            <td class="info-box">
+                <div class="label">Bailleur</div>
+                <div class="value">
+                    <strong>{{ lease.landlord.company_name|default:lease.landlord.get_full_name }}</strong><br>
+                    Tél : {{ lease.landlord.phone_number }}
+                </div>
+            </td>
+            <td class="info-box" style="text-align: right;">
+                <div class="label">Locataire</div>
+                <div class="value">
+                    <strong>{{ lease.tenant.get_full_name }}</strong><br>
+                    Tél : {{ lease.tenant.phone_number }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="receipt-body">
+        <p>Je soussigné, <strong>{{ lease.landlord.get_full_name }}</strong>, propriétaire du bien situé à <strong>{{ lease.property.neighborhood }}, {{ lease.property.city }}</strong>, reconnais avoir reçu de la part du locataire la somme de :</p>
+        
+        <div class="total">{{ payment.amount_paid }} FCFA</div>
+        
+        <p style="margin-top: 20px;">
+            Cette somme correspond au paiement du loyer pour la période allant du 
+            <strong>{{ payment.period_start|date:"d/m/Y" }}</strong> au 
+            <strong>{{ payment.period_end|date:"d/m/Y" }}</strong>.
+        </p>
+
+        <p style="font-style: italic; color: #666; font-size: 0.9rem;">
+            Sous réserve de tous nos droits et sous réserve d'encaissement. 
+            Cette quittance annule tout reçu relatif à la même période.
+        </p>
+    </div>
+
+    <div class="signature-box">
+        <p>Fait à Lomé, le {{ today|date:"d F Y" }}</p>
+        <p><strong>Signature du Bailleur</strong></p>
+        <div class="signature-line"></div>
+    </div>
+
+    <div class="footer">
+        <p>Généré par <strong>Loger Togo</strong> - Plateforme n°1 de l'immobilier au Togo.</p>
+        <p>DigitalH Group - Lomé, Togo</p>
+    </div>
+</body>
+</html>

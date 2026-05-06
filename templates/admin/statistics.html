@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% load i18n static %}
 
-{% block title %}Statistiques Réelles | Solvable{% endblock %}
+{% block title %}Statistiques Réelles | Loger Togo{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -13,7 +13,7 @@
         margin-bottom: 20px;
     }
     .stat-card:hover { font-weight: bold; transform: translateY(-5px); }
-    .bg-solvable { background: linear-gradient(135deg, #7fd47d 0%, #083820 100%); color: white; }
+    .bg-Loger Togo { background: linear-gradient(135deg, #198754 0%, #083820 100%); color: white; }
     .chart-container { height: 350px; margin-bottom: 30px; }
 </style>
 {% endblock %}
@@ -171,7 +171,7 @@
                 {
                     label: 'Utilisateurs Cumulative',
                     data: {{ data_users }},
-                    borderColor: '#7fd47d',
+                    borderColor: '#198754',
                     backgroundColor: 'rgba(127, 212, 125, 0.1)',
                     fill: true,
                     tension: 0.4

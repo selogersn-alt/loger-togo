@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Guide Locataires | Loger Togo{% endblock %}
+{% block title %}{% trans "Guide Locataires | Loger Togo" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -54,8 +54,8 @@
 {% block content %}
 <div class="guide-header">
     <div class="container">
-        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Guide du Locataire</h1>
-        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">La confiance au service de vos locations. Trouvez votre logement en toute sérénité.</p>
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">{% trans "Guide du Locataire" %}</h1>
+        <p class="lead opacity-75 mb-0 animate__animated animate__fadeInUp">{% trans "La confiance au service de vos locations. Trouvez votre logement en toute sérénité." %}</p>
     </div>
 </div>
 
@@ -66,8 +66,8 @@
             <div class="step-card">
                 <div class="step-number">1</div>
                 <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
-                <h4 class="fw-bold mb-3">Créez votre compte</h4>
-                <p class="text-muted">Inscrivez-vous avec votre numéro de téléphone (votre identifiant sécurisé) et un mot de passe sur la page /inscription/.</p>
+                <h4 class="fw-bold mb-3">{% trans "Créez votre compte" %}</h4>
+                <p class="text-muted">{% trans "Inscrivez-vous avec votre numéro de téléphone (votre identifiant sécurisé) et un mot de passe sur la page /inscription/." %}</p>
             </div>
         </div>
         
@@ -76,8 +76,8 @@
             <div class="step-card">
                 <div class="step-number">2</div>
                 <div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-                <h4 class="fw-bold mb-3">Recherchez votre bien</h4>
-                <p class="text-muted">Parcourez les annonces vérifiées à Lomé et partout au Togo. Utilisez nos filtres pour trouver la perle rare.</p>
+                <h4 class="fw-bold mb-3">{% trans "Recherchez votre bien" %}</h4>
+                <p class="text-muted">{% trans "Parcourez les annonces vérifiées à Lomé et partout au Togo. Utilisez nos filtres pour trouver la perle rare." %}</p>
             </div>
         </div>
         
@@ -86,8 +86,8 @@
             <div class="step-card">
                 <div class="step-number">3</div>
                 <div class="step-icon"><i class="fa-solid fa-comments"></i></div>
-                <h4 class="fw-bold mb-3">Contactez et Visitez</h4>
-                <p class="text-muted">Discutez instantanément avec les professionnels certifiés via notre messagerie pour organiser vos visites en toute sécurité.</p>
+                <h4 class="fw-bold mb-3">{% trans "Contactez et Visitez" %}</h4>
+                <p class="text-muted">{% trans "Discutez instantanément avec les professionnels certifiés via notre messagerie pour organiser vos visites en toute sécurité." %}</p>
             </div>
         </div>
     </div>
@@ -95,34 +95,34 @@
     <!-- Benefits -->
     <div class="row mt-5 align-items-center bg-light rounded-5 p-5 g-5">
         <div class="col-lg-6">
-            <h2 class="fw-bold mb-4">Pourquoi louer via Loger Togo ?</h2>
+            <h2 class="fw-bold mb-4">{% trans "Pourquoi louer via Loger Togo ?" %}</h2>
             <div class="d-flex mb-4">
                 <div class="me-3 text-success fs-4"><i class="fa-solid fa-circle-check"></i></div>
                 <div>
-                    <h5 class="fw-bold mb-1">Dossier Certifié</h5>
-                    <p class="text-muted mb-0">Votre profil de confiance remplace les dossiers papiers interminables.</p>
+                    <h5 class="fw-bold mb-1">{% trans "Dossier Certifié" %}</h5>
+                    <p class="text-muted mb-0">{% trans "Votre profil de confiance remplace les dossiers papiers interminables." %}</p>
                 </div>
             </div>
             <div class="d-flex mb-4">
                 <div class="me-3 text-success fs-4"><i class="fa-solid fa-circle-check"></i></div>
                 <div>
-                    <h5 class="fw-bold mb-1">Mises en relation sécurisées</h5>
-                    <p class="text-muted mb-0">Vous échangez avec des bailleurs et agences dont l'identité est également vérifiée.</p>
+                    <h5 class="fw-bold mb-1">{% trans "Mises en relation sécurisées" %}</h5>
+                    <p class="text-muted mb-0">{% trans "Vous échangez avec des bailleurs et agences dont l'identité est également vérifiée." %}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-6 text-center">
              <div class="p-5 bg-white rounded-4 shadow-sm">
-                <h3 class="fw-bold mb-4">Prêt à emménager ?</h3>
-                <p class="mb-4">Commencez votre parcours de fiabilité dès maintenant.</p>
-                <a href="{% url 'register' %}" class="btn btn-primary-custom btn-lg px-5 py-3 fs-5">Créer mon compte Locataire</a>
+                <h3 class="fw-bold mb-4">{% trans "Prêt à emménager ?" %}</h3>
+                <p class="mb-4">{% trans "Commencez votre parcours de fiabilité dès maintenant." %}</p>
+                <a href="{% url 'register' %}" class="btn btn-primary-custom btn-lg px-5 py-3 fs-5">{% trans "Créer mon compte Locataire" %}</a>
              </div>
         </div>
     </div>
 
     <!-- Help Section -->
     <div class="text-center mt-5">
-        <p class="text-muted">Une question ? Contactez notre support : <a href="mailto:serviceclient@Logertogo.com" class="text-success fw-bold">serviceclient@Logertogo.com</a></p>
+        <p class="text-muted">{% trans "Une question ? Contactez notre support :" %} <a href="mailto:serviceclient@Logertogo.com" class="text-success fw-bold">serviceclient@Logertogo.com</a></p>
     </div>
 </div>
 {% endblock %}

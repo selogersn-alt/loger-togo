@@ -25,7 +25,7 @@ class RegisterScreen extends StatelessWidget {
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                color: const Color(0xFF004D40).withOpacity(0.04),
+                color: const Color(0xFF004D40).withValues(alpha: 0.04),
                 shape: BoxShape.circle,
               ),
             ),
@@ -43,7 +43,7 @@ class RegisterScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
                         ),
                         child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.black),
                       ),
@@ -70,14 +70,14 @@ class RegisterScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(28),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20)],
                           ),
                           child: Column(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF004D40).withOpacity(0.05),
+                                  color: const Color(0xFF004D40).withValues(alpha: 0.05),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.workspace_premium_rounded, size: 50, color: Color(0xFF004D40)),
@@ -110,7 +110,7 @@ class RegisterScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF004D40).withOpacity(0.3),
+                            color: const Color(0xFF004D40).withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-surface border-0 shadow-sm p-4">
+                <h4 class="fw-bold mb-3">{% trans "Ajouter un Document" %}</h4>
+                <p class="text-muted small mb-4">{% trans "Complétez votre dossier pour rassurer vos futurs bailleurs." %}</p>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{% trans "Type de document" %}</label>
+                        <select name="document_type" class="form-select" required>
+                            <option value="ID_CARD">{% trans "Pièce d'identité (CNI/Passeport)" %}</option>
+                            <option value="EMPLOYMENT">{% trans "Attestation d'emploi" %}</option>
+                            <option value="PAYSLIP">{% trans "Fiche de paie" %}</option>
+                            <option value="OLD_RECEIPT">{% trans "Ancienne quittance" %}</option>
+                            <option value="OTHER">{% trans "Autre document" %}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{% trans "Fichier (Image ou PDF)" %}</label>
+                        <input type="file" name="file" class="form-control" accept="image/*,.pdf" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold">
+                        {% trans "Téléverser le document" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card bg-surface border-0 shadow-sm overflow-hidden">
+                <div class="card-header bg-transparent border-bottom p-4">
+                    <h5 class="mb-0">{% trans "Mon Dossier Numérique" %}</h5>
+                </div>
+                <div class="p-4">
+                    <div class="row g-3">
+                        {% for doc in documents %}
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded d-flex align-items-center justify-content-between bg-light">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-white text-success me-3 shadow-sm">
+                                        <i class="fas {% if doc.document_type == 'ID_CARD' %}fa-id-card{% else %}fa-file-alt{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ doc.get_document_type_display }}</h6>
+                                        <small class="text-muted">{% trans "Ajouté le" %} {{ doc.created_at|date:"d/m/Y" }}</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    {% if doc.is_verified %}
+                                        <span class="badge bg-success-light text-success"><i class="fas fa-check-circle"></i></span>
+                                    {% endif %}
+                                    <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-3 opacity-25"></i>
+                            <p class="text-muted">{% trans "Votre dossier est vide. Ajoutez vos documents pour faciliter vos locations." %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-box { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .bg-success-light { background-color: rgba(25, 135, 84, 0.1); }
+</style>
+{% endblock %}

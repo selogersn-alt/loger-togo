@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n property_tags %}
 
-{% block title %}{{ property.title }} à louer à {{ property.neighborhood }} | Loger Togo{% endblock %}
+{% block title %}{{ property.title }} {% trans "à louer à" %} {{ property.neighborhood }} | Loger Togo{% endblock %}
+{% block meta_description %}{% blocktrans with p_type=property.get_property_type_display bedrooms=property.bedrooms neighborhood=property.neighborhood city=property.city price=property.price|format_price %}Découvrez ce {{ p_type }} de {{ bedrooms }} ch à {{ neighborhood }}, {{ city }}. Prix : {{ price }} FCFA. Annonce vérifiée et sécurisée sur Loger Togo, la plateforme n°1 de l'immobilier au Togo.{% endblocktrans %}{% endblock %}
 
-{% block meta_description %}Découvrez ce {{ property.get_property_type_display }} de {{ property.bedrooms }} ch à {{ property.neighborhood }}, {{ property.city }}. Prix : {{ property.price|floatformat:0 }} FCFA. Annonce vérifiée et sécurisée sur Loger Togo, la plateforme n°1 de l'immobilier au Togo.{% endblock %}
-
-{% block og_title %}{{ property.title }} - Annonce immo à {{ property.neighborhood }}{% endblock %}
-{% block og_description %}{{ property.property_type }} à {{ property.neighborhood }} ({{ property.city }}) | {{ property.price|floatformat:0 }} FCFA{% endblock %}
+{% block og_title %}{{ property.title }} - {% trans "Annonce immo à" %} {{ property.neighborhood }}{% endblock %}
+{% block og_description %}{{ property.get_property_type_display }} {% trans "à" %} {{ property.neighborhood }} ({{ property.city }}) | {{ property.price|format_price }} FCFA{% endblock %}
 {% block extra_meta %}
-    {% with main_image=property.images.first %}
+    {% with main_image=property.get_main_image %}
         {% if main_image %}
             <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
             <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
@@ -40,7 +39,7 @@
           "@type": "PostalAddress",
           "addressLocality": "{{ property.city|escapejs }}",
           "addressRegion": "{{ property.neighborhood|escapejs }}",
-          "addressCountry": "SN"
+          "addressCountry": "TG"
         },
         "numberOfRooms": "{{ property.bedrooms|default:1 }}",
         "floorSize": {
@@ -185,9 +184,12 @@
 
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-
-</style>
 {% endblock %}
+
+{% block breadcrumbs %}
+    {% include 'partials/breadcrumbs.html' with breadcrumbs=breadcrumbs %}
+{% endblock %}
+
 
 {% block content %}
 <!-- Minimalist Header with Breadcrumbs -->
@@ -197,13 +199,13 @@
             <ol class="breadcrumb mb-2" itemscope itemtype="https://schema.org/BreadcrumbList">
                 <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
                     <a href="/" class="text-white text-decoration-none opacity-75" itemprop="item">
-                        <span itemprop="name">Accueil</span>
+                        <span itemprop="name">{% trans "Accueil" %}</span>
                     </a>
                     <meta itemprop="position" content="1" />
                 </li>
                 <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
                     <a href="{% url 'properties_list' %}" class="text-white text-decoration-none opacity-75" itemprop="item">
-                        <span itemprop="name">Annonces</span>
+                        <span itemprop="name">{% trans "Annonces" %}</span>
                     </a>
                     <meta itemprop="position" content="2" />
                 </li>
@@ -221,7 +223,7 @@
         </nav>
         <div class="d-flex justify-content-between align-items-start">
             <div>
-                <h1 class="fw-bold mb-2">{{ property.title }}</h1>
+                <h1 class="fw-bold mb-2">{{ property.title }} | {% trans "Immobilier Togo" %} {{ property.city }}</h1>
                 <p class="mb-0 opacity-75"><i class="fa-solid fa-location-dot me-2 text-warning"></i>{{ property.neighborhood }}, {{ property.city }}</p>
             </div>
             <div class="d-flex align-items-center gap-3">
@@ -229,7 +231,7 @@
                     <i class="fa-solid fa-heart"></i>
                 </button>
                 <div class="text-end text-white opacity-75 small">
-                    Publié il y a {{ property.created_at|timesince }}
+                    {% trans "Publié il y a" %} {{ property.created_at|timesince }}
                 </div>
             </div>
         </div>
@@ -239,17 +241,16 @@
 <div class="container mb-5">
     <div class="row">
         <!-- Main Content (Images & Description) -->
-        <!-- Main Content (Images & Description) -->
         <div class="col-lg-8">
             <!-- Priority Price for Mobile -->
             <div class="details-card d-lg-none mb-3">
                 <div class="price-tag mb-0">
                     {% if property.listing_category == 'SALE' %}
-                        {{ property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">(Vente)</span>
+                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">({% trans "Vente" %})</span>
                     {% elif property.listing_category == 'FURNISHED' %}
-                        {{ property.price_per_night|default:property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/nuitée</span>
+                        {{ property.price_per_night|default:property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "nuitée" %}</span>
                     {% else %}
-                        {{ property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/mois</span>
+                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "mois" %}</span>
                     {% endif %}
                 </div>
             </div>
@@ -289,56 +290,56 @@
                 <div class="row mb-4 bg-light-subtle p-3 rounded-4 g-2">
                     {% if property.surface > 0 %}
                     <div class="col-6 col-md-3 text-center border-sm-end">
-                        <div class="text-muted small">Surface</div>
+                        <div class="text-muted small">{% trans "Surface" %}</div>
                         <div class="fw-bold fs-5">{{ property.surface }} m²</div>
                     </div>
                     {% endif %}
                     {% if property.bedrooms > 0 %}
                     <div class="col-6 col-md-3 text-center border-md-end">
-                        <div class="text-muted small">Chambres</div>
+                        <div class="text-muted small">{% trans "Chambres" %}</div>
                         <div class="fw-bold fs-5">{{ property.bedrooms }}</div>
                     </div>
                     {% endif %}
                     {% if property.toilets > 0 %}
                     <div class="col-6 col-md-3 text-center border-sm-end">
-                        <div class="text-muted small">Toilettes</div>
+                        <div class="text-muted small">{% trans "Toilettes" %}</div>
                         <div class="fw-bold fs-5">{{ property.toilets }}</div>
                     </div>
                     {% endif %}
                     {% if property.total_rooms > 0 %}
                     <div class="col-6 col-md-3 text-center">
-                        <div class="text-muted small">Pièces</div>
+                        <div class="text-muted small">{% trans "Pièces" %}</div>
                         <div class="fw-bold fs-5">{{ property.total_rooms }}</div>
                     </div>
                     {% endif %}
                     {% if property.salons > 0 %}
                     <div class="col-6 col-md-3 text-center">
-                        <div class="text-muted small">Salons</div>
+                        <div class="text-muted small">{% trans "Salons" %}</div>
                         <div class="fw-bold fs-5">{{ property.salons }}</div>
                     </div>
                     {% endif %}
                     {% if property.kitchens > 0 %}
                     <div class="col-6 col-md-3 text-center">
-                        <div class="text-muted small">Cuisines</div>
+                        <div class="text-muted small">{% trans "Cuisines" %}</div>
                         <div class="fw-bold fs-5">{{ property.kitchens }}</div>
                     </div>
                     {% endif %}
                     {% if property.households > 0 %}
                     <div class="col-6 col-md-3 text-center border-sm-end">
-                        <div class="text-muted small">Ménages</div>
+                        <div class="text-muted small">{% trans "Ménages" %}</div>
                         <div class="fw-bold fs-5">{{ property.households }}</div>
                     </div>
                     {% endif %}
                     {% if property.floor_level > 0 %}
                     <div class="col-6 col-md-3 text-center border-sm-end">
-                        <div class="text-muted small">Étage</div>
+                        <div class="text-muted small">{% trans "Étage" %}</div>
                         <div class="fw-bold fs-5">{{ property.floor_level }}</div>
                     </div>
                     {% endif %}
                 </div>
                 {% endif %}
 
-                <h3 class="fw-bold mb-4" style="color: var(--text-main);">Description du bien</h3>
+                <h3 class="fw-bold mb-4" style="color: var(--text-main);">{% trans "Description du bien" %}</h3>
                 <p style="line-height: 1.8; color: var(--text-muted); white-space: pre-line;">
                     {{ property.description }}
                 </p>
@@ -346,42 +347,42 @@
                 {% if property.has_garage %}
                 <div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4 py-3">
                     <i class="fa-solid fa-car me-3 fs-3"></i>
-                    <div><strong>Garage inclus</strong> - Ce bien dispose d'un espace de stationnement sécurisé.</div>
+                    <div><strong>{% trans "Garage inclus" %}</strong> - {% trans "Ce bien dispose d'un espace de stationnement sécurisé." %}</div>
                 </div>
                 {% endif %}
 
                 <!-- Nouvel Affichage des Équipements -->
-                <h4 class="fw-bold mb-4" style="color: var(--text-main);">Équipements & Commodités</h4>
+                <h4 class="fw-bold mb-4" style="color: var(--text-main);">{% trans "Équipements & Commodités" %}</h4>
                 <div class="row g-3 mb-5">
                     {% if property.wifi %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-wifi text-success me-2"></i> WiFi</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-wifi text-success me-2"></i> {% trans "WiFi" %}</div></div>
                     {% endif %}
                     {% if property.swimming_pool %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-person-swimming text-success me-2"></i> Piscine</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-person-swimming text-success me-2"></i> {% trans "Piscine" %}</div></div>
                     {% endif %}
                     {% if property.gym %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-dumbbell text-success me-2"></i> Salle de sport</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-dumbbell text-success me-2"></i> {% trans "Salle de sport" %}</div></div>
                     {% endif %}
                     {% if property.air_conditioning %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-snowflake text-success me-2"></i> Climatisation</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-snowflake text-success me-2"></i> {% trans "Climatisation" %}</div></div>
                     {% endif %}
                     {% if property.refrigerator %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-refrigerator text-success me-2"></i> Frigo</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-refrigerator text-success me-2"></i> {% trans "Frigo" %}</div></div>
                     {% endif %}
                     {% if property.washing_machine %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-soap text-success me-2"></i> Lave-linge</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-soap text-success me-2"></i> {% trans "Lave-linge" %}</div></div>
                     {% endif %}
                     {% if property.microwave %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-microwave text-success me-2"></i> Micro-ondes</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-microwave text-success me-2"></i> {% trans "Micro-ondes" %}</div></div>
                     {% endif %}
                     {% if property.tv_cable %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-tv text-success me-2"></i> TV par câble</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-tv text-success me-2"></i> {% trans "TV par câble" %}</div></div>
                     {% endif %}
                     {% if property.generator %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-bolt text-success me-2"></i> Groupe éléctrogène</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-bolt text-success me-2"></i> {% trans "Groupe éléctrogène" %}</div></div>
                     {% endif %}
                     {% if property.water_tank %}
-                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-faucet-drip text-success me-2"></i> Réservoir d'eau</div></div>
+                    <div class="col-6 col-md-4"><div class="p-3 border rounded shadow-sm bg-white"><i class="fa-solid fa-faucet-drip text-success me-2"></i> {% trans "Réservoir d'eau" %}</div></div>
                     {% endif %}
                     
                     {% for equip in property.interior_equipments.all %}
@@ -389,15 +390,15 @@
                     {% endfor %}
                 </div>
 
-                <h4 class="fw-bold mb-4" style="color: var(--text-main);">Emplacement sur la carte</h4>
+                <h4 class="fw-bold mb-4" style="color: var(--text-main);">{% trans "Emplacement sur la carte" %}</h4>
                 <div id="propertyMap"></div>
                 {% if not property.latitude %}
-                <p class="text-muted small text-center"><i class="fa-solid fa-info-circle me-1"></i> Coordonnées non précisées, affichage approximatif basé sur {{ property.neighborhood }}.</p>
+                <p class="text-muted small text-center"><i class="fa-solid fa-info-circle me-1"></i> {% trans "Coordonnées non précisées, affichage approximatif basé sur" %} {{ property.neighborhood }}.</p>
                 {% endif %}
                 
                 <hr style="border-color: var(--border-color); margin: 30px 0;">
                 
-                <h4 class="fw-bold mb-3" style="color: var(--text-main);">Caractéristiques de "Solvable Filiation"</h4>
+                <h4 class="fw-bold mb-3" style="color: var(--text-main);">{% trans "Garantie de Confiance Loger Togo" %}</h4>
                 <div class="row g-3">
                     <div class="col-sm-6">
                         <div class="d-flex align-items-center">
@@ -405,8 +406,8 @@
                                 <i class="fa-solid fa-file-signature"></i>
                             </div>
                             <div>
-                                <h6 class="mb-0 fw-bold">Contrat Sécurisé</h6>
-                                <small class="text-muted">Signature numérique via NILS</small>
+                                <h6 class="mb-0 fw-bold">{% trans "Contrat Sécurisé" %}</h6>
+                                <small class="text-muted">{% trans "Signature numérique via ID de Confiance" %}</small>
                             </div>
                         </div>
                     </div>
@@ -416,8 +417,8 @@
                                 <i class="fa-solid fa-money-bill-transfer"></i>
                             </div>
                             <div>
-                                <h6 class="mb-0 fw-bold">Paiement Automatisé</h6>
-                                <small class="text-muted">Suivi garantit par la plateforme</small>
+                                <h6 class="mb-0 fw-bold">{% trans "Paiement Automatisé" %}</h6>
+                                <small class="text-muted">{% trans "Suivi garantit par la plateforme" %}</small>
                             </div>
                         </div>
                     </div>
@@ -425,7 +426,6 @@
             </div>
         </div>
 
-        <!-- Sidebar (Pricing & Action) -->
         <!-- Sidebar (Pricing & Action) -->
         <div class="col-lg-4">
             <!-- Action Card -->
@@ -436,52 +436,89 @@
                 
                 <div class="price-tag">
                     {% if property.listing_category == 'SALE' %}
-                        {{ property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">(Vente)</span>
+                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">({% trans "Vente" %})</span>
                     {% elif property.listing_category == 'FURNISHED' %}
-                        {{ property.price_per_night|default:property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/nuitée</span>
+                        {{ property.price_per_night|default:property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "nuitée" %}</span>
                     {% else %}
-                        {{ property.price|floatformat:0 }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/mois</span>
+                        {{ property.price|format_price }} FCFA <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">/{% trans "mois" %}</span>
                     {% endif %}
                 </div>
                 
-                <a href="{% url 'apply_to_property' property.id %}" class="btn btn-primary-custom w-100 mb-3 py-3 fs-5">
-                    <i class="fa-solid fa-key me-2"></i> Postuler pour ce bien
+                <a href="{% url 'initiate-chat' property.id %}" class="btn btn-primary-custom w-100 mb-3 py-3 fs-5">
+                    <i class="fa-solid fa-comments me-2"></i> {% trans "Contacter le professionnel" %}
                 </a>
+                
+                {% if user.is_authenticated and user.role == 'TENANT' %}
+                    <button type="button" class="btn btn-outline-success w-100 mb-3 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#applicationModal">
+                        <i class="fa-solid fa-paper-plane me-2"></i> {% trans "Déposer ma candidature" %}
+                    </button>
+                {% endif %}
                 
                 <p class="text-center small text-muted mb-0">
                     <i class="fa-solid fa-shield-halved text-success me-1"></i>
-                    Création d'un profil NILS requise avant la visite.
+                    {% trans "Échangez en toute sécurité via notre messagerie." %}
                 </p>
             </div>
+            
+            <!-- Modal Candidature -->
+            {% if user.is_authenticated and user.role == 'TENANT' %}
+            <div class="modal fade" id="applicationModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold">{% trans "Déposer ma candidature" %}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="{% url 'apply_to_property' property.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <p class="text-muted small mb-4">{% trans "Présentez-vous brièvement au bailleur pour augmenter vos chances d'être sélectionné." %}</p>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small">{% trans "Message de motivation" %}</label>
+                                    <textarea name="message" class="form-control rounded-4" rows="5" placeholder="{% trans "Bonjour, je suis très intéressé par ce bien. Je travaille en tant que..." %}"></textarea>
+                                </div>
+                                <div class="bg-light p-3 rounded-4 small">
+                                    <i class="fas fa-info-circle text-primary me-2"></i>
+                                    {% trans "Votre profil et votre dossier de solvabilité seront partagés avec le bailleur." %}
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">{% trans "Annuler" %}</button>
+                                <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">{% trans "Envoyer ma candidature" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             
             <!-- Owner Info -->
             <div class="owner-card mt-4">
                 <div class="owner-avatar">
                     <i class="fa-solid fa-user-tie"></i>
                 </div>
-                <h5 class="fw-bold mb-1" style="color: var(--text-main);">{{ property.owner.company_name|default:"Propriétaire Certifié" }}</h5>
-                <p class="text-muted small mb-3">Membre LogerSN depuis {{ property.owner.date_joined|date:"Y" }}</p>
+                <h5 class="fw-bold mb-1" style="color: var(--text-main);">{{ property.owner.company_name|default:_("Propriétaire Certifié") }}</h5>
+                <p class="text-muted small mb-3">{% trans "Membre Loger Togo depuis" %} {{ property.owner.date_joined|date:"Y" }}</p>
                 
                 <div class="d-flex justify-content-center gap-2 mb-4">
                     <div class="badge bg-light text-dark border px-3 py-2">
-                        <i class="fa-solid fa-building me-1"></i> {{ property.owner.properties.count }} biens
+                        <i class="fa-solid fa-building me-1"></i> {{ property.owner.properties.count }} {% trans "biens" %}
                     </div>
                     {% if property.owner.is_verified_pro %}
                     <div class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                        <i class="fa-solid fa-check-circle me-1"></i> Vérifié
+                        <i class="fa-solid fa-check-circle me-1"></i> {% trans "Vérifié" %}
                     </div>
                     {% endif %}
                 </div>
 
                 <div class="d-grid gap-2 mb-3">
-                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text=Bonjour, je suis intéressé par votre annonce sur Loger Togo : {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
+                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce sur Loger Togo :" %} {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-success w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; background-color: #25D366; border-color: #25D366;">
                         <i class="fa-brands fa-whatsapp me-2"></i> WhatsApp
                     </a>
                     
                     <a href="{% if user.is_authenticated %}{% url 'initiate-chat' property.id %}{% else %}{% url 'login' %}?next={{ request.path }}{% endif %}" class="btn btn-outline-primary w-100 shadow-sm py-2" style="border-radius: 50px; font-weight: 600; border: 2px solid var(--color-light-green); color: var(--color-dark-green);">
-                        <i class="fa-solid fa-comments me-2"></i> Discuter sur LogerSN
+                        <i class="fa-solid fa-comments me-2"></i> {% trans "Discuter sur Loger Togo" %}
                     </a>
-                </div>
                     
                     <a href="mailto:{{ property.owner.email }}" class="btn btn-outline-dark w-100 py-2" style="border-radius: 50px;">
                         <i class="fa-regular fa-envelope me-2"></i> Email
@@ -496,15 +533,16 @@
             </div>
         </div>
     </div>
-    <!-- SECTION SEO : ANNONCES SIMILAIRES (PHASE 2) -->
+
+    <!-- SECTION SEO : ANNONCES SIMILAIRES -->
     {% if related_properties %}
     <div class="row mt-5">
         <div class="col-12 mb-4">
             <h3 class="fw-bold" style="color: var(--color-dark-green);">
                 <i class="fa-solid fa-building-circle-check me-2 text-warning"></i>
-                Annonces similaires que vous aimeriez explorer
+                {% trans "Annonces similaires que vous aimeriez explorer" %}
             </h3>
-            <p class="text-muted">Découvrez d'autres opportunités à {{ property.city }} ou de type {{ property.get_property_type_display }}</p>
+            <p class="text-muted">{% trans "Découvrez d'autres opportunités à" %} {{ property.city }} {% trans "ou de type" %} {{ property.get_property_type_display }}</p>
         </div>
         {% for related in related_properties %}
         <div class="col-md-4 mb-4">
@@ -526,17 +564,15 @@
       <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
           <h3 class="fw-bold mb-1" style="color:var(--color-dark-green);">
-            <i class="fa-solid fa-star text-warning me-2"></i>Avis & Notations
+            <i class="fa-solid fa-star text-warning me-2"></i>{% trans "Avis & Notations" %}
           </h3>
-          {% with reviews=property.reviews.filter %}
-          <span class="text-muted small">{{ property.reviews.count }} avis publiés</span>
-          {% endwith %}
+          <span class="text-muted small">{{ property.reviews.count }} {% trans "avis publiés" %}</span>
         </div>
         <!-- Note moyenne -->
         {% if property.reviews.count > 0 %}
         <div class="text-center p-3 rounded-3" style="background:var(--bg-card);border:1px solid var(--border-color);">
           <div class="fs-2 fw-bold text-warning">{{ avg_rating|default:"—" }}</div>
-          <div class="text-muted small">/ 5 étoiles</div>
+          <div class="text-muted small">/ 5 {% trans "étoiles" %}</div>
         </div>
         {% endif %}
       </div>
@@ -563,7 +599,7 @@
       {% empty %}
       <div class="text-center py-4 text-muted">
         <i class="fa-regular fa-star fs-1 opacity-25 mb-3"></i>
-        <p>Soyez le premier à donner votre avis sur ce bien.</p>
+        <p>{% trans "Soyez le premier à donner votre avis sur ce bien." %}</p>
       </div>
       {% endfor %}
 
@@ -572,12 +608,12 @@
         {% if not user_has_reviewed %}
         <div class="card border-0 shadow-sm mt-4" style="border-radius:14px;background:var(--bg-card);">
           <div class="card-body p-4">
-            <h5 class="fw-bold mb-3"><i class="fa-solid fa-pen-to-square me-2 text-success"></i>Laisser un avis</h5>
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-pen-to-square me-2 text-success"></i>{% trans "Laisser un avis" %}</h5>
             <form method="POST" action="{% url 'submit_review' property.id %}">
               {% csrf_token %}
               <!-- Étoiles interactives -->
               <div class="mb-3">
-                <label class="small fw-bold text-muted d-block mb-2">Votre note</label>
+                <label class="small fw-bold text-muted d-block mb-2">{% trans "Votre note" %}</label>
                 <div class="d-flex gap-2" id="star-selector">
                   {% for i in "12345" %}
                   <label class="star-label" style="cursor:pointer;font-size:2rem;color:#ddd;transition:color .2s;" data-val="{{ forloop.counter }}">
@@ -588,27 +624,27 @@
                 </div>
               </div>
               <div class="mb-3">
-                <input type="text" name="title" class="form-control" placeholder="Titre de votre avis (optionnel)" maxlength="120" style="background:var(--bg-body);border-color:var(--border-color);color:var(--text-main);">
+                <input type="text" name="title" class="form-control" placeholder="{% trans "Titre de votre avis (optionnel)" %}" maxlength="120" style="background:var(--bg-body);border-color:var(--border-color);color:var(--text-main);">
               </div>
               <div class="mb-3">
-                <textarea name="comment" class="form-control" rows="4" placeholder="Décrivez votre expérience avec ce bien ou ce propriétaire..." required style="background:var(--bg-body);border-color:var(--border-color);color:var(--text-main);"></textarea>
+                <textarea name="comment" class="form-control" rows="4" placeholder="{% trans "Décrivez votre expérience avec ce bien ou ce propriétaire..." %}" required style="background:var(--bg-body);border-color:var(--border-color);color:var(--text-main);"></textarea>
               </div>
               <button type="submit" class="btn btn-success px-4 rounded-pill fw-bold">
-                <i class="fa-solid fa-paper-plane me-2"></i>Soumettre l'avis
+                <i class="fa-solid fa-paper-plane me-2"></i>{% trans "Soumettre l'avis" %}
               </button>
-              <small class="text-muted ms-3">Votre avis sera visible après validation par notre équipe.</small>
+              <small class="text-muted ms-3">{% trans "Votre avis sera visible après validation par notre équipe." %}</small>
             </form>
           </div>
         </div>
         {% else %}
         <div class="alert alert-success border-0 rounded-3 mt-4">
-          <i class="fa-solid fa-check-circle me-2"></i>Vous avez déjà soumis un avis pour ce bien. Merci !
+          <i class="fa-solid fa-check-circle me-2"></i>{% trans "Vous avez déjà soumis un avis pour ce bien. Merci !" %}
         </div>
         {% endif %}
       {% elif not user.is_authenticated %}
       <div class="card border-0 shadow-sm mt-4 text-center p-4" style="border-radius:14px;background:var(--bg-card);">
-        <p class="text-muted mb-3">Connectez-vous pour laisser un avis.</p>
-        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-success rounded-pill px-4">Se connecter</a>
+        <p class="text-muted mb-3">{% trans "Connectez-vous pour laisser un avis." %}</p>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-success rounded-pill px-4">{% trans "Se connecter" %}</a>
       </div>
       {% endif %}
     </div>
@@ -626,7 +662,7 @@
         element.classList.add("active");
     }
 
-    // ─── Étoiles interactives ────────────────────────────────────────────
+    // ─── Étoiles interactives ───
     const labels = document.querySelectorAll('.star-label');
     labels.forEach((label, idx) => {
         label.addEventListener('mouseenter', () => {
@@ -647,17 +683,17 @@
 <script>
     // Initialize Map
     document.addEventListener('DOMContentLoaded', function() {
-        const lat = parseFloat("{{ property.latitude|default:14.7167 }}");
-        const lng = parseFloat("{{ property.longitude|default:-17.4677 }}");
+        const lat = parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.'));
+        const lng = parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.'));
         const map = L.map('propertyMap').setView([lat, lng], 14);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
-            attribution: '© OpenStreetMap'
+            attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(map);
 
         L.marker([lat, lng]).addTo(map)
-            .bindPopup("<b>{{ property.title }}</b><br>{{ property.neighborhood }}")
+            .bindPopup("<b>{{ property.title|escapejs }}</b><br>{{ property.neighborhood|escapejs }}")
             .openPopup();
     });
 
@@ -686,4 +722,33 @@
         });
     }
 </script>
+
+<!-- Sticky Contact Mobile -->
+<div class="sticky-contact-mobile d-md-none position-fixed bottom-0 start-0 end-0 bg-white shadow-lg p-3 animate__animated animate__slideInUp" style="z-index: 1050; border-top: 1px solid var(--border-color);">
+    <div class="row g-2">
+        <div class="col-8">
+            <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par l'annonce" %} {{ property.title }} (ID: {{ property.id }}) {% trans "sur Loger Togo" %}." 
+               class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center"
+               style="background-color: #25D366; border: none; font-size: 0.9rem;">
+                <i class="fa-brands fa-whatsapp fs-4 me-2"></i> {% trans "WhatsApp" %}
+            </a>
+        </div>
+        <div class="col-4">
+            <a href="tel:{{ property.owner.phone_number|default:'+22897151610' }}" 
+               class="btn btn-outline-dark w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center">
+                <i class="fa-solid fa-phone me-2"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        body { padding-bottom: 85px; }
+        .sticky-contact-mobile {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main);
+        }
+    }
+</style>
 {% endblock %}

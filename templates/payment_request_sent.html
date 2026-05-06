@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "Demande envoyée" %} | Logertogo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center">
+            <div class="card border-0 shadow-lg p-5" style="border-radius: 25px; background: var(--bg-card);">
+                <div class="mb-4">
+                    <div class="display-1 text-success mb-3 animate__animated animate__bounceIn">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h2 class="fw-bold" style="color: var(--text-main);">{% trans "Demande Transmise !" %}</h2>
+                    <p class="lead text-muted">{% trans "Votre demande de" %} <strong>{{ transaction.get_transaction_type_display }}</strong> {% trans "a été bien reçue." %}</p>
+                </div>
+
+                <div class="bg-light p-4 rounded-4 mb-4 text-start border" style="border-color: var(--border-color) !important;">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-circle-info me-2 text-primary"></i>{% trans "Détails de l'opération" %}</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Référence :" %}</span>
+                            <span class="fw-bold">{{ transaction.reference }}</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Montant :" %}</span>
+                            <span class="fw-bold text-success">{{ transaction.amount }} FCFA</span>
+                        </li>
+                        <li class="d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Statut :" %}</span>
+                            <span class="badge bg-warning text-dark">{% trans "En attente de validation" %}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 text-start mb-4">
+                    <p class="mb-0 small">
+                        <i class="fa-solid fa-shield-halved me-2"></i>
+                        {% trans "Notre équipe vérifie actuellement votre demande. Une fois validée, votre annonce sera boostée ou publiée automatiquement." %} 
+                        <strong>{% trans "Aucun paiement immédiat n'est requis via cette interface pour le moment." %}</strong>
+                    </p>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary-custom py-3 fw-bold" style="border-radius: 15px;">
+                        {% trans "Retourner à mon tableau de bord" %}
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-link text-decoration-none text-muted">
+                        {% trans "Retour à l'accueil" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

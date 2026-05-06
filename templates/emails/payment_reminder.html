@@ -1,0 +1,31 @@
+{% extends 'emails/base_email.html' %}
+{% load i18n %}
+
+{% block content %}
+<div style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
+    <h2 style="margin: 0;">⚠️ {% trans "Rappel de Paiement" %}</h2>
+</div>
+
+<p>{% trans "Bonjour" %} <strong>{{ tenant.get_full_name }}</strong>,</p>
+
+<p>{% trans "Sauf erreur de notre part, nous n'avons pas encore reçu le règlement de votre loyer pour la période suivante :" %}</p>
+
+<div style="background-color: #f8f9fa; border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0;">
+    <p style="margin: 0 0 10px 0;"><strong>{% trans "Bien :" %}</strong> {{ payment.lease.property.title }}</p>
+    <p style="margin: 0 0 10px 0;"><strong>{% trans "Période :" %}</strong> {{ payment.period_start|date:"d/m/Y" }} {% trans "au" %} {{ payment.period_end|date:"d/m/Y" }}</p>
+    <p style="margin: 0; font-size: 18px; color: #dc3545;"><strong>{% trans "Montant dû :" %} {{ payment.amount_due }} FCFA</strong></p>
+</div>
+
+<p>{% trans "Nous vous remercions de bien vouloir régulariser cette situation dans les plus brefs délais en contactant votre bailleur ou en effectuant le paiement via les modalités prévues au contrat." %}</p>
+
+<div style="text-align: center; margin: 35px 0;">
+    <a href="{{ site_url }}{% url 'dashboard' %}" style="background-color: #198754; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block;">
+        {% trans "Accéder à mon espace locataire" %}
+    </a>
+</div>
+
+<p style="font-size: 14px; color: #6c757d;">{% trans "Si vous avez déjà effectué le règlement, veuillez ignorer ce message." %}</p>
+
+<p>{% trans "Cordialement," %}<br>
+{% trans "L'équipe Loger Togo" %}</p>
+{% endblock %}

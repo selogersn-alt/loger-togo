@@ -1,0 +1,513 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block content %}
+<div class="container-fluid py-0" style="background-color: #f8f9fa; min-height: 100vh;">
+    <div class="row g-0">
+        <!-- Sidebar Dashboard -->
+        <div class="col-lg-3 col-xl-2 border-end bg-white d-none d-lg-block" style="min-height: 100vh; position: sticky; top: 0;">
+            <div class="p-4">
+                <div class="text-center mb-5">
+                    <div class="position-relative d-inline-block mb-3">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; font-size: 2rem; font-weight: bold;">
+                                {{ user.phone_number|slice:":1" }}
+                            </div>
+                        {% endif %}
+                        {% if user.is_verified_pro %}
+                            <span class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; border: 3px solid white;" title="{% trans "Vérifié" %}">
+                                <i class="fas fa-check-circle" style="font-size: 14px;"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-1">{{ user.get_full_name }}</h6>
+                    <p class="small text-muted mb-3">{{ user.get_role_display }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'update_profile' %}" class="btn btn-sm btn-outline-success rounded-pill">{% trans "Modifier le profil" %}</a>
+                        <a href="{% url 'public_profile' user.id %}" class="btn btn-sm btn-light rounded-pill">{% trans "Voir profil public" %}</a>
+                    </div>
+                </div>
+
+                <nav class="nav flex-column sidebar-nav">
+                    <a class="nav-link {% if section == 'home' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=home">
+                        <i class="fas fa-chart-line me-3"></i>{% trans "Tableau de bord" %}
+                    </a>
+                    <a class="nav-link {% if section == 'leases' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=leases">
+                        <i class="fas fa-file-contract me-3"></i>{% trans "Mes Contrats" %}
+                    </a>
+                    <a class="nav-link {% if section == 'ads' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=ads">
+                        <i class="fas fa-house-user me-3"></i>{% trans "Mes Annonces" %}
+                    </a>
+                    <a class="nav-link {% if section == 'messages' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=messages">
+                        <i class="fas fa-comment-dots me-3"></i>{% trans "Messagerie" %}
+                        {% if unread_count %}<span class="badge bg-danger rounded-pill float-end">{{ unread_count }}</span>{% endif %}
+                    </a>
+                    <a class="nav-link {% if section == 'applications' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=applications">
+                        <i class="fas fa-paper-plane me-3"></i>{% trans "Candidatures" %}
+                    </a>
+                    <hr class="my-4">
+                    <a class="nav-link text-danger mb-2 rounded-3 p-3" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt me-3"></i>{% trans "Déconnexion" %}
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-lg-9 col-xl-10 p-4 p-lg-5">
+            <!-- Header for Mobile -->
+            <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+                 <h5 class="fw-bold mb-0">{% trans "Dashboard" %}</h5>
+                 <div class="dropdown">
+                    <button class="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2">
+                        <li><a class="dropdown-item rounded" href="?section=home">{% trans "Stats" %}</a></li>
+                        <li><a class="dropdown-item rounded" href="?section=leases">{% trans "Contrats" %}</a></li>
+                        <li><a class="dropdown-item rounded" href="?section=ads">{% trans "Annonces" %}</a></li>
+                        <li><a class="dropdown-item rounded" href="?section=messages">{% trans "Messages" %}</a></li>
+                        <li><a class="dropdown-item rounded" href="{% url 'logout' %}">{% trans "Déconnexion" %}</a></li>
+                    </ul>
+                 </div>
+            </div>
+
+            {% if section == 'home' %}
+                <!-- HOME SECTION: STATS & GRAPH -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="icon-box-dash bg-success-light text-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <span class="badge bg-success-light text-success rounded-pill px-3">+12%</span>
+                            </div>
+                            <h3 class="fw-bold mb-1">{{ stats.active_ads }}</h3>
+                            <p class="text-muted small mb-0">{% trans "Annonces en ligne" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="icon-box-dash bg-warning-light text-warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <span class="badge bg-warning-light text-warning rounded-pill px-3">{% trans "En attente" %}</span>
+                            </div>
+                            <h3 class="fw-bold mb-1">{{ stats.pending_ads }}</h3>
+                            <p class="text-muted small mb-0">{% trans "Annonces à valider" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="icon-box-dash bg-primary-light text-primary">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </div>
+                            </div>
+                            <h3 class="fw-bold mb-1">{{ stats.active_leases }}</h3>
+                            <p class="text-muted small mb-0">{% trans "Baux en cours" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="icon-box-dash bg-danger-light text-danger">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                            </div>
+                            <h3 class="fw-bold mb-1">{{ stats.unpaid_rents }}</h3>
+                            <p class="text-muted small mb-0">{% trans "Loyers impayés" %}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-xl-8">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold mb-0">{% trans "Performances Financières" %}</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">{% trans "6 derniers mois" %}</button>
+                                </div>
+                            </div>
+                            <div style="height: 300px;">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                            <h5 class="fw-bold mb-4">{% trans "Actions Rapides" %}</h5>
+                            <div class="d-grid gap-3">
+                                <a href="{% url 'create_property' %}" class="btn btn-success py-3 rounded-3 shadow-sm border-0">
+                                    <i class="fas fa-plus me-2"></i>{% trans "Publier une annonce" %}
+                                </a>
+                                <a href="{% url 'management:create_lease' %}" class="btn btn-outline-dark py-3 rounded-3 border-dashed">
+                                    <i class="fas fa-plus-circle me-2"></i>{% trans "Nouveau contrat de bail" %}
+                                </a>
+                                <a href="{% url 'management:send_payment_reminders' %}" class="btn btn-light py-3 rounded-3">
+                                    <i class="fas fa-bell me-2"></i>{% trans "Relancer impayés" %}
+                                </a>
+                                <a href="{% url 'management:export_accounting_csv' %}" class="btn btn-light py-3 rounded-3">
+                                    <i class="fas fa-file-csv me-2"></i>{% trans "Export Comptabilité" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% elif section == 'ads' %}
+                <!-- ADS SECTION -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">{% trans "Gestion de mes annonces" %}</h4>
+                    <a href="{% url 'create_property' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>{% trans "Créer une annonce" %}
+                    </a>
+                </div>
+                
+                <div class="row g-4">
+                    {% for property in properties %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
+                            <div class="position-relative">
+                                {% if property.get_main_image %}
+                                    <img src="{{ property.get_main_image.image_url.url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="position-absolute top-0 end-0 p-2">
+                                    {% if property.is_published %}
+                                        <span class="badge bg-success shadow-sm">{% trans "En ligne" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark shadow-sm">{% trans "En attente validation" %}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-1">{{ property.title }}</h6>
+                                <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt me-1"></i> {{ property.neighborhood }}, {{ property.city }}</p>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-success fw-bold">{{ property.price|floatformat:0 }} F</span>
+                                    <span class="text-muted small"><i class="fas fa-eye me-1"></i> {{ property.views_count }} {% trans "vues" %}</span>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <div class="btn-group">
+                                        <a href="{% url 'edit_property' property.id %}" class="btn btn-sm btn-outline-dark">{% trans "Modifier" %}</a>
+                                        <a href="{% url 'property_detail' property.id %}" class="btn btn-sm btn-outline-dark">{% trans "Voir" %}</a>
+                                    </div>
+                                    <a href="{% url 'checkout_payment' property.id 'BOOST' %}" class="btn btn-sm btn-warning text-dark fw-bold">
+                                        <i class="fas fa-rocket me-2"></i>{% trans "Booster l'annonce" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-home fa-4x text-light mb-4"></i>
+                        <h5 class="text-muted">{% trans "Vous n'avez pas encore d'annonces." %}</h5>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            {% elif section == 'leases' %}
+                <!-- LEASES SECTION -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">{% trans "Mes Contrats de Bail" %}</h4>
+                    <a href="{% url 'management:create_lease' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>{% trans "Nouveau Bail" %}
+                    </a>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3">{% trans "Bien" %}</th>
+                                    <th class="py-3">{% trans "Locataire" %}</th>
+                                    <th class="py-3">{% trans "Loyer" %}</th>
+                                    <th class="py-3">{% trans "Echéance" %}</th>
+                                    <th class="text-end pe-4 py-3">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lease in leases %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold d-block">{{ lease.property.title }}</span>
+                                        <small class="text-muted">{{ lease.property.neighborhood }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="d-block">{{ lease.tenant.get_full_name }}</span>
+                                        <small class="text-muted">{{ lease.tenant.phone_number }}</small>
+                                    </td>
+                                    <td><span class="fw-bold">{{ lease.rent_amount|floatformat:0 }} F</span></td>
+                                    <td>
+                                        {% if lease.status == 'ACTIVE' %}
+                                            <span class="badge bg-success-light text-success px-3 rounded-pill">{% trans "Actif" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-muted px-3 rounded-pill">{{ lease.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light rounded-circle" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg">
+                                                <li><a class="dropdown-item" href="{% url 'management:record_lease_payment' lease.id %}"><i class="fas fa-money-bill-wave me-2 text-success"></i>{% trans "Encaisser Loyer" %}</a></li>
+                                                <li><a class="dropdown-item" href="{% url 'management:download_lease_pdf' lease.id %}" target="_blank"><i class="fas fa-file-pdf me-2 text-danger"></i>{% trans "Contrat PDF" %}</a></li>
+                                                <li><a class="dropdown-item" href="{% url 'management:tenant_dossier_view_for_landlord' lease.tenant.id %}"><i class="fas fa-folder-open me-2 text-info"></i>{% trans "Dossier Locataire" %}</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            {% elif section == 'messages' %}
+                <!-- MESSAGES SECTION -->
+                <h4 class="fw-bold mb-4">{% trans "Mes Conversations" %}</h4>
+                <div class="row g-0 bg-white shadow-sm rounded-4 overflow-hidden" style="height: 600px;">
+                    <div class="col-md-4 border-end h-100 overflow-auto bg-light-subtle">
+                        <div class="p-3 border-bottom bg-white">
+                            <input type="text" class="form-control form-control-sm rounded-pill" placeholder="{% trans "Rechercher..." %}">
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for conv in conversations %}
+                            <a href="?section=messages&conv_id={{ conv.id }}" class="list-group-item list-group-item-action border-0 p-3 {% if request.GET.conv_id == conv.id|stringformat:'s' %}bg-white border-start border-4 border-success shadow-sm{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px; flex-shrink: 0;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="w-100">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <h6 class="fw-bold mb-0 small">
+                                                {% for p in conv.participants.all %}
+                                                    {% if p != user %}{{ p.get_full_name|default:p.phone_number }}{% endif %}
+                                                {% endfor %}
+                                            </h6>
+                                            <small class="text-muted" style="font-size: 10px;">{{ conv.updated_at|date:"d M" }}</small>
+                                        </div>
+                                        <p class="small text-muted mb-0 text-truncate" style="font-size: 11px;">
+                                            {% if conv.messages.last %}
+                                                {{ conv.messages.last.content }}
+                                            {% else %}
+                                                {% trans "Nouvelle conversation" %}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                            {% empty %}
+                            <div class="text-center py-5">
+                                <p class="text-muted small">{% trans "Aucune conversation." %}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8 h-100 d-flex flex-column bg-white">
+                        {% if request.GET.conv_id %}
+                            {% for conv in conversations %}
+                                {% if conv.id|stringformat:'s' == request.GET.conv_id %}
+                                    <!-- Header Chat -->
+                                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user-circle text-muted"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">
+                                                    {% for p in conv.participants.all %}
+                                                        {% if p != user %}{{ p.get_full_name|default:p.phone_number }}{% endif %}
+                                                    {% endfor %}
+                                                </h6>
+                                                <small class="text-success small"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> {% trans "En ligne" %}</small>
+                                            </div>
+                                        </div>
+                                        {% if conv.related_property %}
+                                        <div class="small text-muted d-none d-md-block">
+                                            {% trans "Bien :" %} <span class="fw-bold">{{ conv.related_property.title|truncatechars:20 }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Messages List -->
+                                    <div class="flex-grow-1 p-4 overflow-auto bg-light" id="chat-window">
+                                        {% for msg in conv.messages.all %}
+                                            <div class="d-flex {% if msg.sender == user %}justify-content-end{% endif %} mb-3">
+                                                <div class="p-3 rounded-4 shadow-sm {% if msg.sender == user %}bg-success text-white{% else %}bg-white text-dark{% endif %}" style="max-width: 75%;">
+                                                    <p class="mb-1 small">{{ msg.content }}</p>
+                                                    <div class="text-end" style="font-size: 9px; opacity: 0.7;">
+                                                        {{ msg.created_at|date:"H:i" }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                            <div class="text-center py-5">
+                                                <p class="text-muted">{% trans "Aucun message dans cette conversation." %}</p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Input Chat -->
+                                    <div class="p-3 border-top bg-white">
+                                        <form action="{% url 'chat:send_message' conv.id %}" method="post" class="d-flex gap-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <input type="text" name="content" class="form-control rounded-pill border-0 bg-light px-4" placeholder="{% trans "Tapez votre message..." %}" required>
+                                            <button type="submit" class="btn btn-success rounded-circle" style="width: 45px; height: 45px;">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-5">
+                                <div class="bg-light rounded-circle mb-4 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                    <i class="fas fa-comments fa-3x text-muted opacity-50"></i>
+                                </div>
+                                <h5 class="fw-bold text-muted">{% trans "Sélectionnez une conversation" %}</h5>
+                                <p class="text-muted small">{% trans "Discutez en temps réel avec vos futurs locataires ou acheteurs." %}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% elif section == 'applications' %}
+                <!-- APPLICATIONS SECTION -->
+                <h4 class="fw-bold mb-4">{% trans "Candidatures Locataires" %}</h4>
+                <div class="row g-4">
+                    {% for app in applications %}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user-tie text-success fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0">{{ app.tenant.get_full_name }}</h6>
+                                        <small class="text-muted">{{ app.tenant.phone_number }}</small>
+                                    </div>
+                                </div>
+                                <span class="badge {% if app.status == 'PENDING' %}bg-warning-light text-warning{% elif app.status == 'ACCEPTED' %}bg-success-light text-success{% else %}bg-danger-light text-danger{% endif %} rounded-pill px-3 align-self-start">
+                                    {{ app.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <p class="small fw-bold mb-1">{% trans "Bien :" %} <span class="text-muted fw-normal">{{ app.property.title }}</span></p>
+                            </div>
+                            
+                            <div class="bg-light p-3 rounded-3 mb-4 flex-grow-1">
+                                <p class="small text-muted mb-0 italic">"{{ app.message|default:_("Aucun message accompagnant la candidature.") }}"</p>
+                            </div>
+                            
+                            <div class="d-flex gap-2 mt-auto">
+                                <a href="{% url 'management:tenant_dossier_view_for_landlord' app.tenant.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-grow-1">
+                                    <i class="fas fa-file-invoice me-1"></i>{% trans "Dossier" %}
+                                </a>
+                                {% if app.status == 'PENDING' %}
+                                <form action="{% url 'management:update_application_status' app.id %}" method="post" class="d-flex gap-2 flex-grow-1">
+                                    {% csrf_token %}
+                                    <button name="status" value="ACCEPTED" class="btn btn-sm btn-success rounded-pill px-3 flex-grow-1 shadow-sm">{% trans "Accepter" %}</button>
+                                    <button name="status" value="REFUSED" class="btn btn-sm btn-danger rounded-pill px-3 flex-grow-1 shadow-sm">{% trans "Refuser" %}</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-paper-plane fa-3x text-muted opacity-25 mb-3"></i>
+                        <h5 class="text-muted">{% trans "Aucune candidature pour le moment." %}</h5>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar-nav .nav-link {
+        color: #555;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .sidebar-nav .nav-link:hover {
+        background-color: rgba(40, 167, 69, 0.05);
+        color: #114629;
+    }
+    .sidebar-nav .nav-link.active {
+        background-color: #114629 !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(17, 70, 41, 0.3);
+    }
+    .icon-box-dash {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        font-size: 1.2rem;
+    }
+    .bg-success-light { background-color: rgba(40, 167, 69, 0.1); }
+    .bg-warning-light { background-color: rgba(255, 193, 7, 0.1); }
+    .bg-primary-light { background-color: rgba(13, 110, 253, 0.1); }
+    .bg-danger-light { background-color: rgba(220, 53, 69, 0.1); }
+    .bg-info-light { background-color: rgba(13, 202, 240, 0.1); }
+    
+    .border-dashed { border: 2px dashed #dee2e6; }
+    .border-dashed:hover { border-color: #114629; color: #114629; background: #fff; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{% if section == 'home' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: '{% trans "Revenus (FCFA)" %}',
+                data: {{ chart_totals|safe }},
+                borderColor: '#114629',
+                backgroundColor: 'rgba(17, 70, 41, 0.05)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#114629',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#eee' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

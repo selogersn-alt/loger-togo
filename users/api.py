@@ -2,8 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import SolvencyDocument, User
-from .serializers import UserMeSerializer, SolvencyDocumentSerializer, UserSerializer
+from .models import User
+from .serializers import UserMeSerializer, UserSerializer
 
 class RegisterView(APIView):
     """
@@ -53,13 +53,3 @@ class UserMeView(APIView):
     def get(self, request):
         serializer = UserMeSerializer(request.user)
         return Response(serializer.data)
-
-class SolvencyDocumentViewSet(viewsets.ModelViewSet):
-    serializer_class = SolvencyDocumentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.request.user.solvency_docs.all()
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)

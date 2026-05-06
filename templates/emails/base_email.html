@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,7 +32,7 @@
             display: inline-block;
         }
         .logo-loger { color: #ffffff; }
-        .logo-senegal { color: #7fd47d; }
+        .logo-senegal { color: #198754; }
         
         .content {
             padding: 40px 30px;
@@ -47,7 +48,7 @@
         .button {
             display: inline-block;
             padding: 12px 30px;
-            background-color: #7fd47d;
+            background-color: #198754;
             color: #0b4629 !important;
             text-decoration: none;
             border-radius: 50px;
@@ -78,9 +79,9 @@
         </div>
         
         <div class="footer">
-            &copy; {% now "Y" %} Loger Togo - Plateforme de Confiance Immobilière.<br>
-            Vous recevez cet e-mail car vous êtes inscrit sur Logertogo.com.<br>
-            Besoin d'aide ? Contactez-nous sur WhatsApp : +228 97 15 16 10
+            &copy; {% now "Y" %} {% trans "Loger Togo - Plateforme de Confiance Immobilière." %}<br>
+            {% trans "Vous recevez cet e-mail car vous êtes inscrit sur Logertogo.com." %}<br>
+            {% trans "Besoin d'aide ? Contactez-nous sur WhatsApp :" %} +228 97 15 16 10
         </div>
     </div>
 </body>

@@ -13,18 +13,18 @@ class FedaPayBridge:
         config = PricingConfig.objects.first()
         if not config:
             return {
-                'publication_rent': 100.00,
-                'publication_sale': 500.00,
-                'publication_furnished': 300.00,
-                'boost': 100.00,
-                'popup': 500.00
+                'publication_rent': 0.0,
+                'publication_sale': 0.0,
+                'publication_furnished': 0.0,
+                'boost': 1000.0,
+                'popup': 5000.0
             }
         return {
             'publication_rent': float(config.publication_fee_rent),
             'publication_sale': float(config.publication_fee_sale),
             'publication_furnished': float(config.publication_fee_furnished),
             'boost': float(config.boost_daily_fee),
-            'popup': float(config.popup_daily_fee)
+            'popup': float(config.boost_popup_fee)
         }
 
     @staticmethod
@@ -72,9 +72,36 @@ class FedaPayBridge:
     @staticmethod
     def generate_payment_url(transaction):
         """
-        Placeholder pour la génération du lien FedaPay.
-        Retourne actuellement une URL de succès simulée pour l'assistance Admin.
+        Génère une URL vers la page de confirmation de demande de paiement (validation manuelle).
         """
-        # TODO: Implémenter l'appel API FedaPay ici plus tard
-        # api_key = settings.FEDAPAY_API_KEY
-        return f"/payments/callback/?ref={transaction.reference}&status=success"
+        return f"/paiements/demande-envoyee/?ref={transaction.reference}"
+
+def trigger_property_alerts(property_obj):
+    """
+    Recherche les alertes actives correspondant au bien et envoie les notifications.
+    """
+    from .models import PropertyAlert
+    from logertogo.emails import send_new_property_alert
+    from django.db.models import Q
+    
+    # Construction dynamique des filtres de matching
+    filters = Q(is_active=True)
+    
+    # Matching Ville
+    filters &= (Q(city=property_obj.city) | Q(city=''))
+    
+    # Matching Type de bien
+    filters &= (Q(property_type=property_obj.property_type) | Q(property_type=''))
+    
+    # Matching Catégorie (Location/Vente)
+    filters &= (Q(listing_category=property_obj.listing_category) | Q(listing_category=''))
+    
+    # Matching Budget (si budget max défini dans l'alerte)
+    filters &= (Q(max_price__gte=property_obj.price) | Q(max_price__isnull=True))
+    
+    alerts = PropertyAlert.objects.filter(filters)
+    subscriber_emails = list(alerts.values_list('email', flat=True).distinct())
+    
+    if subscriber_emails:
+        return send_new_property_alert(subscriber_emails, property_obj)
+    return 0

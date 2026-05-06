@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
 <head>
@@ -26,7 +26,7 @@
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="description" content="{% block meta_description %}{% if seo_settings and seo_settings.meta_description %}{{ seo_settings.meta_description }}{% else %}Trouvez votre appartement, villa ou terrain au Togo sur Loger Togo. Location sécurisée, profils vérifiés et annonces immobilières vérifiées à Lomé et en province.{% endif %}{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Togo, Location appartement Lomé, Louer maison Togo, Vendre terrain Togo, Agence immobilière Lomé, Loger Togo, Immobilier de confiance Togo{% endif %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Togo, Maison à louer Lomé, Appartement à louer Togo, Terrain à vendre Lomé, Location meublée Lomé, Agence immobilière Togo, Loger Togo, Immobilier de confiance Togo, Location villa Lomé, Louer chambre Lomé{% endif %}{% endblock %}">
     <meta name="author" content="Loger Togo - DigitalH Group">
 
     {% if seo_settings and seo_settings.header_scripts %}
@@ -72,7 +72,7 @@
       "name": "Loger Togo",
       "alternateName": "Logertogo",
       "url": "https://Logertogo.com",
-      "logo": "https://Logertogo.com{% static 'img/icon-512x512.png' %}",
+      "logo": "https://logertogo.com{% static 'img/icon-512x512.png' %}",
       "sameAs": [
         "https://web.facebook.com/Logertogo",
         "https://www.instagram.com/Logertogo"
@@ -81,7 +81,7 @@
         "@type": "ContactPoint",
         "telephone": "+22897151610",
         "contactType": "customer service",
-        "areaServed": "SN",
+        "areaServed": "TG",
         "availableLanguage": "French"
       }
     }
@@ -99,6 +99,9 @@
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
     
+    <!-- Swiper.js (Premium Carousels) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
     <!-- Animate.css (Pour des animations fluides) -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"></noscript>
@@ -108,18 +111,19 @@
     <style>
         /* Définition des Variables de Thème (Thème Clair par défaut) */
         :root {
-            --color-dark-green: #0b4629;   
-            --color-light-green: #7fd47d;  
-            --color-yellow: #f5c42f;       
+            --color-dark-green: #0b4629;   /* Vert profond Loger */
+            --color-light-green: #28a745;  /* Vert action */
+            --color-yellow: #f5c42f;       /* Jaune Premium */
+            --color-hero-bg: #0b4629;      /* Fond Hero spécifique */
             
             /* Couleurs dynamiques selon le thème */
             --bg-body: #f8f9fa;
             --bg-card: #ffffff;
             --bg-navbar: #ffffff;
-            --text-main: #2c3e50;
+            --text-main: #333333;
             --text-muted: #6c757d;
-            --border-color: rgba(0,0,0,0.05);
-            --shadow-color: rgba(0,0,0,0.05);
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.08);
         }
 
         /* Variables pour le Thème Sombre */
@@ -310,7 +314,59 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-light">
+    <!-- Bandeau défilant (Ticker) -->
+    {% if site_tickers %}
+    <div class="site-ticker-container overflow-hidden" style="background: {{ site_tickers.0.background_color }}; color: {{ site_tickers.0.text_color }}; height: 40px; display: flex; align-items: center; position: relative; z-index: 2000;">
+        <div class="ticker-wrap w-100 h-100 d-flex align-items-center">
+            <div class="ticker-content" style="white-space: nowrap; animation: ticker-animation 30s linear infinite; display: flex; gap: 50px; align-items: center; padding-left: 100%;">
+                {% for ticker in site_tickers %}
+                <span class="fw-bold">{{ ticker.content|safe }}</span>
+                {% endfor %}
+                <!-- Doubler pour l'effet de boucle infinie -->
+                {% for ticker in site_tickers %}
+                <span class="fw-bold">{{ ticker.content|safe }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes ticker-animation {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        .ticker-content:hover { animation-play-state: paused; }
+    </style>
+    {% endif %}
+
+    <!-- Pop-up Alertes du Site -->
+    {% if site_alerts %}
+    <div class="modal fade" id="siteAlertModal" tabindex="-1" aria-hidden="true" style="z-index: 3000;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="background: {{ site_alerts.0.background_color }}; color: {{ site_alerts.0.text_color }}; border-radius: 15px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">{{ site_alerts.0.title }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="fs-5 mb-4">
+                        {{ site_alerts.0.content|safe }}
+                    </div>
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm" data-bs-dismiss="modal">{% trans "Compris" %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var alertModalEl = document.getElementById('siteAlertModal');
+            if (alertModalEl) {
+                var myModal = new bootstrap.Modal(alertModalEl);
+                myModal.show();
+            }
+        });
+    </script>
+    {% endif %}
     <!-- Alertes Système DigitalH -->
     {% if active_system_alerts %}
         {% for alert in active_system_alerts %}
@@ -339,7 +395,7 @@
                                 <p class="fs-5 mb-0">{{ alert.message }}</p>
                             </div>
                             <div class="modal-footer border-0 pb-3">
-                                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Compris</button>
+                                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">{% trans "Compris" %}</button>
                             </div>
                         </div>
                     </div>
@@ -348,7 +404,7 @@
                 <div id="system-toast-container">
                     <div class="toast show animate__animated animate__fadeInRight alert-theme-{{ alert.theme }} border-0" id="toast{{ alert.id|cut:"-" }}" role="alert" aria-live="assertive" aria-atomic="true">
                         <div class="toast-header alert-theme-{{ alert.theme }} border-0 text-white">
-                            <strong class="me-auto"><i class="fa-solid fa-bell me-2"></i> Notification</strong>
+                            <strong class="me-auto"><i class="fa-solid fa-bell me-2"></i> {% trans "Notification" %}</strong>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
                         </div>
                         <div class="toast-body fw-bold">
@@ -365,9 +421,9 @@
     <div class="fraud-marquee container-fluid bg-danger text-white py-2" style="font-size: 0.9rem; overflow: hidden; white-space: nowrap; position: relative; z-index: 1060;">
         <div class="marquee-content d-inline-block animate__animated animate__fadeIn">
             <i class="fa-solid fa-triangle-exclamation me-2 animate__animated animate__flash animate__infinite"></i>
-            <strong>ALERTE FRAUDE :</strong> 
+            <strong>{% trans "ALERTE FRAUDE :" %}</strong> 
             {% for alert in critical_fraud_alerts %}
-                <span class="mx-4">🛑 {{ alert.reported_pro_name }} signalée pour fraude/dette. Voir la liste noire pour plus de détails.</span>
+                <span class="mx-4">🛑 {% blocktrans with name=alert.reported_pro_name %}{{ name }} signalée pour fraude/dette. Voir la liste noire pour plus de détails.{% endblocktrans %}</span>
             {% endfor %}
         </div>
     </div>
@@ -389,86 +445,124 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
         <div class="container">
-            <a class="navbar-brand animate__animated animate__fadeInLeft d-flex align-items-center" href="{% url 'home' %}" aria-label="Accueil Loger Togo" style="text-decoration: none;">
-                <div class="d-flex align-items-center" style="gap: 12px;">
-                    <!-- Icône Maison fournie par l'utilisateur -->
-                    <img src="{% static 'img/logo_icon.png' %}" alt="Icon Loger Togo" height="55" style="height: 55px; width: auto; border-radius: 8px;">
-                    <!-- Typographie Loger Togo -->
-                    <div class="d-flex flex-column justify-content-center">
-                        <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 2.1rem; line-height: 1; letter-spacing: -1px; color: var(--text-main);">Loger<span style="color: var(--color-light-green);">Togo</span></span>
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}" style="gap: 12px;">
+                <div class="logo-wrapper d-flex align-items-center">
+                    <img src="{% static 'img/logo_icon.png' %}" alt="Icon Loger Togo" height="45" style="height: 45px; width: auto; border-radius: 8px;">
+                    <div class="ms-2 d-flex flex-column justify-content-center">
+                        <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; line-height: 1; letter-spacing: -1px; color: var(--text-main);">Loger<span style="color: var(--color-light-green);">Togo</span></span>
                     </div>
                 </div>
             </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <i class="fa-solid fa-bars fs-3" style="color: var(--text-main);"></i>
+            <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars-staggered fs-2" style="color: var(--text-main);"></i>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto align-items-center py-3 py-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Accueil</a>
+                        <a class="nav-link" href="{% url 'home' %}">{% trans "Accueil" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'properties_list' %}">Annonces immo.</a>
+                        <a class="nav-link" href="{% url 'properties_list' %}">{% trans "Annonces" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'professionals_list' %}">{% trans "Annuaire" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'blog:post_list' %}">{% trans "Blog" %}</a>
                     </li>
 
                     
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="guidesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Guides
+                            {% trans "Guides" %}
                         </a>
                         <ul class="dropdown-menu shadow border-0 p-2" aria-labelledby="guidesDropdown">
-                            <li><a class="dropdown-item rounded" href="{% url 'guide_locataires' %}">Guide Locataires</a></li>
-                            <li><a class="dropdown-item rounded" href="{% url 'guide_bailleurs' %}">Guide Bailleurs</a></li>
-                            <li><a class="dropdown-item rounded" href="{% url 'guide_agences' %}">Guide Agences</a></li>
-                            <li><a class="dropdown-item rounded" href="{% url 'guide_courtiers' %}">Guide Courtiers</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_locataires' %}">{% trans "Guide Locataires" %}</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_bailleurs' %}">{% trans "Guide Bailleurs" %}</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_agences' %}">{% trans "Guide Agences" %}</a></li>
+                            <li><a class="dropdown-item rounded" href="{% url 'guide_courtiers' %}">{% trans "Guide Courtiers" %}</a></li>
                         </ul>
                     </li>
 
 
 
-                    <!-- Bouton d'installation PWA (visible seulement si Chrome propose l'installation) -->
+                    <!-- Bouton d'installation PWA -->
                     <li class="nav-item ms-lg-2">
                         <button id="pwa-install-btn"
-                                class="btn btn-sm mt-2 mt-lg-0"
-                                style="display:none; align-items:center; gap:6px;
-                                       background: linear-gradient(135deg, #0b4629, #7fd47d);
-                                       color: white; border:none; border-radius:50px;
-                                       padding: 6px 14px; font-weight:600; font-size:0.8rem;"
-                                title="Installer l'application">
+                                class="btn btn-success btn-sm mt-2 mt-lg-0 d-flex align-items-center"
+                                style="display:none; gap:6px; background-color: #28a745; border:none; border-radius:50px; padding: 8px 18px; font-weight:600; font-size:0.85rem;"
+                                title="{% trans "Installer l'application" %}">
                             <i class="fa-solid fa-download"></i>
-                            <span class="d-none d-lg-inline">Installer l'app</span>
+                            <span class="">{% trans "Installer l'app" %}</span>
                         </button>
                     </li>
 
-                    <li class="nav-item ms-lg-3">
-                         <a href="{% url 'create_property' %}" class="btn btn-outline-success btn-sm rounded-pill px-3 mt-2 mt-lg-0 w-100">
-                            <i class="fa-solid fa-plus me-1"></i> Publier
+                    <li class="nav-item ms-lg-2">
+                         <a href="{% url 'create_property' %}" class="btn btn-outline-success btn-sm rounded-pill px-4 mt-2 mt-lg-0 w-100 fw-bold" style="border-width: 2px;">
+                            <i class="fa-solid fa-plus me-1"></i> {% trans "Publier" %}
                         </a>
                     </li>
 
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown ms-lg-3">
-                            <a class="btn btn-secondary-custom btn-sm dropdown-toggle mt-2 mt-lg-0 w-100" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-solid fa-user me-2"></i> Mon Compte
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="btn btn-warning btn-sm dropdown-toggle mt-2 mt-lg-0 w-100 fw-bold rounded-pill px-4 d-flex align-items-center justify-content-center" 
+                               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                               style="background-color: var(--color-yellow); border: none; color: #000; padding: 8px 18px;">
+                                <i class="fa-solid fa-user-circle fs-5 me-2"></i> {% trans "Mon Compte" %}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
-                                <li><a class="dropdown-item rounded" href="{% url 'dashboard' %}">Dashboard</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" style="border-radius: 15px;">
+                                <li><a class="dropdown-item rounded py-2" href="{% url 'dashboard' %}"><i class="fa-solid fa-chart-line me-2"></i> {% trans "Tableau de bord" %}</a></li>
+                                <li><a class="dropdown-item rounded py-2" href="{% url 'public_profile' user.id %}"><i class="fa-solid fa-id-card me-2"></i> {% trans "Mon Profil Public" %}</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Déconnexion</a></li>
+                                <li><a class="dropdown-item text-danger rounded py-2" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> {% trans "Déconnexion" %}</a></li>
                             </ul>
                         </li>
                     {% else %}
-                        <li class="nav-item ms-lg-3">
-                            <a href="{% url 'login' %}" class="btn btn-primary-custom btn-sm mt-2 mt-lg-0 w-100">Se connecter</a>
+                        <li class="nav-item ms-lg-2">
+                            <a href="{% url 'login' %}" class="btn btn-warning btn-sm mt-2 mt-lg-0 w-100 fw-bold rounded-pill px-4" style="background-color: var(--color-yellow); border: none; color: #000; padding: 8px 18px;">
+                                <i class="fa-solid fa-user-circle fs-5 me-2"></i> {% trans "Se connecter" %}
+                            </a>
                         </li>
                     {% endif %}
 
                     <li class="nav-item ms-lg-2">
-			<button class="theme-toggle-btn border-0 bg-transparent mt-2 mt-lg-0" id="themeToggle" title="Changer de thème">
-			    <i class="fa-solid fa-moon"></i>
-			</button>
+                        <button class="theme-toggle-btn border-0 bg-transparent mt-2 mt-lg-0 fs-5 text-muted" id="themeToggle" title="{% trans "Changer de thème" %}">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                    </li>
+
+                    <!-- Language Switcher -->
+                    <li class="nav-item dropdown ms-lg-2">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% get_current_language as LANGUAGE_CODE %}
+                            {% if LANGUAGE_CODE == 'fr' %}
+                                <span class="me-1">🇫🇷</span> FR
+                            {% else %}
+                                <span class="me-1">🇺🇸</span> EN
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="langDropdown" style="border-radius: 12px;">
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                    <button name="language" value="fr" class="dropdown-item d-flex align-items-center {% if LANGUAGE_CODE == 'fr' %}active{% endif %}">
+                                        <span class="me-2">🇫🇷</span> Français
+                                    </button>
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                    <button name="language" value="en" class="dropdown-item d-flex align-items-center {% if LANGUAGE_CODE == 'en' %}active{% endif %}">
+                                        <span class="me-2">🇺🇸</span> English
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -495,6 +589,11 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    <!-- Fil d'Ariane (Breadcrumbs) -->
+    <div class="container mt-3">
+        {% block breadcrumbs %}{% endblock %}
+    </div>
 
     <!-- Contenu Principal -->
     <main>
@@ -537,41 +636,41 @@
                         </div>
                     </div>
                     <p style="color: rgba(255, 255, 255, 0.7);">
-                        Trouvez le logement idéal au Togo, certifiez vos locataires et louez l'esprit tranquille.
+                        {% trans "Trouvez le logement idéal au Togo, certifiez vos locataires et louez l'esprit tranquille." %}
                     </p>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Guides & Aide</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Guides & Aide" %}</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'guide_locataires' %}" class="footer-link">Guide Locataires</a></li>
-                        <li class="mb-2"><a href="{% url 'guide_bailleurs' %}" class="footer-link">Guide Bailleurs</a></li>
-                        <li class="mb-2"><a href="{% url 'guide_agences' %}" class="footer-link">Guide Agences</a></li>
-                        <li class="mb-2"><a href="{% url 'guide_courtiers' %}" class="footer-link">Guide Courtiers</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_locataires' %}" class="footer-link">{% trans "Guide Locataires" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_bailleurs' %}" class="footer-link">{% trans "Guide Bailleurs" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_agences' %}" class="footer-link">{% trans "Guide Agences" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'guide_courtiers' %}" class="footer-link">{% trans "Guide Courtiers" %}</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Lien Utiles</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Lien Utiles" %}</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'about' %}" class="footer-link">À propos de nous</a></li>
-                        <li class="mb-2"><a href="{% url 'professionals_list' %}" class="footer-link">Annuaire des Professionnels</a></li>
-                        <li class="mb-2"><a href="{% url 'cgu' %}" class="footer-link">CGU & Conditions</a></li>
-                        <li class="mb-2"><a href="{% url 'privacy' %}" class="footer-link">Confidentialité</a></li>
+                        <li class="mb-2"><a href="{% url 'about' %}" class="footer-link">{% trans "À propos de nous" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'professionals_list' %}" class="footer-link">{% trans "Annuaire des Professionnels" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'cgu' %}" class="footer-link">{% trans "CGU & Conditions" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'privacy' %}" class="footer-link">{% trans "Confidentialité" %}</a></li>
                         <li class="mb-2"><a href="mailto:serviceclient@Logertogo.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@Logertogo.com</a></li>
                         <li class="mb-2"><a href="https://wa.me/22897151610" class="footer-link" target="_blank"><i class="fa-brands fa-whatsapp me-2"></i>+228 97 15 16 10</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Secteurs Prisés</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Secteurs Prisés" %}</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Agoè-Assiyéyé" class="footer-link">Immobilier Agoè</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Baguida" class="footer-link">Location Baguida</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hanoukopé" class="footer-link">Appartements Hanoukopé</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hedzranawoé" class="footer-link">Villas Hedzranawoé</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Adidogomé" class="footer-link">Annonces Adidogomé</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Agoè-Assiyéyé" class="footer-link">{% trans "Immobilier Agoè" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Baguida" class="footer-link">{% trans "Location Baguida" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hanoukopé" class="footer-link">{% trans "Appartements Hanoukopé" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hedzranawoé" class="footer-link">{% trans "Villas Hedzranawoé" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Adidogomé" class="footer-link">{% trans "Annonces Adidogomé" %}</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">Suivez-nous</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Suivez-nous" %}</h5>
                     <div class="d-flex">
                         <a href="#" class="text-white me-3 fs-4"><i class="fa-brands fa-facebook"></i></a>
                         <a href="#" class="text-white me-3 fs-4"><i class="fa-brands fa-instagram"></i></a>
@@ -581,7 +680,7 @@
             </div>
             <hr style="border-color: rgba(255, 255, 255, 0.2);">
             <div class="text-center" style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem;">
-                &copy; <span id="currentYear"></span> Logertogo. Tous droits réservés.
+                &copy; <span id="currentYear"></span> Logertogo. {% trans "Tous droits réservés." %}
             </div>
         </div>
     </footer>
@@ -593,7 +692,7 @@
         <i class="fa-solid fa-headset"></i>
     </a>
     <div class="support-tooltip">
-        <i class="fa-solid fa-circle-sparkles me-2 text-warning"></i>Besoin d'aide ? Chattez avec nous !
+        <i class="fa-solid fa-circle-sparkles me-2 text-warning"></i>{% trans "Besoin d'aide ? Chattez avec nous !" %}
     </div>
     {% endif %}
 
@@ -639,8 +738,8 @@
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-3"><i class="fa-solid fa-location-dot me-1"></i> {{ property_popup.neighborhood }}, {{ property_popup.city }}</p>
                     <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="fw-bold mb-0" style="color: var(--color-dark-green);">{{ property_popup.price|floatformat:0 }} F <span class="small font-weight-normal">/ mois</span></h3>
-                        <a href="{% url 'property_detail' property_popup.id %}" class="btn btn-yellow fw-bold rounded-pill px-4">Voir l'offre <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                        <h3 class="fw-bold mb-0" style="color: var(--color-dark-green);">{{ property_popup.price|floatformat:0 }} F <span class="small font-weight-normal">/ {% trans "mois" %}</span></h3>
+                        <a href="{% url 'property_detail' property_popup.id %}" class="btn btn-yellow fw-bold rounded-pill px-4">{% trans "Voir l'offre" %} <i class="fa-solid fa-arrow-right ms-1"></i></a>
                     </div>
                 </div>
             </div>
@@ -648,8 +747,32 @@
     </div>
     {% endif %}
 
+    <!-- Publicités Flottantes (Sticky Footer) -->
+    {% if ad_sticky_footer %}
+    <div id="sticky-footer-ad" style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 9999; background: rgba(0,0,0,0.8); padding: 5px 0; text-align: center; border-top: 2px solid var(--color-yellow); display: none;">
+        <button onclick="document.getElementById('sticky-footer-ad').style.display='none'" style="position: absolute; top: -15px; right: 10px; background: var(--color-yellow); border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold;">×</button>
+        {% for ad in ad_sticky_footer %}
+            {% if ad.ad_type == 'BANNER' %}
+                <a href="{{ ad.target_url }}" target="_blank">
+                    <img src="{{ ad.image.url }}" style="max-height: 60px; max-width: 90%; object-fit: contain;">
+                </a>
+            {% else %}
+                <div style="max-height: 90px; overflow: hidden;">
+                    {{ ad.script_content|safe }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Affichage Sticky Footer après 5s
+            setTimeout(function() {
+                var stickyAd = document.getElementById('sticky-footer-ad');
+                if (stickyAd) stickyAd.style.display = 'block';
+            }, 5000);
+
             // Gestionnaire de Pop-ups DigitalH (Délai 10s + 1 vue par session)
             setTimeout(function() {
                 if (!sessionStorage.getItem('digitalh_popup_shown')) {
@@ -664,11 +787,29 @@
                         sessionStorage.setItem('digitalh_popup_shown', 'true');
                     }
                 }
-            }, 10000); // 10 secondes de délai raisonnable
+            }, 10000); 
+
+            // Gestionnaire de Pop-under
+            {% if ad_pop_under %}
+            document.body.addEventListener('click', function() {
+                if (!sessionStorage.getItem('popunder_done')) {
+                    {% with ad=ad_pop_under.first %}
+                    {% if ad.ad_type == 'BANNER' %}
+                    window.open('{{ ad.target_url }}', '_blank');
+                    {% else %}
+                    // Si c'est un script, on espère qu'il s'injecte, sinon on ne peut pas forcer le click
+                    {% endif %}
+                    {% endwith %}
+                    sessionStorage.setItem('popunder_done', 'true');
+                    window.focus();
+                }
+            }, { once: true });
+            {% endif %}
         });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
     <!-- Script pour le Theme Sombre/Clair -->
     <script>

@@ -88,31 +88,43 @@ def admin_statistics_view(request):
     if request.GET.get('export') == 'excel':
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = "Statistiques Solvable"
+        ws.title = "Statistiques Loger Togo"
         
-        # Headers
-        ws.append(["Indicateur", "Valeur"])
-        ws['A1'].font = Font(bold=True)
-        ws['B1'].font = Font(bold=True)
-        
+        # Sheet 1: GLOBAL STATS
         ws.append(["Utilisateurs Totaux", total_users])
         ws.append(["Professionnels Vérifiés", verified_pros])
         ws.append(["Taux de Vérification Pro (%)", f"{pro_verification_rate:.2f}"])
         ws.append(["Annonces Publiées", published_properties])
-        ws.append(["Taux d'Occupation (%)", f"{occupancy_rate:.2f}"])
-        ws.append(["Contrats Actifs", active_filiations])
-        ws.append(["Taux de Contestation (%)", f"{contestation_rate:.2f}"])
-        ws.append(["Taux de Résolution Litiges (%)", f"{resolution_rate:.2f}"])
-        ws.append(["Paiements à temps", paid_payments])
-        ws.append(["Taux de Recouvrement (%)", f"{collection_rate:.2f}"])
+        ws.append(["Revenu Total", f"{total_revenue:.0f} FCFA"])
         ws.append(["Conformité KYC (%)", f"{kyc_compliance_rate:.2f}"])
-        ws.append(["Paiements Impayés", unpaid_payments])
         
-        # Breakdown by role
-        ws.append([])
-        ws.append(["Rôle", "Nombre d'inscrits"])
-        for stat in users_by_role:
-            ws.append([stat['role'], stat['count']])
+        # Sheet 2: USERS (Contacts)
+        ws_users = wb.create_sheet(title="Liste des Contacts")
+        ws_users.append(["Nom complet", "Email", "Téléphone", "Rôle", "Vérifié Pro", "Date d'inscription"])
+        for user in User.objects.all().order_by('-date_joined'):
+            ws_users.append([
+                user.get_full_name() or "N/A",
+                user.email or "N/A",
+                user.phone_number,
+                user.get_role_display(),
+                "Oui" if user.is_verified_pro else "Non",
+                user.date_joined.strftime("%d/%m/%Y")
+            ])
+            
+        # Sheet 3: PROPERTIES (Annonces)
+        ws_props = wb.create_sheet(title="Liste des Annonces")
+        ws_props.append(["Titre", "Propriétaire", "Ville", "Quartier", "Prix", "Vues", "Statut", "Date"])
+        for prop in Property.objects.all().order_by('-created_at'):
+            ws_props.append([
+                prop.title,
+                prop.owner.get_full_name() or prop.owner.phone_number,
+                prop.city,
+                prop.neighborhood,
+                f"{prop.price:.0f}",
+                prop.views_count,
+                "Publiée" if prop.is_published else "En attente",
+                prop.created_at.strftime("%d/%m/%Y")
+            ])
 
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename=stats_logertogo_{today.strftime("%Y%m%d")}.xlsx'

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Modifier mon Profil | Loger Togo{% endblock %}
+{% block title %}{% trans "Modifier mon Profil" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -9,7 +9,7 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-lg" style="border-radius: 20px; background-color: var(--bg-card);">
                 <div class="card-header bg-success text-white p-4 border-0" style="border-radius: 20px 20px 0 0;">
-                    <h4 class="mb-0 fw-bold"><i class="fa-solid fa-user-gear me-2"></i> Paramètres du Profil Pro</h4>
+                    <h4 class="mb-0 fw-bold"><i class="fa-solid fa-user-gear me-2"></i> {% trans "Paramètres du Profil Pro" %}</h4>
                 </div>
                 <div class="card-body p-4 p-md-5">
                     <form method="POST" enctype="multipart/form-data">
@@ -28,63 +28,63 @@
                                     {% endif %}
                                 </div>
                                 <div class="mt-3">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">Changer le Logo / Photo de profil</label>
+                                    <label class="form-label fw-bold text-muted small text-uppercase">{% trans "Changer le Logo / Photo de profil" %}</label>
                                     {{ form.profile_picture }}
                                 </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Nom de l'entreprise / Agence</label>
+                                <label class="form-label fw-bold">{% trans "Nom de l'entreprise / Agence" %}</label>
                                 {{ form.company_name }}
-                                <small class="text-muted">S'affiche sur vos annonces et votre profil.</small>
+                                <small class="text-muted">{% trans "S'affiche sur vos annonces et votre profil." %}</small>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Lien personnalisé (Slug)</label>
+                                <label class="form-label fw-bold">{% trans "Lien personnalisé (Slug)" %}</label>
                                 <div class="input-group">
                                     <span class="input-group-text" style="background: var(--bg-body); border-color: var(--border-color); color: var(--text-muted);">Logertogo.com/p/</span>
                                     {{ form.slug }}
                                 </div>
-                                <small class="text-muted">Lettres, chiffres et tirets uniquement.</small>
+                                <small class="text-muted">{% trans "Lettres, chiffres et tirets uniquement." %}</small>
                                 {% if form.slug.errors %}
                                     <div class="text-danger small">{{ form.slug.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Prénom</label>
+                                <label class="form-label fw-bold">{% trans "Prénom" %}</label>
                                 {{ form.first_name }}
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Nom</label>
+                                <label class="form-label fw-bold">{% trans "Nom" %}</label>
                                 {{ form.last_name }}
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label fw-bold">Adresse Email</label>
+                                <label class="form-label fw-bold">{% trans "Adresse Email" %}</label>
                                 {{ form.email }}
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label fw-bold">Zone de couverture</label>
+                                <label class="form-label fw-bold">{% trans "Zone de couverture" %}</label>
                                 {{ form.coverage_area }}
-                                <small class="text-muted">Ex: Lomé, Almadies, Saly, etc.</small>
+                                <small class="text-muted">{% trans "Ex: Lomé, Hedzranawoé, Baguida, Agoè, etc." %}</small>
                             </div>
 
                             <div class="col-12 mt-3">
                                 <div class="p-3 rounded bg-light border" style="border-color: var(--border-color) !important;">
-                                    <label class="form-label fw-bold mb-2"><i class="fa-solid fa-bell me-2 text-success"></i>Préférences de Notifications</label>
+                                    <label class="form-label fw-bold mb-2"><i class="fa-solid fa-bell me-2 text-success"></i>{% trans "Préférences de Notifications" %}</label>
                                     {{ form.notification_preference }}
-                                    <small class="text-muted d-block mt-2">Choisissez comment vous souhaitez recevoir vos codes OTP et alertes.</small>
+                                    <small class="text-muted d-block mt-2">{% trans "Choisissez comment vous souhaitez recevoir vos codes OTP et alertes." %}</small>
                                 </div>
                             </div>
 
                             <div class="col-12 mt-5">
                                 <button type="submit" class="btn btn-primary-custom w-100 py-3 fs-5 shadow">
-                                    <i class="fa-solid fa-cloud-arrow-up me-2"></i> Enregistrer les modifications
+                                    <i class="fa-solid fa-cloud-arrow-up me-2"></i> {% trans "Enregistrer les modifications" %}
                                 </button>
-                                <a href="{% url 'dashboard' %}" class="btn btn-link w-100 mt-2 text-muted text-decoration-none">Annuler et retourner au tableau de bord</a>
+                                <a href="{% url 'dashboard' %}" class="btn btn-link w-100 mt-2 text-muted text-decoration-none">{% trans "Annuler et retourner au tableau de bord" %}</a>
                             </div>
                         </div>
                     </form>

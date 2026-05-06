@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Advertisement, AdsConfig, SEOSetting
+from .models import Advertisement, AdsConfig, SEOSetting, SiteAnnouncement
+
+@admin.register(SiteAnnouncement)
+class SiteAnnouncementAdmin(admin.ModelAdmin):
+    list_display = ('title', 'announcement_type', 'is_active', 'created_at')
+    list_filter = ('announcement_type', 'is_active')
+    search_fields = ('title', 'content')
 
 @admin.register(Advertisement)
 class AdvertisementAdmin(admin.ModelAdmin):

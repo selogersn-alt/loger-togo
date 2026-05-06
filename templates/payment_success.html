@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Paiement Réussi | Logertogo{% endblock %}
+{% block title %}{% trans "Paiement Réussi" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5 mt-5">
@@ -11,49 +12,49 @@
                     <div class="display-1 text-success mb-3">
                         <i class="fa-solid fa-circle-check text-success animate__animated animate__bounceIn animate__delay-1s"></i>
                     </div>
-                    <h2 class="fw-bold" style="color: var(--text-main);">Paiement Confirmé !</h2>
-                    <p class="text-muted">Votre transaction a été traitée avec succès par le moteur de paiement DigitalH.</p>
+                    <h2 class="fw-bold" style="color: var(--text-main);">{% trans "Paiement Confirmé !" %}</h2>
+                    <p class="text-muted">{% trans "Votre transaction a été traitée avec succès par le moteur de paiement DigitalH." %}</p>
                 </div>
 
                 <div class="bg-light p-4 rounded-4 mb-4 text-start" style="background-color: rgba(127, 212, 125, 0.05) !important; border: 1px dashed var(--color-light-green);">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small text-uppercase fw-bold">Référence</span>
+                        <span class="text-muted small text-uppercase fw-bold">{% trans "Référence" %}</span>
                         <span class="fw-bold text-dark">{{ transaction.reference }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small text-uppercase fw-bold">Type de service</span>
+                        <span class="text-muted small text-uppercase fw-bold">{% trans "Type de service" %}</span>
                         <span class="fw-bold text-dark">{{ transaction.get_transaction_type_display }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small text-uppercase fw-bold">Montant réglé</span>
+                        <span class="text-muted small text-uppercase fw-bold">{% trans "Montant réglé" %}</span>
                         <h4 class="fw-bold mb-0" style="color: var(--color-dark-green);">{{ transaction.amount|floatformat:0 }} FCFA</h4>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span class="text-muted small text-uppercase fw-bold">Statut</span>
-                        <span class="badge bg-success rounded-pill px-3">Réussi</span>
+                        <span class="text-muted small text-uppercase fw-bold">{% trans "Statut" %}</span>
+                        <span class="badge bg-success rounded-pill px-3">{% trans "Réussi" %}</span>
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--text-main);">Et maintenant ?</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--text-main);">{% trans "Et maintenant ?" %}</h5>
                     <div class="d-flex align-items-center mb-3 text-start bg-body p-3 rounded-3 shadow-sm">
                         <div class="bg-yellow text-dark rounded-circle me-3 d-flex align-items-center justify-content-center" style="min-width: 40px; height: 40px;">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </div>
-                        <p class="mb-0 small text-muted">Notre équipe va procéder à la validation de votre annonce sous 24h.</p>
+                        <p class="mb-0 small text-muted">{% trans "Notre équipe va procéder à la validation de votre annonce sous 24h." %}</p>
                     </div>
                     
                     <a href="{% url 'dashboard' %}" class="btn btn-yellow fw-bold w-100 rounded-pill py-3 shadow-sm mb-3">
-                        Retour au Tableau de Bord <i class="fa-solid fa-chart-line ms-2"></i>
+                        {% trans "Retour au Tableau de Bord" %} <i class="fa-solid fa-chart-line ms-2"></i>
                     </a>
                     <a href="{% url 'properties_list' %}" class="btn btn-link text-muted small text-decoration-none">
-                        Explorer les autres annonces <i class="fa-solid fa-arrow-right ms-1"></i>
+                        {% trans "Explorer les autres annonces" %} <i class="fa-solid fa-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
             
             <p class="mt-4 text-muted small">
-                Un reçu détaillé vous a été envoyé par email. Merci de faire confiance à <strong>DigitalH</strong> pour vos services immobiliers.
+                {% trans "Un reçu détaillé vous a été envoyé par email. Merci de faire confiance à <strong>DigitalH</strong> pour vos services immobiliers." %}
             </p>
         </div>
     </div>

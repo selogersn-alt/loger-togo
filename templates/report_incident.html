@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Déclarer un Incident | Solvable{% endblock %}
+{% block title %}{% trans "Déclarer un Incident" %} | Loger Togo{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -10,8 +11,8 @@
                 <div class="card-body p-sm-5 p-4">
                     <div class="text-center mb-4">
                         <i class="fa-solid fa-triangle-exclamation text-danger mb-3" style="font-size: 3rem;"></i>
-                        <h2 class="fw-bold" style="color: var(--text-main);">Signalement de Litige</h2>
-                        <p class="text-muted small">Le système NILS protège les bailleurs sérieux des comportements abusifs.</p>
+                        <h2 class="fw-bold" style="color: var(--text-main);">{% trans "Signalement de Litige" %}</h2>
+                        <p class="text-muted small">{% trans "Le système Confiance protège les bailleurs sérieux des comportements abusifs." %}</p>
                     </div>
 
                     <form method="post" enctype="multipart/form-data">
@@ -20,63 +21,63 @@
                         <div class="row g-4">
                             <!-- Section Contrat/Filiation -->
                             <div class="col-12">
-                                <label class="form-label fw-bold">1. Sélection du Contrat App (Optionnel)</label>
+                                <label class="form-label fw-bold">{% trans "1. Sélection du Contrat App (Optionnel)" %}</label>
                                 {{ form.rental_filiation }}
-                                <div class="form-text small">Utilisez ce champ si le locataire est déjà lié à vous via l'application.</div>
+                                <div class="form-text small">{% trans "Utilisez ce champ si le locataire est déjà lié à vous via l'application." %}</div>
                             </div>
 
                             <!-- Section Manuelle (Si pas de filiation) -->
                             <div class="col-12 border-start border-danger border-4 ps-4 py-2 my-2" id="manual_section" style="background: rgba(220, 53, 69, 0.03); border-radius: 0 10px 10px 0;">
-                                <h6 class="fw-bold text-danger"><i class="fa-solid fa-user-pen me-2"></i>Signalement Manuel (Hors-Contrat App)</h6>
-                                <p class="small text-muted mb-3">Si vous n'avez pas créé de "Filiation" dans l'app, remplissez ces champs.</p>
+                                <h6 class="fw-bold text-danger"><i class="fa-solid fa-user-pen me-2"></i>{% trans "Signalement Manuel (Hors-Contrat App)" %}</h6>
+                                <p class="small text-muted mb-3">{% trans "Si vous n'avez pas créé de \"Filiation\" dans l'app, remplissez ces champs." %}</p>
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Téléphone de la personne</label>
+                                        <label class="form-label small fw-bold">{% trans "Téléphone de la personne" %}</label>
                                         <input type="text" name="reported_phone" class="form-control form-control-sm" placeholder="Ex: 90 123 45 67" style="background: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Prénom & Nom</label>
-                                        <input type="text" name="reported_name" class="form-control form-control-sm" placeholder="Facultatif" style="background: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                                        <label class="form-label small fw-bold">{% trans "Prénom & Nom" %}</label>
+                                        <input type="text" name="reported_name" class="form-control form-control-sm" placeholder="{% trans "Facultatif" %}" style="background: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label small fw-bold">Adresse précise du logement concerné</label>
-                                        <input type="text" name="property_address" class="form-control form-control-sm" placeholder="Quartier, Rue, Immeuble..." style="background: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
+                                        <label class="form-label small fw-bold">{% trans "Adresse précise du logement concerné" %}</label>
+                                        <input type="text" name="property_address" class="form-control form-control-sm" placeholder="{% trans "Quartier, Rue, Immeuble..." %}" style="background: var(--bg-body); color: var(--text-main); border-color: var(--border-color);">
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Détails de l'incident -->
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">2. Nature du litige</label>
+                                <label class="form-label fw-bold">{% trans "2. Nature du litige" %}</label>
                                 {{ form.incident_type }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Montant en jeu (FCFA)</label>
+                                <label class="form-label fw-bold">{% trans "Montant en jeu (FCFA)" %}</label>
                                 {{ form.amount_due }}
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-bold">N° NILS du Bénéficiaire (Optionnel)</label>
-                                {{ form.landlord_nils_beneficiary }}
-                                <div class="form-text small">Indiquez le NILS du propriétaire si vous êtes une Agence ou un Courtier mandaté.</div>
+                                <label class="form-label fw-bold">{% trans "N° Confiance du Bénéficiaire (Optionnel)" %}</label>
+                                {{ form.landlord_Confiance_beneficiary }}
+                                <div class="form-text small">{% trans "Indiquez le Confiance du propriétaire si vous êtes une Agence ou un Courtier mandaté." %}</div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-bold">3. Description détaillée</label>
+                                <label class="form-label fw-bold">{% trans "3. Description détaillée" %}</label>
                                 {{ form.description }}
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-bold">4. Justificatif (Preuve)</label>
+                                <label class="form-label fw-bold">{% trans "4. Justificatif (Preuve)" %}</label>
                                 {{ form.evidence_file }}
-                                <div class="form-text small text-danger">Obligatoire : scan de dette, contrat papier ou photos de dégradations.</div>
+                                <div class="form-text small text-danger">{% trans "Obligatoire : scan de dette, contrat papier ou photos de dégradations." %}</div>
                             </div>
                         </div>
 
                         <div class="alert alert-warning small bg-transparent mt-4" style="border-radius: 10px; border-color: #ffc107 !important; color: var(--text-main);">
-                            <i class="fa-solid fa-info-circle me-2 text-warning"></i> <strong>Avertissement :</strong> Chaque signalement fera l'objet d'une médiation. Tout abus pourra nuire à votre propre score Bailleur.
+                            <i class="fa-solid fa-info-circle me-2 text-warning"></i> <strong>{% trans "Avertissement :" %}</strong> {% trans "Chaque signalement fera l'objet d'une médiation. Tout abus pourra nuire à votre propre score Bailleur." %}
                         </div>
 
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-danger py-3 rounded-pill fw-bold shadow-sm">
-                                ACTER LE SIGNALEMENT <i class="fa-solid fa-gavel ms-2"></i>
+                                {% trans "ACTER LE SIGNALEMENT" %} <i class="fa-solid fa-gavel ms-2"></i>
                             </button>
                         </div>
                     </form>

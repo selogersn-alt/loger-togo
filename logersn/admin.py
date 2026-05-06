@@ -38,7 +38,7 @@ class PropertyAdmin(admin.ModelAdmin):
     def publish_properties(self, request, queryset):
         count = 0
         alerts_sent = 0
-        from logertogo.views import trigger_property_alerts
+        from logersn.utils import trigger_property_alerts
         
         for prop in queryset:
             if not prop.is_published:
@@ -78,13 +78,41 @@ class PropertyEquipmentAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('reference', 'user', 'transaction_type', 'amount', 'status', 'created_at')
+    list_display = ('reference', 'user', 'transaction_type', 'amount', 'status', 'property_link', 'created_at')
     list_filter = ('transaction_type', 'status', 'created_at')
     search_fields = ('reference', 'user__phone_number', 'user__email')
+    actions = ['validate_transactions']
+
+    def property_link(self, obj):
+        if obj.property:
+            return format_html('<a href="{}">{}</a>', f"/admin/logersn/property/{obj.property.id}/change/", obj.property.title)
+        return "-"
+    property_link.short_description = "Bien concerné"
+
+    @admin.action(description="✅ Valider manuellement les transactions (Activer Boost/Pub)")
+    def validate_transactions(self, request, queryset):
+        from django.utils import timezone
+        import datetime
+        count = 0
+        for trans in queryset:
+            if trans.status != 'SUCCESS':
+                trans.status = 'SUCCESS'
+                trans.save()
+                
+                # Appliquer l'effet du boost ou de la publication
+                if trans.transaction_type == 'PUBLICATION' and trans.property:
+                    trans.property.is_paid = True
+                    trans.property.save()
+                elif trans.transaction_type == 'BOOST' and trans.property:
+                    trans.property.is_boosted = True
+                    trans.property.boost_until = timezone.now() + datetime.timedelta(days=trans.days)
+                    trans.property.save()
+                count += 1
+        self.message_user(request, f"{count} transaction(s) validée(s) et services activés.")
 
 @admin.register(PricingConfig)
 class PricingConfigAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'publication_fee_rent', 'publication_fee_sale', 'publication_fee_furnished', 'boost_daily_fee', 'popup_daily_fee')
+    list_display = ('__str__', 'publication_fee_rent', 'publication_fee_sale', 'publication_fee_furnished', 'boost_daily_fee', 'boost_popup_fee', 'boost_infeed_fee', 'boost_top_banner_fee')
     
     def has_add_permission(self, request):
         return not PricingConfig.objects.exists()

@@ -29,7 +29,7 @@ def home_view(request):
     listing_category = request.GET.get('listing_category')
     query = request.GET.get('query', '')
 
-    all_properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    all_properties = Property.objects.all().select_related('owner').prefetch_related('images')
     if city and city != 'ALL':
         all_properties = all_properties.filter(city=city)
     if property_type and property_type != 'ALL':
@@ -41,7 +41,7 @@ def home_view(request):
             Q(title__icontains=query) | Q(description__icontains=query) | Q(neighborhood__icontains=query)
         )
 
-    all_properties = all_properties.order_by('-is_boosted', '-created_at')
+    all_properties = all_properties.order_by('-created_at', '-is_boosted')
     paginator = Paginator(all_properties, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)

@@ -32,7 +32,7 @@ def properties_list_view(request):
     max_price = request.GET.get('max_price')
     q = request.GET.get('q')
     
-    properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    properties = Property.objects.all().select_related('owner').prefetch_related('images')
     
     # Filtres de base
     if listing_category and listing_category != 'ALL': properties = properties.filter(listing_category=listing_category)
@@ -70,7 +70,7 @@ def properties_list_view(request):
     sort = request.GET.get('sort')
     if sort == 'price_asc': properties = properties.order_by('-is_boosted', 'price')
     elif sort == 'price_desc': properties = properties.order_by('-is_boosted', '-price')
-    else: properties = properties.order_by('-is_boosted', '-created_at')
+    else: properties = properties.order_by('-created_at', '-is_boosted')
     
     # --- DONNÉES CARTE ---
     map_markers = []

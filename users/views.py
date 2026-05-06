@@ -33,7 +33,7 @@ def login_view(request):
         password = request.POST.get('password')
         user = authenticate(request, phone_number=phone, password=password)
         if user:
-            login(request, user)
+            login(request, user, backend='users.backends.PhoneOrEmailBackend')
             return redirect('dashboard')
         messages.error(request, _("Identifiants incorrects."))
     return render(request, 'login.html')
@@ -44,7 +44,7 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='users.backends.PhoneOrEmailBackend')
             return redirect('dashboard')
     else:
         form = CustomUserCreationForm()

@@ -23,8 +23,9 @@ class Property(models.Model):
         BAIL = 'BAIL', _('Bail')
         TITRE_FONCIER_INDIVIDUEL = 'TITRE_FONCIER_INDIVIDUEL', _('Titre Foncier Individuel')
         TITRE_FONCIER_GLOBAL = 'TITRE_FONCIER_GLOBAL', _('Titre Foncier Global')
-        ACTE_DE_VENTE = 'ACTE_DE_VENTE', _('Acte de Vente')
-        DELIBERATION = 'DELIBERATION', _('Délibération')
+        ACTE_COUTUMIER = 'ACTE_COUTUMIER', _('Acte Coutumier')
+        DEUX_TAMPONS = 'DEUX_TAMPONS', _('2 Tampons')
+        TROIS_TAMPONS = 'TROIS_TAMPONS', _('3 Tampons')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')
@@ -40,6 +41,13 @@ class Property(models.Model):
     
     # Pour les meublés uniquement
     price_per_night = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Prix par nuitée (Meublé)"))
+    
+    # Conditions de location (Location)
+    deposit_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de caution"))
+    advance_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois d'avance"))
+    agency_fee_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de frais d'agence"))
+    visit_fee = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Frais de visite (CFA)"))
+
     surface = models.IntegerField(default=0, blank=True, verbose_name=_("Surface (m2)"))
     bedrooms = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de chambres"))
     toilets = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de toilettes"))

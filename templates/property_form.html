@@ -104,6 +104,36 @@
                 {{ form.document_type }}
               </div>
 
+              <!-- ─ CONDITIONS DE LOCATION (Apparaît si location) ─ -->
+              <div class="col-12" id="rental_conditions_container" style="display:none;">
+                <div class="p-3 rounded-4 mt-2" style="background:var(--bg-body);border:1px solid var(--border-color);">
+                  <h6 class="fw-bold mb-3" style="color:var(--text-main);">
+                    <i class="fa-solid fa-file-contract me-2 text-success"></i>{% trans "Conditions de Location" %}
+                  </h6>
+                  <div class="row g-3">
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small text-muted">{{ form.deposit_months.label }}</label>
+                      {{ form.deposit_months }}
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small text-muted">{{ form.advance_months.label }}</label>
+                      {{ form.advance_months }}
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small text-muted">{{ form.agency_fee_months.label }}</label>
+                      {{ form.agency_fee_months }}
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small text-muted">{{ form.visit_fee.label }}</label>
+                      <div class="input-group input-group-sm">
+                        {{ form.visit_fee }}
+                        <span class="input-group-text" style="background:var(--color-light-green);color:white;">CFA</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- ─ VILLE + QUARTIER ─ -->
               <div class="col-md-6">
                 <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.city.label }}</label>
@@ -220,34 +250,40 @@
 
               <!-- ─ ÉQUIPEMENTS ─ -->
               <div class="col-12 pt-3 border-top section-divider">
-                <h5 class="fw-bold mb-3" style="color:var(--text-main);">{% trans "Équipements" %} <span class="text-muted fw-normal small">({% trans "Optionnel" %})</span></h5>
-                <div class="row g-2">
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.wifi }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.wifi.label }}</label>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="fw-bold m-0" style="color:var(--text-main);">{% trans "Équipements" %} <span class="text-muted fw-normal small">({% trans "Optionnel" %})</span></h5>
+                  <button class="btn btn-sm btn-outline-success rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#equipmentsCollapse" aria-expanded="false" aria-controls="equipmentsCollapse">
+                    <i class="fa-solid fa-plus me-1"></i>{% trans "Ajouter des équipements" %}
+                  </button>
+                </div>
+                <div class="collapse" id="equipmentsCollapse">
+                  <div class="row g-2">
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.wifi }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.wifi.label }}</label>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.air_conditioning }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.air_conditioning.label }}</label>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.air_conditioning }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.air_conditioning.label }}</label>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.swimming_pool }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.swimming_pool.label }}</label>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.swimming_pool }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.swimming_pool.label }}</label>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.gym }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.gym.label }}</label>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.gym }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.gym.label }}</label>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
                       {{ form.refrigerator }}
                       <label class="form-check-label small fw-bold ms-2">{{ form.refrigerator.label }}</label>
                     </div>
@@ -503,10 +539,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('id_listing_category');
     const priceLabel = document.getElementById('price_label');
     const pricePerNightContainer = document.getElementById('price_per_night_container');
+    const rentalConditionsContainer = document.getElementById('rental_conditions_container');
     const documentTypeContainer = document.getElementById('document_type_container');
 
     function updateFields() {
         const category = categorySelect.value;
+        
+        // Gestion des prix et nuitées
         if (category === 'FURNISHED') {
             pricePerNightContainer.style.display = 'block';
             priceLabel.innerText = '{% trans "Loyer mensuel (si applicable)" %}';
@@ -514,7 +553,16 @@ document.addEventListener('DOMContentLoaded', function() {
             pricePerNightContainer.style.display = 'none';
             priceLabel.innerText = category === 'SALE' ? '{% trans "Prix de vente total" %}' : '{% trans "Loyer mensuel" %}';
         }
+
+        // Gestion du type de document (Uniquement pour la vente)
         documentTypeContainer.style.display = category === 'SALE' ? 'block' : 'none';
+
+        // Gestion des conditions de location (Uniquement pour Location ou Meublé)
+        if (category === 'RENT' || category === 'FURNISHED') {
+            rentalConditionsContainer.style.display = 'block';
+        } else {
+            rentalConditionsContainer.style.display = 'none';
+        }
     }
     if (categorySelect) {
         categorySelect.addEventListener('change', updateFields);

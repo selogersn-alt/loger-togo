@@ -55,7 +55,10 @@ class PropertyForm(forms.ModelForm):
             cleaned_data['title'] = re.sub(safe_chars_regex, '', title)
 
         # Remplacer None par 0 pour les champs Integer
-        integer_fields = ['surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens', 'households', 'floor_level']
+        integer_fields = [
+            'surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens', 'households', 'floor_level',
+            'deposit_months', 'advance_months', 'agency_fee_months', 'visit_fee'
+        ]
         for field in integer_fields:
             if cleaned_data.get(field) is None:
                 cleaned_data[field] = 0
@@ -73,6 +76,7 @@ class PropertyForm(forms.ModelForm):
             'generator', 'water_tank',
             'latitude', 'longitude',
             'discount_percentage', 'discount_price',
+            'deposit_months', 'advance_months', 'agency_fee_months', 'visit_fee',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ex: Superbe appartement F4 vue mer...')}),
@@ -83,10 +87,16 @@ class PropertyForm(forms.ModelForm):
             'neighborhood': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ex: Adidogomé')}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 350000')}),
             'price_per_night': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 45000')}),
+            'deposit_months': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 3')}),
+            'advance_months': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 10')}),
+            'agency_fee_months': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 1')}),
+            'visit_fee': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('Ex: 5000')}),
             'surface': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('m2')}),
             'bedrooms': forms.NumberInput(attrs={'class': 'form-control'}),
             'toilets': forms.NumberInput(attrs={'class': 'form-control'}),
             'total_rooms': forms.NumberInput(attrs={'class': 'form-control'}),
+            'salons': forms.NumberInput(attrs={'class': 'form-control'}),
+            'kitchens': forms.NumberInput(attrs={'class': 'form-control'}),
             'households': forms.NumberInput(attrs={'class': 'form-control'}),
             'floor_level': forms.NumberInput(attrs={'class': 'form-control'}),
             'has_garage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -133,4 +143,10 @@ class PropertyForm(forms.ModelForm):
             'has_garden': _("Jardin"),
             'discount_percentage': _("Pourcentage de remise (%)"),
             'discount_price': _("Prix final après remise (FCFA)"),
+            'deposit_months': _("Nombre de mois de caution"),
+            'advance_months': _("Nombre de mois d'avance"),
+            'agency_fee_months': _("Frais d'agence (en mois)"),
+            'visit_fee': _("Frais de visite (FCFA)"),
+            'salons': _("Nombre de salons"),
+            'kitchens': _("Nombre de cuisines"),
         }

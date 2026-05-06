@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'corsheaders',
+    'storages',
+    'drf_spectacular',
 
     # Local apps
     'users',
@@ -62,7 +64,6 @@ INSTALLED_APPS = [
     'ads',
     'management',
     'blog',
-    'drf_spectacular',
 ]
 
 SITE_ID = 1

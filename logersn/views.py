@@ -10,6 +10,8 @@ from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyA
 from .forms import PropertyForm
 from .serializers import PropertySerializer, PropertyImageSerializer
 import json
+import datetime
+import datetime
 
 # --- API ViewSets ---
 
@@ -77,6 +79,7 @@ def properties_list_view(request):
     q = request.GET.get('q')
     
     properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    is_fallback = False
     
     # Titre SEO dynamique
     seo_title = _("Toutes les annonces immobilières au Togo")

@@ -153,15 +153,27 @@ class User(AbstractBaseUser, PermissionsMixin):
             try:
                 import os
                 from PIL import Image
-                # Sécurité DigitalH : Vérifier si le fichier existe réellement sur le serveur
-                if os.path.exists(self.profile_picture.path):
-                    img = Image.open(self.profile_picture.path)
-                    if img.height > 500 or img.width > 500:
-                        output_size = (500, 500)
-                        img.thumbnail(output_size)
-                        img.save(self.profile_picture.path)
-            except (FileNotFoundError, Exception):
-                # On ignore l'erreur si le fichier est manquant (fréquent sur Render/Ephemeral Storage)
+                from io import BytesIO
+                from django.core.files.base import ContentFile
+                
+                # Ouvrir l'image de manière sécurisée
+                img = Image.open(self.profile_picture)
+                
+                if img.height > 500 or img.width > 500:
+                    output_size = (500, 500)
+                    img.thumbnail(output_size)
+                    
+                    # Sauvegarder dans un buffer
+                    buffer = BytesIO()
+                    img_format = img.format or 'JPEG'
+                    img.save(buffer, format=img_format, quality=85)
+                    buffer.seek(0)
+                    
+                    # Remplacer le fichier sans déclencher de boucle infinie
+                    file_name = os.path.basename(self.profile_picture.name)
+                    self.profile_picture.save(file_name, ContentFile(buffer.read()), save=False)
+            except Exception:
+                # On ignore l'erreur si le fichier est corrompu ou illisible
                 pass
 
 

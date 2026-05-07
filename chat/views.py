@@ -23,8 +23,12 @@ def initiate_chat_view(request, property_id):
         topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
         related_property=target_property,
         participants=request.user
-    ).filter(participants=owner).first()
+    ).filter(participants=owner).order_by('-updated_at').first()
     
+    # Si la conversation existe mais est expirée (> 10 jours), on en crée une nouvelle
+    if conversation and conversation.is_expired:
+        conversation = None
+
     if not conversation:
         conversation = Conversation.objects.create(
             topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
@@ -61,6 +65,12 @@ def send_message_view(request, conversation_id=None):
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'error': 'Conversation refusée'}, status=403)
             messages.error(request, "Cette conversation a été refusée.")
+            return redirect('messagerie')
+            
+        if conversation.is_expired:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Cette discussion a expiré après 10 jours d\'inactivité.'}, status=403)
+            messages.error(request, "Cette discussion a expiré après 10 jours d'inactivité. Veuillez relancer le contact depuis l'annonce.")
             return redirect('messagerie')
             
         msg = Message.objects.create(

@@ -34,6 +34,13 @@ class Conversation(models.Model):
     def __str__(self):
         return f"Conversation {self.id} - {self.get_topic_display()}"
 
+    @property
+    def is_expired(self):
+        """Une discussion expire après 10 jours d'inactivité."""
+        from django.utils import timezone
+        import datetime
+        return timezone.now() > self.updated_at + datetime.timedelta(days=10)
+
 
 class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

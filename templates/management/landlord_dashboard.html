@@ -344,10 +344,11 @@
                                     </div>
                                     
                                     <!-- Messages List -->
-                                    <div class="flex-grow-1 p-4 overflow-auto bg-light" id="chat-window">
+                                    <div class="flex-grow-1 p-4 overflow-auto bg-white" id="chat-window" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');">
                                         {% for msg in conv.messages.all %}
                                             <div class="d-flex {% if msg.sender == user %}justify-content-end{% endif %} mb-3">
-                                                <div class="p-3 rounded-4 shadow-sm {% if msg.sender == user %}bg-success text-white{% else %}bg-white text-dark{% endif %}" style="max-width: 75%;">
+                                                <div class="p-3 shadow-sm {% if msg.sender == user %}bg-success text-white{% else %}bg-light text-dark{% endif %}" 
+                                                     style="max-width: 75%; border-radius: {% if msg.sender == user %}20px 20px 0 20px{% else %}20px 20px 20px 0{% endif %}; {% if msg.sender == user %}background-color: #0b4629 !important;{% endif %}">
                                                     <p class="mb-1 small">{{ msg.content }}</p>
                                                     <div class="text-end" style="font-size: 9px; opacity: 0.7;">
                                                         {{ msg.created_at|date:"H:i" }}
@@ -363,14 +364,20 @@
                                     
                                     <!-- Input Chat -->
                                     <div class="p-3 border-top bg-white">
-                                        <form action="{% url 'chat:send_message' conv.id %}" method="post" class="d-flex gap-2">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                            <input type="text" name="content" class="form-control rounded-pill border-0 bg-light px-4" placeholder="{% trans "Tapez votre message..." %}" required>
-                                            <button type="submit" class="btn btn-success rounded-circle" style="width: 45px; height: 45px;">
-                                                <i class="fas fa-paper-plane"></i>
-                                            </button>
-                                        </form>
+                                        {% if conv.is_expired %}
+                                            <div class="alert alert-warning small mb-0 rounded-pill text-center">
+                                                <i class="fas fa-clock me-2"></i>{% trans "Cette discussion a expiré après 10 jours d'inactivité." %}
+                                            </div>
+                                        {% else %}
+                                            <form action="{% url 'send-message' conv.id %}" method="post" class="d-flex gap-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <input type="text" name="content" class="form-control rounded-pill border-0 bg-light px-4" placeholder="{% trans "Tapez votre message..." %}" required>
+                                                <button type="submit" class="btn btn-success rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #0b4629; border: none;">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </div>
                                 {% endif %}
                             {% endfor %}

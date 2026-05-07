@@ -2,8 +2,22 @@
 <div class="property-card shadow-sm border-0 h-100 animate__animated animate__fadeInUp position-relative" style="transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
     
     <div class="property-image-wrapper position-relative" style="height: 240px; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px;">
-        <div class="w-100 h-100 position-relative">
-            <img src="{{ property.get_main_image }}" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;" alt="{{ property.title }}" loading="lazy">
+        <div id="carousel-{{ property.id }}" class="carousel slide carousel-fade w-100 h-100" data-bs-ride="carousel" data-bs-interval="{% if forloop.counter %}{{ forloop.counter|add:3 }}000{% else %}5000{% endif %}">
+            <div class="carousel-inner h-100">
+                {% with p_images=property.images.all %}
+                    {% if p_images %}
+                        {% for img in p_images %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %} h-100">
+                            <img src="{{ img.image_url.url }}" class="d-block w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;" alt="{{ property.title }}" loading="lazy">
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="carousel-item active h-100">
+                            <img src="{{ property.get_main_image }}" class="d-block w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;" alt="{{ property.title }}" loading="lazy">
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </div>
             <div class="card-img-overlay-custom"></div>
         </div>
         

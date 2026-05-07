@@ -41,17 +41,16 @@ def home_view(request):
             Q(title__icontains=query) | Q(description__icontains=query) | Q(neighborhood__icontains=query)
         )
 
-    all_properties = all_properties.order_by('-created_at', '-is_boosted')
-    paginator = Paginator(all_properties, 12)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
+    all_properties = all_properties.order_by('-created_at')
+    
+    featured_properties = Property.objects.filter(is_boosted=True, is_published=True).select_related('owner').prefetch_related('images').order_by('-created_at')[:8]
+    recent_properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images').order_by('-created_at')[:12]
 
-    boosted_properties = Property.objects.filter(is_boosted=True, is_published=True).order_by('-created_at')[:10]
     featured_pros = User.objects.filter(is_verified_pro=True).exclude(role='TENANT').order_by('?')[:12]
 
     return render(request, 'home.html', {
-        'page_obj': page_obj,
-        'boosted_properties': boosted_properties,
+        'featured_properties': featured_properties,
+        'recent_properties': recent_properties,
         'featured_pros': featured_pros,
         'cities': CITY_CHOICES,
         'property_types': PROPERTY_TYPE_CHOICES,

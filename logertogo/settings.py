@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
     'django.contrib.sites',
     'django.contrib.postgres',
+    'django.contrib.humanize',  # {% load humanize %} → intcomma, naturaltime...
     
     # Third-party
     'rest_framework',
@@ -130,10 +131,11 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'ads.context_processors.ads_processor',
             ],
-            # Rend property_tags disponible dans TOUS les templates
-            # sans besoin de {% load property_tags %}
+            # Rend property_tags et humanize disponibles dans TOUS les templates
+            # sans besoin de {% load ... %}
             'builtins': [
                 'logersn.templatetags.property_tags',
+                'django.contrib.humanize.templatetags.humanize',
             ],
         },
     },

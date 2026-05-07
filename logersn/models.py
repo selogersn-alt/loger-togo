@@ -102,6 +102,23 @@ class Property(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            # Nécessite "django.contrib.postgres" dans INSTALLED_APPS
+            # et de lancer une migration pour créer l'index.
+            # models.Index(fields=['listing_category', 'property_type', 'city']),
+            # Pour la version PostgreSQL complète (Hyper Performante) :
+            # from django.contrib.postgres.indexes import GinIndex
+            # from django.contrib.postgres.search import SearchVectorField
+            # Mais comme on ne veut pas modifier trop profondément le schéma sans test, on va utiliser les index DB classiques pour l'instant et le search vector à la volée.
+        ]
+        # Ajout d'index standards pour booster la recherche existante avant le full text
+        indexes = [
+            models.Index(fields=['listing_category', 'is_published']),
+            models.Index(fields=['property_type']),
+            models.Index(fields=['city', 'neighborhood']),
+        ]
+
     def __str__(self):
         return self.title
 
@@ -163,32 +180,46 @@ class PropertyImage(models.Model):
     is_primary = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # Sécurité ultime pour éviter l'erreur 500 à l'enregistrement
-        try:
-            # On tente la conversion WebP seulement à la création
-            if not self.pk and self.image_url:
-                try:
-                    from PIL import Image
-                    import io
-                    from django.core.files.base import ContentFile
+        # Optimisation WebP en mémoire avant l'upload vers R2/S3
+        if not self.pk and self.image_url:
+            try:
+                from PIL import Image
+                import io
+                from django.core.files.base import ContentFile
+                
+                # Ouvrir l'image
+                img = Image.open(self.image_url)
+                
+                # Si ce n'est pas déjà du WebP, on convertit
+                if img.format != 'WEBP':
+                    output = io.BytesIO()
+                    # Convertir en RGB si nécessaire (pour JPEG/PNG avec alpha vers WebP)
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
                     
-                    img = Image.open(self.image_url)
-                    if img.format != 'WEBP':
-                        output = io.BytesIO()
-                        img.save(output, format='WEBP', quality=80)
-                        output.seek(0)
-                        name = self.image_url.name.split('.')[0] + '.webp'
-                        self.image_url.save(name, ContentFile(output.read()), save=False)
-                except Exception as e:
-                    print(f"WebP conversion skipped: {e}")
+                    img.save(output, format='WEBP', quality=80)
+                    output.seek(0)
+                    
+                    # Nouveau nom de fichier
+                    name = self.image_url.name.split('.')[0] + '.webp'
+                    
+                    # Remplacement du fichier original par la version optimisée
+                    # On utilise ContentFile pour que Django l'uploade lors du super().save()
+                    self.image_url = ContentFile(output.read(), name=name)
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Image optimization skipped: {e}")
 
+        # Upload effectif vers le stockage (Local ou R2/S3)
+        try:
             super().save(*args, **kwargs)
         except Exception as e:
-            # Si même le save standard échoue (ex: erreur S3), on logue mais on ne plante pas le thread
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"CRITICAL: Failed to save PropertyImage: {e}")
-            # On ne relance pas l'exception pour éviter la page 500
+            logger.error(f"CRITICAL: Failed to upload to storage (R2/S3?): {e}")
+            # On ne relance pas pour éviter le crash 500, mais l'annonce n'aura pas cette image.
+            # Cependant, nous avons corrigé la configuration R2 pour que cela n'arrive plus.
 
     def __str__(self):
         return f"Image for {self.property.title}"

@@ -37,11 +37,15 @@ def home_view(request):
     if listing_category and listing_category != 'ALL':
         all_properties = all_properties.filter(listing_category=listing_category)
     if query:
-        all_properties = all_properties.filter(
-            Q(title__icontains=query) | Q(description__icontains=query) | Q(neighborhood__icontains=query)
-        )
-
-    all_properties = all_properties.order_by('-created_at')
+        from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+        # Recherche ultra performante sur titre, description, et quartier
+        vector = SearchVector('title', weight='A') + SearchVector('neighborhood', weight='B') + SearchVector('description', weight='C')
+        search_query = SearchQuery(query)
+        all_properties = all_properties.annotate(
+            rank=SearchRank(vector, search_query)
+        ).filter(rank__gte=0.1).order_by('-rank', '-created_at')
+    else:
+        all_properties = all_properties.order_by('-created_at')
     
     featured_properties = Property.objects.filter(is_boosted=True, is_published=True).select_related('owner').prefetch_related('images').order_by('-created_at')[:8]
     recent_properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images').order_by('-created_at')[:12]

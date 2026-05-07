@@ -25,17 +25,17 @@
         transform: translate(-50%, -50%);
         width: 350px;
         height: 350px;
-        background-image: url("{% static 'img/logo_3d.png' %}");
+        background-image: url("{% static 'img/hero-icon.png' %}");
         background-position: center;
         background-repeat: no-repeat;
         background-size: contain;
-        opacity: 0.05; /* Plus subtil pour ne pas écraser le contenu */
+        opacity: 0.9; /* Opacité forte pour qu'elle soit bien visible et intacte */
         z-index: 0;
     }
 
     .hero-section > .container {
         position: relative;
-        z-index: 2; /* S'assure que le texte est au-dessus du filigrane */
+        z-index: 2; /* S'assure que le texte et la recherche sont au-dessus de l'icône */
     }
 
     /* Modern Search Engine */

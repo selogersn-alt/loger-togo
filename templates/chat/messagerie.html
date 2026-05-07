@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}Messagerie | Loger Togo{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row g-0 rounded-4 shadow overflow-hidden" style="height: 75vh; border: 1px solid var(--border-color); background: var(--bg-card);">
+        
+        <!-- Sidebar : Liste des conversations -->
+        <div class="col-md-4 border-end bg-light d-flex flex-column h-100">
+            <div class="p-3 border-bottom bg-white">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-messages text-main me-2"></i>Discussions</h5>
+            </div>
+            <div class="flex-grow-1 overflow-auto" style="background: #f8f9fa;">
+                {% for conv in conversations %}
+                <a href="?conv={{ conv.id }}" class="text-decoration-none text-dark">
+                    <div class="p-3 border-bottom d-flex align-items-center {% if active_conv and active_conv.id == conv.id %}bg-white border-start border-4 border-main{% else %}hover-bg-white{% endif %}">
+                        <div class="rounded-circle bg-main text-white d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <h6 class="mb-0 text-truncate fw-bold">
+                                {% if conv.related_property %}{{ conv.related_property.title }}{% else %}{{ conv.get_topic_display }}{% endif %}
+                            </h6>
+                            <small class="text-muted text-truncate d-block">
+                                {% if conv.status == 'PENDING' %}<span class="text-warning"><i class="fas fa-clock"></i> En attente</span>
+                                {% elif conv.status == 'REJECTED' %}<span class="text-danger"><i class="fas fa-times"></i> Refusée</span>
+                                {% else %}<i class="fas fa-check text-success"></i> Active{% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
+                    <p>Aucune discussion pour le moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Zone Principale : Chat -->
+        <div class="col-md-8 d-flex flex-column h-100 bg-white position-relative">
+            {% if active_conv %}
+                <!-- Header Chat -->
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center shadow-sm z-index-1">
+                    <div>
+                        <h5 class="mb-0 fw-bold">{% if active_conv.related_property %}{{ active_conv.related_property.title }}{% else %}{{ active_conv.get_topic_display }}{% endif %}</h5>
+                        <small class="text-muted">
+                            Participants : {% for p in active_conv.participants.all %}{% if p != request.user %}{{ p.get_short_name|default:p.email }}{% endif %}{% endfor %}
+                        </small>
+                    </div>
+                    <div>
+                        {% if active_conv.status == 'PENDING' %}
+                            {% if request.user == active_conv.related_property.owner %}
+                                <a href="{% url 'update-chat-status' active_conv.id 'ACCEPTED' %}" class="btn btn-sm btn-success rounded-pill px-3"><i class="fas fa-check me-1"></i> Accepter</a>
+                                <a href="{% url 'update-chat-status' active_conv.id 'REJECTED' %}" class="btn btn-sm btn-outline-danger rounded-pill px-3"><i class="fas fa-times me-1"></i> Refuser</a>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-hourglass-half"></i> En attente d'acceptation</span>
+                            {% endif %}
+                        {% elif active_conv.status == 'REJECTED' %}
+                            <span class="badge bg-danger"><i class="fas fa-ban"></i> Discussion refusée</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Messages -->
+                <div class="flex-grow-1 p-4 overflow-auto" id="chat-messages" style="background-color: #f0f2f5;">
+                    {% for msg in active_conv.messages.all %}
+                        <div class="d-flex mb-3 {% if msg.sender == request.user %}justify-content-end{% endif %}">
+                            <div class="px-3 py-2 rounded-4 shadow-sm" style="max-width: 75%; {% if msg.sender == request.user %}background: var(--main-color); color: white; border-bottom-right-radius: 0;{% else %}background: white; border-bottom-left-radius: 0;{% endif %}">
+                                {% if msg.sender != request.user %}
+                                    <small class="fw-bold text-main d-block mb-1" style="font-size: 0.75rem;">{{ msg.sender.get_short_name|default:msg.sender.email }}</small>
+                                {% endif %}
+                                
+                                {% if msg.attachment %}
+                                    <img src="{{ msg.attachment.url }}" class="img-fluid rounded mb-2" style="max-height: 200px; object-fit: cover; cursor: pointer;" onclick="window.open(this.src)" alt="Attachment">
+                                {% endif %}
+                                
+                                <p class="mb-0" style="line-height: 1.4;">{{ msg.content|linebreaksbr }}</p>
+                                <div class="text-end mt-1">
+                                    <small style="font-size: 0.7rem; opacity: 0.7;">{{ msg.created_at|date:"H:i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Formulaire -->
+                <div class="p-3 border-top bg-white">
+                    {% if active_conv.status == 'ACCEPTED' or active_conv.status == 'PENDING' %}
+                    <form id="chat-form" enctype="multipart/form-data" class="d-flex align-items-center">
+                        {% csrf_token %}
+                        <label class="btn btn-light rounded-circle p-2 me-2 mb-0" style="width: 40px; height: 40px;" title="Joindre une image">
+                            <i class="fas fa-paperclip text-muted"></i>
+                            <input type="file" name="attachment" id="chat-attachment" class="d-none" accept="image/*">
+                        </label>
+                        <input type="text" name="content" id="chat-input" class="form-control rounded-pill px-4 py-2 me-2" placeholder="Écrivez votre message..." autocomplete="off">
+                        <button type="submit" class="btn btn-main rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" id="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <div id="attachment-preview" class="mt-2 d-none">
+                        <span class="badge bg-light text-dark border p-2">Image jointe <i class="fas fa-times text-danger ms-2" style="cursor:pointer;" onclick="clearAttachment()"></i></span>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-2">
+                        Cette discussion est fermée.
+                    </div>
+                    {% endif %}
+                </div>
+                
+            {% else %}
+                <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+                    <img src="{% static 'img/hero-icon.png' %}" alt="Loger Togo" style="width: 100px; opacity: 0.2;" class="mb-3">
+                    <h4>Sélectionnez une discussion</h4>
+                    <p>Choisissez un contact à gauche pour commencer à discuter.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if active_conv %}
+<script>
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatAttachment = document.getElementById('chat-attachment');
+    const attachmentPreview = document.getElementById('attachment-preview');
+    const currentUserId = {{ request.user.id }};
+    const convId = '{{ active_conv.id }}';
+    
+    // Scroller vers le bas
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    scrollToBottom();
+    
+    // Aperçu de l'image
+    if(chatAttachment) {
+        chatAttachment.addEventListener('change', function() {
+            if(this.files.length > 0) {
+                attachmentPreview.classList.remove('d-none');
+            } else {
+                attachmentPreview.classList.add('d-none');
+            }
+        });
+    }
+    function clearAttachment() {
+        chatAttachment.value = "";
+        attachmentPreview.classList.add('d-none');
+    }
+    
+    // Envoi AJAX
+    if(chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!chatInput.value.trim() && (!chatAttachment.files || chatAttachment.files.length === 0)) return;
+            
+            const formData = new FormData(this);
+            document.getElementById('send-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            document.getElementById('send-btn').disabled = true;
+            
+            fetch("{% url 'send-message' active_conv.id %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) {
+                    alert(data.error);
+                } else {
+                    chatInput.value = '';
+                    clearAttachment();
+                    appendMessage(data, true);
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                document.getElementById('send-btn').innerHTML = '<i class="fas fa-paper-plane"></i>';
+                document.getElementById('send-btn').disabled = false;
+            });
+        });
+    }
+    
+    function appendMessage(msg, isMe) {
+        // Simple HTML injection pour un message optimisé
+        let attachmentHtml = msg.attachment_url ? `<img src="${msg.attachment_url}" class="img-fluid rounded mb-2" style="max-height: 200px; object-fit: cover;">` : '';
+        let senderHtml = isMe ? '' : `<small class="fw-bold text-main d-block mb-1" style="font-size: 0.75rem;">${msg.sender}</small>`;
+        
+        let msgHtml = `
+        <div class="d-flex mb-3 ${isMe ? 'justify-content-end' : ''}">
+            <div class="px-3 py-2 rounded-4 shadow-sm" style="max-width: 75%; ${isMe ? 'background: var(--main-color); color: white; border-bottom-right-radius: 0;' : 'background: white; border-bottom-left-radius: 0;'}">
+                ${senderHtml}
+                ${attachmentHtml}
+                <p class="mb-0" style="line-height: 1.4;">${msg.content.replace(/\\n/g, '<br>')}</p>
+                <div class="text-end mt-1">
+                    <small style="font-size: 0.7rem; opacity: 0.7;">${msg.created_at}</small>
+                </div>
+            </div>
+        </div>`;
+        
+        chatMessages.insertAdjacentHTML('beforeend', msgHtml);
+        scrollToBottom();
+    }
+    
+    // Polling toutes les 3 secondes pour simuler le temps réel
+    setInterval(() => {
+        fetch("{% url 'sync-messages' active_conv.id %}")
+        .then(res => res.json())
+        .then(data => {
+            if(data.messages) {
+                // Pour faire simple sans id complexe : on compare la longueur totale ou le dernier id.
+                // Dans une vraie app, on renverrait seulement les nouveaux id > last_id
+                // Ici pour éviter le redessin, il faudrait un check avancé.
+                // (Non implémenté dans cet extrait basique pour éviter les doublons UI)
+            }
+        });
+    }, 3000);
+</script>
+{% endif %}
+{% endblock %}

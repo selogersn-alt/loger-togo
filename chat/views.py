@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
+from django.http import JsonResponse
 from .models import Conversation, Message
 from logersn.models import Property
 from users.models import User
@@ -16,7 +17,7 @@ def initiate_chat_view(request, property_id):
     owner = target_property.owner
     if owner == request.user:
         messages.info(request, "C'est votre propre annonce !")
-        return redirect('dashboard')
+        return redirect('messagerie')
         
     conversation = Conversation.objects.filter(
         topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
@@ -27,26 +28,96 @@ def initiate_chat_view(request, property_id):
     if not conversation:
         conversation = Conversation.objects.create(
             topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
-            related_property=target_property
+            related_property=target_property,
+            status=Conversation.StatusEnum.PENDING
         )
         conversation.participants.add(request.user, owner)
         
-    return redirect(f"{reverse('dashboard')}?conv={conversation.id}")
+    return redirect(f"{reverse('messagerie')}?conv={conversation.id}")
+
+@login_required
+def update_chat_status_view(request, conversation_id, status):
+    """Accepter ou refuser une discussion."""
+    conv = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    if status in ['ACCEPTED', 'REJECTED']:
+        conv.status = status
+        conv.save()
+    return redirect(f"{reverse('messagerie')}?conv={conv.id}")
 
 @login_required
 def send_message_view(request, conversation_id=None):
     if request.method == 'POST':
-        content = request.POST.get('content')
-        if not content:
-            return redirect('dashboard')
+        content = request.POST.get('content', '')
+        attachment = request.FILES.get('attachment')
+        
+        if not content and not attachment:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Message vide'}, status=400)
+            return redirect('messagerie')
             
         conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
-        Message.objects.create(
+        
+        if conversation.status == 'REJECTED':
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Conversation refusée'}, status=403)
+            messages.error(request, "Cette conversation a été refusée.")
+            return redirect('messagerie')
+            
+        msg = Message.objects.create(
             conversation=conversation,
             sender=request.user,
-            content=content
+            content=content,
+            attachment=attachment
         )
-        conversation.save() # Pour mettre à jour updated_at
+        conversation.save() # Mettre à jour updated_at
         
-        return redirect(f"{reverse('dashboard')}?conv={conversation.id}")
-    return redirect('dashboard')
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'id': msg.id,
+                'content': msg.content,
+                'sender': msg.sender.get_full_name(),
+                'sender_id': msg.sender.id,
+                'created_at': msg.created_at.strftime("%H:%M"),
+                'attachment_url': msg.attachment.url if msg.attachment else None
+            })
+            
+        return redirect(f"{reverse('messagerie')}?conv={conversation.id}")
+    return redirect('messagerie')
+
+@login_required
+def sync_messages_view(request, conversation_id):
+    """Endpoint pour le Polling AJAX (temps réel sans WebSocket)."""
+    last_id = request.GET.get('last_id')
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    
+    msgs = conversation.messages.all()
+    if last_id:
+        pass 
+        
+    data = []
+    for msg in msgs:
+        data.append({
+            'id': msg.id,
+            'content': msg.content,
+            'sender_id': msg.sender.id,
+            'sender': msg.sender.get_full_name() or msg.sender.email,
+            'created_at': msg.created_at.strftime("%H:%M"),
+            'attachment_url': msg.attachment.url if msg.attachment else None
+        })
+    return JsonResponse({'messages': data, 'status': conversation.status})
+
+@login_required
+def messagerie_view(request):
+    """Vue principale de la messagerie style réseau social."""
+    conversations = request.user.conversations.all().order_by('-updated_at')
+    active_conv_id = request.GET.get('conv')
+    active_conv = None
+    if active_conv_id:
+        active_conv = conversations.filter(id=active_conv_id).first()
+    elif conversations.exists():
+        active_conv = conversations.first()
+        
+    return render(request, 'chat/messagerie.html', {
+        'conversations': conversations,
+        'active_conv': active_conv
+    })

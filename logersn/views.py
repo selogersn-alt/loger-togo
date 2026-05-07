@@ -42,10 +42,12 @@ def properties_list_view(request):
     
     # Filtre textuel (recherche globale)
     if q:
-        properties = properties.filter(
-            Q(title__icontains=q) | Q(description__icontains=q) | Q(neighborhood__icontains=q)
-        )
-
+        from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+        vector = SearchVector('title', weight='A') + SearchVector('neighborhood', weight='B') + SearchVector('description', weight='C')
+        search_query = SearchQuery(q)
+        properties = properties.annotate(
+            rank=SearchRank(vector, search_query)
+        ).filter(rank__gte=0.1).order_by('-rank')
     # Filtres géo
     if city and city != 'ALL': properties = properties.filter(city=city)
     

@@ -12,9 +12,15 @@ class Conversation(models.Model):
         INCIDENT_CLAIM = 'INCIDENT_CLAIM', 'Réclamation/Incident'
         SUPPORT = 'SUPPORT', 'Support Technique'
 
+    class StatusEnum(models.TextChoices):
+        PENDING = 'PENDING', 'En attente'
+        ACCEPTED = 'ACCEPTED', 'Acceptée'
+        REJECTED = 'REJECTED', 'Refusée'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     participants = models.ManyToManyField(User, related_name='conversations')
     topic = models.CharField(max_length=50, choices=TopicEnum.choices, default=TopicEnum.GENERAL)
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
     
     # Liens optionnels
     related_property = models.ForeignKey(Property, on_delete=models.SET_NULL, null=True, blank=True)
@@ -34,6 +40,7 @@ class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     content = models.TextField()
+    attachment = models.ImageField(upload_to='chat_images/', null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -54,10 +54,13 @@ from users.views import (
     password_recovery_view, password_reset_confirm_view,
     admin_generate_reset_link
 )
+from logersn.views import (
+    create_property_view, properties_list_view, property_detail_view,
+    edit_property_view, delete_property_view, submit_review_view, toggle_favorite_view,
     apply_to_property_view, request_reservation_view, request_visit_view,
-    duplicate_property_view,
+    duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view
 )
-from chat.views import send_message_view, initiate_chat_view
+from chat.views import send_message_view, initiate_chat_view, update_chat_status_view, sync_messages_view, messagerie_view
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from ads.views import ads_txt_view  # Certification Google
 from .admin_views import admin_statistics_view, admin_marketing_email_view
@@ -103,10 +106,13 @@ urlpatterns = [
 
     path('profil/verification-telephonique/', verify_phone_view, name='verify_phone'),
     path('mon-compte/', dashboard_view, name='dashboard'),
+    path('messagerie/', messagerie_view, name='messagerie'),
     path('chat/start/<uuid:property_id>/', initiate_chat_view, name='initiate-chat'),
+    path('chat/status/<uuid:conversation_id>/<str:status>/', update_chat_status_view, name='update-chat-status'),
     path('chat/support/', start_support_view, name='support-chat'),
     path('chat/send/<uuid:conversation_id>/', send_message_view, name='send-message'),
     path('chat/send/', send_message_view, name='send-message-new'),
+    path('chat/api/sync/<uuid:conversation_id>/', sync_messages_view, name='sync-messages'),
     path('profil/kyc/soumettre/', kyc_submit_view, name='kyc_submit'),
 
     path('connexion/', login_view, name='login'),

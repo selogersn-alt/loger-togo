@@ -510,8 +510,9 @@
                         <li class="nav-item dropdown ms-lg-2">
                             <a class="btn btn-warning btn-sm dropdown-toggle mt-2 mt-lg-0 w-100 fw-bold rounded-pill px-4 d-flex align-items-center justify-content-center" 
                                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" 
-                               style="background-color: var(--color-yellow); border: none; color: #000; padding: 8px 18px;">
-                                <i class="fa-solid fa-user-circle fs-5 me-2"></i> {% trans "Mon Compte" %}
+                               style="background-color: var(--color-yellow); border: none; color: #000; padding: 5px 18px;">
+                                <img src="{{ user.get_avatar_url }}" class="rounded-circle me-2" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid white;">
+                                {% trans "Mon Compte" %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" style="border-radius: 15px;">
                                 <li><a class="dropdown-item rounded py-2" href="{% url 'dashboard' %}"><i class="fa-solid fa-chart-line me-2"></i> {% trans "Tableau de bord" %}</a></li>

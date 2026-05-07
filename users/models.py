@@ -177,6 +177,12 @@ class User(AbstractBaseUser, PermissionsMixin):
                 pass
 
 
+    @property
+    def get_avatar_url(self):
+        """Retourne l'URL de l'avatar : Photo de profil > Initiale du nom > Image par défaut."""
+        if self.profile_picture:
+            return self.profile_picture.url
+        return f"https://ui-avatars.com/api/?name={self.get_short_name()}&background=0b4629&color=fff"
 
     @property
     def kyc_photo(self):

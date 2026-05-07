@@ -10,34 +10,68 @@ from users.models import User
 @login_required
 def initiate_chat_view(request, property_id):
     """Commencer ou reprendre une conversation avec le propriétaire."""
-    target_property = get_object_or_404(Property, id=property_id)
-    target_property.clicks_count += 1
-    target_property.save()
-    
-    owner = target_property.owner
-    if owner == request.user:
-        messages.info(request, "C'est votre propre annonce !")
-        return redirect('messagerie')
+    try:
+        target_property = get_object_or_404(Property, id=property_id)
         
-    conversation = Conversation.objects.filter(
-        topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
-        related_property=target_property,
-        participants=request.user
-    ).filter(participants=owner).order_by('-updated_at').first()
-    
-    # Si la conversation existe mais est expirée (> 10 jours), on en crée une nouvelle
-    if conversation and conversation.is_expired:
-        conversation = None
-
-    if not conversation:
-        conversation = Conversation.objects.create(
+        # Statistique de clic
+        target_property.clicks_count += 1
+        target_property.save()
+        
+        owner = target_property.owner
+        if owner == request.user:
+            messages.info(request, _("C'est votre propre annonce !"))
+            return redirect('messagerie')
+            
+        # Chercher une conversation existante liée à ce bien
+        conversation = Conversation.objects.filter(
             topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
             related_property=target_property,
-            status=Conversation.StatusEnum.PENDING
-        )
-        conversation.participants.add(request.user, owner)
+            participants=request.user
+        ).filter(participants=owner).order_by('-updated_at').first()
         
-    return redirect(f"{reverse('messagerie')}?conv={conversation.id}")
+        # Si la conversation existe mais est expirée (> 10 jours d'inactivité), on en crée une nouvelle
+        if conversation and conversation.is_expired:
+            conversation = None
+
+        if not conversation:
+            conversation = Conversation.objects.create(
+                topic=Conversation.TopicEnum.PROPERTY_INQUIRY,
+                related_property=target_property,
+                status=Conversation.StatusEnum.PENDING
+            )
+            conversation.participants.add(request.user, owner)
+            
+        return redirect(f"{reverse('messagerie')}?conv={conversation.id}")
+    except Exception as e:
+        messages.error(request, _("Erreur lors de l'initiation de la discussion. Veuillez réessayer."))
+        return redirect('home')
+
+@login_required
+def initiate_pro_chat_view(request, user_id):
+    """Initier une discussion directe avec un professionnel."""
+    try:
+        pro = get_object_or_404(User, id=user_id)
+        if pro == request.user:
+            messages.info(request, _("C'est vous-même !"))
+            return redirect('messagerie')
+            
+        # Chercher une conversation GÉNÉRALE existante entre ces deux-là
+        conversation = Conversation.objects.filter(
+            topic=Conversation.TopicEnum.GENERAL,
+            participants=request.user
+        ).filter(participants=pro).order_by('-updated_at').first()
+        
+        if not conversation:
+            conversation = Conversation.objects.create(
+                topic=Conversation.TopicEnum.GENERAL,
+                status=Conversation.StatusEnum.ACCEPTED
+            )
+            conversation.participants.add(request.user, pro)
+            
+        return redirect(f"{reverse('messagerie')}?conv={conversation.id}")
+    except Exception:
+        messages.error(request, _("Impossible de contacter ce professionnel."))
+        return redirect('professionals_list')
 
 @login_required
 def update_chat_status_view(request, conversation_id, status):
@@ -97,24 +131,23 @@ def send_message_view(request, conversation_id=None):
 @login_required
 def sync_messages_view(request, conversation_id):
     """Endpoint pour le Polling AJAX (temps réel sans WebSocket)."""
-    last_id = request.GET.get('last_id')
-    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
-    
-    msgs = conversation.messages.all()
-    if last_id:
-        pass 
+    try:
+        conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+        msgs = conversation.messages.all().order_by('created_at')
         
-    data = []
-    for msg in msgs:
-        data.append({
-            'id': msg.id,
-            'content': msg.content,
-            'sender_id': msg.sender.id,
-            'sender': msg.sender.get_full_name() or msg.sender.email,
-            'created_at': msg.created_at.strftime("%H:%M"),
-            'attachment_url': msg.attachment.url if msg.attachment else None
-        })
-    return JsonResponse({'messages': data, 'status': conversation.status})
+        data = []
+        for msg in msgs:
+            data.append({
+                'id': msg.id,
+                'content': msg.content,
+                'sender_id': msg.sender.id,
+                'sender': msg.sender.get_full_name() or msg.sender.email,
+                'created_at': msg.created_at.strftime("%H:%M"),
+                'attachment_url': msg.attachment.url if msg.attachment else None
+            })
+        return JsonResponse({'messages': data, 'status': conversation.status, 'is_expired': conversation.is_expired})
+    except Exception:
+        return JsonResponse({'error': 'Conversation inaccessible'}, status=403)
 
 @login_required
 def messagerie_view(request):

@@ -61,7 +61,10 @@ from logersn.views import (
     duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view,
     near_me_view, nearby_api_view
 )
-from chat.views import send_message_view, initiate_chat_view, update_chat_status_view, sync_messages_view, messagerie_view
+from chat.views import (
+    send_message_view, initiate_chat_view, initiate_pro_chat_view, 
+    update_chat_status_view, sync_messages_view, messagerie_view
+)
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from ads.views import ads_txt_view  # Certification Google
 from .admin_views import admin_statistics_view, admin_marketing_email_view
@@ -111,6 +114,7 @@ urlpatterns = [
     path('mon-compte/', dashboard_view, name='dashboard'),
     path('messagerie/', messagerie_view, name='messagerie'),
     path('chat/start/<uuid:property_id>/', initiate_chat_view, name='initiate-chat'),
+    path('chat/start/pro/<uuid:user_id>/', initiate_pro_chat_view, name='initiate-pro-chat'),
     path('chat/status/<uuid:conversation_id>/<str:status>/', update_chat_status_view, name='update-chat-status'),
     path('chat/support/', start_support_view, name='support-chat'),
     path('chat/send/<uuid:conversation_id>/', send_message_view, name='send-message'),

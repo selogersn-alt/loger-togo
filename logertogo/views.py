@@ -220,13 +220,26 @@ def guide_courtiers_view(request): return render(request, 'guides/courtiers.html
 
 @login_required
 def start_support_view(request):
+    """Initialise ou récupère une discussion privée avec le support technique."""
     admin_user = User.objects.filter(is_superuser=True).first()
     if not admin_user:
         messages.error(request, _("Service support indisponible."))
         return redirect('dashboard')
-    conversation, _ = Conversation.objects.get_or_create(topic=Conversation.TopicEnum.SUPPORT)
-    conversation.participants.add(request.user, admin_user)
-    return redirect(f"{reverse('dashboard')}?conv={conversation.id}")
+    
+    # Chercher une conversation de type SUPPORT où l'utilisateur est participant
+    conversation = Conversation.objects.filter(
+        topic=Conversation.TopicEnum.SUPPORT,
+        participants=request.user
+    ).first()
+
+    if not conversation:
+        conversation = Conversation.objects.create(
+            topic=Conversation.TopicEnum.SUPPORT,
+            status=Conversation.StatusEnum.ACCEPTED # Le support est auto-accepté
+        )
+        conversation.participants.add(request.user, admin_user)
+        
+    return redirect(f"{reverse('messagerie')}?conv={conversation.id}")
 
 @login_required
 def chat_poll_view(request, conversation_id):

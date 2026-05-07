@@ -9,13 +9,7 @@
             <div class="p-4">
                 <div class="text-center mb-5">
                     <div class="position-relative d-inline-block mb-3">
-                        {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
-                        {% else %}
-                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; font-size: 2rem; font-weight: bold;">
-                                {{ user.phone_number|slice:":1" }}
-                            </div>
-                        {% endif %}
+                        <img src="{{ user.get_avatar_url }}" class="rounded-circle border border-3 border-success shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
                         {% if user.is_verified_pro %}
                             <span class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; border: 3px solid white;" title="{% trans "Vérifié" %}">
                                 <i class="fas fa-check-circle" style="font-size: 14px;"></i>

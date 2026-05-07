@@ -91,6 +91,10 @@
                                 <a href="tel:{{ pro.phone_number }}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;">
                                     <i class="fa-solid fa-phone"></i>
                                 </a>
+                                <!-- Link to Chat -->
+                                <a href="{% url 'initiate-pro-chat' pro.id %}" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" title="{% trans "Message Interne" %}">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                </a>
                             </div>
                             <!-- Link to their properties -->
                             <a href="{% url 'properties_list' %}?owner={{ pro.id }}" class="btn btn-sm btn-primary-custom w-100" style="border-radius: 8px; font-weight: 600;">

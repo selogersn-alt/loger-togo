@@ -67,7 +67,7 @@ def verified_professionals_view(request):
 @login_required
 def dashboard_view(request):
     """Hub central affichant les statistiques et les accès rapides (Senior UI Logic)."""
-    user_properties = request.user.properties.all()
+    user_properties = request.user.properties.all().prefetch_related('images').order_by('-created_at')
     total_views = user_properties.aggregate(Sum('views_count'))['views_count__sum'] or 0
     
     # Statistiques avancées pour le tableau de bord Pro (Airbnb-style)
@@ -76,6 +76,7 @@ def dashboard_view(request):
     pending_visits = VisitRequest.objects.filter(property__owner=request.user, status='PENDING').count()
     
     return render(request, 'dashboard.html', {
+        'user_properties': user_properties,
         'total_views': total_views,
         'properties_count': user_properties.count(),
         'pending_reservations': pending_reservations,

@@ -293,3 +293,33 @@ def request_visit_view(request, property_id):
             messages.error(request, _("Veuillez choisir une date."))
             
     return redirect(p.get_absolute_url())
+
+@login_required
+def duplicate_property_view(request, property_id):
+    """Duplique une annonce existante (Senior UI Feature)."""
+    import uuid
+    from django.utils import timezone
+    p = get_object_or_404(Property, id=property_id, owner=request.user)
+    
+    # On récupère l'objet original
+    new_p = Property.objects.get(id=property_id)
+    # On réinitialise la clé primaire pour créer un nouvel enregistrement
+    new_p.pk = None
+    new_p.id = uuid.uuid4()
+    new_p.title = f"{p.title} ({_('Copie')})"
+    new_p.is_published = False
+    new_p.created_at = timezone.now()
+    new_p.views_count = 0
+    new_p.is_boosted = False
+    new_p.save()
+    
+    # Duplication des images associées
+    for img in p.images.all():
+        PropertyImage.objects.create(
+            property=new_p,
+            image_url=img.image_url,
+            is_primary=img.is_primary
+        )
+        
+    messages.success(request, _("Annonce dupliquée ! Vous pouvez maintenant la modifier."))
+    return redirect('edit_property', property_id=new_p.id)

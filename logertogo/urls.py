@@ -54,11 +54,8 @@ from users.views import (
     password_recovery_view, password_reset_confirm_view,
     admin_generate_reset_link
 )
-from logersn.views import (
-    properties_list_view, property_detail_view, create_property_view,
-    edit_property_view, delete_property_view, toggle_favorite_view,
-    submit_review_view, subscribe_alert_view, unsubscribe_alert_view,
     apply_to_property_view, request_reservation_view, request_visit_view,
+    duplicate_property_view,
 )
 from chat.views import send_message_view, initiate_chat_view
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
@@ -90,6 +87,7 @@ urlpatterns = [
     path('annonces/<uuid:property_id>/', property_detail_view, name='property_detail'),
     path('annonces/<slug:slug>/', property_detail_view, name='property_detail_slug'),
     path('annonces/<uuid:property_id>/modifier/', edit_property_view, name='edit_property'),
+    path('annonces/<uuid:property_id>/dupliquer/', duplicate_property_view, name='duplicate_property'),
     path('annonces/<uuid:property_id>/supprimer/', delete_property_view, name='delete_property'),
     path('annonces/<uuid:property_id>/avis/', submit_review_view, name='submit_review'),
     path('annonces/<uuid:property_id>/candidater/', apply_to_property_view, name='apply_to_property'),

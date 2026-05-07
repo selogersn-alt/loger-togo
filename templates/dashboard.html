@@ -58,6 +58,125 @@
              INTERFACE PRO : LUXE & PUISSANCE
         ════════════════════════════════════════════ -->
         
+        <!-- GESTION DES ANNONCES (PRO) -->
+        <div class="glass-card p-4 mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0"><i class="fas fa-list-check text-success me-2"></i>{% trans "Mes Annonces" %}</h4>
+                <a href="{% url 'create_property' %}" class="btn btn-success rounded-pill px-4 fw-bold">
+                    <i class="fas fa-plus-circle me-2"></i>{% trans "Nouvelle Annonce" %}
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border-0">
+                    <thead class="text-muted small text-uppercase">
+                        <tr>
+                            <th class="border-0">{% trans "Bien" %}</th>
+                            <th class="border-0">{% trans "Statut" %}</th>
+                            <th class="border-0">{% trans "Prix" %}</th>
+                            <th class="border-0 text-center">{% trans "Vues" %}</th>
+                            <th class="border-0 text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for property in user_properties %}
+                        <tr>
+                            <td class="border-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-3 overflow-hidden me-3" style="width: 60px; height: 60px;">
+                                        <img src="{{ property.get_main_image }}" class="w-100 h-100 object-fit-cover">
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0">{{ property.title }}</h6>
+                                        <small class="text-muted"><i class="fas fa-location-dot me-1"></i>{{ property.neighborhood }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="border-0">
+                                {% if property.is_published %}
+                                    <span class="badge bg-soft-success text-success border-0 px-3">{% trans "En ligne" %}</span>
+                                {% else %}
+                                    <span class="badge bg-soft-warning text-warning border-0 px-3">{% trans "En attente" %}</span>
+                                {% endif %}
+                                {% if property.is_boosted %}
+                                    <span class="badge bg-warning text-dark border-0 px-2 ms-1"><i class="fas fa-rocket me-1"></i>Boost</span>
+                                {% endif %}
+                            </td>
+                            <td class="border-0 fw-bold">{{ property.price|format_price }} <small>CFA</small></td>
+                            <td class="border-0 text-center">
+                                <span class="badge rounded-pill bg-light text-dark px-3">{{ property.views_count }}</span>
+                            </td>
+                            <td class="border-0 text-end">
+                                <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                    <a href="{% url 'edit_property' property.id %}" class="btn btn-white btn-sm" title="{% trans "Modifier" %}"><i class="fas fa-edit text-primary"></i></a>
+                                    <a href="{% url 'duplicate_property' property.id %}" class="btn btn-white btn-sm" title="{% trans "Dupliquer" %}"><i class="fas fa-copy text-info"></i></a>
+                                    <button type="button" class="btn btn-white btn-sm" data-bs-toggle="modal" data-bs-target="#boostModal{{ property.id }}" title="{% trans "Booster" %}"><i class="fas fa-rocket text-warning"></i></button>
+                                    <button type="button" class="btn btn-white btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ property.id }}" title="{% trans "Supprimer" %}"><i class="fas fa-trash text-danger"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Suppression -->
+                        <div class="modal fade" id="deleteModal{{ property.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 rounded-4 shadow-lg">
+                                    <div class="modal-body p-5 text-center">
+                                        <div class="stat-icon bg-soft-danger mx-auto mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;"><i class="fas fa-triangle-exclamation"></i></div>
+                                        <h4 class="fw-bold mb-3">{% trans "Supprimer cette annonce ?" %}</h4>
+                                        <p class="text-muted mb-4">{% trans "Cette action est irréversible. Toutes les données associées seront perdues." %}</p>
+                                        <div class="d-flex gap-3">
+                                            <button type="button" class="btn btn-light rounded-pill w-100 fw-bold" data-bs-dismiss="modal">{% trans "Annuler" %}</button>
+                                            <form action="{% url 'delete_property' property.id %}" method="POST" class="w-100">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger rounded-pill w-100 fw-bold">{% trans "Supprimer" %}</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Boost -->
+                        <div class="modal fade" id="boostModal{{ property.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                                    <div class="modal-header border-0 bg-warning text-dark p-4">
+                                        <h5 class="modal-title fw-bold"><i class="fas fa-rocket me-2"></i>{% trans "Booster mon annonce" %}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body p-4">
+                                        <p class="text-muted">{% trans "Mettez votre annonce en tête de liste et multipliez vos contacts par 10." %}</p>
+                                        <form action="{% url 'initiate_payment' property.id 'BOOST' %}" method="GET">
+                                            <div class="mb-4">
+                                                <label class="form-label fw-bold">{% trans "Durée de la mise en avant" %}</label>
+                                                <select name="days" class="form-select rounded-3 p-3">
+                                                    <option value="7">{% trans "7 Jours - 5.000 CFA" %}</option>
+                                                    <option value="15">{% trans "15 Jours - 10.000 CFA" %}</option>
+                                                    <option value="30">{% trans "30 Jours - 18.000 CFA" %}</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-warning w-100 rounded-pill p-3 fw-bold shadow-sm">
+                                                <i class="fas fa-credit-card me-2"></i>{% trans "Payer par Mobile Money" %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="opacity-50 mb-3"><i class="fas fa-house-chimney-crack fa-3x"></i></div>
+                                <p class="text-muted mb-0">{% trans "Vous n'avez pas encore d'annonces." %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Quick Stats Glassmorphism -->
         <div class="row g-4 mb-5">
             <div class="col-md-3">

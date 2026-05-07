@@ -5,75 +5,118 @@
 
 {% block extra_css %}
 <style>
-    /* Hero Section Styling - Luxurious Deep Green with Watermark */
+    /* ═══════════════════════════════════════════ */
+    /* HERO — Style Loger Togo (inspiré Loger SN)  */
+    /* ═══════════════════════════════════════════ */
     .hero-section {
-        background: linear-gradient(135deg, #134e2f 0%, #0b301d 100%);
+        background: #0b4629;
         position: relative;
         overflow: hidden;
-        padding: 120px 0;
-        min-height: 520px;
+        padding: 90px 0 80px;
         display: flex;
         align-items: center;
     }
-    
-    /* Background icon removed as requested */
-
-    .hero-section > .container {
-        position: relative;
-        z-index: 2; /* S'assure que le texte et la recherche sont au-dessus de l'icône */
+    .hero-section > .container { position: relative; z-index: 2; }
+    .hero-title {
+        font-family: 'Outfit', 'Inter', sans-serif;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        color: #ffffff;
     }
-
-    /* Modern Search Engine */
-    .search-container {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 24px;
-        padding: 12px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        max-width: 950px;
+    .hero-title .highlight { color: #ffc107; }
+    .hero-subtitle {
+        font-size: 1.05rem;
+        color: rgba(255,255,255,0.8);
+        font-weight: 400;
+        max-width: 600px;
         margin: 0 auto;
     }
-    .search-input-group {
-        background: white;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        padding: 4px 10px;
-        flex: 1;
+    /* Search Bar Style Loger SN */
+    .search-bar-wrapper {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 16px;
+        padding: 10px;
+        max-width: 900px;
+        margin: 0 auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
     }
-    .search-input-group i { color: #1e5631; margin-right: 10px; }
-    .search-input-group select, .search-input-group input {
+    .search-bar-inner {
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: stretch;
+        overflow: hidden;
+    }
+    .search-field {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 16px;
+        border-right: 1px solid #e9ecef;
+        min-width: 0;
+    }
+    .search-field:last-of-type { border-right: none; }
+    .search-field label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .search-field select,
+    .search-field input {
         border: none;
         outline: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        background: transparent;
+        padding: 0;
         width: 100%;
-        padding: 12px 5px;
-        font-weight: 500;
-        color: #333;
     }
     .btn-search {
         background: #ffc107;
-        color: #1e5631;
+        color: #0b4629;
         border: none;
-        border-radius: 18px;
-        padding: 14px 35px;
-        font-weight: 700;
+        padding: 0 32px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+        white-space: nowrap;
+        border-radius: 0 10px 10px 0;
     }
-    .btn-search:hover {
-        background: #ffca2c;
-        transform: scale(1.02);
-    }
-    .trust-badge-mini {
-        background: rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
+    .btn-search:hover { background: #e6b000; transform: none; }
+    /* Badges de confiance */
+    .trust-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .trust-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.12);
         border-radius: 30px;
-        padding: 6px 15px;
-        color: white;
-        font-size: 0.75rem;
+        padding: 6px 16px;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.8rem;
         font-weight: 600;
+    }
+    .trust-badge i { color: #ffc107; font-size: 0.85rem; }
+    @media (max-width: 767px) {
+        .search-bar-inner { flex-direction: column; }
+        .search-field { border-right: none; border-bottom: 1px solid #e9ecef; }
+        .btn-search { border-radius: 0 0 10px 10px; padding: 14px; justify-content: center; }
+        .hero-title { text-align: center; }
+        .hero-subtitle { text-align: center; }
     }
 
     /* ═══════════════════════════════════════════ */
@@ -153,19 +196,23 @@
 {% endblock %}
 
 {% block content %}
-<!-- HERO SECTION -->
-<section class="hero-section text-white">
-    <div class="container position-relative" style="z-index: 2;">
-        <div class="text-center mb-5">
-            <h1 class="display-3 fw-bold mb-3">Trouvez votre <span style="color: #ffc107;">logement idéal</span> au Togo</h1>
-            <p class="lead opacity-90">La plateforme immobilière la plus sécurisée pour louer ou acheter en toute sérénité.</p>
+<!-- HERO SECTION — Style Loger Togo -->
+<section class="hero-section">
+    <div class="container">
+        <!-- Titre principal -->
+        <div class="text-center mb-4">
+            <h1 class="hero-title mb-3">
+                Trouvez votre <span class="highlight">logement idéal</span> au Togo
+            </h1>
+            <p class="hero-subtitle">La plateforme immobilière la plus fiable pour louer ou acheter en toute sérénité.</p>
         </div>
 
-        <div class="search-container">
-            <form action="{% url 'properties_list' %}" method="GET" class="row g-2 align-items-center">
-                <div class="col-lg-3">
-                    <div class="search-input-group">
-                        <i class="fas fa-home"></i>
+        <!-- Barre de recherche style Loger SN -->
+        <div class="search-bar-wrapper mt-4 mb-4">
+            <form action="{% url 'properties_list' %}" method="GET">
+                <div class="search-bar-inner">
+                    <div class="search-field">
+                        <label>{% trans "Je cherche..." %}</label>
                         <select name="listing_category">
                             <option value="ALL">{% trans "Toutes catégories" %}</option>
                             <option value="RENT">{% trans "En location" %}</option>
@@ -173,10 +220,8 @@
                             <option value="FURNISHED">{% trans "Meublé" %}</option>
                         </select>
                     </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="search-input-group">
-                        <i class="fas fa-building"></i>
+                    <div class="search-field">
+                        <label>{% trans "Type de bien" %}</label>
                         <select name="property_type">
                             <option value="ALL">{% trans "Tous les types" %}</option>
                             <option value="APPARTEMENT">{% trans "Appartement" %}</option>
@@ -184,27 +229,30 @@
                             <option value="STUDIO">{% trans "Studio" %}</option>
                             <option value="BUREAU">{% trans "Bureau" %}</option>
                             <option value="TERRAIN">{% trans "Terrain" %}</option>
+                            <option value="MAGASIN">{% trans "Magasin" %}</option>
                         </select>
                     </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="search-input-group">
-                        <i class="fas fa-location-dot"></i>
-                        <input type="text" name="neighborhood" placeholder="{% trans "Où ? (Quartier, Ville)" %}">
+                    <div class="search-field">
+                        <label>{% trans "Où ? (Ville)" %}</label>
+                        <select name="city">
+                            <option value="">{% trans "Tout le Togo" %}</option>
+                            {% for code, name in cities %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
-                <div class="col-lg-3">
-                    <button type="submit" class="btn btn-search w-100">
-                        <i class="fas fa-search me-2"></i> {% trans "Rechercher" %}
+                    <button type="submit" class="btn-search">
+                        <i class="fas fa-search"></i> {% trans "Rechercher" %}
                     </button>
                 </div>
             </form>
         </div>
 
-        <div class="d-flex justify-content-center gap-3 mt-4">
-            <div class="trust-badge-mini"><i class="fas fa-check-circle text-warning me-2"></i>+15 000 Annonces</div>
-            <div class="trust-badge-mini"><i class="fas fa-user-shield text-warning me-2"></i>Pros Vérifiés</div>
-            <div class="trust-badge-mini"><i class="fas fa-shield-halved text-warning me-2"></i>Protection NILS</div>
+        <!-- Badges de confiance -->
+        <div class="trust-badges mt-3">
+            <div class="trust-badge"><i class="fas fa-check-circle"></i>+5 000 Annonces</div>
+            <div class="trust-badge"><i class="fas fa-user-shield"></i>Pros Vérifiés</div>
+            <div class="trust-badge"><i class="fas fa-shield-halved"></i>100% Sécurisé</div>
         </div>
     </div>
 </section>

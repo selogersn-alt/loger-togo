@@ -445,14 +445,8 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}" style="gap: 12px;">
-                <div class="logo-wrapper d-flex align-items-center">
-                    <img src="{% static 'img/logo_icon.png' %}" alt="Icon Loger Togo" height="45" style="height: 45px; width: auto; border-radius: 8px;">
-                    <div class="ms-2 d-flex flex-column justify-content-center">
-                        <span style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.6rem; line-height: 1; letter-spacing: -1px; color: var(--text-main);">Loger<span style="color: var(--color-light-green);">Togo</span></span>
-                    </div>
-                </div>
-            </a>
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <img src="{% static 'img/logo_horizontal.png' %}" alt="Loger Togo" height="44" style="height: 44px; width: auto; object-fit: contain;"></a>
             
             <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa-solid fa-bars-staggered fs-2" style="color: var(--text-main);"></i>

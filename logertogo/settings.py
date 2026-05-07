@@ -136,7 +136,6 @@ TEMPLATES = [
             'builtins': [
                 'logersn.templatetags.property_tags',
                 'django.contrib.humanize.templatetags.humanize',
-                'django.templatetags.i18n',
             ],
         },
     },

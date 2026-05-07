@@ -5,6 +5,10 @@
 
 {% block meta_description %}{{ seo_description }}{% endblock %}
 
+{% block breadcrumb_items %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Toutes les annonces" %}</li>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .property-card {

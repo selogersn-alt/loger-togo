@@ -275,6 +275,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # WhiteNoise settings
 WHITENOISE_INDEX_FILE = False
 WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_KEEP_ONLY_HASHED_FILES = True
+WHITENOISE_MAX_AGE = 31536000  # 1 an pour le cache navigateur
 
 # Email Configuration (Direct Server O2switch / SMTP local)
 if DEBUG:
@@ -326,13 +328,16 @@ except ImportError:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- CACHE CONFIGURATION (Optimisation Safe pour O2switch) ---
+# --- CACHE CONFIGURATION (Haute Performance) ---
+# Utilisation de DatabaseCache pour la persistance si Redis n'est pas présent
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'Logertogo-cache',
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache_table',
+        'TIMEOUT': 3600,  # 1 heure par défaut
     }
 }
+# Table de cache à créer via: python manage.py createcachetable
 
 # --- SECURITY & HSTS (SEO & Trust) ---
 if not DEBUG:

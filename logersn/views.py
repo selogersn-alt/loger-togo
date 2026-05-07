@@ -78,6 +78,22 @@ def properties_list_view(request):
     
     properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
     
+    # Titre SEO dynamique
+    seo_title = _("Toutes les annonces immobilières au Togo")
+    cat_label = _("Location/Vente")
+    if listing_category == 'RENT': cat_label = _("Location")
+    elif listing_category == 'SALE': cat_label = _("Vente")
+    elif listing_category == 'FURNISHED': cat_label = _("Meublé")
+
+    type_label = property_type if property_type and property_type != 'ALL' else _("biens")
+    city_label = city if city and city != 'ALL' else _("Togo")
+    
+    if listing_category or property_type or city:
+        seo_title = f"{type_label} en {cat_label} à {city_label}"
+        if neighborhood: seo_title += f" ({neighborhood})"
+
+    seo_description = _("Consultez les meilleures annonces immobilières : appartements, villas, terrains et meublés au Togo. Annonces vérifiées.")
+
     # Filtres de base
     if listing_category and listing_category != 'ALL': properties = properties.filter(listing_category=listing_category)
     if property_type and property_type != 'ALL': properties = properties.filter(property_type=property_type)
@@ -86,12 +102,8 @@ def properties_list_view(request):
     
     # Filtre textuel (recherche globale)
     if q:
-        from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-        vector = SearchVector('title', weight='A') + SearchVector('neighborhood', weight='B') + SearchVector('description', weight='C')
-        search_query = SearchQuery(q)
-        properties = properties.annotate(
-            rank=SearchRank(vector, search_query)
-        ).filter(rank__gte=0.1).order_by('-rank')
+        properties = properties.filter(Q(title__icontains=q) | Q(description__icontains=q) | Q(neighborhood__icontains=q))
+    
     # Filtres géo
     if city and city != 'ALL': properties = properties.filter(city=city)
     
@@ -99,12 +111,6 @@ def properties_list_view(request):
     pre_neighborhood_results = properties
     if neighborhood and neighborhood != 'ALL': 
         properties = properties.filter(neighborhood__icontains=neighborhood)
-    
-    # --- LOGIQUE DE SUGGESTION APPROXIMATIVE ---
-    is_fallback = False
-    if properties.count() == 0 and (neighborhood or q):
-        # Si aucun résultat avec le quartier, on propose les résultats de la ville entière
-        properties = pre_neighborhood_results
         is_fallback = True
         if properties.count() == 0:
             # Si toujours rien, on élargit encore (toutes les villes, même catégorie)

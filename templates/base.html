@@ -3,7 +3,16 @@
 <html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- SEO & GEO Tags -->
+    <meta name="geo.region" content="TG" />
+    <meta name="geo.placename" content="Lomé" />
+    <meta name="geo.position" content="6.1375;1.2125" />
+    <meta name="ICBM" content="6.1375, 1.2125" />
+    <meta name="author" content="DigitalH" />
+    <link rel="canonical" href="{{ request.build_absolute_uri }}" />
+
     <!-- Performance Boost : DNS Prefetch & Preconnect -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
@@ -312,6 +321,80 @@
             z-index: 2000;
             max-width: 350px;
         }
+
+        /* Mobile Bottom Nav */
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            z-index: 1040;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .mobile-bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .mobile-bottom-nav .nav-item i {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .mobile-bottom-nav .nav-item.active {
+            color: var(--color-light-green);
+        }
+
+        /* Safari & Modal Fixes */
+        .modal {
+            -webkit-overflow-scrolling: touch;
+            z-index: 1060 !important;
+        }
+        .modal-backdrop {
+            z-index: 1050 !important;
+        }
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        /* Highlight Near Me */
+        .nav-link-near-me {
+            position: relative;
+            background: rgba(40, 167, 69, 0.08);
+            border-radius: 50px;
+            padding: 8px 16px !important;
+            margin: 0 5px !important;
+        }
+        .nav-link-near-me:hover {
+            background: rgba(40, 167, 69, 0.15);
+        }
+        .nav-link-near-me i {
+            animation: pulse-geo 2s infinite;
+        }
+        @keyframes pulse-geo {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -463,7 +546,7 @@
                         <a class="nav-link" href="{% url 'properties_list' %}">{% trans "Annonces" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'near_me' %}" style="color: var(--color-light-green) !important; font-weight: 700;">
+                        <a class="nav-link nav-link-near-me" href="{% url 'near_me' %}" style="color: var(--color-light-green) !important; font-weight: 700;">
                             <i class="fa-solid fa-location-dot me-1"></i> {% trans "Autour de moi" %}
                         </a>
                     </li>
@@ -594,14 +677,34 @@
 
     <!-- Fil d'Ariane (Breadcrumbs) -->
     <div class="container mt-3">
-        {% block breadcrumbs %}{% endblock %}
+        {% include 'partials/breadcrumbs.html' %}
     </div>
 
     <!-- Contenu Principal -->
-    <main>
+    <main style="padding-bottom: 80px;">
         {% block content %}
         {% endblock %}
     </main>
+
+    <!-- Bottom Navigation for Mobile -->
+    <div class="mobile-bottom-nav d-lg-none">
+        <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="fa-solid fa-house"></i>
+            <span>{% trans "Accueil" %}</span>
+        </a>
+        <a href="{% url 'properties_list' %}" class="nav-item {% if request.resolver_match.url_name == 'properties_list' %}active{% endif %}">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>{% trans "Explorer" %}</span>
+        </a>
+        <a href="{% url 'near_me' %}" class="nav-item {% if request.resolver_match.url_name == 'near_me' %}active{% endif %}">
+            <i class="fa-solid fa-location-crosshairs"></i>
+            <span>{% trans "Autour" %}</span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-circle-user"></i>
+            <span>{% trans "Profil" %}</span>
+        </a>
+    </div>
 
     <!-- Publicités Bas (Bottom Ads) -->
     {% if ads_bottom %}
@@ -651,12 +754,10 @@
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Lien Utiles" %}</h5>
+                    <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Nos Partenaires" %}</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'about' %}" class="footer-link">{% trans "À propos de nous" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'professionals_list' %}" class="footer-link">{% trans "Annuaire des Professionnels" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'cgu' %}" class="footer-link">{% trans "CGU & Conditions" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'privacy' %}" class="footer-link">{% trans "Confidentialité" %}</a></li>
+                        <li class="mb-2"><a href="https://logersenegal.com" class="footer-link" target="_blank"><i class="fa-solid fa-handshake-angle me-2"></i>Loger Sénégal</a></li>
+                        <li class="mb-2"><a href="https://digitalh.net" class="footer-link" target="_blank"><i class="fa-solid fa-code me-2"></i>DigitalH - Éditeur</a></li>
                         <li class="mb-2"><a href="mailto:serviceclient@Logertogo.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@Logertogo.com</a></li>
                         <li class="mb-2"><a href="https://wa.me/22897151610" class="footer-link" target="_blank"><i class="fa-brands fa-whatsapp me-2"></i>+228 97 15 16 10</a></li>
                     </ul>
@@ -664,11 +765,11 @@
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Secteurs Prisés" %}</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Agoè-Assiyéyé" class="footer-link">{% trans "Immobilier Agoè" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Baguida" class="footer-link">{% trans "Location Baguida" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hanoukopé" class="footer-link">{% trans "Appartements Hanoukopé" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Hedzranawoé" class="footer-link">{% trans "Villas Hedzranawoé" %}</a></li>
-                        <li class="mb-2"><a href="{% url 'properties_list' %}?neighborhood=Adidogomé" class="footer-link">{% trans "Annonces Adidogomé" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'seo_rent_apt_lome' %}" class="footer-link">{% trans "Appartements à Lomé" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'seo_rent_apt_baguida' %}" class="footer-link">{% trans "Location à Baguida" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'seo_sale_terrain_lome' %}" class="footer-link">{% trans "Terrains à vendre" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'seo_furnished_lome' %}" class="footer-link">{% trans "Appartements Meublés" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'seo_sale_house_lome' %}" class="footer-link">{% trans "Villas à vendre" %}</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 mb-4">
@@ -682,7 +783,8 @@
             </div>
             <hr style="border-color: rgba(255, 255, 255, 0.2);">
             <div class="text-center" style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem;">
-                &copy; <span id="currentYear"></span> Logertogo. {% trans "Tous droits réservés." %}
+                &copy; <span id="currentYear"></span> Logertogo. {% trans "Tous droits réservés." %} | 
+                {% trans "Développé avec ❤️ par" %} <a href="https://digitalh.net" target="_blank" class="text-decoration-none" style="color: var(--color-yellow); font-weight: 700;">DigitalH</a>
             </div>
         </div>
     </footer>

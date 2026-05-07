@@ -80,8 +80,8 @@
                     </thead>
                     <tbody>
                         {% for property in user_properties %}
-                        <tr>
-                            <td class="border-0">
+                        <tr class="mobile-card">
+                            <td class="border-0" data-label="{% trans "Bien" %}">
                                 <div class="d-flex align-items-center">
                                     <div class="rounded-3 overflow-hidden me-3" style="width: 60px; height: 60px;">
                                         <img src="{{ property.get_main_image }}" class="w-100 h-100 object-fit-cover">
@@ -92,7 +92,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="border-0">
+                            <td class="border-0" data-label="{% trans "Statut" %}">
                                 {% if property.is_published %}
                                     <span class="badge bg-soft-success text-success border-0 px-3">{% trans "En ligne" %}</span>
                                 {% else %}
@@ -102,11 +102,11 @@
                                     <span class="badge bg-warning text-dark border-0 px-2 ms-1"><i class="fas fa-rocket me-1"></i>Boost</span>
                                 {% endif %}
                             </td>
-                            <td class="border-0 fw-bold">{{ property.price|floatformat:0 }} <small>CFA</small></td>
-                            <td class="border-0 text-center">
+                            <td class="border-0 fw-bold" data-label="{% trans "Prix" %}">{{ property.price|floatformat:0 }} <small>CFA</small></td>
+                            <td class="border-0 text-center" data-label="{% trans "Vues" %}">
                                 <span class="badge rounded-pill bg-light text-dark px-3">{{ property.views_count }}</span>
                             </td>
-                            <td class="border-0 text-end">
+                            <td class="border-0 text-end" data-label="{% trans "Actions" %}">
                                 <div class="btn-group shadow-sm rounded-pill overflow-hidden">
                                     <a href="{% url 'edit_property' property.id %}" class="btn btn-white btn-sm" title="{% trans "Modifier" %}"><i class="fas fa-edit text-primary"></i></a>
                                     <a href="{% url 'duplicate_property' property.id %}" class="btn btn-white btn-sm" title="{% trans "Dupliquer" %}"><i class="fas fa-copy text-info"></i></a>
@@ -117,19 +117,25 @@
                         </tr>
 
                         <!-- Modal Suppression -->
-                        <div class="modal fade" id="deleteModal{{ property.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 rounded-4 shadow-lg">
-                                    <div class="modal-body p-5 text-center">
-                                        <div class="stat-icon bg-soft-danger mx-auto mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;"><i class="fas fa-triangle-exclamation"></i></div>
-                                        <h4 class="fw-bold mb-3">{% trans "Supprimer cette annonce ?" %}</h4>
-                                        <p class="text-muted mb-4">{% trans "Cette action est irréversible. Toutes les données associées seront perdues." %}</p>
-                                        <div class="d-flex gap-3">
-                                            <button type="button" class="btn btn-light rounded-pill w-100 fw-bold" data-bs-dismiss="modal">{% trans "Annuler" %}</button>
-                                            <form action="{% url 'delete_property' property.id %}" method="POST" class="w-100">
+                        <div class="modal fade" id="deleteModal{{ property.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ property.id }}" aria-hidden="true" style="z-index: 9999;">
+                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                <div class="modal-content border-0 rounded-4 shadow-2xl">
+                                    <div class="modal-body p-4 text-center">
+                                        <div class="stat-icon bg-soft-danger mx-auto mb-4 animate__animated animate__headShake animate__infinite" style="width: 70px; height: 70px; font-size: 2rem;">
+                                            <i class="fas fa-trash-can text-danger"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-2">{% trans "Supprimer ?" %}</h5>
+                                        <p class="text-muted small mb-4">{% trans "Cette action est définitive." %}</p>
+                                        <div class="d-grid gap-2">
+                                            <form action="{% url 'delete_property' property.id %}" method="POST" class="w-100 m-0">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger rounded-pill w-100 fw-bold">{% trans "Supprimer" %}</button>
+                                                <button type="submit" class="btn btn-danger rounded-pill w-100 fw-bold py-2">
+                                                    {% trans "Oui, supprimer" %}
+                                                </button>
                                             </form>
+                                            <button type="button" class="btn btn-light rounded-pill w-100 fw-bold py-2" data-bs-dismiss="modal">
+                                                {% trans "Annuler" %}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -429,6 +435,34 @@
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .glass-card { padding: 25px !important; }
+        
+        /* Table to Cards */
+        .table-responsive table thead { display: none; }
+        .table-responsive table tbody tr { 
+            display: block; 
+            margin-bottom: 1.5rem; 
+            background: white; 
+            border-radius: 16px; 
+            padding: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .table-responsive table td { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border: none !important; 
+            padding: 8px 0 !important;
+            text-align: right;
+        }
+        .table-responsive table td::before { 
+            content: attr(data-label); 
+            font-weight: 700; 
+            color: var(--text-muted);
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .table-responsive table td:first-child { display: block; text-align: left; margin-bottom: 10px; border-bottom: 1px solid #eee !important; padding-bottom: 15px !important; }
+        .table-responsive table td:first-child::before { display: none; }
     }
 </style>
 {% endblock %}

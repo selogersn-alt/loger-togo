@@ -19,7 +19,7 @@ from django.shortcuts import redirect
 from django.urls import path, include
 from django.views.generic import TemplateView
 from django.contrib.sitemaps.views import sitemap
-from logersn.sitemaps import StaticViewSitemap, PropertySitemap, ProfessionalSitemap
+from logersn.sitemaps import StaticViewSitemap, PropertySitemap, ProfessionalSitemap, BlogSitemap
 
 from rest_framework.routers import DefaultRouter
 from logersn.api import PropertyViewSet, PropertyImageViewSet, ProfessionalsViewSet
@@ -39,6 +39,7 @@ sitemaps = {
     'static': StaticViewSitemap,
     'properties': PropertySitemap,
     'professionals': ProfessionalSitemap,
+    'blog': BlogSitemap,
 }
 from logertogo.views import (
     home_view, dashboard_view, about_view, verified_professionals_view,
@@ -59,7 +60,7 @@ from logersn.views import (
     edit_property_view, delete_property_view, submit_review_view, toggle_favorite_view,
     apply_to_property_view, request_reservation_view, request_visit_view,
     duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view,
-    near_me_view, nearby_api_view
+    near_me_view, nearby_api_view, seo_search_view
 )
 from chat.views import (
     send_message_view, initiate_chat_view, initiate_pro_chat_view, 
@@ -102,6 +103,14 @@ urlpatterns = [
     path('annonces/<uuid:property_id>/candidater/', apply_to_property_view, name='apply_to_property'),
     path('annonces/<uuid:property_id>/reserver/', request_reservation_view, name='request_reservation'),
     path('annonces/<uuid:property_id>/visiter/', request_visit_view, name='request_visit'),
+    
+    # --- SEO Landing Pages ---
+    path('louer/appartement/lome/', seo_search_view, {'listing_category': 'RENT', 'property_type': 'APPARTEMENT', 'city': 'LOME'}, name='seo_rent_apt_lome'),
+    path('louer/villa/lome/', seo_search_view, {'listing_category': 'RENT', 'property_type': 'VILLA', 'city': 'LOME'}, name='seo_rent_villa_lome'),
+    path('acheter/terrain/lome/', seo_search_view, {'listing_category': 'SALE', 'property_type': 'TERRAIN', 'city': 'LOME'}, name='seo_sale_terrain_lome'),
+    path('acheter/maison/lome/', seo_search_view, {'listing_category': 'SALE', 'property_type': 'VILLA', 'city': 'LOME'}, name='seo_sale_house_lome'),
+    path('meuble/lome/', seo_search_view, {'listing_category': 'FURNISHED', 'city': 'LOME'}, name='seo_furnished_lome'),
+    path('louer/appartement/baguida/', seo_search_view, {'listing_category': 'RENT', 'property_type': 'APPARTEMENT', 'city': 'LOME', 'neighborhood': 'Baguida'}, name='seo_rent_apt_baguida'),
     
     # Certification Ads (Google AdSense)
     path('ads.txt', ads_txt_view, name='ads_txt'),

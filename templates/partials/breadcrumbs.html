@@ -1,19 +1,23 @@
-{% load i18n %}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb bg-transparent p-0 mb-0">
-        <li class="breadcrumb-item">
-            <a href="{% url 'home' %}" class="text-muted text-decoration-none small fw-bold">
-                <i class="fa-solid fa-house me-1"></i> {% trans "Accueil" %}
-            </a>
-        </li>
-        {% for crumb in breadcrumbs %}
-            {% if forloop.last %}
-                <li class="breadcrumb-item active text-main small fw-bold" aria-current="page">{{ crumb.name }}</li>
-            {% else %}
-                <li class="breadcrumb-item">
-                    <a href="{{ crumb.url }}" class="text-muted text-decoration-none small fw-bold">{{ crumb.name }}</a>
-                </li>
-            {% endif %}
-        {% endfor %}
-    </ol>
+<nav aria-label="breadcrumb" class="animate__animated animate__fadeIn">
+  <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border small d-inline-flex">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i> {% trans "Accueil" %}</a></li>
+    {% block breadcrumb_items %}
+    {% endblock %}
+  </ol>
 </nav>
+
+<style>
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "\f105";
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        color: #ccc;
+    }
+    .breadcrumb-item a:hover {
+        color: var(--color-light-green) !important;
+    }
+    .breadcrumb-item.active {
+        color: var(--color-dark-green);
+        font-weight: 700;
+    }
+</style>

@@ -23,7 +23,9 @@ class StaticViewSitemap(Sitemap):
             'home', 
             'about', 
             'properties_list', 
+            'near_me',
             'professionals_list',
+            'blog:post_list',
             'cgu',
             'privacy',
             'guide_locataires',
@@ -35,9 +37,11 @@ class StaticViewSitemap(Sitemap):
     def priority(self, item):
         return {
             'home': 1.0,
-            'properties_list': 0.8,
-            'guide_locataires': 0.7,
-            'guide_bailleurs': 0.7,
+            'properties_list': 0.9,
+            'near_me': 0.8,
+            'blog:post_list': 0.7,
+            'guide_locataires': 0.6,
+            'guide_bailleurs': 0.6,
         }.get(item, 0.5)
 
     def changefreq(self, item):
@@ -65,3 +69,18 @@ class ProfessionalSitemap(Sitemap):
         if obj.slug:
             return reverse('public_profile_slug', kwargs={'slug': obj.slug})
         return reverse('public_profile', kwargs={'user_id': obj.id})
+
+class BlogSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.6
+    protocol = 'https'
+
+    def items(self):
+        from blog.models import Post
+        return Post.objects.filter(status='PUBLISHED').order_by('-created_at')
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return obj.get_absolute_url()

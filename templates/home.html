@@ -242,9 +242,14 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="btn-search">
-                        <i class="fas fa-search"></i> {% trans "Rechercher" %}
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-search">
+                            <i class="fas fa-search"></i> {% trans "Rechercher" %}
+                        </button>
+                        <a href="{% url 'near_me' %}" class="btn btn-white d-none d-md-flex align-items-center justify-content-center px-4" style="border-radius: 0 10px 10px 0; border-left: 1px solid #e9ecef; color: var(--color-light-green); font-weight: 700; text-decoration: none; gap: 8px;">
+                            <i class="fa-solid fa-location-crosshairs fa-beat"></i> {% trans "Autour" %}
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>

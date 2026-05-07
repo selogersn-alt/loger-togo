@@ -130,6 +130,11 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'ads.context_processors.ads_processor',
             ],
+            # Rend property_tags disponible dans TOUS les templates
+            # sans besoin de {% load property_tags %}
+            'builtins': [
+                'logersn.templatetags.property_tags',
+            ],
         },
     },
 ]

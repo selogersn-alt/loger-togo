@@ -523,3 +523,13 @@ def nearby_api_view(request):
         'count': len(results),
         'results': results,
     })
+
+def seo_search_view(request, listing_category=None, property_type=None, city=None, neighborhood=None):
+    """Vue helper pour mapper des URLs SEO vers la recherche avec filtres."""
+    mutable_get = request.GET.copy()
+    if listing_category: mutable_get['listing_category'] = listing_category
+    if property_type: mutable_get['property_type'] = property_type
+    if city: mutable_get['city'] = city
+    if neighborhood: mutable_get['neighborhood'] = neighborhood
+    request.GET = mutable_get
+    return properties_list_view(request)

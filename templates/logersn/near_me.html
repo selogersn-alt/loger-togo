@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ title }} | Loger Togo{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    #map-container {
+        position: relative;
+        height: calc(100vh - 120px);
+        width: 100%;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    #map {
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+    }
+    .map-overlay {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        pointer-events: none;
+    }
+    .map-controls {
+        position: absolute;
+        bottom: 30px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .control-btn {
+        background: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        pointer-events: auto;
+    }
+    .control-btn:hover {
+        transform: scale(1.1);
+        background: var(--color-dark-green);
+        color: white;
+    }
+    .control-btn.active {
+        background: var(--color-dark-green);
+        color: white;
+    }
+    
+    .status-badge {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        pointer-events: auto;
+    }
+
+    /* Popup Custom Styling */
+    .leaflet-popup-content-wrapper {
+        border-radius: 15px;
+        padding: 0;
+        overflow: hidden;
+    }
+    .leaflet-popup-content {
+        margin: 0;
+        width: 250px !important;
+    }
+    .popup-card {
+        width: 100%;
+    }
+    .popup-img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+    }
+    .popup-body {
+        padding: 15px;
+    }
+    .popup-price {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--color-dark-green);
+        margin-bottom: 5px;
+    }
+    .popup-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .popup-meta {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    /* Dark Mode Support */
+    [data-theme="dark"] .status-badge,
+    [data-theme="dark"] .control-btn {
+        background: #1e1e1e;
+        color: white;
+    }
+    [data-theme="dark"] .leaflet-layer,
+    [data-theme="dark"] .leaflet-control-zoom-in,
+    [data-theme="dark"] .leaflet-control-zoom-out,
+    [data-theme="dark"] .leaflet-control-attribution {
+        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    }
+
+    /* Proximity Indicator */
+    .distance-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--color-yellow);
+        color: black;
+        padding: 2px 8px;
+        border-radius: 5px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold animate__animated animate__fadeInLeft">
+                <i class="fa-solid fa-map-location-dot text-success me-2"></i> {{ title }}
+            </h2>
+            <p class="text-muted">{% trans "Activez votre GPS pour voir les auberges et logements meublés les plus proches de vous." %}</p>
+        </div>
+    </div>
+
+    <div id="map-container" class="animate__animated animate__zoomIn">
+        <div class="map-overlay">
+            <div class="status-badge" id="gps-status">
+                <i class="fa-solid fa-location-crosshairs text-primary"></i>
+                <span id="status-text">{% trans "Recherche de votre position..." %}</span>
+            </div>
+        </div>
+
+        <div class="map-controls">
+            <button class="control-btn" id="btn-track" title="{% trans "Activer le suivi GPS" %}">
+                <i class="fa-solid fa-location-arrow fs-4"></i>
+            </button>
+            <button class="control-btn" id="btn-locate" title="{% trans "Me localiser" %}">
+                <i class="fa-solid fa-crosshairs fs-4"></i>
+            </button>
+            <button class="control-btn" id="btn-refresh" title="{% trans "Rafraîchir" %}">
+                <i class="fa-solid fa-sync fs-4"></i>
+            </button>
+        </div>
+
+        <div id="map"></div>
+    </div>
+</div>
+
+<!-- Modal Détails Rapide (Optionnel) -->
+<div class="modal fade" id="quickDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="modal-content-placeholder">
+            <!-- Injecté via JS -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapMarkers = {{ map_markers_json|safe }};
+        const defaultLat = 6.1311; // Lomé
+        const defaultLng = 1.2228;
+        
+        let map = L.map('map').setView([defaultLat, defaultLng], 13);
+        let userMarker = null;
+        let markersGroup = L.layerGroup().addTo(map);
+
+        // Fond de carte premium (Voyager ou Light)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        let watchId = null;
+        let trackingMode = false;
+        let activeItinerary = null;
+
+        const locateUser = () => {
+            if (!navigator.geolocation) {
+                updateStatus('{% trans "Géolocalisation non supportée" %}', 'danger');
+                return;
+            }
+
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            updateStatus('{% trans "Suivi GPS activé..." %}', 'primary');
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude, heading } = position.coords;
+                    const userPos = [latitude, longitude];
+
+                    if (trackingMode) {
+                        map.panTo(userPos);
+                    }
+
+                    if (userMarker) {
+                        userMarker.setLatLng(userPos);
+                    } else {
+                        const userIcon = L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div class="user-pulse"></div>',
+                            iconSize: [20, 20]
+                        });
+                        userMarker = L.marker(userPos, { icon: userIcon }).addTo(map);
+                        map.setView(userPos, 16);
+                    }
+
+                    updateStatus('{% trans "Position actualisée" %}', 'success');
+                    renderMarkers(latitude, longitude);
+                    
+                    if (activeItinerary) {
+                        updateItinerary(userPos, activeItinerary.targetPos);
+                    }
+                },
+                (error) => {
+                    updateStatus('{% trans "Signal GPS faible" %}', 'warning');
+                },
+                { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+            );
+        };
+
+        const updateItinerary = (start, end) => {
+            if (activeItinerary && activeItinerary.line) {
+                map.removeLayer(activeItinerary.line);
+            }
+            const line = L.polyline([start, end], {
+                color: '#007bff',
+                weight: 5,
+                opacity: 0.7,
+                dashArray: '10, 10',
+                lineJoin: 'round'
+            }).addTo(map);
+            
+            activeItinerary = { line, targetPos: end };
+        };
+
+        const startItinerary = (targetLat, targetLng) => {
+            if (!userMarker) return;
+            const userPos = userMarker.getLatLng();
+            const targetPos = [targetLat, targetLng];
+            
+            updateItinerary([userPos.lat, userPos.lng], targetPos);
+            map.fitBounds([userPos, targetPos], { padding: [50, 50] });
+            
+            trackingMode = true;
+            document.getElementById('btn-track').classList.add('active');
+            
+            // Notification toast
+            alert('{% trans "Itinéraire activé. Le GPS suivra votre position." %}');
+        };
+
+        const updateStatus = (text, type) => {
+            const statusText = document.getElementById('status-text');
+            const icon = document.querySelector('#gps-status i');
+            if (statusText) statusText.innerText = text;
+            if (icon) icon.className = `fa-solid fa-location-crosshairs text-${type}`;
+        };
+
+        const calculateDistance = (lat1, lon1, lat2, lon2) => {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        };
+
+        const renderMarkers = (userLat, userLng) => {
+            markersGroup.clearLayers();
+            
+            mapMarkers.forEach(p => {
+                const distance = calculateDistance(userLat, userLng, p.lat, p.lng);
+                const distanceStr = distance < 1 ? `${(distance * 1000).toFixed(0)} m` : `${distance.toFixed(1)} km`;
+
+                const iconHtml = p.property_type === 'AUBERGE' ? 'fa-hotel' : 'fa-house-user';
+                const iconColor = p.property_type === 'AUBERGE' ? '#d63384' : '#0b4629';
+
+                const customIcon = L.divIcon({
+                    className: 'custom-property-marker',
+                    html: `<div style="background: ${iconColor}; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"><i class="fa-solid ${iconHtml}"></i></div>`,
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 35]
+                });
+
+                const marker = L.marker([p.lat, p.lng], { icon: customIcon });
+                
+                const popupContent = `
+                    <div class="popup-card">
+                        <div class="position-relative">
+                            <img src="${p.img}" class="popup-img">
+                            <div class="distance-tag">${distanceStr}</div>
+                        </div>
+                        <div class="popup-body">
+                            <div class="popup-price">${p.price.toLocaleString()} F</div>
+                            <div class="popup-title">${p.title}</div>
+                            <div class="popup-meta">
+                                <i class="fa-solid fa-location-dot me-1"></i> ${p.neighborhood}<br>
+                                <span class="badge bg-light text-dark border mt-2">${p.type}</span>
+                            </div>
+                            <button onclick="startItinerary(${p.lat}, ${p.lng})" class="btn btn-primary btn-sm w-100 rounded-pill mt-3 fw-bold mb-2">
+                                <i class="fa-solid fa-route me-1"></i> {% trans "S'y rendre (Itinéraire)" %}
+                            </button>
+                            <a href="${p.url}" class="btn btn-outline-success btn-sm w-100 rounded-pill fw-bold">{% trans "Voir les détails" %}</a>
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markersGroup.addLayer(marker);
+            });
+        };
+
+        // Événements
+        document.getElementById('btn-locate').addEventListener('click', locateUser);
+        document.getElementById('btn-track').addEventListener('click', function() {
+            trackingMode = !trackingMode;
+            this.classList.toggle('active');
+            if (trackingMode && userMarker) {
+                map.panTo(userMarker.getLatLng());
+            }
+        });
+        document.getElementById('btn-refresh').addEventListener('click', () => location.reload());
+
+        window.startItinerary = startItinerary;
+
+        // Initialisation
+        locateUser();
+    });
+</script>
+
+<style>
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(2.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 0; }
+    }
+    .user-pulse {
+        background: #007bff;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 15px rgba(0,123,255,0.8);
+        animation: pulse 2s infinite;
+    }
+</style>
+{% endblock %}

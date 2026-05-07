@@ -58,7 +58,7 @@ from logersn.views import (
     create_property_view, properties_list_view, property_detail_view,
     edit_property_view, delete_property_view, submit_review_view, toggle_favorite_view,
     apply_to_property_view, request_reservation_view, request_visit_view,
-    duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view
+    duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view, near_me_view
 )
 from chat.views import send_message_view, initiate_chat_view, update_chat_status_view, sync_messages_view, messagerie_view
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
@@ -87,6 +87,7 @@ urlpatterns = [
 
     path('annonces/nouvelle/', create_property_view, name='create_property'),
     path('annonces/', properties_list_view, name='properties_list'),
+    path('autour-de-moi/', near_me_view, name='near_me'),
     path('annonces/<uuid:property_id>/', property_detail_view, name='property_detail'),
     path('annonces/<slug:slug>/', property_detail_view, name='property_detail_slug'),
     path('annonces/<uuid:property_id>/modifier/', edit_property_view, name='edit_property'),

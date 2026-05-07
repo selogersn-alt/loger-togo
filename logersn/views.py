@@ -325,3 +325,34 @@ def duplicate_property_view(request, property_id):
         
     messages.success(request, _("Annonce dupliquée ! Vous pouvez maintenant la modifier."))
     return redirect('edit_property', property_id=new_p.id)
+def near_me_view(request):
+    """
+    Service de géolocalisation en temps réel.
+    Affiche les auberges et les locations meublées sur une carte.
+    """
+    # Filtrage : Type = Auberge OU Catégorie = Meublé
+    properties = Property.objects.filter(
+        Q(property_type='AUBERGE') | Q(listing_category='FURNISHED'),
+        is_published=True
+    ).select_related('owner').prefetch_related('images')
+    
+    map_markers = []
+    for p in properties:
+        if p.latitude and p.longitude:
+            map_markers.append({
+                'id': str(p.id),
+                'lat': float(p.latitude),
+                'lng': float(p.longitude),
+                'title': p.title,
+                'price': int(p.price_per_night or p.price),
+                'type': p.get_property_type_display(),
+                'category': p.listing_category,
+                'neighborhood': p.neighborhood,
+                'url': p.get_absolute_url(),
+                'img': p.get_main_image
+            })
+            
+    return render(request, 'logersn/near_me.html', {
+        'map_markers_json': json.dumps(map_markers),
+        'title': _("Auberges & Meublés à proximité")
+    })

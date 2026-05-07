@@ -463,6 +463,11 @@
                         <a class="nav-link" href="{% url 'properties_list' %}">{% trans "Annonces" %}</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'near_me' %}" style="color: var(--color-light-green) !important; font-weight: 700;">
+                            <i class="fa-solid fa-location-dot me-1"></i> {% trans "Autour de moi" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'professionals_list' %}">{% trans "Annuaire" %}</a>
                     </li>
                     <li class="nav-item">

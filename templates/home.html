@@ -208,8 +208,9 @@
         </div>
 
         <!-- Barre de recherche style Loger SN -->
-        <div class="search-bar-wrapper mt-4 mb-4">
+        <div class="search-bar-wrapper mt-4">
             <form action="{% url 'properties_list' %}" method="GET">
+                <!-- ... inner search fields ... -->
                 <div class="search-bar-inner">
                     <div class="search-field">
                         <label>{% trans "Je cherche..." %}</label>
@@ -227,9 +228,9 @@
                             <option value="APPARTEMENT">{% trans "Appartement" %}</option>
                             <option value="VILLA">{% trans "Villa" %}</option>
                             <option value="STUDIO">{% trans "Studio" %}</option>
+                            <option value="AUBERGE">{% trans "Auberge" %}</option>
                             <option value="BUREAU">{% trans "Bureau" %}</option>
                             <option value="TERRAIN">{% trans "Terrain" %}</option>
-                            <option value="MAGASIN">{% trans "Magasin" %}</option>
                         </select>
                     </div>
                     <div class="search-field">
@@ -246,6 +247,14 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Service de proximité (Auberges & Meublés) -->
+        <div class="text-center mt-4 animate__animated animate__fadeInUp animate__delay-1s">
+            <a href="{% url 'near_me' %}" class="btn btn-warning rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" style="background-color: #ffc107; border: none; color: #0b4629;">
+                <i class="fa-solid fa-location-crosshairs fa-beat"></i>
+                {% trans "Trouver une Auberge ou un Meublé à proximité" %}
+            </a>
         </div>
 
         <!-- Badges de confiance -->

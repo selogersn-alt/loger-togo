@@ -13,9 +13,53 @@ import json
 
 # --- API ViewSets ---
 
+from rest_framework.decorators import action
+from rest_framework.response import Response
+import math
+
 class PropertyViewSet(viewsets.ModelViewSet):
-    queryset = Property.objects.all()
+    queryset = Property.objects.filter(is_published=True)
     serializer_class = PropertySerializer
+
+    @action(detail=False, methods=['get'])
+    def nearby(self, request):
+        """
+        Endpoint API robuste pour Android Kotlin.
+        Ex: /api/logersn/properties/nearby/?lat=6.1&lng=1.2&radius=5
+        """
+        try:
+            user_lat = float(request.query_params.get('lat'))
+            user_lng = float(request.query_params.get('lng'))
+            radius = float(request.query_params.get('radius', 10))
+        except (TypeError, ValueError):
+            return Response({"error": "Latitude, longitude and radius are required."}, status=400)
+
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371.0
+            phi1, phi2 = math.radians(lat1), math.radians(lat2)
+            dphi = math.radians(lat2 - lat1)
+            dlambda = math.radians(lon2 - lon1)
+            a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+        qs = self.get_queryset().exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+        
+        properties = []
+        for p in qs:
+            try:
+                dist = haversine(user_lat, user_lng, float(p.latitude), float(p.longitude))
+                if dist <= radius:
+                    # On ajoute la distance au dictionnaire sérialisé
+                    data = self.get_serializer(p).data
+                    data['distance_km'] = round(dist, 2)
+                    properties.append(data)
+            except (TypeError, ValueError):
+                continue
+        
+        # Tri par distance
+        properties.sort(key=lambda x: x['distance_km'])
+        
+        return Response(properties)
 
 class PropertyImageViewSet(viewsets.ModelViewSet):
     queryset = PropertyImage.objects.all()
@@ -327,32 +371,149 @@ def duplicate_property_view(request, property_id):
     return redirect('edit_property', property_id=new_p.id)
 def near_me_view(request):
     """
-    Service de géolocalisation en temps réel.
-    Affiche les auberges et les locations meublées sur une carte.
+    Page carte de géolocalisation temps réel (Web).
     """
-    # Filtrage : Type = Auberge OU Catégorie = Meublé
+    from logersn.constants import PROPERTY_TYPE_CHOICES
+    
+    # Récupérer tous les biens géolocalisés avec coordonnées
     properties = Property.objects.filter(
         Q(property_type='AUBERGE') | Q(listing_category='FURNISHED'),
         is_published=True
-    ).select_related('owner').prefetch_related('images')
-    
+    ).select_related('owner').prefetch_related('images').exclude(
+        latitude__isnull=True
+    ).exclude(longitude__isnull=True)
+
     map_markers = []
     for p in properties:
-        if p.latitude and p.longitude:
-            map_markers.append({
-                'id': str(p.id),
-                'lat': float(p.latitude),
-                'lng': float(p.longitude),
-                'title': p.title,
-                'price': int(p.price_per_night or p.price),
-                'type': p.get_property_type_display(),
-                'category': p.listing_category,
-                'neighborhood': p.neighborhood,
-                'url': p.get_absolute_url(),
-                'img': p.get_main_image
-            })
-            
+        try:
+            lat_val = float(p.latitude)
+            lng_val = float(p.longitude)
+        except (TypeError, ValueError):
+            continue
+        
+        # Image principale
+        main_img = p.images.filter(is_primary=True).first() or p.images.first()
+        img_url = main_img.image_url if main_img else ''
+        
+        # Téléphone du propriétaire (masqué sur 4 derniers chiffres)
+        phone = getattr(p.owner, 'phone', '') or ''
+
+        map_markers.append({
+            'id': str(p.id),
+            'lat': lat_val,
+            'lng': lng_val,
+            'title': p.title,
+            'price_night': int(p.price_per_night or 0),
+            'price_month': int(p.price or 0),
+            'property_type': p.property_type,
+            'type_label': p.get_property_type_display(),
+            'category': p.listing_category,
+            'neighborhood': p.neighborhood or '',
+            'city': p.get_city_display() if p.city else '',
+            'url': request.build_absolute_uri(p.get_absolute_url()),
+            'img': img_url,
+            'phone': phone,
+            'bedrooms': p.bedrooms or 0,
+            'wifi': getattr(p, 'wifi', False),
+            'ac': getattr(p, 'air_conditioning', False),
+        })
+
+    # Support de focus via URL
+    focus_id = request.GET.get('focus')
+
     return render(request, 'logersn/near_me.html', {
-        'map_markers_json': json.dumps(map_markers),
-        'title': _("Auberges & Meublés à proximité")
+        'map_markers_json': json.dumps(map_markers, ensure_ascii=False),
+        'total_count': len(map_markers),
+        'title': _("Auberges & Meublés à proximité"),
+        'focus_id': focus_id
+    })
+
+
+def nearby_api_view(request):
+    """
+    API REST GeoJSON — compatible Android Kotlin (Retrofit).
+    GET /api/geo/nearby/?lat=6.1311&lng=1.2228&radius=10&type=AUBERGE
+    """
+    import math
+    
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371.0
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    try:
+        user_lat = float(request.GET.get('lat', 6.1311))
+        user_lng = float(request.GET.get('lng', 1.2228))
+        radius_km = float(request.GET.get('radius', 10))
+    except (TypeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'Paramètres invalides'}, status=400)
+
+    filter_type = request.GET.get('type', None)
+
+    qs = Property.objects.filter(
+        is_published=True
+    ).exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+
+    if filter_type:
+        qs = qs.filter(property_type=filter_type)
+    else:
+        qs = qs.filter(
+            Q(property_type='AUBERGE') | Q(listing_category='FURNISHED')
+        )
+
+    results = []
+    for p in qs.select_related('owner').prefetch_related('images'):
+        try:
+            p_lat = float(p.latitude)
+            p_lng = float(p.longitude)
+        except (TypeError, ValueError):
+            continue
+
+        dist = haversine(user_lat, user_lng, p_lat, p_lng)
+        if dist > radius_km:
+            continue
+
+        main_img = p.images.filter(is_primary=True).first() or p.images.first()
+        img_url = main_img.image_url if main_img else ''
+        phone = getattr(p.owner, 'phone', '') or ''
+
+        if dist < 1:
+            distance_label = f"{int(dist * 1000)} m"
+        else:
+            distance_label = f"{dist:.1f} km"
+
+        results.append({
+            'id': str(p.id),
+            'title': p.title,
+            'type': p.property_type,
+            'type_label': p.get_property_type_display(),
+            'category': p.listing_category,
+            'price_night': int(p.price_per_night or 0),
+            'price_month': int(p.price or 0),
+            'neighborhood': p.neighborhood or '',
+            'city': p.get_city_display() if p.city else '',
+            'lat': p_lat,
+            'lng': p_lng,
+            'distance_km': round(dist, 3),
+            'distance_label': distance_label,
+            'image_url': img_url,
+            'url': request.build_absolute_uri(p.get_absolute_url()),
+            'phone': phone,
+            'bedrooms': p.bedrooms or 0,
+            'wifi': getattr(p, 'wifi', False),
+            'ac': getattr(p, 'air_conditioning', False),
+        })
+
+    # Trier par distance croissante
+    results.sort(key=lambda x: x['distance_km'])
+
+    return JsonResponse({
+        'status': 'ok',
+        'user': {'lat': user_lat, 'lng': user_lng},
+        'radius_km': radius_km,
+        'count': len(results),
+        'results': results,
     })

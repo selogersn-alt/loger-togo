@@ -93,6 +93,11 @@
                 <a href="tel:{{ property.owner.phone_number }}" class="btn btn-sm btn-outline-primary border-0 px-2" style="background: rgba(13, 110, 253, 0.05);">
                     <i class="fa-solid fa-phone fs-6"></i>
                 </a>
+                {% if property.property_type == 'AUBERGE' or property.listing_category == 'FURNISHED' %}
+                <a href="{% url 'near_me' %}?focus={{ property.id }}" class="btn btn-sm btn-outline-warning border-0 px-2" style="background: rgba(245, 196, 47, 0.05); z-index: 15; position: relative;" title="{% trans "Voir sur la carte" %}">
+                    <i class="fa-solid fa-map-location-dot fs-6"></i>
+                </a>
+                {% endif %}
             </div>
             <span class="btn btn-success btn-sm px-3 rounded-pill fw-bold shadow-sm" style="font-size: 0.75rem;">{% trans "Détails" %} <i class="fa-solid fa-chevron-right ms-1"></i></span>
         </div>

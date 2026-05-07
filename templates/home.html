@@ -16,22 +16,7 @@
         align-items: center;
     }
     
-    /* Le logo icône véritablement au fond et bien droit */
-    .hero-section::before {
-        content: "";
-        position: absolute;
-        top: 50%; 
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 350px;
-        height: 350px;
-        background-image: url("{% static 'img/hero-icon.png' %}");
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: contain;
-        opacity: 0.9; /* Opacité forte pour qu'elle soit bien visible et intacte */
-        z-index: 0;
-    }
+    /* Background icon removed as requested */
 
     .hero-section > .container {
         position: relative;

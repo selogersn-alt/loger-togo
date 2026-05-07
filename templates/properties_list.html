@@ -559,9 +559,9 @@ function initMap() {
     MAP_MARKERS.forEach(m => {
         const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#8e44ad' : '#198754';
         const icon = L.divIcon({
-            html: `<div style="background:${catColor};color:white;border-radius:50px;padding:4px 8px;font-weight:700;font-size:11px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);">${m.price.toLocaleString('fr-FR')} F</div>`,
+            html: `<div style="background:${catColor};color:white;border-radius:50px;padding:6px 14px;font-weight:800;font-size:13px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3);border:2px solid white;">${m.price.toLocaleString('fr-FR')} F</div>`,
             className: '',
-            iconAnchor: [30, 20]
+            iconAnchor: [40, 20]
         });
         const popup = `
             <div style="width:200px;">

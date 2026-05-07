@@ -90,6 +90,80 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+
+    /* ═══════════════════════════════════════════ */
+    /* CAROUSEL ANNONCES BOOSTÉES                  */
+    /* ═══════════════════════════════════════════ */
+    .boosted-carousel-wrapper {
+        overflow: hidden;
+        border-radius: 16px;
+        padding-bottom: 40px; /* Espace pour les dots */
+    }
+    .boosted-track {
+        display: flex;
+        gap: 20px;
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        cursor: grab;
+        will-change: transform;
+    }
+    .boosted-track:active { cursor: grabbing; }
+    .boosted-slide {
+        flex: 0 0 calc(25% - 15px);
+        min-width: calc(25% - 15px);
+    }
+    @media (max-width: 991px) {
+        .boosted-slide { flex: 0 0 calc(50% - 10px); min-width: calc(50% - 10px); }
+    }
+    @media (max-width: 575px) {
+        .boosted-slide { flex: 0 0 calc(85%); min-width: 85%; }
+    }
+    .boosted-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 2px solid transparent !important;
+    }
+    .boosted-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important;
+        border-color: #ffc107 !important;
+    }
+    /* Boutons navigation */
+    .boosted-nav {
+        position: absolute;
+        top: 40%;
+        transform: translateY(-50%);
+        z-index: 10;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 48px; height: 48px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #1e5631;
+    }
+    .boosted-nav:hover { background: #ffc107; transform: translateY(-50%) scale(1.1); }
+    .boosted-prev { left: -20px; }
+    .boosted-next { right: -20px; }
+    /* Dots indicateurs */
+    .boosted-dots {
+        position: absolute;
+        bottom: 8px; left: 50%;
+        transform: translateX(-50%);
+        display: flex; gap: 6px;
+    }
+    .boosted-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #dee2e6;
+        border: none; cursor: pointer;
+        transition: all 0.3s;
+        padding: 0;
+    }
+    .boosted-dot.active {
+        background: #ffc107;
+        width: 24px; border-radius: 4px;
+    }
 </style>
 {% endblock %}
 
@@ -152,35 +226,106 @@
 
 <!-- MAIN CONTENT -->
 <div class="container py-5">
-    <!-- FEATURED PROPERTIES -->
-    <div class="d-flex justify-content-between align-items-end mb-4">
-        <div>
-            <h2 class="fw-bold mb-0">{% trans "Annonces à la une" %}</h2>
-            <p class="text-muted">{% trans "Les meilleures opportunités sélectionnées pour vous." %}</p>
-        </div>
-        <a href="{% url 'properties_list' %}" class="btn btn-outline-success rounded-pill px-4">{% trans "Tout voir" %}</a>
-    </div>
 
-    <div class="row g-4">
-        {% for property in featured_properties %}
-        <div class="col-md-6 col-lg-3">
-            {% include 'partials/property_card.html' with property=property %}
+    <!-- ╔══════════════════════════════════════════╗ -->
+    <!-- ║    CAROUSEL ANNONCES BOOSTÉES (PREMIUM)  ║ -->
+    <!-- ╚══════════════════════════════════════════╝ -->
+    {% if boosted_properties %}
+    <div class="mb-6 mt-2">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill mb-2 d-inline-block">
+                    <i class="fas fa-rocket me-1"></i> Annonces Boostées
+                </span>
+                <h2 class="fw-bold mb-0">Mises en avant du moment</h2>
+                <p class="text-muted">Sélection premium de nos professionnels certifiés.</p>
+            </div>
+            <a href="{% url 'properties_list' %}" class="btn btn-outline-warning rounded-pill px-4 fw-bold">
+                <i class="fas fa-arrow-right me-1"></i> Tout voir
+            </a>
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="fas fa-search fa-3x text-muted mb-3"></i>
-            <p class="text-muted">{% trans "Aucune annonce à la une pour le moment." %}</p>
-        </div>
-        {% endfor %}
-    </div>
 
-    <!-- RECENT PROPERTIES -->
-    <div class="mt-5 pt-4">
-        <h2 class="fw-bold mb-4">{% trans "Dernières publications" %}</h2>
+        <!-- Wrapper carousel CSS pur + JS léger -->
+        <div class="boosted-carousel-wrapper position-relative">
+            <div class="boosted-track" id="boostedTrack">
+                {% for property in boosted_properties %}
+                <div class="boosted-slide">
+                    <a href="{{ property.get_absolute_url }}" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 boosted-card">
+                            <!-- Badge BOOST + Image -->
+                            <div class="position-relative" style="height: 220px;">
+                                <img
+                                    src="{{ property.get_main_image }}"
+                                    class="w-100 h-100 object-fit-cover"
+                                    alt="{{ property.title }}"
+                                    loading="lazy"
+                                >
+                                <div class="position-absolute top-0 start-0 m-2">
+                                    <span class="badge bg-warning text-dark fw-semibold rounded-pill px-3 py-2 shadow">
+                                        <i class="fas fa-rocket me-1"></i>Boosté
+                                    </span>
+                                </div>
+                                <div class="position-absolute bottom-0 end-0 m-2">
+                                    <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3">
+                                        {{ property.listing_category }}
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Corps de la carte -->
+                            <div class="card-body p-3">
+                                <h6 class="fw-bold text-dark mb-1 text-truncate">{{ property.title }}</h6>
+                                <p class="text-muted small mb-2">
+                                    <i class="fas fa-location-dot text-success me-1"></i>
+                                    {{ property.neighborhood }}, {{ property.city }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-success fs-6">
+                                        {{ property.price|floatformat:0 }} <small class="fw-normal text-muted">CFA/mois</small>
+                                    </span>
+                                    <div class="d-flex gap-2 text-muted small">
+                                        {% if property.rooms %}<span><i class="fas fa-bed"></i> {{ property.rooms }}</span>{% endif %}
+                                        {% if property.bathrooms %}<span><i class="fas fa-shower"></i> {{ property.bathrooms }}</span>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Contrôles du carousel -->
+            <button class="boosted-nav boosted-prev" id="boostedPrev" aria-label="Précédent">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="boosted-nav boosted-next" id="boostedNext" aria-label="Suivant">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <!-- Indicateurs -->
+            <div class="boosted-dots" id="boostedDots"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ANNONCES RÉCENTES -->
+    <div class="mt-5 pt-2">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="fw-bold mb-0">{% trans "Dernières publications" %}</h2>
+                <p class="text-muted">{% trans "Les annonces les plus récentes, du plus récent au plus ancien." %}</p>
+            </div>
+            <a href="{% url 'properties_list' %}" class="btn btn-outline-success rounded-pill px-4">{% trans "Tout voir" %}</a>
+        </div>
         <div class="row g-4">
             {% for property in recent_properties %}
             <div class="col-md-6 col-lg-3">
                 {% include 'partials/property_card.html' with property=property %}
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <p class="text-muted">{% trans "Aucune annonce pour le moment." %}</p>
             </div>
             {% endfor %}
         </div>
@@ -219,4 +364,104 @@
         </div>
     </div>
 </section>
+
+{% block extra_js %}
+<script>
+(function() {
+    const track = document.getElementById('boostedTrack');
+    if (!track) return;
+
+    const slides = track.querySelectorAll('.boosted-slide');
+    const prevBtn = document.getElementById('boostedPrev');
+    const nextBtn = document.getElementById('boostedNext');
+    const dotsContainer = document.getElementById('boostedDots');
+
+    if (!slides.length) return;
+
+    // Calculer le nb de slides visibles selon la largeur
+    function getVisible() {
+        if (window.innerWidth < 576) return 1;
+        if (window.innerWidth < 992) return 2;
+        return 4;
+    }
+
+    let current = 0;
+    let autoTimer = null;
+    let isPaused = false;
+
+    // Créer les dots
+    const totalDots = Math.ceil(slides.length / getVisible());
+    for (let i = 0; i < totalDots; i++) {
+        const dot = document.createElement('button');
+        dot.className = 'boosted-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+    }
+
+    function updateDots() {
+        dotsContainer.querySelectorAll('.boosted-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === current);
+        });
+    }
+
+    function getSlideWidth() {
+        if (!slides[0]) return 0;
+        return slides[0].getBoundingClientRect().width + 20; // largeur + gap
+    }
+
+    function goTo(index) {
+        const maxIndex = slides.length - getVisible();
+        current = Math.max(0, Math.min(index, maxIndex));
+        track.style.transform = `translateX(-${current * getSlideWidth()}px)`;
+        updateDots();
+    }
+
+    function next() {
+        const maxIndex = slides.length - getVisible();
+        goTo(current >= maxIndex ? 0 : current + 1);
+    }
+
+    function prev() {
+        const maxIndex = slides.length - getVisible();
+        goTo(current <= 0 ? maxIndex : current - 1);
+    }
+
+    // Auto-scroll toutes les 3.5 secondes
+    function startAuto() {
+        stopAuto();
+        autoTimer = setInterval(() => {
+            if (!isPaused) next();
+        }, 3500);
+    }
+
+    function stopAuto() {
+        if (autoTimer) clearInterval(autoTimer);
+    }
+
+    // Pause au survol de la souris
+    track.closest('.boosted-carousel-wrapper').addEventListener('mouseenter', () => { isPaused = true; });
+    track.closest('.boosted-carousel-wrapper').addEventListener('mouseleave', () => { isPaused = false; });
+
+    // Navigation manuelle
+    prevBtn.addEventListener('click', () => { prev(); startAuto(); });
+    nextBtn.addEventListener('click', () => { next(); startAuto(); });
+
+    // Swipe tactile
+    let touchStartX = 0;
+    track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
+        const delta = touchStartX - e.changedTouches[0].clientX;
+        if (delta > 50) next();
+        else if (delta < -50) prev();
+    });
+
+    // Recalcul au redimensionnement
+    window.addEventListener('resize', () => goTo(0));
+
+    // Démarrage
+    goTo(0);
+    startAuto();
+})();
+</script>
+{% endblock %}
 {% endblock %}

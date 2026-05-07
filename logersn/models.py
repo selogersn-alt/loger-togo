@@ -104,19 +104,10 @@ class Property(models.Model):
 
     class Meta:
         indexes = [
-            # Nécessite "django.contrib.postgres" dans INSTALLED_APPS
-            # et de lancer une migration pour créer l'index.
-            # models.Index(fields=['listing_category', 'property_type', 'city']),
-            # Pour la version PostgreSQL complète (Hyper Performante) :
-            # from django.contrib.postgres.indexes import GinIndex
-            # from django.contrib.postgres.search import SearchVectorField
-            # Mais comme on ne veut pas modifier trop profondément le schéma sans test, on va utiliser les index DB classiques pour l'instant et le search vector à la volée.
-        ]
-        # Ajout d'index standards pour booster la recherche existante avant le full text
-        indexes = [
             models.Index(fields=['listing_category', 'is_published']),
             models.Index(fields=['property_type']),
             models.Index(fields=['city', 'neighborhood']),
+            models.Index(fields=['is_boosted']),
         ]
 
     def __str__(self):

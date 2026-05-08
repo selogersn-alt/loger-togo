@@ -175,7 +175,7 @@
                         <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
                             <div class="position-relative">
                                 {% if property.get_main_image %}
-                                    <img src="{{ property.get_main_image.image_url.url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                                    <img src="{{ property.get_main_image }}" class="card-img-top" style="height: 180px; object-fit: cover;">
                                 {% else %}
                                     <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
                                         <i class="fas fa-image fa-3x text-muted"></i>
@@ -462,13 +462,13 @@
         transition: all 0.2s;
     }
     .sidebar-nav .nav-link:hover {
-        background-color: rgba(40, 167, 69, 0.05);
-        color: #114629;
+        background-color: rgba(11, 70, 41, 0.05);
+        color: #0b4629;
     }
     .sidebar-nav .nav-link.active {
-        background-color: #114629 !important;
+        background-color: #0b4629 !important;
         color: white !important;
-        box-shadow: 0 4px 15px rgba(17, 70, 41, 0.3);
+        box-shadow: 0 4px 15px rgba(11, 70, 41, 0.3);
     }
     .icon-box-dash {
         width: 48px;
@@ -486,7 +486,7 @@
     .bg-info-light { background-color: rgba(13, 202, 240, 0.1); }
     
     .border-dashed { border: 2px dashed #dee2e6; }
-    .border-dashed:hover { border-color: #114629; color: #114629; background: #fff; }
+    .border-dashed:hover { border-color: #0b4629; color: #0b4629; background: #fff; }
 </style>
 {% endblock %}
 
@@ -502,12 +502,12 @@
             datasets: [{
                 label: '{% trans "Revenus (FCFA)" %}',
                 data: {{ chart_totals|safe }},
-                borderColor: '#114629',
-                backgroundColor: 'rgba(17, 70, 41, 0.05)',
+                borderColor: '#0b4629',
+                backgroundColor: 'rgba(11, 70, 41, 0.05)',
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#114629',
+                pointBackgroundColor: '#0b4629',
                 pointRadius: 4
             }]
         },

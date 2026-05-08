@@ -676,9 +676,11 @@
     {% endif %}
 
     <!-- Fil d'Ariane (Breadcrumbs) -->
+    {% if request.resolver_match.url_name != 'home' %}
     <div class="container mt-3">
         {% include 'partials/breadcrumbs.html' %}
     </div>
+    {% endif %}
 
     <!-- Contenu Principal -->
     <main style="padding-bottom: 80px;">

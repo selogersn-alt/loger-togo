@@ -374,22 +374,28 @@
     }
 
     // Polling intelligently
-    let lastMsgId = null;
+    let existingMsgIds = new Set();
+    {% for msg in active_conv.messages.all %} existingMsgIds.add("{{ msg.id }}"); {% endfor %}
+
     setInterval(() => {
         fetch("{% url 'sync-messages' active_conv.id %}")
         .then(res => res.json())
         .then(data => {
-            if(data.is_expired) window.location.reload(); // Lock UI if expired during chat
+            if(data.is_expired && !window.location.href.includes('expired')) window.location.reload();
+            
             if(data.messages && data.messages.length > 0) {
-                const last = data.messages[data.messages.length - 1];
-                if(last.id !== lastMsgId && last.sender_id !== {{ request.user.id }}) {
-                    // Refresh only if new message from other
-                    // For simplicity in this demo, we check the length or ID
-                    // In real prod, we'd only append missing messages
-                }
+                let added = false;
+                data.messages.forEach(msg => {
+                    if(!existingMsgIds.has(msg.id)) {
+                        appendMessage(msg, msg.sender_id === {{ request.user.id }});
+                        existingMsgIds.add(msg.id);
+                        added = true;
+                    }
+                });
+                if(added) scrollToBottom();
             }
         });
-    }, 5000);
+    }, 4000); // Rafraîchissement toutes les 4 secondes
     {% endif %}
 </script>
 {% endblock %}

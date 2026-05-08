@@ -4,665 +4,178 @@
 {% block title %}{{ title }} | Loger Togo{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-/* ═══════════════════════════════════════
-   LAYOUT PRINCIPAL
-═══════════════════════════════════════ */
 .geo-wrapper {
     display: flex;
-    height: 600px; /* Hauteur fixe par défaut pour garantir la visibilité */
+    height: 600px;
     height: calc(100vh - 100px);
+    width: 100%;
     overflow: hidden;
     position: relative;
-    background: #f0f0f0;
+    background: #e5e5e5;
 }
+#map { flex: 1; height: 100%; width: 100%; z-index: 1; }
+.side-panel { width: 360px; min-width: 360px; height: 100%; background: #fff; border-left: 1px solid #ddd; display: flex; flex-direction: column; z-index: 2; }
+.side-header { padding: 20px; border-bottom: 1px solid #eee; }
+.property-list { flex: 1; overflow-y: auto; padding: 10px; }
+.gps-badge { display: inline-flex; align-items: center; gap: 8px; background: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-top: 10px; border: 1px solid #bbf7d0; cursor: pointer; }
+.dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
 
-/* ═══════════════════════════════════════
-   CARTE
-═══════════════════════════════════════ */
-#map {
-    flex: 1;
-    height: 100%;
-    z-index: 1;
-}
+/* Filtres */
+.filter-bar { position: absolute; top: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px; }
+.filter-chip { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.filter-chip.active { background: #0b4629; color: white; border-color: #0b4629; }
 
-/* ═══════════════════════════════════════
-   PANNEAU LATÉRAL (Desktop)
-═══════════════════════════════════════ */
-.side-panel {
-    width: 360px;
-    min-width: 360px;
-    height: 100%;
-    background: var(--bg-card, #fff);
-    border-left: 1px solid var(--border-color, #e0e0e0);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 2;
-}
-.side-header {
-    padding: 18px 20px 12px;
-    border-bottom: 1px solid var(--border-color, #e0e0e0);
-    flex-shrink: 0;
-}
-.side-header h5 { margin: 0; font-weight: 800; color: var(--color-dark-green, #0b4629); }
-.side-header .subtitle { font-size: .8rem; color: #888; margin-top: 3px; }
-
-.gps-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(11,70,41,.08);
-    color: #0b4629;
-    border-radius: 30px;
-    padding: 5px 13px;
-    font-size: .8rem;
-    font-weight: 700;
-    margin-top: 10px;
-}
-.gps-badge .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #28a745;
-    animation: blink 1.4s infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-
-.property-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-}
-.property-list::-webkit-scrollbar { width: 4px; }
-.property-list::-webkit-scrollbar-track { background: transparent; }
-.property-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-
-/* Carte bien */
-.prop-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 14px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: background .2s, box-shadow .2s;
-    border: 1.5px solid transparent;
-}
-.prop-card:hover, .prop-card.active {
-    background: rgba(11,70,41,.05);
-    border-color: var(--color-dark-green, #0b4629);
-}
-.prop-thumb {
-    width: 68px; height: 68px;
-    border-radius: 10px;
-    object-fit: cover;
-    flex-shrink: 0;
-    background: #eee;
-}
-.prop-info { flex: 1; min-width: 0; }
-.prop-title {
-    font-weight: 700; font-size: .88rem;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    color: var(--text-main, #1a1a1a);
-}
-.prop-addr { font-size: .75rem; color: #888; margin-top: 2px; }
-.prop-price { font-size: .82rem; font-weight: 800; color: #0b4629; margin-top: 4px; }
-.dist-badge {
-    flex-shrink: 0;
-    background: #f5c42f;
-    color: #0b4629;
-    font-size: .7rem;
-    font-weight: 800;
-    padding: 4px 9px;
-    border-radius: 8px;
-    text-align: center;
-    min-width: 52px;
-}
-
-/* ═══════════════════════════════════════
-   CONTRÔLES CARTE
-═══════════════════════════════════════ */
-.map-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 500;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.ctrl-btn {
-    width: 46px; height: 46px;
-    background: white;
-    border: none;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 3px 14px rgba(0,0,0,.15);
-    cursor: pointer;
-    transition: all .2s;
-    color: #333;
-    font-size: 1rem;
-}
-.ctrl-btn:hover { transform: scale(1.08); background: #0b4629; color: white; }
-.ctrl-btn.active { background: #0b4629; color: white; }
-
-/* ═══════════════════════════════════════
-   POPUP LEAFLET CUSTOM
-═══════════════════════════════════════ */
-.leaflet-popup-content-wrapper { border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
-.leaflet-popup-content { margin: 0; width: 260px !important; }
-.pop-img { width: 100%; height: 130px; object-fit: cover; display: block; }
-.pop-body { padding: 14px; }
-.pop-dist { background: #f5c42f; color: #0b4629; font-size:.7rem; font-weight:800; padding:3px 9px; border-radius:6px; display:inline-block; margin-bottom:6px; }
-.pop-title { font-weight:800; font-size:.95rem; margin-bottom:4px; color:#1a1a1a; }
-.pop-addr { font-size:.78rem; color:#888; margin-bottom:10px; }
-.pop-price { font-size:1.1rem; font-weight:800; color:#0b4629; margin-bottom:10px; }
-.pop-actions { display:flex; gap:7px; }
-.pop-actions a, .pop-actions button {
-    flex:1; padding:8px; border-radius:10px; font-size:.78rem;
-    font-weight:700; border:none; cursor:pointer; text-align:center; text-decoration:none;
-    display:flex; align-items:center; justify-content:center; gap:5px;
-    transition: opacity .2s;
-}
-.pop-actions a { background:#e8f5e9; color:#0b4629; }
-.pop-actions button { background:#0b4629; color:white; }
-.pop-actions a:hover, .pop-actions button:hover { opacity:.85; }
-
-/* Marqueur utilisateur */
-.user-marker-wrap {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: #3b82f6;
-    border: 3px solid white;
-    box-shadow: 0 0 0 4px rgba(59,130,246,.3);
-    animation: gpsPulse 2s infinite;
-    position: relative;
-}
-.user-marker-wrap::after {
-    content: '';
-    position: absolute;
-    top: -12px; left: 50%;
-    transform: translateX(-50%);
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-bottom: 12px solid #3b82f6;
-}
-@keyframes gpsPulse {
-    0%  { box-shadow: 0 0 0 0 rgba(59,130,246,.5); }
-    70% { box-shadow: 0 0 0 14px rgba(59,130,246,0); }
-    100%{ box-shadow: 0 0 0 0 rgba(59,130,246,0); }
-}
-
-/* ═══════════════════════════════════════
-   MOBILE : BOTTOM SHEET
-═══════════════════════════════════════ */
+/* Mobile */
 @media (max-width: 768px) {
-    .geo-wrapper { flex-direction: column; height: calc(100vh - 60px); }
-    #map { flex: 1; min-height: 55vh; }
-    .side-panel {
-        width: 100%; min-width: unset;
-        height: 45vh;
-        border-left: none;
-        border-top: 3px solid #0b4629;
-    }
-    .map-controls { top: 12px; right: 12px; }
+    .geo-wrapper { flex-direction: column; }
+    #map { height: 50vh; }
+    .side-panel { width: 100%; height: 50vh; min-width: unset; }
 }
-
-/* ═══════════════════════════════════════
-   TOAST
-═══════════════════════════════════════ */
-.geo-toast {
-    position: fixed;
-    bottom: 28px; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: #0b4629; color: white;
-    padding: 11px 22px; border-radius: 30px;
-    font-weight: 700; font-size: .85rem;
-    box-shadow: 0 6px 24px rgba(0,0,0,.2);
-    z-index: 9999;
-    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
-    pointer-events: none;
-    white-space: nowrap;
-}
-.geo-toast.show { transform: translateX(-50%) translateY(0); }
-
-/* Ligne itinéraire pulsée */
-.route-line { stroke-dasharray: 12 8; animation: dash 1.2s linear infinite; }
-@keyframes dash { to { stroke-dashoffset: -20; } }
-
-/* Filtres chips */
-.filter-chip {
-    background: white; border: none; border-radius: 20px;
-    padding: 8px 18px; font-size: .8rem; font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,0,0,.1); cursor: pointer;
-    transition: all .2s; color: #555;
-}
-.filter-chip.active { background: #0b4629; color: white; }
 </style>
 {% endblock %}
 
 {% block content %}
-{% if total_count == 0 %}
-<div class="container py-5 text-center">
-    <i class="fa-solid fa-map-location-dot fa-3x text-success mb-3"></i>
-    <h4 class="fw-bold">{% trans "Aucun bien géolocalisé pour l'instant" %}</h4>
-    <p class="text-muted">{% trans "Les bailleurs doivent activer la localisation sur la carte lors de la publication." %}</p>
-    <a href="{% url 'properties_list' %}" class="btn btn-success rounded-pill px-4">{% trans "Voir toutes les annonces" %}</a>
-</div>
-{% else %}
 <div class="geo-wrapper">
-
-    <!-- ── CARTE ── -->
-    <div style="position:relative; flex:1; height:100%;">
-        <!-- Barre de filtres rapide -->
-        <div class="filter-bar" style="position:absolute; top:20px; left:20px; z-index:500; display:flex; gap:8px;">
-            <button class="filter-chip active" onclick="filterType('ALL')">{% trans "Tout" %}</button>
-            <button class="filter-chip" onclick="filterType('AUBERGE')">{% trans "Auberges" %}</button>
-            <button class="filter-chip" onclick="filterType('FURNISHED')">{% trans "Meublés" %}</button>
-        </div>
-
-        <div id="map"></div>
-
-        <!-- Contrôles flottants -->
-        <div class="map-controls">
-            <button class="ctrl-btn active" id="btn-track" title="{% trans 'Suivi GPS' %}">
-                <i class="fa-solid fa-location-arrow"></i>
-            </button>
-            <button class="ctrl-btn" id="btn-compass" title="{% trans 'Boussole' %}" style="display:none;">
-                <i class="fa-solid fa-compass"></i>
-            </button>
-            <button class="ctrl-btn" id="btn-locate" title="{% trans 'Recentrer' %}">
-                <i class="fa-solid fa-crosshairs"></i>
-            </button>
-            <button class="ctrl-btn" id="btn-clear-route" title="{% trans 'Effacer itinéraire' %}" style="display:none;">
-                <i class="fa-solid fa-route fa-xs"></i><i class="fa-solid fa-xmark fa-xs"></i>
-            </button>
-        </div>
+    <div class="filter-bar">
+        <button class="filter-chip active" onclick="filterType('ALL')">{% trans "Tout" %}</button>
+        <button class="filter-chip" onclick="filterType('AUBERGE')">{% trans "Auberges" %}</button>
+        <button class="filter-chip" onclick="filterType('FURNISHED')">{% trans "Meublés" %}</button>
     </div>
-
-    <!-- ── PANNEAU LATÉRAL ── -->
+    <div id="map"></div>
     <aside class="side-panel">
         <div class="side-header">
-            <h5><i class="fa-solid fa-map-location-dot me-2"></i>{{ title }}</h5>
-            <div class="subtitle">{{ total_count }} {% trans "bien(s) sur la carte" %}</div>
-            <div class="gps-badge">
+            <h5 class="fw-bold mb-0">{{ title }}</h5>
+            <small class="text-muted">{{ total_count }} {% trans "bien(s) sur la carte" %}</small>
+            <div class="gps-badge" onclick="startWatch()">
                 <div class="dot"></div>
-                <span id="gps-label">{% trans "Activation GPS..." %}</span>
+                <span id="gps-label">{% trans "Recherche GPS..." %}</span>
             </div>
         </div>
         <div class="property-list" id="property-list">
-            <div class="text-center py-4 text-muted" id="list-loading">
-                <i class="fa-solid fa-spinner fa-spin mb-2 d-block fs-4"></i>
-                {% trans "Calcul des distances..." %}
+            <div id="list-loading" class="text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-2x text-success"></i>
+                <p class="mt-2 text-muted">{% trans "Chargement..." %}</p>
             </div>
         </div>
     </aside>
 </div>
-
-<!-- Toast -->
-<div class="geo-toast" id="geo-toast"></div>
-{% endif %}
+<div id="geo-toast" style="position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:10px 20px; border-radius:30px; display:none; z-index:9999;"></div>
 {% endblock %}
 
 {% block extra_js %}
-{% if total_count > 0 %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const MARKERS_DATA = {{ map_markers_json|safe }};
 const DEFAULT_LAT = 6.1311, DEFAULT_LNG = 1.2228;
-
-// ── Init carte ──────────────────────────────────────────
-const map = L.map('map', { 
-    zoomControl: false,
-    tap: false 
-}).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
-
-// Utilisation d'OpenStreetMap standard (plus fiable)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 19
-}).addTo(map);
-
-// Forcer le rendu agressif de la carte
-function forceMapRefresh() {
-    console.log("Forcing map refresh...");
-    map.invalidateSize();
-    // Re-calculer si nécessaire après un court délai
-    setTimeout(() => { map.invalidateSize(); }, 500);
-    setTimeout(() => { map.invalidateSize(); }, 2000);
-}
-forceMapRefresh();
-
-L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-// ── État ────────────────────────────────────────────────
-let userMarker = null, accuracyCircle = null;
-let watchId = null, trackingMode = true;
-let routeLine = null, routeTarget = null;
-let userPos = null;
+let userPos = null, watchId = null, map = null;
 const propMarkers = {};
 
-// ── Toast ────────────────────────────────────────────────
-function toast(msg, duration = 2500) {
-    const el = document.getElementById('geo-toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), duration);
+// 1. Init Carte Immédiate
+function initMap() {
+    if (map) return;
+    console.log("Initializing map...");
+    try {
+        map = L.map('map', { zoomControl: false }).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        
+        // Forcer le rendu
+        setTimeout(() => { map.invalidateSize(); }, 500);
+        
+        placeMarkers(null, null);
+        renderList(null, null);
+    } catch (e) {
+        console.error("Leaflet init error:", e);
+    }
 }
 
-// ── Haversine ────────────────────────────────────────────
+// 2. Fonctions Utilitaires
+function toast(msg) {
+    const t = document.getElementById('geo-toast');
+    if (!t) return;
+    t.textContent = msg; t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
 function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371, rad = Math.PI / 180;
-    const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+    const R = 6371, rad = Math.PI/180;
+    const dLat = (lat2-lat1)*rad, dLon = (lon2-lon1)*rad;
     const a = Math.sin(dLat/2)**2 + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function fmtDist(km) {
-    return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
-}
-function fmtEta(km) {
-    // Vitesse à pied ~4km/h
-    const mins = Math.round((km / 4) * 60);
-    return mins < 60 ? `~${mins} min à pied` : `~${(mins/60).toFixed(1)} h`;
-}
 
-// ── Marqueurs biens ──────────────────────────────────────
-function buildIcon(type) {
-    const isAuberge = type === 'AUBERGE';
-    const bg = isAuberge ? '#d63384' : '#0b4629';
-    const ico = isAuberge ? 'fa-hotel' : 'fa-house-user';
-    return L.divIcon({
-        className: '',
-        html: `<div style="background:${bg};width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 12px rgba(0,0,0,.3);border:2px solid white;">
-                 <i class="fa-solid ${ico}" style="font-size:.9rem;"></i></div>`,
-        iconSize: [38, 38], iconAnchor: [19, 38]
-    });
-}
-
-function buildPopup(p, distKm) {
-    const price = p.price_night > 0
-        ? `${p.price_night.toLocaleString()} F / nuit`
-        : `${p.price_month.toLocaleString()} F / mois`;
-    const img = p.img ? `<img src="${p.img}" class="pop-img" onerror="this.style.display='none'">` : '';
-    const gmaps = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking`;
-    return `<div>
-        ${img}
-        <div class="pop-body">
-            <div class="pop-dist" id="dist-popup-${p.id}">${distKm !== null ? fmtDist(distKm) : '...'}</div>
-            <div class="pop-title">${p.title}</div>
-            <div class="pop-addr"><i class="fa-solid fa-location-dot me-1"></i>${p.neighborhood}, ${p.city}</div>
-            <div class="pop-price">${price}</div>
-            <div class="pop-actions">
-                <a href="${p.url}" target="_blank"><i class="fa-solid fa-eye"></i> {% trans "Détails" %}</a>
-                <button onclick="startRoute(${p.lat},${p.lng},'${p.id}')"><i class="fa-solid fa-route"></i> {% trans "Y aller" %}</button>
-            </div>
-        </div>
-    </div>`;
-}
-
-function placeMarkers(uLat, uLng) {
-    console.log("Placing markers on map...");
-    MARKERS_DATA.forEach(p => {
-        const distKm = (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null;
-        const icon = buildIcon(p.property_type);
-        if (propMarkers[p.id]) {
-            propMarkers[p.id].setPopupContent(buildPopup(p, distKm));
-        } else {
-            const m = L.marker([p.lat, p.lng], { icon }).addTo(map);
-            m.bindPopup(buildPopup(p, distKm), { maxWidth: 280 });
-            m.on('click', () => highlightCard(p.id));
-            propMarkers[p.id] = m;
-        }
-    });
-    // Forcer le rendu
-    forceMapRefresh();
-}
-
-// ── Panneau latéral ──────────────────────────────────────
 function renderList(uLat, uLng, filter = 'ALL') {
-    console.log("Rendering list with filter:", filter, "at", uLat, uLng);
     const list = document.getElementById('property-list');
     const loading = document.getElementById('list-loading');
     if (loading) loading.style.display = 'none';
 
-    try {
-        const sorted = [...MARKERS_DATA].filter(p => {
-            return filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED');
-        }).map(p => ({
-            ...p,
-            dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null
-        })).sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
+    const filtered = MARKERS_DATA.filter(p => {
+        return filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED');
+    }).map(p => ({
+        ...p,
+        dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null
+    })).sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
 
-        if (sorted.length === 0) {
-            list.innerHTML = `<div class="text-center py-5 text-muted">{% trans "Aucun bien trouvé pour ce filtre." %}</div>`;
-            return;
-        }
-
-        list.innerHTML = sorted.map(p => {
-            const price = p.price_night > 0
-                ? `${p.price_night.toLocaleString()} F<small>/nuit</small>`
-                : `${p.price_month.toLocaleString()} F<small>/mois</small>`;
-            const distTag = p.dist !== null
-                ? `<div class="dist-badge" id="dist-card-${p.id}">${fmtDist(p.dist)}<br><small style="font-weight:500">${fmtEta(p.dist)}</small></div>`
-                : '';
-            const imgTag = p.img ? `<img src="${p.img}" class="prop-thumb" onerror="this.src=''" alt="">` : `<div class="prop-thumb"></div>`;
-            return `<div class="prop-card" id="card-${p.id}" onclick="focusProperty('${p.id}')">
-                ${imgTag}
-                <div class="prop-info">
-                    <div class="prop-title">${p.title}</div>
-                    <div class="prop-addr"><i class="fa-solid fa-location-dot me-1 text-success" style="font-size:.7rem;"></i>${p.neighborhood}</div>
-                    <div class="prop-price">${price}</div>
-                </div>
-                ${distTag}
-            </div>`;
-        }).join('');
-    } catch (e) {
-        console.error("Render error:", e);
-        list.innerHTML = `<div class="alert alert-danger">Erreur de rendu.</div>`;
-    }
+    list.innerHTML = filtered.map(p => `
+        <div class="p-3 border-bottom" style="cursor:pointer" onclick="focusProp('${p.id}')">
+            <div class="fw-bold">${p.title}</div>
+            <div class="small text-muted">${p.neighborhood}</div>
+            <div class="fw-bold text-success">${p.price_night > 0 ? p.price_night.toLocaleString()+' F/nuit' : p.price_month.toLocaleString()+' F/mois'}</div>
+            ${p.dist ? `<div class="badge bg-warning text-dark mt-1">${p.dist.toFixed(1)} km</div>` : ''}
+        </div>
+    `).join('');
 }
 
-function updateDistances(uLat, uLng) {
+function placeMarkers(uLat, uLng) {
     MARKERS_DATA.forEach(p => {
-        const dist = haversine(uLat, uLng, p.lat, p.lng);
-        const cardEl = document.getElementById(`dist-card-${p.id}`);
-        const popEl  = document.getElementById(`dist-popup-${p.id}`);
-        const distStr = fmtDist(dist);
-        const etaStr  = fmtEta(dist);
-        if (cardEl) cardEl.innerHTML = `${distStr}<br><small style="font-weight:500">${etaStr}</small>`;
-        if (popEl)  popEl.textContent = distStr;
-        if (propMarkers[p.id]) propMarkers[p.id].setPopupContent(buildPopup(p, dist));
-    });
-    // Re-trier le panneau
-    const listEl = document.getElementById('property-list');
-    const cards = [...listEl.querySelectorAll('.prop-card')];
-    cards.sort((a, b) => {
-        const da = haversine(uLat, uLng, ...getLatLng(a.id.replace('card-','')));
-        const db = haversine(uLat, uLng, ...getLatLng(b.id.replace('card-','')));
-        return da - db;
-    });
-    cards.forEach(c => listEl.appendChild(c));
-}
-
-function getLatLng(id) {
-    const p = MARKERS_DATA.find(x => x.id === id);
-    return p ? [p.lat, p.lng] : [0, 0];
-}
-
-function focusProperty(id) {
-    const p = MARKERS_DATA.find(x => x.id === id);
-    if (!p) return;
-    map.setView([p.lat, p.lng], 16);
-    propMarkers[id]?.openPopup();
-    highlightCard(id);
-}
-
-function highlightCard(id) {
-    document.querySelectorAll('.prop-card').forEach(c => c.classList.remove('active'));
-    document.getElementById(`card-${id}`)?.classList.add('active');
-    document.getElementById(`card-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// ── Itinéraire ───────────────────────────────────────────
-window.startRoute = function(lat, lng, id) {
-    if (!userPos) { toast('{% trans "Activez d\'abord votre GPS" %}'); return; }
-    if (routeLine) map.removeLayer(routeLine);
-    routeTarget = [lat, lng];
-    routeLine = L.polyline([userPos, routeTarget], {
-        color: '#3b82f6', weight: 5, opacity: .8, dashArray: '12,8'
-    }).addTo(map);
-    routeLine.getElement()?.classList.add('route-line');
-    map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-    document.getElementById('btn-clear-route').style.display = 'flex';
-    const dist = haversine(userPos[0], userPos[1], lat, lng);
-    toast(`{% trans "Itinéraire : " %}${fmtDist(dist)} — ${fmtEta(dist)}`);
-};
-
-document.getElementById('btn-clear-route').addEventListener('click', () => {
-    if (routeLine) { map.removeLayer(routeLine); routeLine = null; routeTarget = null; }
-    document.getElementById('btn-clear-route').style.display = 'none';
-});
-
-// ── GPS ──────────────────────────────────────────────────
-function onGPSSuccess(pos) {
-    const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-    userPos = [lat, lng];
-
-    // Marqueur utilisateur
-    if (!userMarker) {
-        userMarker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: '',
-                html: '<div class="user-marker-wrap"></div>',
-                iconSize: [22, 22], iconAnchor: [11, 11]
-            }),
-            zIndexOffset: 1000
-        }).addTo(map).bindTooltip('{% trans "Vous êtes ici" %}', { permanent: false });
-
-        if (accuracyCircle) map.removeLayer(accuracyCircle);
-        accuracyCircle = L.circle([lat, lng], {
-            radius: accuracy, color: '#3b82f6', fillColor: '#3b82f6',
-            fillOpacity: .08, weight: 1
-        }).addTo(map);
-
-        placeMarkers(lat, lng);
-        renderList(lat, lng);
-        if (trackingMode) map.setView([lat, lng], 15);
-        document.getElementById('gps-label').textContent = '{% trans "GPS actif — suivi en cours" %}';
-        toast('{% trans "Position trouvée !" %}');
-    } else {
-        userMarker.setLatLng([lat, lng]);
-        accuracyCircle?.setLatLng([lat, lng]).setRadius(accuracy);
-        if (trackingMode) map.panTo([lat, lng]);
-        updateDistances(lat, lng);
-        // Mettre à jour l'itinéraire
-        if (routeLine && routeTarget) {
-            routeLine.setLatLngs([[lat, lng], routeTarget]);
+        if (!propMarkers[p.id]) {
+            const m = L.marker([p.lat, p.lng]).addTo(map);
+            m.bindPopup(`<b>${p.title}</b><br><a href="${p.url}" class="btn btn-sm btn-success text-white mt-2">{% trans "Voir" %}</a>`);
+            propMarkers[p.id] = m;
         }
-    }
-}
-
-function onGPSError() {
-    document.getElementById('gps-label').textContent = '{% trans "GPS indisponible — Lomé par défaut" %}';
-    placeMarkers(DEFAULT_LAT, DEFAULT_LNG);
-    renderList(DEFAULT_LAT, DEFAULT_LNG);
-    map.setView([DEFAULT_LAT, DEFAULT_LNG], 13);
-}
-
-function startWatch() {
-    // Sécurité HTTPS pour le GPS
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        console.warn("GPS bloqué car non-HTTPS. Utilisation de Lomé par défaut.");
-        toast('{% trans "GPS indisponible en HTTP. Affichage de Lomé." %}', 5000);
-        onGPSError();
-        return;
-    }
-
-    if (!navigator.geolocation) { 
-        onGPSError(); 
-        toast('{% trans "GPS non supporté" %}');
-        return; 
-    }
-    document.getElementById('gps-label').textContent = '{% trans "Localisation en cours..." %}';
-    if (watchId) navigator.geolocation.clearWatch(watchId);
-    watchId = navigator.geolocation.watchPosition(onGPSSuccess, (err) => {
-        console.error("GPS Error:", err);
-        onGPSError();
-        if (err.code === 1) {
-            toast('{% trans "Veuillez autoriser le GPS" %}', 5000);
-            document.getElementById('gps-label').textContent = '{% trans "GPS bloqué - Cliquez pour activer" %}';
-        }
-    }, {
-        enableHighAccuracy: true, maximumAge: 10000, timeout: 5000
     });
 }
 
-// ── Boutons ──────────────────────────────────────────────
-document.getElementById('btn-locate').addEventListener('click', () => {
-    if (userPos) map.setView(userPos, 16);
-    else { toast('{% trans "Recherche GPS..." %}'); startWatch(); }
-});
-// Clique sur le badge pour forcer
-document.querySelector('.gps-badge').style.cursor = 'pointer';
-document.querySelector('.gps-badge').addEventListener('click', startWatch);
-document.getElementById('btn-track').addEventListener('click', function() {
-    trackingMode = !trackingMode;
-    this.classList.toggle('active', trackingMode);
-    toast(trackingMode ? '{% trans "Suivi GPS activé" %}' : '{% trans "Suivi GPS pausé" %}');
-    if (trackingMode && userPos) map.panTo(userPos);
-});
+function focusProp(id) {
+    const m = propMarkers[id];
+    if (m) { map.setView(m.getLatLng(), 16); m.openPopup(); }
+}
 
-// ── Filtrage ─────────────────────────────────────────────
 window.filterType = function(type) {
-    console.log("Filtering by:", type);
-    // UI Update
-    document.querySelectorAll('.filter-chip').forEach(c => {
-        const isTarget = (type === 'ALL' && c.getAttribute('onclick').includes('ALL')) || 
-                         (type === 'AUBERGE' && c.getAttribute('onclick').includes('AUBERGE')) ||
-                         (type === 'FURNISHED' && c.getAttribute('onclick').includes('FURNISHED'));
-        c.classList.toggle('active', isTarget);
-    });
-    
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.getAttribute('onclick').includes(type)));
+    renderList(userPos ? userPos[0] : null, userPos ? userPos[1] : null, type);
     Object.keys(propMarkers).forEach(id => {
         const p = MARKERS_DATA.find(x => x.id === id);
-        const visible = type === 'ALL' || p.property_type === type || (type === 'FURNISHED' && p.category === 'FURNISHED');
-        if (visible) map.addLayer(propMarkers[id]);
-        else map.removeLayer(propMarkers[id]);
+        const show = type === 'ALL' || p.property_type === type || (type === 'FURNISHED' && p.category === 'FURNISHED');
+        if (show) map.addLayer(propMarkers[id]); else map.removeLayer(propMarkers[id]);
     });
-    renderList(userPos ? userPos[0] : DEFAULT_LAT, userPos ? userPos[1] : DEFAULT_LNG, type);
 };
 
-// ── Boussole ──────────────────────────────────────────────
-let heading = 0;
-window.addEventListener('deviceorientationabsolute', (e) => {
-    if (e.alpha !== null) {
-        heading = e.alpha;
-        document.getElementById('btn-compass').style.display = 'flex';
-        if (userMarker) {
-            const iconEl = userMarker.getElement()?.querySelector('.user-marker-wrap');
-            if (iconEl) iconEl.style.transform = `rotate(${-heading}deg)`;
-        }
-    }
-}, true);
-
-// ── Lancement ────────────────────────────────────────────
-placeMarkers(null, null);
-renderList(null, null);
-startWatch();
-
-// Focus automatique si demandé
-const focusId = "{{ focus_id|default:'' }}";
-if (focusId) {
-    setTimeout(() => focusProperty(focusId), 1500);
+// 3. GPS & Lancement
+function startWatch() {
+    if (!navigator.geolocation) { toast("GPS non supporté"); return; }
+    document.getElementById('gps-label').textContent = "Localisation...";
+    navigator.geolocation.getCurrentPosition((pos) => {
+        userPos = [pos.coords.latitude, pos.coords.longitude];
+        document.getElementById('gps-label').textContent = "GPS Actif";
+        if (map) map.setView(userPos, 14);
+        renderList(userPos[0], userPos[1]);
+    }, (err) => {
+        console.error(err);
+        document.getElementById('gps-label').textContent = "Lomé (Défaut)";
+        toast("GPS inaccessible (HTTP ou refus)");
+    }, { timeout: 5000 });
 }
-</script>
 
-<style>
-/* Animation ligne itinéraire */
-.route-line { animation: dashMove 1s linear infinite; }
-@keyframes dashMove { to { stroke-dashoffset: -20; } }
-</style>
-{% endif %}
+// Lancement direct au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    initMap();
+    startWatch();
+});
+</script>
 {% endblock %}

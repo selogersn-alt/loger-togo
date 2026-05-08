@@ -30,12 +30,23 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['157.180.127.70', 'logertg.com', 'www.logertg.com', 'logertogo.com', 'www.logertogo.com', 'localhost', '127.0.0.1']
 SITE_URL = 'https://logertg.com'
 
+# Security & SSL Configuration (Senior Production Setup)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True') == 'True'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     'https://logertg.com',
     'https://www.logertg.com',
     'https://logertogo.com',
     'https://www.logertogo.com',
 ]
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
 
 
 # Application definition

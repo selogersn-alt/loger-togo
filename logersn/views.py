@@ -167,6 +167,8 @@ def properties_list_view(request):
         'is_fallback': is_fallback,
         'search_query': q or neighborhood,
         'cities': [c[0] for c in CITY_CHOICES],
+        'property_types': PROPERTY_TYPE_CHOICES,
+        'listing_categories': Property.CategoryEnum.choices,
         'map_markers_json': json.dumps(map_markers),
         'breadcrumbs': [
             {'name': _('Annonces immobilières'), 'url': '/annonces/'}

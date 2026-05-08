@@ -106,13 +106,21 @@
                     <input type="text" name="neighborhood" class="form-control border-0 bg-light rounded-3" placeholder="{% trans 'Où cherchez-vous ?' %}" value="{{ request.GET.neighborhood }}">
                 </div>
                 <div class="col-md-2">
+                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-home me-1"></i> {% trans "Nature" %}</label>
+                    <select name="listing_category" class="form-select border-0 bg-light rounded-3">
+                        <option value="">{% trans "Toutes les natures" %}</option>
+                        {% for code, name in listing_categories %}
+                        <option value="{{ code }}" {% if request.GET.listing_category == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="small fw-bold text-muted mb-1"><i class="fas fa-home me-1"></i> {% trans "Type" %}</label>
                     <select name="property_type" class="form-select border-0 bg-light rounded-3">
                         <option value="">{% trans "Tous types" %}</option>
-                        <option value="APARTMENT" {% if request.GET.property_type == 'APARTMENT' %}selected{% endif %}>{% trans "Appartement" %}</option>
-                        <option value="VILLA" {% if request.GET.property_type == 'VILLA' %}selected{% endif %}>{% trans "Villa" %}</option>
-                        <option value="CHAMBRE" {% if request.GET.property_type == 'CHAMBRE' %}selected{% endif %}>{% trans "Chambre" %}</option>
-                        <option value="AUBERGE" {% if request.GET.property_type == 'AUBERGE' %}selected{% endif %}>{% trans "Auberge" %}</option>
+                        {% for code, name in property_types %}
+                        <option value="{{ code }}" {% if request.GET.property_type == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">

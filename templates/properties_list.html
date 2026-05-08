@@ -20,7 +20,6 @@
         border: 1px solid #f1f1f1;
     }
 
-    /* Style des Étiquettes de Prix sur la Carte (Identique à Near Me) */
     .price-tag-list {
         background: white;
         border: 2px solid var(--color-dark-green);
@@ -33,13 +32,6 @@
         white-space: nowrap;
         transition: all 0.2s;
     }
-    .price-tag-list:hover {
-        background: var(--color-dark-green);
-        color: white;
-        transform: scale(1.1);
-        z-index: 1000 !important;
-    }
-    .price-tag-list.auberge { border-color: #d63384; color: #d63384; }
     .price-tag-list.furnished { border-color: #d63384; color: #d63384; }
 
     #mapWrapper {
@@ -49,8 +41,20 @@
         margin-bottom: 30px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         border: 1px solid #eee;
+        position: relative;
     }
+    #mapWrapper.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border-radius: 0; margin: 0; }
     #leaflet-map { height: 100%; width: 100%; }
+
+    .route-info-box {
+        position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+        background: rgba(11, 70, 41, 0.95); backdrop-filter: blur(10px);
+        color: white; padding: 12px 25px; border-radius: 20px;
+        z-index: 2000; display: none; align-items: center; gap: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+    }
+    .map-controls { position: absolute; right: 20px; top: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+    .map-btn { width: 40px; height: 40px; background: white; border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); color: var(--color-dark-green); cursor: pointer; }
 
     .search-btn {
         background: var(--color-dark-green);
@@ -59,104 +63,75 @@
         border-radius: 12px;
         height: 48px;
         font-weight: 700;
-        transition: all 0.3s;
     }
-    .search-btn:hover { background: #08351f; transform: translateY(-2px); }
-
     .advanced-filters { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #eee; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Barre de Filtres Avancée -->
     <div class="filter-section">
         <form method="GET" action="{% url 'properties_list' %}" id="filterForm">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-city me-1"></i> {% trans "Ville" %}</label>
-                    <select name="city" class="form-select border-0 bg-light rounded-3" onchange="this.form.submit()">
+                    <label class="small fw-bold text-muted mb-1">{% trans "Ville" %}</label>
+                    <select name="city" class="form-select border-0 bg-light rounded-3">
                         <option value="">{% trans "Toutes les villes" %}</option>
-                        {% for city in cities %}
-                        <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>
-                        {% endfor %}
+                        {% for city in cities %}<option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-map-marker-alt me-1"></i> {% trans "Quartier" %}</label>
-                    <input type="text" name="neighborhood" class="form-control border-0 bg-light rounded-3" placeholder="{% trans "Ex: Agoè, Baguida..." %}" value="{{ request.GET.neighborhood }}">
+                    <label class="small fw-bold text-muted mb-1">{% trans "Quartier" %}</label>
+                    <input type="text" name="neighborhood" class="form-control border-0 bg-light rounded-3" value="{{ request.GET.neighborhood }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-home me-1"></i> {% trans "Type" %}</label>
+                    <label class="small fw-bold text-muted mb-1">{% trans "Type" %}</label>
                     <select name="property_type" class="form-select border-0 bg-light rounded-3">
                         <option value="">{% trans "Tous types" %}</option>
                         <option value="APARTMENT" {% if request.GET.property_type == 'APARTMENT' %}selected{% endif %}>{% trans "Appartement" %}</option>
                         <option value="VILLA" {% if request.GET.property_type == 'VILLA' %}selected{% endif %}>{% trans "Villa" %}</option>
-                        <option value="STUDIO" {% if request.GET.property_type == 'STUDIO' %}selected{% endif %}>{% trans "Studio" %}</option>
-                        <option value="AUBERGE" {% if request.GET.property_type == 'AUBERGE' %}selected{% endif %}>{% trans "Auberge" %}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-tag me-1"></i> {% trans "Prix Max" %}</label>
-                    <input type="number" name="max_price" class="form-control border-0 bg-light rounded-3" placeholder="FCFA" value="{{ request.GET.max_price }}">
+                    <label class="small fw-bold text-muted mb-1">{% trans "Prix Max" %}</label>
+                    <input type="number" name="max_price" class="form-control border-0 bg-light rounded-3" value="{{ request.GET.max_price }}">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn search-btn w-100">
-                        <i class="fas fa-search me-2"></i> {% trans "Filtrer" %}
-                    </button>
+                    <button type="submit" class="btn search-btn w-100">{% trans "Filtrer" %}</button>
                 </div>
             </div>
-
-            <!-- Filtres Spécifiques (Cachés par défaut) -->
             <div id="advancedFilters" class="advanced-filters">
                 <div class="row g-3">
                     <div class="col-md-2">
                         <label class="small fw-bold text-muted mb-1">{% trans "Chambres min" %}</label>
                         <input type="number" name="min_bedrooms" class="form-control border-0 bg-light" value="{{ request.GET.min_bedrooms }}">
                     </div>
-                    <div class="col-md-2">
-                        <label class="small fw-bold text-muted mb-1">{% trans "WiFi" %}</label>
-                        <select name="wifi" class="form-select border-0 bg-light">
-                            <option value="">{% trans "Indifférent" %}</option>
-                            <option value="1" {% if request.GET.wifi == '1' %}selected{% endif %}>{% trans "Oui" %}</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="small fw-bold text-muted mb-1">{% trans "Climatisation" %}</label>
-                        <select name="ac" class="form-select border-0 bg-light">
-                            <option value="">{% trans "Indifférent" %}</option>
-                            <option value="1" {% if request.GET.ac == '1' %}selected{% endif %}>{% trans "Oui" %}</option>
-                        </select>
-                    </div>
                 </div>
             </div>
-            
             <div class="text-center mt-3">
-                <button type="button" class="btn btn-link text-decoration-none small fw-bold text-success" onclick="toggleAdvanced()">
-                    <i class="fas fa-sliders-h me-1"></i> {% trans "Filtres avancés" %}
-                </button>
+                <button type="button" class="btn btn-link text-decoration-none small fw-bold text-success" onclick="toggleAdvanced()">{% trans "Filtres avancés" %}</button>
             </div>
         </form>
     </div>
 
-    <!-- Carte -->
     <div id="mapWrapper">
+        <div class="map-controls">
+            <button type="button" class="map-btn" onclick="toggleMapFullscreen()"><i class="fas fa-expand"></i></button>
+        </div>
+        <div class="route-info-box" id="routeInfo">
+            <div class="d-flex gap-3 align-items-center">
+                <div><small class="d-block opacity-75">Dist.</small><strong id="routeDist">-- km</strong></div>
+                <div style="width:1px;height:20px;background:white;opacity:0.3"></div>
+                <div><small class="d-block opacity-75">Temps</small><strong id="routeTime">-- min</strong></div>
+            </div>
+            <button type="button" class="btn btn-sm btn-link text-white ms-2 p-0" onclick="hideRoute()">×</button>
+        </div>
         <div id="leaflet-map"></div>
     </div>
 
-    <!-- Résultats -->
     <div class="row g-4">
-        {% for property in properties %}
-        <div class="col-md-4">
-            {% include 'partials/property_card.html' %}
-        </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="fas fa-search fa-3x text-muted mb-3 opacity-25"></i>
-            <h4>{% trans "Aucun résultat trouvé" %}</h4>
-            <p class="text-muted">{% trans "Essayez de modifier vos filtres." %}</p>
-        </div>
-        {% endfor %}
+        {% for property in properties %}<div class="col-md-4">{% include 'partials/property_card.html' %}</div>
+        {% empty %}<div class="col-12 text-center py-5"><h4>{% trans "Aucun résultat" %}</h4></div>{% endfor %}
     </div>
 </div>
 {% endblock %}
@@ -165,59 +140,77 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const MAP_MARKERS = [
-    {% for p in properties %}
-    {% if p.latitude and p.longitude %}
-    {
-        id: "{{ p.id }}",
-        lat: {{ p.latitude|stringformat:"f" }},
-        lng: {{ p.longitude|stringformat:"f" }},
-        price: {{ p.price }},
-        title: "{{ p.title|escapejs }}",
-        url: "{{ p.get_absolute_url }}",
-        category: "{{ p.listing_category }}",
-        type: "{{ p.get_property_type_display }}",
-        img: "{% if p.images.exists %}{{ p.images.first.image_url.url }}{% endif %}"
-    },
-    {% endif %}
-    {% endfor %}
+    {% for p in properties %}{% if p.latitude and p.longitude %}{
+        id:"{{p.id}}", lat:{{p.latitude|stringformat:"f"}}, lng:{{p.longitude|stringformat:"f"}},
+        price:{{p.price}}, title:"{{p.title|escapejs}}", url:"{{p.get_absolute_url}}",
+        category:"{{p.listing_category}}", img:"{% if p.images.exists %}{{p.images.first.image_url.url}}{% endif %}"
+    },{% endif %}{% endfor %}
 ];
+
+let map, userPos = null, activeRoute = null;
 
 function toggleAdvanced() {
     const div = document.getElementById('advancedFilters');
     div.style.display = div.style.display === 'block' ? 'none' : 'block';
 }
 
+function toggleMapFullscreen() {
+    const el = document.getElementById('mapWrapper');
+    el.classList.toggle('fullscreen');
+    setTimeout(() => map.invalidateSize(), 300);
+}
+
+function hideRoute() {
+    document.getElementById('routeInfo').style.display = 'none';
+    if (activeRoute) map.removeLayer(activeRoute);
+}
+
+async function calculateRoute(tLat, tLng) {
+    if (!userPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
+    if (activeRoute) map.removeLayer(activeRoute);
+    const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${tLng},${tLat}?overview=full&geometries=geojson`;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const route = data.routes[0];
+        activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6 }).addTo(map);
+        map.fitBounds(activeRoute.getBounds(), { padding: [80, 80] });
+        document.getElementById('routeDist').textContent = (route.distance / 1000).toFixed(1) + ' km';
+        document.getElementById('routeTime').textContent = Math.round(route.duration / 60) + ' min';
+        document.getElementById('routeInfo').style.display = 'flex';
+    } catch(e) { console.error(e); }
+}
+
 function initMap() {
-    const map = L.map('leaflet-map', { zoomControl: false }).setView([6.137, 1.222], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CARTO'
-    }).addTo(map);
+    map = L.map('leaflet-map', { zoomControl: false }).setView([6.137, 1.222], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            userPos = [pos.coords.latitude, pos.coords.longitude];
+            L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:16px;height:16px;background:#3b82f6;border:2px solid white;border-radius:50%"></div>' }) }).addTo(map);
+        });
+    }
 
     const bounds = [];
     MAP_MARKERS.forEach(m => {
         const isPremium = m.category === 'FURNISHED' || m.category === 'AUBERGE';
-        const cls = isPremium ? 'price-tag-list furnished' : 'price-tag-list';
         const color = isPremium ? '#d63384' : '#0b4629';
-        
         const icon = L.divIcon({
-            html: `<div class="${cls}" style="border-color:${color}; color:${color}">${m.price.toLocaleString()} F</div>`,
-            className: '',
+            html: `<div class="price-tag-list ${isPremium?'furnished':''}" style="border-color:${color};color:${color}">${m.price.toLocaleString()} F</div>`,
             iconAnchor: [40, 20]
         });
-
-        const popup = `
-            <div style="width:200px">
-                <img src="${m.img}" style="width:100%; height:110px; object-fit:cover; border-radius:12px; margin-bottom:8px">
-                <strong style="font-size:14px; display:block">${m.title}</strong>
-                <div style="color:${color}; font-weight:800; font-size:1.1rem; margin:5px 0">${m.price.toLocaleString()} F</div>
-                <a href="${m.url}" class="btn btn-sm w-100" style="background:${color}; color:white; border-radius:10px; font-weight:700">{% trans "Voir" %}</a>
-            </div>`;
-
-        L.marker([m.lat, m.lng], { icon }).addTo(map).bindPopup(popup);
+        L.marker([m.lat, m.lng], { icon }).addTo(map).bindPopup(`
+            <div style="width:180px">
+                <img src="${m.img}" style="width:100%;height:100px;object-fit:cover;border-radius:8px">
+                <strong class="d-block mt-2">${m.title}</strong>
+                <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-primary w-100 mt-2">{% trans "Itinéraire" %}</button>
+                <a href="${m.url}" class="btn btn-sm btn-success w-100 mt-1">{% trans "Voir" %}</a>
+            </div>
+        `);
         bounds.push([m.lat, m.lng]);
     });
-
     if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
 }
 

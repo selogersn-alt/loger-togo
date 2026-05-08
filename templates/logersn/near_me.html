@@ -9,6 +9,7 @@
 :root {
     --color-dark-green: #0b4629;
     --color-gold: #f5c42f;
+    --color-accent: #3b82f6;
 }
 .geo-wrapper {
     display: flex;
@@ -53,6 +54,21 @@
     color: #444; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 .filter-chip.active { background: var(--color-dark-green); color: white; }
+
+/* Marqueurs de PRIX élégants */
+.price-tag {
+    background: white; border: 2px solid var(--color-dark-green);
+    padding: 4px 10px; border-radius: 20px; font-weight: 800;
+    font-size: 0.85rem; color: var(--color-dark-green);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    white-space: nowrap; transition: all 0.2s;
+}
+.price-tag:hover, .price-tag.active {
+    background: var(--color-dark-green); color: white;
+    transform: scale(1.1); z-index: 1000 !important;
+}
+.price-tag.auberge { border-color: #d63384; color: #d63384; }
+.price-tag.auberge:hover, .price-tag.auberge.active { background: #d63384; color: white; }
 
 /* Marqueur Utilisateur (Point Bleu) */
 .user-marker {
@@ -153,47 +169,85 @@ function updateUserMarker(lat, lng) {
     }
 }
 
-// ── Itinéraire ──────────────────────────────────────────────
-function showRoute(targetLat, targetLng) {
+// ── ITINÉRAIRE PAR CHEMIN (OSRM) ───────────────────────────
+async function showRoute(targetLat, targetLng) {
     if (!userPos) {
-        alert("{% trans 'Activez votre GPS pour voir l\'itinéraire' %}");
+        alert("{% trans 'Activez votre GPS pour calculer l\'itinéraire' %}");
         return;
     }
-    if (routeLine) map.removeLayer(routeLine);
     
-    routeLine = L.polyline([userPos, [targetLat, targetLng]], {
-        color: '#3b82f6', weight: 4, opacity: 0.6, dashArray: '10, 10'
-    }).addTo(map);
+    // URL OSRM pour le trajet routier
+    const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${targetLng},${targetLat}?overview=full&geometries=geojson`;
     
-    map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.code !== 'Ok') throw new Error("Route not found");
+        
+        const route = data.routes[0];
+        const coordinates = route.geometry.coordinates.map(c => [c[1], c[0]]);
+        const distanceKm = (route.distance / 1000).toFixed(1);
+        const durationMins = Math.round(route.duration / 60);
+        
+        if (routeLine) map.removeLayer(routeLine);
+        
+        routeLine = L.polyline(coordinates, {
+            color: '#3b82f6', weight: 5, opacity: 0.7, lineJoin: 'round'
+        }).addTo(map);
+        
+        map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+        
+        // Notification itinéraire
+        const msg = `{% trans "Itinéraire trouvé : " %} ${distanceKm} km (${durationMins} min)`;
+        alert(msg);
+        
+    } catch (e) {
+        console.error("Routing error:", e);
+        // Fallback distance vol d'oiseau
+        if (routeLine) map.removeLayer(routeLine);
+        routeLine = L.polyline([userPos, [targetLat, targetLng]], {
+            color: '#3b82f6', weight: 4, opacity: 0.5, dashArray: '10, 10'
+        }).addTo(map);
+        map.fitBounds(routeLine.getBounds());
+    }
 }
 
-// ── Marqueurs Biens ─────────────────────────────────────────
-function buildIcon(type) {
-    const isAuberge = type === 'AUBERGE';
-    const color = isAuberge ? '#d63384' : '#0b4629';
+// ── Marqueurs de Prix Élégants ─────────────────────────────
+function buildPriceIcon(p) {
+    const isAuberge = p.property_type === 'AUBERGE';
+    const price = p.price_night > 0 ? p.price_night.toLocaleString() : p.price_month.toLocaleString();
+    const cls = isAuberge ? 'price-tag auberge' : 'price-tag';
+    
     return L.divIcon({
-        className: 'custom-prop-icon',
-        html: `<div style="background:${color}; width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.2)">
-                 <i class="fas ${isAuberge ? 'fa-hotel' : 'fa-home'}" style="font-size:14px"></i>
-               </div>`,
-        iconSize: [32, 32], iconAnchor: [16, 32]
+        className: 'custom-price-icon',
+        html: `<div class="${cls}">${price} F</div>`,
+        iconSize: [null, null], iconAnchor: [30, 15]
     });
 }
 
 function placeMarkers() {
     MARKERS_DATA.forEach(p => {
-        const m = L.marker([p.lat, p.lng], { icon: buildIcon(p.property_type) }).addTo(map);
+        const m = L.marker([p.lat, p.lng], { icon: buildPriceIcon(p) }).addTo(map);
         m.bindPopup(`
-            <div style="min-width:180px">
-                <img src="${p.img}" style="width:100%; height:100px; object-fit:cover; border-radius:8px; margin-bottom:8px">
-                <div class="fw-bold">${p.title}</div>
-                <div class="text-success fw-bold mt-1">${p.price_night > 0 ? p.price_night.toLocaleString()+' F' : p.price_month.toLocaleString()+' F'}</div>
-                <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary w-100 mt-2" style="border-radius:8px">
-                    <i class="fas fa-route me-1"></i> {% trans "Y aller" %}
+            <div style="min-width:200px">
+                <img src="${p.img}" style="width:100%; height:110px; object-fit:cover; border-radius:12px; margin-bottom:10px">
+                <div class="fw-bold" style="font-size:1rem">${p.title}</div>
+                <div class="text-muted small mb-2"><i class="fas fa-location-dot me-1"></i>${p.neighborhood}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-success" style="font-size:1.1rem">${p.price_night > 0 ? p.price_night.toLocaleString()+' F' : p.price_month.toLocaleString()+' F'}</span>
+                </div>
+                <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary w-100 mt-3" style="border-radius:10px; font-weight:700">
+                    <i class="fas fa-directions me-1"></i> {% trans "Y aller" %}
                 </button>
             </div>
-        `);
+        `, { closeButton: false, className: 'premium-popup' });
+        
+        m.on('click', () => {
+            document.querySelectorAll('.price-tag').forEach(t => t.classList.remove('active'));
+            m.getElement().querySelector('.price-tag').classList.add('active');
+        });
+        
         propMarkers[p.id] = m;
     });
 }
@@ -225,7 +279,12 @@ function renderList(uLat, uLng, filter = 'ALL') {
 
 function focusProp(id) {
     const m = propMarkers[id];
-    if (m) { map.setView(m.getLatLng(), 16); m.openPopup(); }
+    if (m) { 
+        map.setView(m.getLatLng(), 16); 
+        m.openPopup(); 
+        document.querySelectorAll('.price-tag').forEach(t => t.classList.remove('active'));
+        m.getElement().querySelector('.price-tag').classList.add('active');
+    }
 }
 
 window.filterType = function(type) {

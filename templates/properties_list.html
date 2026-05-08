@@ -552,41 +552,76 @@ function toggleMap() {
 
 function initMap() {
     mapInitialized = true;
-    // Centre sur Lomé par défaut
-    map = L.map('leaflet-map').setView([6.137, 1.222], 12);
+    map = L.map('leaflet-map', { zoomControl: false }).setView([6.137, 1.222], 12);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 18,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+        attribution: '&copy; CARTO'
     }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    if (MAP_MARKERS.length === 0) {
-        map.setView([6.137, 1.222], 12);
-        return;
+    // Position utilisateur (Point Bleu)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            const uPos = [pos.coords.latitude, pos.coords.longitude];
+            const blueDot = L.divIcon({
+                className: 'custom-div-icon',
+                html: '<div style="width:16px;height:16px;background:#3b82f6;border:2px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse-blue 2s infinite;"></div>',
+                iconSize: [16, 16], iconAnchor: [8, 8]
+            });
+            L.marker(uPos, { icon: blueDot }).addTo(map);
+            window.userPos = uPos;
+        });
     }
 
     const bounds = [];
     MAP_MARKERS.forEach(m => {
-        const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#8e44ad' : '#198754';
+        const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#d63384' : '#0b4629';
         const icon = L.divIcon({
-            html: `<div style="background:${catColor};color:white;border-radius:50px;padding:6px 14px;font-weight:800;font-size:13px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3);border:2px solid white;">${m.price.toLocaleString('fr-FR')} F</div>`,
+            html: `<div class="price-tag-list" style="background:${catColor};color:white;border-radius:50px;padding:6px 14px;font-weight:800;font-size:13px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);border:2px solid white;transition:transform 0.2s;">${m.price.toLocaleString('fr-FR')} F</div>`,
             className: '',
             iconAnchor: [40, 20]
         });
+        
         const popup = `
             <div style="width:200px;">
-                ${m.img ? `<img src="${m.img}" style="width:100%;height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;">` : ''}
-                <strong style="font-size:13px;">${m.title}</strong>
-                <div style="font-size:12px;color:#555;margin:2px 0;">${m.type} · ${m.neighborhood}</div>
-                <div style="font-weight:700;color:#198754;margin:4px 0;">${m.price.toLocaleString('fr-FR')} FCFA</div>
-                <a href="${m.url}" style="display:block;background:#198754;color:white;text-align:center;padding:6px;border-radius:6px;text-decoration:none;font-size:12px;margin-top:6px;">{% trans "Voir l'annonce" %} →</a>
+                ${m.img ? `<img src="${m.img}" style="width:100%;height:110px;object-fit:cover;border-radius:12px;margin-bottom:8px;">` : ''}
+                <strong style="font-size:14px;display:block;margin-bottom:4px;">${m.title}</strong>
+                <div style="font-size:12px;color:#666;margin-bottom:6px;">${m.type} · ${m.neighborhood}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-weight:800;color:${catColor};font-size:1.1rem;">${m.price.toLocaleString('fr-FR')} F</span>
+                    <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-primary py-1 px-2" style="border-radius:8px;"><i class="fas fa-directions"></i></button>
+                </div>
+                <a href="${m.url}" class="btn btn-sm w-100 mt-2" style="background:${catColor};color:white;border-radius:10px;font-weight:700;">{% trans "Voir" %}</a>
             </div>`;
-        L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
+            
+        const marker = L.marker([m.lat, m.lng], {icon}).addTo(map).bindPopup(popup);
         bounds.push([m.lat, m.lng]);
     });
 
     if (bounds.length > 0) {
-        map.fitBounds(bounds, {padding: [30, 30]});
+        map.fitBounds(bounds, {padding: [50, 50]});
     }
+}
+
+let activeRoute = null;
+async function calculateRoute(tLat, tLng) {
+    if (!window.userPos) {
+        alert("{% trans 'Activez votre GPS' %}");
+        return;
+    }
+    if (activeRoute) map.removeLayer(activeRoute);
+    
+    const url = `https://router.project-osrm.org/route/v1/driving/${window.userPos[1]},${window.userPos[0]};${tLng},${tLat}?overview=full&geometries=geojson`;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        activeRoute = L.polyline(coords, { color: '#3b82f6', weight: 6, opacity: 0.7 }).addTo(map);
+        map.fitBounds(activeRoute.getBounds(), { padding: [50, 50] });
+        const dist = (data.routes[0].distance / 1000).toFixed(1);
+        const dur = Math.round(data.routes[0].duration / 60);
+        alert(`Dist : ${dist} km | Durée : ${dur} min`);
+    } catch(e) { console.error(e); }
 }
 
 // Initialiser la carte au chargement de la page puisque c'est visible par défaut

@@ -735,16 +735,69 @@
     document.addEventListener('DOMContentLoaded', function() {
         const lat = parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.'));
         const lng = parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.'));
-        const map = L.map('propertyMap').setView([lat, lng], 14);
+        const map = L.map('propertyMap', { zoomControl: false }).setView([lat, lng], 15);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
-            attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+            attribution: '&copy; CARTO'
         }).addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        L.marker([lat, lng]).addTo(map)
-            .bindPopup("<b>{{ property.title|escapejs }}</b><br>{{ property.neighborhood|escapejs }}")
-            .openPopup();
+        // Position utilisateur (Point Bleu)
+        let uPos = null;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                uPos = [pos.coords.latitude, pos.coords.longitude];
+                const blueDot = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: '<div style="width:16px;height:16px;background:#3b82f6;border:2px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse-blue 2s infinite;"></div>',
+                    iconSize: [16, 16], iconAnchor: [8, 8]
+                });
+                L.marker(uPos, { icon: blueDot }).addTo(map);
+            });
+        }
+
+        // Étiquette de PRIX
+        const price = "{{ property.price|format_price }}";
+        const catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
+        const priceIcon = L.divIcon({
+            html: `<div style="background:${catColor};color:white;border-radius:50px;padding:6px 14px;font-weight:800;font-size:14px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);border:2px solid white;">${price} F</div>`,
+            className: '',
+            iconAnchor: [40, 20]
+        });
+
+        const marker = L.marker([lat, lng], { icon: priceIcon }).addTo(map);
+        
+        const popupContent = `
+            <div style="min-width:160px;">
+                <strong style="display:block;margin-bottom:5px;">{{ property.title|escapejs }}</strong>
+                <button id="getRouteBtn" class="btn btn-sm btn-primary w-100" style="border-radius:8px;font-weight:700;">
+                    <i class="fas fa-route me-1"></i> {% trans "Y aller (Route)" %}
+                </button>
+            </div>`;
+            
+        marker.bindPopup(popupContent);
+
+        // Itinéraire OSRM
+        let activeRoute = null;
+        window.calculateDetailRoute = async function() {
+            if (!uPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
+            if (activeRoute) map.removeLayer(activeRoute);
+            const url = `https://router.project-osrm.org/route/v1/driving/${uPos[1]},${uPos[0]};${lng},${lat}?overview=full&geometries=geojson`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                activeRoute = L.polyline(coords, { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
+                map.fitBounds(activeRoute.getBounds(), { padding: [40, 40] });
+                marker.closePopup();
+            } catch(e) { console.error(e); }
+        };
+
+        map.on('popupopen', function() {
+            const btn = document.getElementById('getRouteBtn');
+            if (btn) btn.onclick = calculateDetailRoute;
+        });
     });
 
     // Favorite Toggle Logic

@@ -224,8 +224,8 @@
                 <!-- ... inner search fields ... -->
                 <div class="search-bar-inner">
                     <div class="search-field">
-                        <label>{% trans "Je cherche..." %}</label>
-                        <select name="listing_category">
+                        <label for="listing_category">{% trans "Je cherche..." %}</label>
+                        <select name="listing_category" id="listing_category">
                             <option value="ALL">{% trans "Toutes les natures" %}</option>
                             <option value="RENT">{% trans "En location" %}</option>
                             <option value="SALE">{% trans "En vente" %}</option>
@@ -233,8 +233,8 @@
                         </select>
                     </div>
                     <div class="search-field">
-                        <label>{% trans "Type de bien" %}</label>
-                        <select name="property_type">
+                        <label for="property_type">{% trans "Type de bien" %}</label>
+                        <select name="property_type" id="property_type">
                             <option value="ALL">{% trans "Tous les types" %}</option>
                             <option value="STUDIO">{% trans "Studio" %}</option>
                             <option value="APPARTEMENT">{% trans "Appartement" %}</option>
@@ -248,8 +248,8 @@
                         </select>
                     </div>
                     <div class="search-field">
-                        <label>{% trans "Où ? (Ville)" %}</label>
-                        <select name="city">
+                        <label for="city">{% trans "Où ? (Ville)" %}</label>
+                        <select name="city" id="city">
                             <option value="">{% trans "Tout le Togo" %}</option>
                             {% for code, name in cities %}
                             <option value="{{ code }}">{{ name }}</option>
@@ -257,7 +257,7 @@
                         </select>
                     </div>
                     <div class="ms-lg-auto">
-                        <button type="submit" class="btn-search">
+                        <button type="submit" class="btn-search" aria-label="{% trans "Lancer la recherche" %}">
                             <i class="fas fa-search"></i> {% trans "Rechercher" %}
                         </button>
                     </div>

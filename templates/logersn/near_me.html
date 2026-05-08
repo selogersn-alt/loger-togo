@@ -11,9 +11,11 @@
 ═══════════════════════════════════════ */
 .geo-wrapper {
     display: flex;
-    height: calc(100vh - 70px);
+    height: 600px; /* Hauteur fixe par défaut pour garantir la visibilité */
+    height: calc(100vh - 100px);
     overflow: hidden;
     position: relative;
+    background: #f0f0f0;
 }
 
 /* ═══════════════════════════════════════
@@ -393,6 +395,7 @@ function buildPopup(p, distKm) {
 }
 
 function placeMarkers(uLat, uLng) {
+    console.log("Placing markers on map...");
     MARKERS_DATA.forEach(p => {
         const distKm = (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null;
         const icon = buildIcon(p.property_type);
@@ -405,38 +408,52 @@ function placeMarkers(uLat, uLng) {
             propMarkers[p.id] = m;
         }
     });
+    // Forcer le rendu
+    setTimeout(() => { map.invalidateSize(); }, 800);
 }
 
 // ── Panneau latéral ──────────────────────────────────────
 function renderList(uLat, uLng, filter = 'ALL') {
+    console.log("Rendering list with filter:", filter, "at", uLat, uLng);
     const list = document.getElementById('property-list');
-    document.getElementById('list-loading').style.display = 'none';
+    const loading = document.getElementById('list-loading');
+    if (loading) loading.style.display = 'none';
 
-    const sorted = [...MARKERS_DATA].filter(p => {
-        return filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED');
-    }).map(p => ({
-        ...p,
-        dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null
-    })).sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
+    try {
+        const sorted = [...MARKERS_DATA].filter(p => {
+            return filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED');
+        }).map(p => ({
+            ...p,
+            dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null
+        })).sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
 
-    list.innerHTML = sorted.map(p => {
-        const price = p.price_night > 0
-            ? `${p.price_night.toLocaleString()} F<small>/nuit</small>`
-            : `${p.price_month.toLocaleString()} F<small>/mois</small>`;
-        const distTag = p.dist !== null
-            ? `<div class="dist-badge" id="dist-card-${p.id}">${fmtDist(p.dist)}<br><small style="font-weight:500">${fmtEta(p.dist)}</small></div>`
-            : '';
-        const imgTag = p.img ? `<img src="${p.img}" class="prop-thumb" onerror="this.src=''" alt="">` : `<div class="prop-thumb"></div>`;
-        return `<div class="prop-card" id="card-${p.id}" onclick="focusProperty('${p.id}')">
-            ${imgTag}
-            <div class="prop-info">
-                <div class="prop-title">${p.title}</div>
-                <div class="prop-addr"><i class="fa-solid fa-location-dot me-1 text-success" style="font-size:.7rem;"></i>${p.neighborhood}</div>
-                <div class="prop-price">${price}</div>
-            </div>
-            ${distTag}
-        </div>`;
-    }).join('');
+        if (sorted.length === 0) {
+            list.innerHTML = `<div class="text-center py-5 text-muted">{% trans "Aucun bien trouvé pour ce filtre." %}</div>`;
+            return;
+        }
+
+        list.innerHTML = sorted.map(p => {
+            const price = p.price_night > 0
+                ? `${p.price_night.toLocaleString()} F<small>/nuit</small>`
+                : `${p.price_month.toLocaleString()} F<small>/mois</small>`;
+            const distTag = p.dist !== null
+                ? `<div class="dist-badge" id="dist-card-${p.id}">${fmtDist(p.dist)}<br><small style="font-weight:500">${fmtEta(p.dist)}</small></div>`
+                : '';
+            const imgTag = p.img ? `<img src="${p.img}" class="prop-thumb" onerror="this.src=''" alt="">` : `<div class="prop-thumb"></div>`;
+            return `<div class="prop-card" id="card-${p.id}" onclick="focusProperty('${p.id}')">
+                ${imgTag}
+                <div class="prop-info">
+                    <div class="prop-title">${p.title}</div>
+                    <div class="prop-addr"><i class="fa-solid fa-location-dot me-1 text-success" style="font-size:.7rem;"></i>${p.neighborhood}</div>
+                    <div class="prop-price">${price}</div>
+                </div>
+                ${distTag}
+            </div>`;
+        }).join('');
+    } catch (e) {
+        console.error("Render error:", e);
+        list.innerHTML = `<div class="alert alert-danger">Erreur de rendu.</div>`;
+    }
 }
 
 function updateDistances(uLat, uLng) {
@@ -547,6 +564,14 @@ function onGPSError() {
 }
 
 function startWatch() {
+    // Sécurité HTTPS pour le GPS
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        console.warn("GPS bloqué car non-HTTPS. Utilisation de Lomé par défaut.");
+        toast('{% trans "GPS indisponible en HTTP. Affichage de Lomé." %}', 5000);
+        onGPSError();
+        return;
+    }
+
     if (!navigator.geolocation) { 
         onGPSError(); 
         toast('{% trans "GPS non supporté" %}');
@@ -555,14 +580,14 @@ function startWatch() {
     document.getElementById('gps-label').textContent = '{% trans "Localisation en cours..." %}';
     if (watchId) navigator.geolocation.clearWatch(watchId);
     watchId = navigator.geolocation.watchPosition(onGPSSuccess, (err) => {
+        console.error("GPS Error:", err);
+        onGPSError();
         if (err.code === 1) {
             toast('{% trans "Veuillez autoriser le GPS" %}', 5000);
             document.getElementById('gps-label').textContent = '{% trans "GPS bloqué - Cliquez pour activer" %}';
-        } else {
-            onGPSError();
         }
     }, {
-        enableHighAccuracy: true, maximumAge: 5000, timeout: 15000
+        enableHighAccuracy: true, maximumAge: 10000, timeout: 5000
     });
 }
 
@@ -583,8 +608,13 @@ document.getElementById('btn-track').addEventListener('click', function() {
 
 // ── Filtrage ─────────────────────────────────────────────
 window.filterType = function(type) {
+    console.log("Filtering by:", type);
+    // UI Update
     document.querySelectorAll('.filter-chip').forEach(c => {
-        c.classList.toggle('active', c.textContent.trim().toUpperCase().includes(type) || (type === 'ALL' && c.textContent.trim() === '{% trans "Tout" %}'));
+        const isTarget = (type === 'ALL' && c.getAttribute('onclick').includes('ALL')) || 
+                         (type === 'AUBERGE' && c.getAttribute('onclick').includes('AUBERGE')) ||
+                         (type === 'FURNISHED' && c.getAttribute('onclick').includes('FURNISHED'));
+        c.classList.toggle('active', isTarget);
     });
     
     Object.keys(propMarkers).forEach(id => {
@@ -593,7 +623,7 @@ window.filterType = function(type) {
         if (visible) map.addLayer(propMarkers[id]);
         else map.removeLayer(propMarkers[id]);
     });
-    renderList(userPos ? userPos[0] : null, userPos ? userPos[1] : null, type);
+    renderList(userPos ? userPos[0] : DEFAULT_LAT, userPos ? userPos[1] : DEFAULT_LNG, type);
 };
 
 // ── Boussole ──────────────────────────────────────────────

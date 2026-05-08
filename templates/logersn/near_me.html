@@ -156,7 +156,18 @@ function hideRoute() {
 }
 
 async function showRoute(targetLat, targetLng) {
-    if (!userPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
+    if (!userPos) { 
+        // Au lieu d'une alerte, on demande le GPS
+        navigator.geolocation.getCurrentPosition((pos) => {
+            userPos = [pos.coords.latitude, pos.coords.longitude];
+            startWatch();
+            showRoute(targetLat, targetLng);
+        }, () => {
+            // Ici on peut mettre un toast élégant plus tard
+            console.log("GPS refusé");
+        });
+        return; 
+    }
     const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${targetLng},${targetLat}?overview=full&geometries=geojson`;
     try {
         const res = await fetch(url);
@@ -189,10 +200,13 @@ function placeMarkers() {
         });
         const m = L.marker([p.lat, p.lng], { icon }).bindPopup(`
             <div style="width:220px">
-                <img src="${p.img}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px">
+                <img src="${p.img}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px" loading="lazy">
                 <strong style="font-size:15px">${p.title}</strong>
                 <div style="font-weight:800;color:${color};font-size:1.2rem;margin:5px 0">${price.toLocaleString()} F</div>
-                <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary w-100 mt-2" style="border-radius:10px;font-weight:700"><i class="fas fa-route me-1"></i> {% trans "Itinéraire" %}</button>
+                <div class="d-flex gap-2">
+                    <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary flex-grow-1" style="border-radius:10px;font-weight:700"><i class="fas fa-route me-1"></i> {% trans "Itinéraire" %}</button>
+                    <a href="${p.url}" class="btn btn-sm btn-success px-3" style="border-radius:10px;font-weight:700">{% trans "Voir" %}</a>
+                </div>
             </div>`);
         markers.addLayer(m);
         propMarkers[p.id] = m;

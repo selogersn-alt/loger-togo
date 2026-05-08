@@ -227,21 +227,25 @@ function hideRoute() {
 
 function centerOnUser() {
     if (userPos) map.setView(userPos, 14);
-    else alert("{% trans 'Activez votre GPS' %}");
+    else {
+        navigator.geolocation.getCurrentPosition(pos => {
+            userPos = [pos.coords.latitude, pos.coords.longitude];
+            L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5)"></div>' }) }).addTo(map);
+            map.setView(userPos, 14);
+        });
+    }
 }
 
 async function calculateRoute(tLat, tLng) {
     if (!userPos) {
-        // Tenter une dernière activation forcée
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
                 userPos = [pos.coords.latitude, pos.coords.longitude];
-                calculateRoute(tLat, tLng); // Relancer après obtention
+                L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5)"></div>' }) }).addTo(map);
+                calculateRoute(tLat, tLng);
             }, () => {
-                alert("{% trans 'Action requise : Autorisez la localisation dans votre navigateur pour tracer l itinéraire.' %}");
+                console.log("GPS refusé");
             });
-        } else {
-            alert("{% trans 'Localisation non supportée par votre navigateur.' %}");
         }
         return;
     }

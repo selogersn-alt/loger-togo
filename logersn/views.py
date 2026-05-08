@@ -77,6 +77,9 @@ def properties_list_view(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     q = request.GET.get('q')
+    min_bedrooms = request.GET.get('min_bedrooms')
+    wifi = request.GET.get('wifi')
+    ac = request.GET.get('ac')
     
     properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
     is_fallback = False
@@ -102,6 +105,9 @@ def properties_list_view(request):
     if property_type and property_type != 'ALL': properties = properties.filter(property_type=property_type)
     if min_price: properties = properties.filter(price__gte=int(float(min_price)))
     if max_price: properties = properties.filter(price__lte=int(float(max_price)))
+    if min_bedrooms: properties = properties.filter(bedrooms__gte=int(min_bedrooms))
+    if wifi == '1': properties = properties.filter(wifi=True)
+    if ac == '1': properties = properties.filter(air_conditioning=True)
     
     # Filtre textuel (recherche globale)
     if q:
@@ -149,6 +155,7 @@ def properties_list_view(request):
         'properties': properties,
         'is_fallback': is_fallback,
         'search_query': q or neighborhood,
+        'cities': [c[0] for c in CITY_CHOICES],
         'map_markers_json': json.dumps(map_markers),
         'breadcrumbs': [
             {'name': _('Annonces immobilières'), 'url': '/annonces/'}

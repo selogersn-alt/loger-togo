@@ -673,7 +673,7 @@
     {% endif %}
 
     <!-- Fil d'Ariane (Breadcrumbs) -->
-    {% if request.resolver_match.url_name != 'home' %}
+    {% if request.resolver_match.url_name != 'home' and request.resolver_match.url_name != 'near_me' %}
     <div class="container mt-3">
         {% include 'partials/breadcrumbs.html' %}
     </div>

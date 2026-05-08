@@ -319,15 +319,23 @@ const map = L.map('map', {
     tap: false 
 }).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
 
-// Forcer le rendu correct de la carte
-setTimeout(() => { map.invalidateSize(); }, 500);
+// Utilisation d'OpenStreetMap standard (plus fiable)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19
+}).addTo(map);
+
+// Forcer le rendu agressif de la carte
+function forceMapRefresh() {
+    console.log("Forcing map refresh...");
+    map.invalidateSize();
+    // Re-calculer si nécessaire après un court délai
+    setTimeout(() => { map.invalidateSize(); }, 500);
+    setTimeout(() => { map.invalidateSize(); }, 2000);
+}
+forceMapRefresh();
 
 L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd', maxZoom: 20
-}).addTo(map);
 
 // ── État ────────────────────────────────────────────────
 let userMarker = null, accuracyCircle = null;
@@ -409,7 +417,7 @@ function placeMarkers(uLat, uLng) {
         }
     });
     // Forcer le rendu
-    setTimeout(() => { map.invalidateSize(); }, 800);
+    forceMapRefresh();
 }
 
 // ── Panneau latéral ──────────────────────────────────────

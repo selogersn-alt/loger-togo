@@ -18,80 +18,52 @@
     position: relative;
     background: #f8f9fa;
 }
+.geo-wrapper.fullscreen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999;
+}
 #map { flex: 1; height: 100%; z-index: 1; }
 
-/* Panneau latéral élégant */
+/* Notification d'itinéraire Premium */
+.route-info-box {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(11, 70, 41, 0.95); backdrop-filter: blur(10px);
+    color: white; padding: 15px 25px; border-radius: 20px;
+    z-index: 2000; display: none; align-items: center; gap: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+.route-info-box .stat { display: flex; flex-direction: column; }
+.route-info-box .label { font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; font-weight: 700; }
+.route-info-box .value { font-size: 1.1rem; font-weight: 800; color: var(--color-gold); }
+
+/* Panneau latéral */
 .side-panel {
     width: 380px; min-width: 380px; height: 100%;
     background: white; border-left: 1px solid #eee;
     display: flex; flex-direction: column; z-index: 2;
-    box-shadow: -5px 0 25px rgba(0,0,0,0.05);
+    box-shadow: -5px 0 25px rgba(0,0,0,0.05); transition: transform 0.3s;
 }
-.side-header { padding: 25px 20px; border-bottom: 1px solid #f1f1f1; }
-.side-header h5 { color: var(--color-dark-green); font-weight: 800; letter-spacing: -0.5px; }
+.geo-wrapper.fullscreen .side-panel { display: none; }
 
-.property-list { flex: 1; overflow-y: auto; padding: 15px; }
-.prop-card {
-    display: flex; gap: 15px; padding: 15px; border-radius: 16px;
-    margin-bottom: 12px; cursor: pointer; transition: all 0.3s ease;
-    border: 1px solid transparent; background: #fafafa;
+/* Boutons de contrôle personnalisés */
+.map-controls { position: absolute; right: 20px; top: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+.map-btn {
+    width: 45px; height: 45px; background: white; border: none;
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--color-dark-green);
+    font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
 }
-.prop-card:hover, .prop-card.active {
-    background: white; border-color: var(--color-dark-green);
-    box-shadow: 0 10px 20px rgba(11, 70, 41, 0.08);
-    transform: translateY(-2px);
-}
+.map-btn:hover { background: var(--color-dark-green); color: white; transform: scale(1.05); }
+
+/* Marqueurs et Cards */
+.prop-card { display: flex; gap: 15px; padding: 15px; border-radius: 16px; margin-bottom: 12px; cursor: pointer; background: #fafafa; border: 1px solid transparent; }
+.prop-card.active { border-color: var(--color-dark-green); background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
 .prop-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
-.prop-details { flex: 1; }
-.prop-price { color: var(--color-dark-green); font-weight: 800; font-size: 1.1rem; }
+.price-tag { background: white; border: 2px solid var(--color-dark-green); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; color: var(--color-dark-green); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.price-tag.active { background: var(--color-dark-green); color: white; }
 
-/* Filtres flottants */
-.filter-bar { position: absolute; top: 25px; left: 25px; z-index: 1000; display: flex; gap: 10px; }
-.filter-chip {
-    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
-    border: 1px solid rgba(0,0,0,0.05); padding: 10px 20px; border-radius: 50px;
-    font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
-    color: #444; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-.filter-chip.active { background: var(--color-dark-green); color: white; }
-
-/* Marqueurs de PRIX élégants */
-.price-tag {
-    background: white; border: 2px solid var(--color-dark-green);
-    padding: 4px 10px; border-radius: 20px; font-weight: 800;
-    font-size: 0.85rem; color: var(--color-dark-green);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    white-space: nowrap; transition: all 0.2s;
-}
-.price-tag:hover, .price-tag.active {
-    background: var(--color-dark-green); color: white;
-    transform: scale(1.1); z-index: 1000 !important;
-}
-.price-tag.auberge { border-color: #d63384; color: #d63384; }
-.price-tag.auberge:hover, .price-tag.auberge.active { background: #d63384; color: white; }
-
-/* Marqueur Utilisateur (Point Bleu) */
-.user-marker {
-    width: 20px; height: 20px; background: #3b82f6;
-    border: 3px solid white; border-radius: 50%;
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-    animation: pulse-blue 2s infinite;
-}
-@keyframes pulse-blue {
-    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-    70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-}
-
-/* Badge GPS */
-.gps-status {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 14px; border-radius: 50px; font-size: 0.75rem;
-    font-weight: 800; margin-top: 10px; cursor: pointer;
-}
-.gps-active { background: #e8f5e9; color: #2e7d32; }
-.gps-warning { background: #fff3e0; color: #ef6c00; }
-
+/* Mobile */
 @media (max-width: 768px) {
     .geo-wrapper { flex-direction: column; }
     #map { height: 50vh; }
@@ -101,7 +73,27 @@
 {% endblock %}
 
 {% block content %}
-<div class="geo-wrapper">
+<div class="geo-wrapper" id="geoWrapper">
+    <!-- Contrôles -->
+    <div class="map-controls">
+        <button class="map-btn" onclick="toggleFullscreen()" title="{% trans 'Plein écran' %}"><i class="fas fa-expand"></i></button>
+        <button class="map-btn" onclick="startWatch()" title="{% trans 'Ma position' %}"><i class="fas fa-crosshairs"></i></button>
+    </div>
+
+    <!-- Notification Itinéraire -->
+    <div class="route-info-box" id="routeInfo">
+        <div class="stat">
+            <span class="label">{% trans "Distance" %}</span>
+            <span class="value" id="routeDist">-- km</span>
+        </div>
+        <div style="width:1px; height:30px; background:rgba(255,255,255,0.2)"></div>
+        <div class="stat">
+            <span class="label">{% trans "Temps estimé" %}</span>
+            <span class="value" id="routeTime">-- min</span>
+        </div>
+        <button class="btn btn-sm btn-light rounded-pill ms-3" onclick="hideRoute()">×</button>
+    </div>
+
     <div class="filter-bar">
         <button class="filter-chip active" onclick="filterType('ALL')">{% trans "Tout" %}</button>
         <button class="filter-chip" onclick="filterType('AUBERGE')">{% trans "Auberges" %}</button>
@@ -113,16 +105,12 @@
     <aside class="side-panel">
         <div class="side-header">
             <h5 class="mb-1">{% trans "Autour de moi" %}</h5>
-            <p class="text-muted small mb-0">{{ total_count }} {% trans "biens disponibles" %}</p>
             <div id="gps-badge" class="gps-status gps-warning" onclick="startWatch()">
-                <i class="fas fa-location-arrow"></i>
-                <span id="gps-label">{% trans "Activer le GPS" %}</span>
+                <i class="fas fa-location-arrow"></i> <span id="gps-label">{% trans "GPS inactif" %}</span>
             </div>
         </div>
         <div class="property-list" id="property-list">
-            <div id="list-loading" class="text-center py-5">
-                <i class="fas fa-circle-notch fa-spin fa-2x text-success"></i>
-            </div>
+            <div id="list-loading" class="text-center py-5"><i class="fas fa-circle-notch fa-spin fa-2x text-success"></i></div>
         </div>
     </aside>
 </div>
@@ -136,166 +124,91 @@ const DEFAULT_LAT = 6.1311, DEFAULT_LNG = 1.2228;
 let map, userPos = null, userMarker = null, routeLine = null;
 const propMarkers = {};
 
-// ── Initialisation ──────────────────────────────────────────
 function initMap() {
     map = L.map('map', { zoomControl: false }).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
-    
-    // Carte Élégante (Voyager)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CARTO'
-    }).addTo(map);
-
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    
-    // Forcer le rendu
     setTimeout(() => map.invalidateSize(), 500);
-    
     placeMarkers();
     renderList(null, null);
 }
 
-// ── Position Utilisateur (Point Bleu) ──────────────────────
-function updateUserMarker(lat, lng) {
-    userPos = [lat, lng];
-    if (userMarker) {
-        userMarker.setLatLng(userPos);
-    } else {
-        const blueDot = L.divIcon({
-            className: 'custom-div-icon',
-            html: '<div class="user-marker"></div>',
-            iconSize: [20, 20], iconAnchor: [10, 10]
-        });
-        userMarker = L.marker(userPos, { icon: blueDot }).addTo(map);
-    }
+function toggleFullscreen() {
+    const wrapper = document.getElementById('geoWrapper');
+    wrapper.classList.toggle('fullscreen');
+    setTimeout(() => map.invalidateSize(), 300);
 }
 
-// ── ITINÉRAIRE PAR CHEMIN (OSRM) ───────────────────────────
+function showRouteInfo(dist, dur) {
+    const box = document.getElementById('routeInfo');
+    document.getElementById('routeDist').textContent = dist + ' km';
+    document.getElementById('routeTime').textContent = dur + ' min';
+    box.style.display = 'flex';
+}
+function hideRoute() { 
+    document.getElementById('routeInfo').style.display = 'none'; 
+    if (routeLine) map.removeLayer(routeLine);
+}
+
 async function showRoute(targetLat, targetLng) {
-    if (!userPos) {
-        alert("{% trans 'Activez votre GPS pour calculer l\'itinéraire' %}");
-        return;
-    }
-    
-    // URL OSRM pour le trajet routier
+    if (!userPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
     const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${targetLng},${targetLat}?overview=full&geometries=geojson`;
-    
     try {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.code !== 'Ok') throw new Error("Route not found");
-        
+        const res = await fetch(url);
+        const data = await res.json();
         const route = data.routes[0];
-        const coordinates = route.geometry.coordinates.map(c => [c[1], c[0]]);
-        const distanceKm = (route.distance / 1000).toFixed(1);
-        const durationMins = Math.round(route.duration / 60);
-        
+        const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
         if (routeLine) map.removeLayer(routeLine);
-        
-        routeLine = L.polyline(coordinates, {
-            color: '#3b82f6', weight: 5, opacity: 0.7, lineJoin: 'round'
-        }).addTo(map);
-        
-        map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-        
-        // Notification itinéraire
-        const msg = `{% trans "Itinéraire trouvé : " %} ${distanceKm} km (${durationMins} min)`;
-        alert(msg);
-        
-    } catch (e) {
-        console.error("Routing error:", e);
-        // Fallback distance vol d'oiseau
-        if (routeLine) map.removeLayer(routeLine);
-        routeLine = L.polyline([userPos, [targetLat, targetLng]], {
-            color: '#3b82f6', weight: 4, opacity: 0.5, dashArray: '10, 10'
-        }).addTo(map);
-        map.fitBounds(routeLine.getBounds());
-    }
-}
-
-// ── Marqueurs de Prix Élégants ─────────────────────────────
-function buildPriceIcon(p) {
-    const isAuberge = p.property_type === 'AUBERGE';
-    const price = p.price_night > 0 ? p.price_night.toLocaleString() : p.price_month.toLocaleString();
-    const cls = isAuberge ? 'price-tag auberge' : 'price-tag';
-    
-    return L.divIcon({
-        className: 'custom-price-icon',
-        html: `<div class="${cls}">${price} F</div>`,
-        iconSize: [null, null], iconAnchor: [30, 15]
-    });
+        routeLine = L.polyline(coords, { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+        showRouteInfo((route.distance/1000).toFixed(1), Math.round(route.duration/60));
+    } catch(e) { console.error(e); }
 }
 
 function placeMarkers() {
     MARKERS_DATA.forEach(p => {
-        const m = L.marker([p.lat, p.lng], { icon: buildPriceIcon(p) }).addTo(map);
-        m.bindPopup(`
-            <div style="min-width:200px">
-                <img src="${p.img}" style="width:100%; height:110px; object-fit:cover; border-radius:12px; margin-bottom:10px">
-                <div class="fw-bold" style="font-size:1rem">${p.title}</div>
-                <div class="text-muted small mb-2"><i class="fas fa-location-dot me-1"></i>${p.neighborhood}</div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold text-success" style="font-size:1.1rem">${p.price_night > 0 ? p.price_night.toLocaleString()+' F' : p.price_month.toLocaleString()+' F'}</span>
-                </div>
-                <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary w-100 mt-3" style="border-radius:10px; font-weight:700">
-                    <i class="fas fa-directions me-1"></i> {% trans "Y aller" %}
-                </button>
-            </div>
-        `, { closeButton: false, className: 'premium-popup' });
-        
-        m.on('click', () => {
-            document.querySelectorAll('.price-tag').forEach(t => t.classList.remove('active'));
-            m.getElement().querySelector('.price-tag').classList.add('active');
+        const price = p.price_night > 0 ? p.price_night : p.price_month;
+        const isPremium = p.property_type === 'AUBERGE' || p.category === 'FURNISHED';
+        const color = isPremium ? '#d63384' : '#0b4629';
+        const icon = L.divIcon({
+            className: 'custom-icon',
+            html: `<div class="price-tag ${isPremium?'auberge':''}" style="border-color:${color};color:${color}">${price.toLocaleString()} F</div>`,
+            iconSize: [null, null], iconAnchor: [30, 15]
         });
-        
+        const m = L.marker([p.lat, p.lng], { icon }).addTo(map);
+        m.bindPopup(`
+            <div style="width:220px">
+                <img src="${p.img}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px">
+                <strong style="font-size:15px">${p.title}</strong>
+                <div style="font-weight:800;color:${color};font-size:1.2rem;margin:5px 0">${price.toLocaleString()} F</div>
+                <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary w-100 mt-2" style="border-radius:10px;font-weight:700"><i class="fas fa-route me-1"></i> {% trans "Itinéraire" %}</button>
+            </div>`, { closeButton: false });
         propMarkers[p.id] = m;
     });
 }
 
-// ── Liste ───────────────────────────────────────────────────
 function renderList(uLat, uLng, filter = 'ALL') {
     const list = document.getElementById('property-list');
     document.getElementById('list-loading').style.display = 'none';
-
-    const filtered = MARKERS_DATA.filter(p => {
-        return filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED');
-    }).map(p => ({
-        ...p,
-        dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null
-    })).sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
+    const filtered = MARKERS_DATA.filter(p => filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED'))
+        .map(p => ({ ...p, dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null }))
+        .sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
 
     list.innerHTML = filtered.map(p => `
         <div class="prop-card" id="card-${p.id}" onclick="focusProp('${p.id}')">
             <img src="${p.img}" class="prop-img">
             <div class="prop-details">
                 <div class="fw-bold small">${p.title}</div>
-                <div class="text-muted" style="font-size:0.7rem">${p.neighborhood}</div>
-                <div class="prop-price">${p.price_night > 0 ? p.price_night.toLocaleString()+' F' : p.price_month.toLocaleString()+' F'}</div>
-                ${p.dist ? `<div class="badge mt-1" style="background:#f5c42f; color:#0b4629; font-weight:800">${p.dist.toFixed(1)} km</div>` : ''}
+                <div class="prop-price">${(p.price_night > 0 ? p.price_night : p.price_month).toLocaleString()} F</div>
+                ${p.dist ? `<div class="badge mt-1" style="background:var(--color-gold);color:var(--color-dark-green)">${p.dist.toFixed(1)} km</div>` : ''}
             </div>
-        </div>
-    `).join('');
+        </div>`).join('');
 }
 
 function focusProp(id) {
     const m = propMarkers[id];
-    if (m) { 
-        map.setView(m.getLatLng(), 16); 
-        m.openPopup(); 
-        document.querySelectorAll('.price-tag').forEach(t => t.classList.remove('active'));
-        m.getElement().querySelector('.price-tag').classList.add('active');
-    }
+    if (m) { map.setView(m.getLatLng(), 17); m.openPopup(); }
 }
-
-window.filterType = function(type) {
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.getAttribute('onclick').includes(type)));
-    renderList(userPos ? userPos[0] : null, userPos ? userPos[1] : null, type);
-    Object.keys(propMarkers).forEach(id => {
-        const p = MARKERS_DATA.find(x => x.id === id);
-        const show = type === 'ALL' || p.property_type === type || (type === 'FURNISHED' && p.category === 'FURNISHED');
-        if (show) map.addLayer(propMarkers[id]); else map.removeLayer(propMarkers[id]);
-    });
-};
 
 function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371, rad = Math.PI/180;
@@ -304,26 +217,21 @@ function haversine(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ── GPS ─────────────────────────────────────────────────────
 function startWatch() {
     if (!navigator.geolocation) return;
     document.getElementById('gps-label').textContent = "{% trans 'Localisation...' %}";
     navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude, lng = pos.coords.longitude;
-        updateUserMarker(lat, lng);
+        userPos = [pos.coords.latitude, pos.coords.longitude];
+        if (!userMarker) {
+            userMarker = L.marker(userPos, { icon: L.divIcon({ className: '', html: '<div class="user-marker"></div>', iconSize:[20,20] }) }).addTo(map);
+        } else { userMarker.setLatLng(userPos); }
         document.getElementById('gps-badge').className = "gps-status gps-active";
-        document.getElementById('gps-label').textContent = "{% trans 'GPS Connecté' %}";
-        map.panTo([lat, lng]);
-        renderList(lat, lng);
-    }, (err) => {
-        document.getElementById('gps-label').textContent = "{% trans 'Lomé (Défaut)' %}";
-        renderList(null, null);
-    });
+        document.getElementById('gps-label').textContent = "{% trans 'GPS Actif' %}";
+        map.panTo(userPos);
+        renderList(userPos[0], userPos[1]);
+    }, () => { document.getElementById('gps-label').textContent = "{% trans 'GPS indisponible' %}"; });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initMap();
-    startWatch();
-});
+document.addEventListener('DOMContentLoaded', initMap);
 </script>
 {% endblock %}

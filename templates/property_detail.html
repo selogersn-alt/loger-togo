@@ -172,11 +172,23 @@
     }
 
     #propertyMap {
-        height: 300px;
+        height: 350px;
         border-radius: 15px;
         border: 1px solid var(--border-color);
         margin-bottom: 30px;
+        position: relative;
     }
+    #propertyMap.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border-radius: 0; margin: 0; }
+    
+    .route-info-detail {
+        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: rgba(11, 70, 41, 0.95); backdrop-filter: blur(10px);
+        color: white; padding: 10px 20px; border-radius: 15px;
+        z-index: 2000; display: none; align-items: center; gap: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .map-ctrl-detail { position: absolute; right: 15px; top: 15px; z-index: 1000; }
+    .btn-map-ctrl { width: 35px; height: 35px; background: white; border: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--color-dark-green); }
 
     .btn-favorite {
         background-color: rgba(255, 255, 255, 0.2);
@@ -405,7 +417,15 @@
                 </div>
 
                 <h4 class="fw-bold mb-4" style="color: var(--text-main);">{% trans "Emplacement sur la carte" %}</h4>
-                <div id="propertyMap"></div>
+                <div id="propertyMap">
+                    <div class="map-ctrl-detail">
+                        <button type="button" class="btn-map-ctrl" onclick="toggleDetailFullscreen()"><i class="fas fa-expand"></i></button>
+                    </div>
+                    <div class="route-info-detail" id="routeInfoDetail">
+                        <div class="small fw-bold"><span id="detailDist">--</span> km (<span id="detailTime">--</span> min)</div>
+                        <button type="button" class="btn btn-sm btn-link text-white p-0" onclick="hideDetailRoute()">×</button>
+                    </div>
+                </div>
                 {% if not property.latitude %}
                 <p class="text-muted small text-center"><i class="fa-solid fa-info-circle me-1"></i> {% trans "Coordonnées non précisées, affichage approximatif basé sur" %} {{ property.neighborhood }}.</p>
                 {% endif %}
@@ -778,6 +798,18 @@
             
         marker.bindPopup(popupContent);
 
+        // Fullscreen Toggle
+        window.toggleDetailFullscreen = function() {
+            const el = document.getElementById('propertyMap');
+            el.classList.toggle('fullscreen');
+            setTimeout(() => map.invalidateSize(), 300);
+        };
+
+        window.hideDetailRoute = function() {
+            document.getElementById('routeInfoDetail').style.display = 'none';
+            if (activeRoute) map.removeLayer(activeRoute);
+        };
+
         // Itinéraire OSRM
         let activeRoute = null;
         window.calculateDetailRoute = async function() {
@@ -787,9 +819,13 @@
             try {
                 const res = await fetch(url);
                 const data = await res.json();
-                const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                activeRoute = L.polyline(coords, { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
+                const route = data.routes[0];
+                activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
                 map.fitBounds(activeRoute.getBounds(), { padding: [40, 40] });
+                
+                document.getElementById('detailDist').textContent = (route.distance / 1000).toFixed(1);
+                document.getElementById('detailTime').textContent = Math.round(route.duration / 60);
+                document.getElementById('routeInfoDetail').style.display = 'flex';
                 marker.closePopup();
             } catch(e) { console.error(e); }
         };

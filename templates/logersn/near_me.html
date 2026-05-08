@@ -312,7 +312,14 @@ const MARKERS_DATA = {{ map_markers_json|safe }};
 const DEFAULT_LAT = 6.1311, DEFAULT_LNG = 1.2228;
 
 // ── Init carte ──────────────────────────────────────────
-const map = L.map('map', { zoomControl: false }).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
+const map = L.map('map', { 
+    zoomControl: false,
+    tap: false 
+}).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
+
+// Forcer le rendu correct de la carte
+setTimeout(() => { map.invalidateSize(); }, 500);
+
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -540,18 +547,33 @@ function onGPSError() {
 }
 
 function startWatch() {
-    if (!navigator.geolocation) { onGPSError(); return; }
+    if (!navigator.geolocation) { 
+        onGPSError(); 
+        toast('{% trans "GPS non supporté" %}');
+        return; 
+    }
+    document.getElementById('gps-label').textContent = '{% trans "Localisation en cours..." %}';
     if (watchId) navigator.geolocation.clearWatch(watchId);
-    watchId = navigator.geolocation.watchPosition(onGPSSuccess, onGPSError, {
-        enableHighAccuracy: true, maximumAge: 2000, timeout: 8000
+    watchId = navigator.geolocation.watchPosition(onGPSSuccess, (err) => {
+        if (err.code === 1) {
+            toast('{% trans "Veuillez autoriser le GPS" %}', 5000);
+            document.getElementById('gps-label').textContent = '{% trans "GPS bloqué - Cliquez pour activer" %}';
+        } else {
+            onGPSError();
+        }
+    }, {
+        enableHighAccuracy: true, maximumAge: 5000, timeout: 15000
     });
 }
 
 // ── Boutons ──────────────────────────────────────────────
 document.getElementById('btn-locate').addEventListener('click', () => {
     if (userPos) map.setView(userPos, 16);
-    else startWatch();
+    else { toast('{% trans "Recherche GPS..." %}'); startWatch(); }
 });
+// Clique sur le badge pour forcer
+document.querySelector('.gps-badge').style.cursor = 'pointer';
+document.querySelector('.gps-badge').addEventListener('click', startWatch);
 document.getElementById('btn-track').addEventListener('click', function() {
     trackingMode = !trackingMode;
     this.classList.toggle('active', trackingMode);

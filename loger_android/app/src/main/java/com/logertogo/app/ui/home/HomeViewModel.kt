@@ -92,4 +92,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun toggleFavorite(propertyId: String) {
+        viewModelScope.launch {
+            try {
+                val token = TokenManager.getAccessToken(context) ?: return@launch
+                api.toggleFavorite(TokenManager.bearerHeader(token), propertyId)
+            } catch (e: Exception) { /* Silencieux */ }
+        }
+    }
 }

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.navigation.safeargs)
 }
 
 android {
@@ -92,6 +93,13 @@ dependencies {
 
     // RecyclerView
     implementation(libs.androidx.recyclerview)
+
+    // Shimmer (Chargement élégant)
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
+
+    // OpenStreetMap (Alternative gratuite à Google Maps)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // Tests
     testImplementation(libs.junit)

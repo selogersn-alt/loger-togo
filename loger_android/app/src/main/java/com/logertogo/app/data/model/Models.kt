@@ -79,6 +79,7 @@ data class Conversation(
     @SerializedName("status") val status: String,
     @SerializedName("participants") val participants: List<User>,
     @SerializedName("related_property") val relatedProperty: Property?,
+    @SerializedName("last_message") val lastMessage: Message?,
     @SerializedName("updated_at") val updatedAt: String
 )
 

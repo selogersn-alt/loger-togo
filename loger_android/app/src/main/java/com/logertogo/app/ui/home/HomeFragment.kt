@@ -9,10 +9,13 @@ import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.CompositePageTransformer
+import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
@@ -121,10 +124,15 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupPropertiesList() {
-        propertiesAdapter = PropertyListAdapter { property ->
-            val action = HomeFragmentDirections.actionHomeToPropertyDetail(property.id)
-            findNavController().navigate(action)
-        }
+        propertiesAdapter = PropertyListAdapter(
+            onClick = { property ->
+                val action = HomeFragmentDirections.actionHomeToPropertyDetail(property.id)
+                findNavController().navigate(action)
+            },
+            onFavoriteClick = { property ->
+                viewModel.toggleFavorite(property.id)
+            }
+        )
 
         binding.recyclerProperties.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
@@ -134,17 +142,21 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        var searchJob: Job? = null
-        binding.etSearch.addTextChangedListener { text ->
-            searchJob?.cancel()
-            searchJob = viewLifecycleOwner.lifecycleScope.launch {
-                delay(400) // Debounce 400ms
-                viewModel.searchProperties(text.toString())
-            }
+        // Au clic sur la barre de recherche, on va vers la recherche avancée
+        binding.etSearch.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_search)
+        }
+        
+        binding.btnSearch.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_search)
         }
 
-        binding.btnSearch.setOnClickListener {
-            viewModel.searchProperties(binding.etSearch.text.toString())
+        binding.btnProfile.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_profile)
+        }
+
+        binding.btnChat.setOnClickListener {
+            findNavController().navigate(R.id.chatListFragment)
         }
     }
 

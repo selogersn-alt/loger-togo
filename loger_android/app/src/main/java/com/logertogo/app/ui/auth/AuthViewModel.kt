@@ -38,6 +38,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private val _registerState = MutableLiveData<ApiResponse<User>>()
+    val registerState: LiveData<ApiResponse<User>> = _registerState
+
     fun login(email: String, password: String) {
         _loginState.value = ApiResponse.loading()
         viewModelScope.launch {
@@ -61,6 +64,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 _loginState.value = ApiResponse.error(
                     "Impossible de se connecter. Vérifiez votre connexion internet."
                 )
+            }
+        }
+    }
+
+    fun register(userData: Map<String, String>) {
+        _registerState.value = ApiResponse.loading()
+        viewModelScope.launch {
+            try {
+                val response = api.register(userData)
+                if (response.isSuccessful && response.body() != null) {
+                    _registerState.value = ApiResponse.success(response.body()!!)
+                } else {
+                    _registerState.value = ApiResponse.error("Échec de l'inscription. L'email est peut-être déjà utilisé.")
+                }
+            } catch (e: Exception) {
+                _registerState.value = ApiResponse.error("Erreur réseau : ${e.localizedMessage}")
             }
         }
     }

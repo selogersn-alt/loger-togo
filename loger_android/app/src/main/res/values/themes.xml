@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Thème principal de l'application -->
+    <style name="Theme.LogerTogo" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Couleurs primaires -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/primary_variant</item>
+
+        <!-- Couleurs secondaires -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Couleurs de fond -->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:statusBarColor">@color/primary</item>
+
+        <!-- Formes arrondies pour un look moderne -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.LogerTogo.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.LogerTogo.Medium</item>
+    </style>
+
+    <style name="ShapeAppearance.LogerTogo.Small" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.LogerTogo.Medium" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.LogerTogo.MessageMe" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+        <item name="cornerSizeTopRight">2dp</item>
+    </style>
+
+    <style name="ShapeAppearance.LogerTogo.MessageOther" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+        <item name="cornerSizeTopLeft">2dp</item>
+    </style>
+</resources>

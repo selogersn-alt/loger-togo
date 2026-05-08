@@ -37,6 +37,15 @@
     <meta name="description" content="{% block meta_description %}{% if seo_settings and seo_settings.meta_description %}{{ seo_settings.meta_description }}{% else %}Trouvez votre appartement, villa ou terrain au Togo sur Loger Togo. Location sécurisée, profils vérifiés et annonces immobilières vérifiées à Lomé et en province.{% endif %}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}{% if seo_settings and seo_settings.meta_keywords %}{{ seo_settings.meta_keywords }}{% else %}Immobilier Togo, Maison à louer Lomé, Appartement à louer Togo, Terrain à vendre Lomé, Location meublée Lomé, Agence immobilière Togo, Loger Togo, Immobilier de confiance Togo, Location villa Lomé, Louer chambre Lomé{% endif %}{% endblock %}">
     <meta name="author" content="Loger Togo - DigitalH Group">
+    
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3TFXXPDSBM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-3TFXXPDSBM');
+    </script>
 
     {% if seo_settings and seo_settings.header_scripts %}
         {{ seo_settings.header_scripts|safe }}

@@ -61,12 +61,8 @@ class LoginFragment : Fragment() {
             viewModel.login(email, password)
         }
 
-        binding.tvForgotPassword.setOnClickListener {
-            findNavController().navigate(R.id.action_login_to_recovery)
-        }
-
-        binding.tvRegister.setOnClickListener {
-            findNavController().navigate(R.id.action_login_to_register)
+        binding.tvGoToRegister.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
     }
 
@@ -77,12 +73,12 @@ class LoginFragment : Fragment() {
 
             if (state.data != null) {
                 // Connexion réussie → Navigation vers l'accueil
-                findNavController().navigate(R.id.action_login_to_home)
+                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
             }
 
             state.error?.let { error ->
                 Snackbar.make(binding.root, error, Snackbar.LENGTH_LONG)
-                    .setBackgroundTint(requireContext().getColor(R.color.error_red))
+                    .setBackgroundTint(requireContext().getColor(R.color.error))
                     .show()
             }
         }

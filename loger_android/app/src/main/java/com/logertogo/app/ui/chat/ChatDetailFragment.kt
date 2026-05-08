@@ -166,8 +166,8 @@ class ChatDetailFragment : Fragment() {
     }
 
     private fun getCurrentUserId(): String {
-        // Récupéré depuis DataStore/TokenManager dans une version complète
-        return ""
+        // En prod, on extrairait l'ID du JWT. Pour le moment, on utilise une constante ou on le récupère du TokenManager.
+        return "1" // ID de test, à synchroniser avec votre profil
     }
 
     private fun getFileFromUri(uri: Uri): File? {

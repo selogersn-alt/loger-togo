@@ -20,6 +20,9 @@ interface LogerTogoApi {
     @POST("auth/token/refresh/")
     suspend fun refreshToken(@Body body: Map<String, String>): Response<AuthTokens>
 
+    @POST("auth/register/")
+    suspend fun register(@Body body: Map<String, String>): Response<User>
+
     @GET("auth/me/")
     suspend fun getProfile(
         @Header("Authorization") token: String

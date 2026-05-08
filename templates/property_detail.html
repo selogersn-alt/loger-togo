@@ -9,16 +9,40 @@
 {% block extra_meta %}
     {% with main_image=property.get_main_image %}
         {% if main_image %}
-            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
-            <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image }}">
+            <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image }}">
             <meta property="og:image:type" content="image/webp">
-            <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image.image_url.url }}">
+            <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image }}">
         {% else %}
             <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
             <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
             <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
         {% endif %}
     {% endwith %}
+
+    <!-- Données Structurées Breadcrumbs (Fil d'Ariane) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "{% trans "Accueil" %}",
+        "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "{% trans "Annonces" %}",
+        "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'properties_list' %}"
+      },{
+        "@type": "ListItem",
+        "position": 3,
+        "name": "{{ property.title|escapejs }}",
+        "item": "{{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }}"
+      }]
+    }
+    </script>
 
     <!-- Données Structurées Schema.org pour Google Search -->
     <script type="application/ld+json">

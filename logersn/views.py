@@ -402,7 +402,7 @@ def near_me_view(request):
         
         # Image principale
         main_img = p.images.filter(is_primary=True).first() or p.images.first()
-        img_url = main_img.image_url if main_img else ''
+        img_url = main_img.image_url.url if main_img and main_img.image_url else ''
         
         # Téléphone du propriétaire (masqué sur 4 derniers chiffres)
         phone = getattr(p.owner, 'phone', '') or ''

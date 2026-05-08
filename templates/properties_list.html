@@ -310,8 +310,8 @@
         <div class="col-md-10">
             <form method="GET" action="{% url 'properties_list' %}" class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="small text-muted fw-bold">{% trans "Ville" %}</label>
-                    <select name="city" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
+                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-city me-1"></i> {% trans "Ville" %}</label>
+                    <select name="city" class="form-select border-0 shadow-sm" style="background-color: var(--bg-card); color: var(--text-main); height: 50px; border-radius: 12px;">
                         <option value="ALL">{% trans "Toutes les villes" %}</option>
                         {% for code, name in cities %}
                         <option value="{{ code }}" {% if current_filters.city == code %}selected{% endif %}>{{ name }}</option>
@@ -319,8 +319,8 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="small text-muted fw-bold">{% trans "Quartier" %}</label>
-                    <select name="neighborhood" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
+                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-map-pin me-1"></i> {% trans "Quartier" %}</label>
+                    <select name="neighborhood" class="form-select border-0 shadow-sm" style="background-color: var(--bg-card); color: var(--text-main); height: 50px; border-radius: 12px;">
                         <option value="ALL">{% trans "Tous les quartiers" %}</option>
                         {% for code, name in neighborhoods %}
                         <option value="{{ name }}" {% if current_filters.neighborhood == name %}selected{% endif %}>{{ name }}</option>
@@ -328,8 +328,8 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small text-muted fw-bold">{% trans "Nature" %}</label>
-                    <select name="listing_category" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
+                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-tags me-1"></i> {% trans "Nature" %}</label>
+                    <select name="listing_category" class="form-select border-0 shadow-sm" style="background-color: var(--bg-card); color: var(--text-main); height: 50px; border-radius: 12px;">
                         <option value="ALL">{% trans "Tout" %}</option>
                         <option value="RENT" {% if current_filters.listing_category == 'RENT' %}selected{% endif %}>{% trans "En location" %}</option>
                         <option value="SALE" {% if current_filters.listing_category == 'SALE' %}selected{% endif %}>{% trans "En vente" %}</option>
@@ -337,8 +337,8 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small text-muted fw-bold">{% trans "Type" %}</label>
-                    <select name="property_type" class="form-select" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
+                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-house me-1"></i> {% trans "Type" %}</label>
+                    <select name="property_type" class="form-select border-0 shadow-sm" style="background-color: var(--bg-card); color: var(--text-main); height: 50px; border-radius: 12px;">
                         <option value="ALL">{% trans "Tous types" %}</option>
                         {% for code, name in property_types %}
                         <option value="{{ code }}" {% if current_filters.property_type == code %}selected{% endif %}>{{ name }}</option>
@@ -346,15 +346,20 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small text-muted fw-bold">{% trans "Prix Max" %}</label>
-                    <input type="number" name="max_price" class="form-control" placeholder="FCFA" value="{{ current_filters.max_price }}" style="background-color: var(--bg-card); color: var(--text-main); border-color: var(--border-color);">
+                    <label class="small text-muted fw-bold mb-1"><i class="fa-solid fa-money-bill-wave me-1"></i> {% trans "Prix Max" %}</label>
+                    <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                        <input type="number" name="max_price" class="form-control border-0" placeholder="FCFA" value="{{ current_filters.max_price }}" style="background-color: var(--bg-card); color: var(--text-main); height: 50px;">
+                        <button type="submit" class="btn btn-success border-0 px-3"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
                 </div>
-                <div class="col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-success flex-grow-1"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#advancedFiltersModal">
-                        <i class="fa-solid fa-filter"></i>
+                
+                <div class="col-12 mt-3 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-success rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#advancedFiltersModal">
+                        <i class="fa-solid fa-sliders me-2"></i> {% trans "Filtres Avancés" %}
                     </button>
-                    <a href="{% url 'properties_list' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left"></i></a>
+                    <a href="{% url 'properties_list' %}" class="btn btn-light rounded-pill px-4 fw-bold text-muted">
+                        <i class="fa-solid fa-rotate-left me-2"></i> {% trans "Réinitialiser" %}
+                    </a>
                 </div>
 
                 <!-- Modal Filtres Avancés -->

@@ -156,14 +156,20 @@
 
             {% elif section == 'ads' %}
                 <!-- ADS SECTION -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <h4 class="fw-bold mb-0">{% trans "Gestion de mes annonces" %}</h4>
-                    <a href="{% url 'create_property' %}" class="btn btn-success">
-                        <i class="fas fa-plus me-2"></i>{% trans "Créer une annonce" %}
-                    </a>
+                    <div class="d-flex gap-2">
+                        <div class="input-group input-group-sm shadow-sm" style="max-width: 300px;">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="adSearchInput" class="form-control border-start-0 ps-0" placeholder="{% trans "Rechercher..." %}">
+                        </div>
+                        <a href="{% url 'create_property' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>{% trans "Créer" %}
+                        </a>
+                    </div>
                 </div>
                 
-                <div class="row g-4">
+                <div class="row g-4" id="adsList">
                     {% for property in properties %}
                     <div class="col-md-6 col-xl-4">
                         <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
@@ -212,16 +218,22 @@
 
             {% elif section == 'leases' %}
                 <!-- LEASES SECTION -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <h4 class="fw-bold mb-0">{% trans "Mes Contrats de Bail" %}</h4>
-                    <a href="{% url 'management:create_lease' %}" class="btn btn-success">
-                        <i class="fas fa-plus me-2"></i>{% trans "Nouveau Bail" %}
-                    </a>
+                    <div class="d-flex gap-2">
+                        <div class="input-group input-group-sm shadow-sm" style="max-width: 300px;">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="leaseSearchInput" class="form-control border-start-0 ps-0" placeholder="{% trans "Filtrer..." %}">
+                        </div>
+                        <a href="{% url 'management:create_lease' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>{% trans "Nouveau Bail" %}
+                        </a>
+                    </div>
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0" id="leasesTable">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4 py-3">{% trans "Bien" %}</th>
@@ -511,4 +523,22 @@
     });
 </script>
 {% endif %}
+<script>
+    function setupFilter(inputId, itemsSelector) {
+        document.getElementById(inputId)?.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const items = document.querySelectorAll(itemsSelector);
+            
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+
+    // Filter ads (cards)
+    setupFilter('adSearchInput', '#adsList > div');
+    // Filter leases (table rows)
+    setupFilter('leaseSearchInput', '#leasesTable tbody tr');
+</script>
 {% endblock %}

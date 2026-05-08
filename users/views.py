@@ -29,7 +29,7 @@ class KYCProfileViewSet(viewsets.ModelViewSet):
 def login_view(request):
     if request.user.is_authenticated: return redirect('dashboard')
     if request.method == 'POST':
-        phone = request.POST.get('phone_number') or request.POST.get('phone')
+        phone = request.POST.get('full_phone') or request.POST.get('phone_number') or request.POST.get('phone')
         password = request.POST.get('password')
         user = authenticate(request, phone_number=phone, password=password)
         if user:

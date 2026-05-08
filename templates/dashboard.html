@@ -60,11 +60,17 @@
         
         <!-- GESTION DES ANNONCES (PRO) -->
         <div class="glass-card p-4 mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                 <h4 class="fw-bold mb-0"><i class="fas fa-list-check text-success me-2"></i>{% trans "Mes Annonces" %}</h4>
-                <a href="{% url 'create_property' %}" class="btn btn-success rounded-pill px-4 fw-bold">
-                    <i class="fas fa-plus-circle me-2"></i>{% trans "Nouvelle Annonce" %}
-                </a>
+                <div class="d-flex gap-2">
+                    <div class="input-group input-group-sm shadow-sm" style="max-width: 300px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="adSearchInput" class="form-control border-start-0 ps-0" placeholder="{% trans "Rechercher un bien..." %}">
+                    </div>
+                    <a href="{% url 'create_property' %}" class="btn btn-success rounded-pill px-4 fw-bold">
+                        <i class="fas fa-plus-circle me-2"></i>{% trans "Nouvelle" %}
+                    </a>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -465,4 +471,18 @@
         .table-responsive table td:first-child::before { display: none; }
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('adSearchInput')?.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('table tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>
 {% endblock %}

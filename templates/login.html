@@ -110,8 +110,10 @@
             if (!phoneValue.startsWith('+') && !phoneValue.startsWith('00')) {
                 const fullNumber = iti.getNumber();
                 if (fullNumber) {
-                    input.value = fullNumber;
+                    document.getElementById('full_phone').value = fullNumber;
                 }
+            } else {
+                document.getElementById('full_phone').value = phoneValue;
             }
         }
     });

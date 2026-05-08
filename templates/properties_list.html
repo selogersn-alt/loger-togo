@@ -218,19 +218,39 @@ function centerOnUser() {
 }
 
 async function calculateRoute(tLat, tLng) {
-    if (!userPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
+    if (!userPos) {
+        // Tenter une dernière activation forcée
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                userPos = [pos.coords.latitude, pos.coords.longitude];
+                calculateRoute(tLat, tLng); // Relancer après obtention
+            }, () => {
+                alert("{% trans 'Action requise : Autorisez la localisation dans votre navigateur pour tracer l itinéraire.' %}");
+            });
+        } else {
+            alert("{% trans 'Localisation non supportée par votre navigateur.' %}");
+        }
+        return;
+    }
     if (activeRoute) map.removeLayer(activeRoute);
     const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${tLng},${tLat}?overview=full&geometries=geojson`;
     try {
         const res = await fetch(url);
         const data = await res.json();
-        const route = data.routes[0];
-        activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
-        map.fitBounds(activeRoute.getBounds(), { padding: [80, 80] });
-        document.getElementById('routeDist').textContent = (route.distance / 1000).toFixed(1) + ' km';
-        document.getElementById('routeTime').textContent = Math.round(route.duration / 60) + ' min';
-        document.getElementById('routeInfo').style.display = 'flex';
-    } catch(e) { console.error(e); }
+        if (data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
+            map.fitBounds(activeRoute.getBounds(), { padding: [80, 80] });
+            document.getElementById('routeDist').textContent = (route.distance / 1000).toFixed(1) + ' km';
+            document.getElementById('routeTime').textContent = Math.round(route.duration / 60) + ' min';
+            document.getElementById('routeInfo').style.display = 'flex';
+        } else {
+            alert("{% trans 'Impossible de trouver un chemin routier.' %}");
+        }
+    } catch(e) { 
+        console.error(e);
+        alert("{% trans 'Erreur de connexion au service d itinéraire.' %}");
+    }
 }
 
 function initMap() {

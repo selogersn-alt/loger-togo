@@ -8,6 +8,7 @@ from rest_framework import viewsets
 
 from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication
 from .forms import PropertyForm
+from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 from .serializers import PropertySerializer, PropertyImageSerializer
 import json
 import datetime
@@ -117,12 +118,13 @@ def properties_list_view(request):
     if wifi == '1': properties = properties.filter(wifi=True)
     if ac == '1': properties = properties.filter(air_conditioning=True)
     
-    # Filtre textuel (recherche globale)
-    if q:
-        properties = properties.filter(Q(title__icontains=q) | Q(description__icontains=q) | Q(neighborhood__icontains=q))
-    
     # Filtres géo
-    if city and city != 'ALL': properties = properties.filter(city=city)
+    if city and city.strip() and city != 'ALL': 
+        properties = properties.filter(city=city)
+    
+    # Filtre textuel (recherche globale)
+    if q and q.strip():
+        properties = properties.filter(Q(title__icontains=q) | Q(description__icontains=q) | Q(neighborhood__icontains=q))
     
     # --- INTELLIGENCE DE RECHERCHE (FALLBACK) ---
     # Si aucun résultat, on propose des annonces similaires (Même ville ou catégorie)
@@ -149,15 +151,15 @@ def properties_list_view(request):
             img_url = p.get_main_image
             map_markers.append({
                 'id': str(p.id),
-                'lat': float(p.latitude),
-                'lng': float(p.longitude),
-                'title': p.title,
-                'price': int(p.price),
+                'lat': float(p.latitude) if p.latitude else 0,
+                'lng': float(p.longitude) if p.longitude else 0,
+                'title': p.title or "",
+                'price': int(p.price) if p.price else 0,
                 'type': p.get_property_type_display(),
-                'neighborhood': p.neighborhood,
+                'neighborhood': p.neighborhood or "",
                 'category': p.listing_category,
                 'url': p.get_absolute_url(),
-                'img': img_url
+                'img': img_url or ""
             })
 
     context = {

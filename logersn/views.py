@@ -103,9 +103,17 @@ def properties_list_view(request):
     # Filtres de base
     if listing_category and listing_category != 'ALL': properties = properties.filter(listing_category=listing_category)
     if property_type and property_type != 'ALL': properties = properties.filter(property_type=property_type)
-    if min_price: properties = properties.filter(price__gte=int(float(min_price)))
-    if max_price: properties = properties.filter(price__lte=int(float(max_price)))
-    if min_bedrooms: properties = properties.filter(bedrooms__gte=int(min_bedrooms))
+    # Filtres sécurisés (Évite les erreurs 500 si paramètres vides ou invalides)
+    try:
+        if min_price and str(min_price).strip(): 
+            properties = properties.filter(price__gte=int(float(min_price)))
+        if max_price and str(max_price).strip(): 
+            properties = properties.filter(price__lte=int(float(max_price)))
+        if min_bedrooms and str(min_bedrooms).strip(): 
+            properties = properties.filter(bedrooms__gte=int(min_bedrooms))
+    except (ValueError, TypeError):
+        pass
+
     if wifi == '1': properties = properties.filter(wifi=True)
     if ac == '1': properties = properties.filter(air_conditioning=True)
     
@@ -116,22 +124,23 @@ def properties_list_view(request):
     # Filtres géo
     if city and city != 'ALL': properties = properties.filter(city=city)
     
-    # On garde une copie avant le filtre quartier pour le fallback
-    pre_neighborhood_results = properties
-    if neighborhood and neighborhood != 'ALL': 
-        properties = properties.filter(neighborhood__icontains=neighborhood)
+    # --- INTELLIGENCE DE RECHERCHE (FALLBACK) ---
+    # Si aucun résultat, on propose des annonces similaires (Même ville ou catégorie)
+    if properties.count() == 0:
         is_fallback = True
-        if properties.count() == 0:
-            # Si toujours rien, on élargit encore (toutes les villes, même catégorie)
-            properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
-            if listing_category and listing_category != 'ALL':
-                properties = properties.filter(listing_category=listing_category)
-            properties = properties.order_by('-is_boosted', '-created_at')[:8]
+        properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+        if city:
+            properties = properties.filter(city=city)
+        elif listing_category:
+            properties = properties.filter(listing_category=listing_category)
+        
+        properties = properties.order_by('-is_boosted', '-created_at')[:9]
 
     sort = request.GET.get('sort')
-    if sort == 'price_asc': properties = properties.order_by('-is_boosted', 'price')
-    elif sort == 'price_desc': properties = properties.order_by('-is_boosted', '-price')
-    else: properties = properties.order_by('-created_at', '-is_boosted')
+    if not is_fallback:
+        if sort == 'price_asc': properties = properties.order_by('-is_boosted', 'price')
+        elif sort == 'price_desc': properties = properties.order_by('-is_boosted', '-price')
+        else: properties = properties.order_by('-created_at', '-is_boosted')
     
     # --- DONNÉES CARTE ---
     map_markers = []

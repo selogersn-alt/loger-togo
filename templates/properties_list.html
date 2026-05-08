@@ -20,10 +20,11 @@
         border: 1px solid #f1f1f1;
     }
 
-    .price-tag-list {
+    /* Style UNIFORME des Étiquettes de Prix (Identique à Near Me) */
+    .price-tag {
         background: white;
         border: 2px solid var(--color-dark-green);
-        padding: 5px 12px;
+        padding: 4px 10px;
         border-radius: 20px;
         font-weight: 800;
         font-size: 0.85rem;
@@ -31,8 +32,16 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         white-space: nowrap;
         transition: all 0.2s;
+        cursor: pointer;
     }
-    .price-tag-list.furnished { border-color: #d63384; color: #d63384; }
+    .price-tag:hover {
+        background: var(--color-dark-green);
+        color: white;
+        transform: scale(1.1);
+        z-index: 1000 !important;
+    }
+    .price-tag.furnished, .price-tag.auberge { border-color: #d63384; color: #d63384; }
+    .price-tag.furnished:hover, .price-tag.auberge:hover { background: #d63384; color: white; }
 
     #mapWrapper {
         height: 450px;
@@ -63,41 +72,57 @@
         border-radius: 12px;
         height: 48px;
         font-weight: 700;
+        transition: all 0.3s;
     }
+    .search-btn:hover { background: #08351f; transform: scale(1.02); }
     .advanced-filters { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #eee; }
+
+    .fallback-alert {
+        background: #fff4e5;
+        border-left: 5px solid #ffa117;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        color: #663c00;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
+    <!-- Moteur de Recherche Amélioré -->
     <div class="filter-section">
         <form method="GET" action="{% url 'properties_list' %}" id="filterForm">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="small fw-bold text-muted mb-1">{% trans "Ville" %}</label>
+                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-city me-1"></i> {% trans "Ville" %}</label>
                     <select name="city" class="form-select border-0 bg-light rounded-3">
                         <option value="">{% trans "Toutes les villes" %}</option>
                         {% for city in cities %}<option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="small fw-bold text-muted mb-1">{% trans "Quartier" %}</label>
-                    <input type="text" name="neighborhood" class="form-control border-0 bg-light rounded-3" value="{{ request.GET.neighborhood }}">
+                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-map-marker-alt me-1"></i> {% trans "Quartier" %}</label>
+                    <input type="text" name="neighborhood" class="form-control border-0 bg-light rounded-3" placeholder="{% trans 'Où cherchez-vous ?' %}" value="{{ request.GET.neighborhood }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1">{% trans "Type" %}</label>
+                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-home me-1"></i> {% trans "Type" %}</label>
                     <select name="property_type" class="form-select border-0 bg-light rounded-3">
                         <option value="">{% trans "Tous types" %}</option>
                         <option value="APARTMENT" {% if request.GET.property_type == 'APARTMENT' %}selected{% endif %}>{% trans "Appartement" %}</option>
                         <option value="VILLA" {% if request.GET.property_type == 'VILLA' %}selected{% endif %}>{% trans "Villa" %}</option>
+                        <option value="CHAMBRE" {% if request.GET.property_type == 'CHAMBRE' %}selected{% endif %}>{% trans "Chambre" %}</option>
+                        <option value="AUBERGE" {% if request.GET.property_type == 'AUBERGE' %}selected{% endif %}>{% trans "Auberge" %}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1">{% trans "Prix Max" %}</label>
-                    <input type="number" name="max_price" class="form-control border-0 bg-light rounded-3" value="{{ request.GET.max_price }}">
+                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-tag me-1"></i> {% trans "Budget Max" %}</label>
+                    <input type="number" name="max_price" class="form-control border-0 bg-light rounded-3" placeholder="FCFA" value="{{ request.GET.max_price }}">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn search-btn w-100">{% trans "Filtrer" %}</button>
+                    <button type="submit" class="btn search-btn w-100">
+                        <i class="fas fa-search me-2"></i> {% trans "Chercher" %}
+                    </button>
                 </div>
             </div>
             <div id="advancedFilters" class="advanced-filters">
@@ -106,21 +131,40 @@
                         <label class="small fw-bold text-muted mb-1">{% trans "Chambres min" %}</label>
                         <input type="number" name="min_bedrooms" class="form-control border-0 bg-light" value="{{ request.GET.min_bedrooms }}">
                     </div>
+                    <div class="col-md-2">
+                        <label class="small fw-bold text-muted mb-1">{% trans "WiFi" %}</label>
+                        <select name="wifi" class="form-select border-0 bg-light"><option value="">-</option><option value="1">{% trans "Oui" %}</option></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small fw-bold text-muted mb-1">{% trans "Clim" %}</label>
+                        <select name="ac" class="form-select border-0 bg-light"><option value="">-</option><option value="1">{% trans "Oui" %}</option></select>
+                    </div>
                 </div>
             </div>
             <div class="text-center mt-3">
-                <button type="button" class="btn btn-link text-decoration-none small fw-bold text-success" onclick="toggleAdvanced()">{% trans "Filtres avancés" %}</button>
+                <button type="button" class="btn btn-link text-decoration-none small fw-bold text-success" onclick="toggleAdvanced()">
+                    <i class="fas fa-sliders-h me-1"></i> {% trans "Plus de critères" %}
+                </button>
             </div>
         </form>
     </div>
 
+    {% if is_fallback %}
+    <div class="fallback-alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>{% trans "Aucun résultat exact trouvé." %}</strong> {% trans "Voici des suggestions qui pourraient vous plaire :" %}
+    </div>
+    {% endif %}
+
+    <!-- Carte Uniformisée -->
     <div id="mapWrapper">
         <div class="map-controls">
             <button type="button" class="map-btn" onclick="toggleMapFullscreen()"><i class="fas fa-expand"></i></button>
+            <button type="button" class="map-btn" onclick="centerOnUser()"><i class="fas fa-crosshairs"></i></button>
         </div>
         <div class="route-info-box" id="routeInfo">
             <div class="d-flex gap-3 align-items-center">
-                <div><small class="d-block opacity-75">Dist.</small><strong id="routeDist">-- km</strong></div>
+                <div><small class="d-block opacity-75">Distance</small><strong id="routeDist">-- km</strong></div>
                 <div style="width:1px;height:20px;background:white;opacity:0.3"></div>
                 <div><small class="d-block opacity-75">Temps</small><strong id="routeTime">-- min</strong></div>
             </div>
@@ -129,9 +173,19 @@
         <div id="leaflet-map"></div>
     </div>
 
+    <!-- Liste des Résultats -->
     <div class="row g-4">
-        {% for property in properties %}<div class="col-md-4">{% include 'partials/property_card.html' %}</div>
-        {% empty %}<div class="col-12 text-center py-5"><h4>{% trans "Aucun résultat" %}</h4></div>{% endfor %}
+        {% for property in properties %}
+        <div class="col-md-4">
+            {% include 'partials/property_card.html' %}
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3 opacity-25"></i>
+            <h4>{% trans "Vraiment aucun bien disponible" %}</h4>
+            <p class="text-muted">{% trans "Veuillez élargir vos critères de recherche." %}</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
@@ -139,14 +193,7 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const MAP_MARKERS = [
-    {% for p in properties %}{% if p.latitude and p.longitude %}{
-        id:"{{p.id}}", lat:{{p.latitude|stringformat:"f"}}, lng:{{p.longitude|stringformat:"f"}},
-        price:{{p.price}}, title:"{{p.title|escapejs}}", url:"{{p.get_absolute_url}}",
-        category:"{{p.listing_category}}", img:"{% if p.images.exists %}{{p.images.first.image_url.url}}{% endif %}"
-    },{% endif %}{% endfor %}
-];
-
+const MAP_MARKERS = {{ map_markers_json|safe }};
 let map, userPos = null, activeRoute = null;
 
 function toggleAdvanced() {
@@ -165,6 +212,11 @@ function hideRoute() {
     if (activeRoute) map.removeLayer(activeRoute);
 }
 
+function centerOnUser() {
+    if (userPos) map.setView(userPos, 14);
+    else alert("{% trans 'Activez votre GPS' %}");
+}
+
 async function calculateRoute(tLat, tLng) {
     if (!userPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
     if (activeRoute) map.removeLayer(activeRoute);
@@ -173,7 +225,7 @@ async function calculateRoute(tLat, tLng) {
         const res = await fetch(url);
         const data = await res.json();
         const route = data.routes[0];
-        activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6 }).addTo(map);
+        activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
         map.fitBounds(activeRoute.getBounds(), { padding: [80, 80] });
         document.getElementById('routeDist').textContent = (route.distance / 1000).toFixed(1) + ' km';
         document.getElementById('routeTime').textContent = Math.round(route.duration / 60) + ' min';
@@ -189,24 +241,27 @@ function initMap() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
             userPos = [pos.coords.latitude, pos.coords.longitude];
-            L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:16px;height:16px;background:#3b82f6;border:2px solid white;border-radius:50%"></div>' }) }).addTo(map);
+            L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5)"></div>' }) }).addTo(map);
         });
     }
 
     const bounds = [];
     MAP_MARKERS.forEach(m => {
-        const isPremium = m.category === 'FURNISHED' || m.category === 'AUBERGE';
+        const isPremium = m.category === 'FURNISHED' || m.category === 'AUBERGE' || m.type === 'Auberge';
         const color = isPremium ? '#d63384' : '#0b4629';
         const icon = L.divIcon({
-            html: `<div class="price-tag-list ${isPremium?'furnished':''}" style="border-color:${color};color:${color}">${m.price.toLocaleString()} F</div>`,
+            html: `<div class="price-tag ${isPremium?'furnished':''}" style="border-color:${color};color:${color}">${m.price.toLocaleString()} F</div>`,
             iconAnchor: [40, 20]
         });
         L.marker([m.lat, m.lng], { icon }).addTo(map).bindPopup(`
-            <div style="width:180px">
-                <img src="${m.img}" style="width:100%;height:100px;object-fit:cover;border-radius:8px">
-                <strong class="d-block mt-2">${m.title}</strong>
-                <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-primary w-100 mt-2">{% trans "Itinéraire" %}</button>
-                <a href="${m.url}" class="btn btn-sm btn-success w-100 mt-1">{% trans "Voir" %}</a>
+            <div style="width:200px">
+                <img src="${m.img}" style="width:100%;height:110px;object-fit:cover;border-radius:12px">
+                <strong class="d-block mt-2" style="font-size:14px">${m.title}</strong>
+                <div style="color:${color};font-weight:800;font-size:1.1rem;margin:5px 0">${m.price.toLocaleString()} F</div>
+                <div class="d-flex gap-2">
+                    <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-primary flex-grow-1" style="border-radius:8px">{% trans "Itinéraire" %}</button>
+                    <a href="${m.url}" class="btn btn-sm btn-success px-3" style="border-radius:8px">{% trans "Voir" %}</a>
+                </div>
             </div>
         `);
         bounds.push([m.lat, m.lng]);

@@ -746,9 +746,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places,geometry&callback=initMap" async defer></script>
 <script>
+    // ─── Galerie & Images ───
     function changeImage(element) {
         const mainImage = document.getElementById("expandedImg");
+        if (!mainImage) return;
         mainImage.src = element.src;
         const thumbnails = document.querySelectorAll(".thumbnail-img");
         thumbnails.forEach(thumb => thumb.classList.remove("active"));
@@ -756,79 +759,109 @@
     }
 
     // ─── Étoiles interactives ───
-    const labels = document.querySelectorAll('.star-label');
-    labels.forEach((label, idx) => {
-        label.addEventListener('mouseenter', () => {
-            labels.forEach((l, i) => l.style.color = i <= idx ? '#f5c42f' : '#ddd');
-        });
-        label.addEventListener('mouseleave', () => {
-            const checked = document.querySelector('input[name="rating"]:checked');
-            const val = checked ? parseInt(checked.value) - 1 : -1;
-            labels.forEach((l, i) => l.style.color = i <= val ? '#f5c42f' : '#ddd');
-        });
-        label.addEventListener('click', () => {
-            label.querySelector('input').checked = true;
-            labels.forEach((l, i) => l.style.color = i <= idx ? '#f5c42f' : '#ddd');
+    document.addEventListener('DOMContentLoaded', () => {
+        const labels = document.querySelectorAll('.star-label');
+        labels.forEach((label, idx) => {
+            label.addEventListener('mouseenter', () => {
+                labels.forEach((l, i) => l.style.color = i <= idx ? '#f5c42f' : '#ddd');
+            });
+            label.addEventListener('mouseleave', () => {
+                const checked = document.querySelector('input[name="rating"]:checked');
+                const val = checked ? parseInt(checked.value) - 1 : -1;
+                labels.forEach((l, i) => l.style.color = i <= val ? '#f5c42f' : '#ddd');
+            });
+            label.addEventListener('click', () => {
+                const radio = label.querySelector('input');
+                if (radio) radio.checked = true;
+                labels.forEach((l, i) => l.style.color = i <= idx ? '#f5c42f' : '#ddd');
+            });
         });
     });
-</script>
-<script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=geometry&callback=initMap"></script>
-<script>
+
+    // ─── PREMIUM MAP STYLE ────────────────────────────────────────────────
+    const PREMIUM_MAP_STYLE = [
+      { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
+      { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
+      { "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+      { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f5f5f5" }] },
+      { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
+      { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#eeeeee" }] },
+      { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+      { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "color": "#e5e5e5" }] },
+      { "featureType": "poi.park", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] },
+      { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
+      { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+      { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
+      { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+      { "featureType": "road.local", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] },
+      { "featureType": "transit.line", "elementType": "geometry", "stylers": [{ "color": "#e5e5e5" }] },
+      { "featureType": "transit.station", "elementType": "geometry", "stylers": [{ "color": "#eeeeee" }] },
+      { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#c9c9c9" }] },
+      { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] }
+    ];
+
     let map, propertyMarker, userMarker, directionsService, directionsRenderer;
-    const lat = parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.'));
-    const lng = parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.'));
-    const propertyPos = { lat: lat, lng: lng };
+    const propertyPos = { 
+        lat: parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.')), 
+        lng: parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.')) 
+    };
 
     function initMap() {
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
             suppressMarkers: true,
-            polylineOptions: { strokeColor: '#3b82f6', strokeWeight: 6, strokeOpacity: 0.8 }
+            polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6, strokeOpacity: 0.8 }
         });
 
-        map = new google.maps.Map(document.getElementById("propertyMap"), {
+        const mapContainer = document.getElementById("propertyMap");
+        if (!mapContainer) return;
+
+        map = new google.maps.Map(mapContainer, {
             zoom: 16,
             center: propertyPos,
-            mapId: "LOGER_TOGO_MAP_ID",
+            styles: PREMIUM_MAP_STYLE,
             disableDefaultUI: false,
             zoomControl: true,
             mapTypeControl: false,
             streetViewControl: true,
-            fullscreenControl: false,
+            fullscreenControl: true,
+            zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER }
         });
 
         directionsRenderer.setMap(map);
 
-        // Marqueur de prix personnalisé (style Premium)
-        const price = "{{ property.price|format_price }}";
+        // Marqueur Premium personnalisé
+        const price = "{{ property.price|floatformat:0 }}";
         const catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
         
         propertyMarker = new google.maps.Marker({
             position: propertyPos,
             map: map,
-            title: "{{ property.title|escapejs }}",
+            animation: google.maps.Animation.DROP,
+            icon: {
+                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                fillColor: catColor,
+                fillOpacity: 1,
+                strokeWeight: 2,
+                strokeColor: "#ffffff",
+                scale: 2,
+                anchor: new google.maps.Point(12, 22),
+            },
             label: {
                 text: `${price} F`,
                 color: 'white',
-                fontSize: '14px',
-                fontWeight: '800'
-            },
-            icon: {
-                path: 'M -40,-15 L 40,-15 L 40,15 L -40,15 z',
-                fillColor: catColor,
-                fillOpacity: 1,
-                strokeColor: 'white',
-                strokeWeight: 2,
-                labelOrigin: new google.maps.Point(0, 0)
+                fontSize: '11px',
+                fontWeight: 'bold',
+                className: 'marker-label-shift'
             }
         });
 
         const infoWindow = new google.maps.InfoWindow({
             content: `
-                <div style="color:black;min-width:160px;">
-                    <strong style="display:block;margin-bottom:5px;">{{ property.title|escapejs }}</strong>
-                    <button onclick="calculateDetailRoute()" class="btn btn-sm btn-primary w-100" style="border-radius:8px;font-weight:700;">
-                        <i class="fas fa-route me-1"></i> {% trans "Y aller (Route)" %}
+                <div style="color:black;min-width:160px;padding:5px;">
+                    <strong style="display:block;margin-bottom:8px;">{{ property.title|escapejs }}</strong>
+                    <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px;font-weight:700;">
+                        <i class="fas fa-route me-1"></i> {% trans "Y aller (Itinéraire)" %}
                     </button>
                 </div>`
         });
@@ -851,15 +884,17 @@
                         scale: 8,
                         strokeColor: 'white',
                         strokeWeight: 2,
-                    },
-                    title: "{% trans "Votre position" %}"
+                    }
                 });
             });
         }
     }
 
     window.calculateDetailRoute = function() {
-        if (!userMarker) { alert("{% trans 'Activez votre GPS et autorisez la localisation' %}"); return; }
+        if (!userMarker) { 
+            alert("{% trans 'Activez votre GPS et autorisez la localisation pour calculer l\'itinéraire.' %}"); 
+            return; 
+        }
         
         const request = {
             origin: userMarker.getPosition(),
@@ -878,12 +913,6 @@
         });
     };
 
-    window.toggleDetailFullscreen = function() {
-        const el = document.getElementById('propertyMap');
-        el.classList.toggle('fullscreen');
-        google.maps.event.trigger(map, 'resize');
-    };
-
     window.hideDetailRoute = function() {
         document.getElementById('routeInfoDetail').style.display = 'none';
         directionsRenderer.setDirections({routes: []});
@@ -891,7 +920,7 @@
         map.setZoom(16);
     };
 
-    function toggleFavorite(propertyId) {
+    window.toggleFavorite = function(propertyId) {
         if ("{{ user.is_authenticated }}" === "False") {
             window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
             return;
@@ -903,32 +932,16 @@
         .then(response => response.json())
         .then(data => {
             const btn = document.getElementById("favoriteBtn");
-            if (data.status === 'added') btn.classList.add('active');
-            else btn.classList.remove('active');
+            if (btn) {
+                if (data.status === 'added') btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
         });
-    }
+    };
 </script>
 
-<!-- Sticky Contact Mobile -->
-<div class="sticky-contact-mobile d-md-none position-fixed bottom-0 start-0 end-0 bg-white shadow-lg p-3 animate__animated animate__slideInUp" style="z-index: 1050; border-top: 1px solid var(--border-color);">
-    <div class="row g-2">
-        <div class="col-8">
-            <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par l'annonce" %} {{ property.title }} (ID: {{ property.id }}) {% trans "sur Loger Togo" %}." 
-               class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center"
-               style="background-color: #25D366; border: none; font-size: 0.9rem;">
-                <i class="fa-brands fa-whatsapp fs-4 me-2"></i> {% trans "WhatsApp" %}
-            </a>
-        </div>
-        <div class="col-4">
-            <a href="tel:{{ property.owner.phone_number|default:'+22897151610' }}" 
-               class="btn btn-outline-dark w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center">
-                <i class="fa-solid fa-phone me-2"></i>
-            </a>
-        </div>
-    </div>
-</div>
-
 <style>
+    .marker-label-shift { margin-top: -45px; }
     @media (max-width: 768px) {
         body { padding-bottom: 85px; }
         .sticky-contact-mobile {

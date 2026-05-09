@@ -4,11 +4,6 @@
 {% block title %}{{ title }} | Loger Togo{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-<link rel="dns-prefetch" href="https://router.project-osrm.org">
-<link rel="dns-prefetch" href="https://basemaps.cartocdn.com">
 <style>
 :root {
     --color-dark-green: #0b4629;
@@ -121,113 +116,149 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=geometry,places&callback=initMap" async defer></script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
 const MARKERS_DATA = {{ map_markers_json|safe }};
-const DEFAULT_LAT = 6.1311, DEFAULT_LNG = 1.2228;
-let map, userPos = null, userMarker = null, routeLine = null;
+const DEFAULT_LOC = { lat: 6.1311, lng: 1.2228 };
+let map, directionsService, directionsRenderer, userMarker, markerCluster;
 const propMarkers = {};
+const markers = [];
 
 function initMap() {
-    map = L.map('map', { zoomControl: false }).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-    setTimeout(() => map.invalidateSize(), 500);
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: '#3b82f6', strokeWeight: 6, strokeOpacity: 0.8 }
+    });
+
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: DEFAULT_LOC,
+        zoom: 13,
+        mapId: "LOGER_TOGO_NEAR_ME",
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+    });
+
+    directionsRenderer.setMap(map);
     placeMarkers();
     renderList(null, null);
+    startWatch();
 }
 
 function toggleFullscreen() {
     const wrapper = document.getElementById('geoWrapper');
     wrapper.classList.toggle('fullscreen');
-    setTimeout(() => map.invalidateSize(), 300);
+    google.maps.event.trigger(map, 'resize');
 }
 
 function showRouteInfo(dist, dur) {
     const box = document.getElementById('routeInfo');
-    document.getElementById('routeDist').textContent = dist + ' km';
-    document.getElementById('routeTime').textContent = dur + ' min';
+    document.getElementById('routeDist').textContent = dist;
+    document.getElementById('routeTime').textContent = dur;
     box.style.display = 'flex';
 }
+
 function hideRoute() { 
     document.getElementById('routeInfo').style.display = 'none'; 
-    if (routeLine) map.removeLayer(routeLine);
+    directionsRenderer.setDirections({routes: []});
 }
 
 async function showRoute(targetLat, targetLng) {
-    if (!userPos) { 
-        // Au lieu d'une alerte, on demande le GPS
-        navigator.geolocation.getCurrentPosition((pos) => {
-            userPos = [pos.coords.latitude, pos.coords.longitude];
-            startWatch();
-            showRoute(targetLat, targetLng);
-        }, () => {
-            // Ici on peut mettre un toast élégant plus tard
-            console.log("GPS refusé");
-        });
+    if (!userMarker) { 
+        startWatch(() => showRoute(targetLat, targetLng));
         return; 
     }
-    const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${targetLng},${targetLat}?overview=full&geometries=geojson`;
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-        const route = data.routes[0];
-        const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
-        if (routeLine) map.removeLayer(routeLine);
-        routeLine = L.polyline(coords, { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
-        map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
-        showRouteInfo((route.distance/1000).toFixed(1), Math.round(route.duration/60));
-    } catch(e) { console.error(e); }
+    const request = {
+        origin: userMarker.getPosition(),
+        destination: { lat: targetLat, lng: targetLng },
+        travelMode: 'DRIVING'
+    };
+    directionsService.route(request, (result, status) => {
+        if (status == 'OK') {
+            directionsRenderer.setDirections(result);
+            const route = result.routes[0].legs[0];
+            showRouteInfo(route.distance.text, route.duration.text);
+            const bounds = new google.maps.LatLngBounds();
+            bounds.extend(userMarker.getPosition());
+            bounds.extend({ lat: targetLat, lng: targetLng });
+            map.fitBounds(bounds, 80);
+        }
+    });
 }
 
 function placeMarkers() {
-    const markers = L.markerClusterGroup({
-        showCoverageOnHover: false,
-        spiderfyOnMaxZoom: true,
-        zoomToBoundsOnClick: true
-    });
-    const bounds = [];
+    const infoWindow = new google.maps.InfoWindow();
 
     MARKERS_DATA.forEach(p => {
         const price = p.price_night > 0 ? p.price_night : p.price_month;
         const isPremium = p.property_type === 'AUBERGE' || p.category === 'FURNISHED';
         const color = isPremium ? '#d63384' : '#0b4629';
-        const icon = L.divIcon({
-            className: 'custom-icon',
-            html: `<div class="price-tag ${isPremium?'auberge':''}" style="border-color:${color};color:${color}">${price.toLocaleString()} F</div>`,
-            iconSize: [null, null], iconAnchor: [30, 15]
+        
+        const marker = new google.maps.Marker({
+            position: { lat: p.lat, lng: p.lng },
+            label: {
+                text: `${price.toLocaleString()} F`,
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: '800'
+            },
+            icon: {
+                path: 'M -35,-10 L 35,-10 L 35,10 L -35,10 z',
+                fillColor: color,
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 1,
+                labelOrigin: new google.maps.Point(0, 0)
+            }
         });
-        const m = L.marker([p.lat, p.lng], { icon }).bindPopup(`
-            <div style="width:220px">
-                <img src="${p.img}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px" loading="lazy">
-                <strong style="font-size:15px">${p.title}</strong>
-                <div style="font-weight:800;color:${color};font-size:1.2rem;margin:5px 0">${price.toLocaleString()} F</div>
-                <div class="d-flex gap-2">
-                    <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary flex-grow-1" style="border-radius:10px;font-weight:700"><i class="fas fa-route me-1"></i> {% trans "Itinéraire" %}</button>
-                    <a href="${p.url}" class="btn btn-sm btn-success px-3" style="border-radius:10px;font-weight:700">{% trans "Voir" %}</a>
-                </div>
-            </div>`);
-        markers.addLayer(m);
-        propMarkers[p.id] = m;
-        bounds.push([p.lat, p.lng]);
+
+        marker.addListener("click", () => {
+            const content = `
+                <div style="width:220px;color:black;">
+                    <img src="${p.img}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px" loading="lazy">
+                    <strong style="font-size:15px">${p.title}</strong>
+                    <div style="font-weight:800;color:${color};font-size:1.2rem;margin:5px 0">${price.toLocaleString()} F</div>
+                    <div class="d-flex gap-2">
+                        <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-primary flex-grow-1" style="border-radius:10px;font-weight:700"><i class="fas fa-route me-1"></i> {% trans "Route" %}</button>
+                        <a href="${p.url}" class="btn btn-sm btn-success px-3" style="border-radius:10px;font-weight:700">{% trans "Voir" %}</a>
+                    </div>
+                </div>`;
+            infoWindow.setContent(content);
+            infoWindow.open(map, marker);
+        });
+
+        propMarkers[p.id] = marker;
+        markers.push(marker);
     });
-    map.addLayer(markers);
+
+    markerCluster = new markerClusterer.MarkerClusterer({ map, markers });
 }
 
 function renderList(uLat, uLng, filter = 'ALL') {
     const list = document.getElementById('property-list');
     document.getElementById('list-loading').style.display = 'none';
+    
     const filtered = MARKERS_DATA.filter(p => filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED'))
-        .map(p => ({ ...p, dist: (uLat && uLng) ? haversine(uLat, uLng, p.lat, p.lng) : null }))
+        .map(p => {
+            let dist = null;
+            if (uLat && uLng) {
+                dist = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(uLat, uLng),
+                    new google.maps.LatLng(p.lat, p.lng)
+                ) / 1000;
+            }
+            return { ...p, dist };
+        })
         .sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
 
     list.innerHTML = filtered.map(p => `
         <div class="prop-card" id="card-${p.id}" onclick="focusProp('${p.id}')">
             <img src="${p.img}" class="prop-img">
             <div class="prop-details">
-                <div class="fw-bold small">${p.title}</div>
-                <div class="prop-price">${(p.price_night > 0 ? p.price_night : p.price_month).toLocaleString()} F</div>
+                <div class="fw-bold small text-dark">${p.title}</div>
+                <div class="prop-price text-success fw-bold">${(p.price_night > 0 ? p.price_night : p.price_month).toLocaleString()} F</div>
                 ${p.dist ? `<div class="badge mt-1" style="background:var(--color-gold);color:var(--color-dark-green)">${p.dist.toFixed(1)} km</div>` : ''}
             </div>
         </div>`).join('');
@@ -235,31 +266,64 @@ function renderList(uLat, uLng, filter = 'ALL') {
 
 function focusProp(id) {
     const m = propMarkers[id];
-    if (m) { map.setView(m.getLatLng(), 17); m.openPopup(); }
+    if (m) { 
+        map.setCenter(m.getPosition());
+        map.setZoom(17);
+        google.maps.event.trigger(m, 'click');
+    }
 }
 
-function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371, rad = Math.PI/180;
-    const dLat = (lat2-lat1)*rad, dLon = (lon2-lon1)*rad;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function startWatch() {
+function startWatch(callback) {
     if (!navigator.geolocation) return;
     document.getElementById('gps-label').textContent = "{% trans 'Localisation...' %}";
     navigator.geolocation.getCurrentPosition((pos) => {
-        userPos = [pos.coords.latitude, pos.coords.longitude];
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         if (!userMarker) {
-            userMarker = L.marker(userPos, { icon: L.divIcon({ className: '', html: '<div class="user-marker"></div>', iconSize:[20,20] }) }).addTo(map);
-        } else { userMarker.setLatLng(userPos); }
+            userMarker = new google.maps.Marker({
+                position: loc,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#4285F4',
+                    fillOpacity: 1,
+                    scale: 8,
+                    strokeColor: 'white',
+                    strokeWeight: 2,
+                },
+                title: "{% trans "Votre position" %}"
+            });
+        } else { 
+            userMarker.setPosition(loc); 
+        }
         document.getElementById('gps-badge').className = "gps-status gps-active";
         document.getElementById('gps-label').textContent = "{% trans 'GPS Actif' %}";
-        map.panTo(userPos);
-        renderList(userPos[0], userPos[1]);
-    }, () => { document.getElementById('gps-label').textContent = "{% trans 'GPS indisponible' %}"; });
+        map.panTo(loc);
+        renderList(loc.lat, loc.lng);
+        if (callback) callback();
+    }, () => { 
+        document.getElementById('gps-label').textContent = "{% trans 'GPS indisponible' %}"; 
+    });
 }
 
-document.addEventListener('DOMContentLoaded', initMap);
+function filterType(type) {
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(type));
+    });
+    
+    // Update markers on map
+    markers.forEach(m => {
+        const p = MARKERS_DATA.find(d => propMarkers[d.id] === m);
+        const visible = type === 'ALL' || p.property_type === type || (type === 'FURNISHED' && p.category === 'FURNISHED');
+        m.setVisible(visible);
+    });
+    
+    const uPos = userMarker ? userMarker.getPosition() : null;
+    renderList(uPos ? uPos.lat() : null, uPos ? uPos.lng() : null, type);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // initMap is called by callback in script tag
+});
 </script>
+{% endblock %}
 {% endblock %}

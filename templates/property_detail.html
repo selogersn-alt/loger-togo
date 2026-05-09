@@ -235,7 +235,6 @@
     }
 
 </style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -773,115 +772,139 @@
         });
     });
 </script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=geometry&callback=initMap"></script>
 <script>
-    // Initialize Map
-    document.addEventListener('DOMContentLoaded', function() {
-        const lat = parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.'));
-        const lng = parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.'));
-        const map = L.map('propertyMap', { zoomControl: false }).setView([lat, lng], 15);
+    let map, propertyMarker, userMarker, directionsService, directionsRenderer;
+    const lat = parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.'));
+    const lng = parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.'));
+    const propertyPos = { lat: lat, lng: lng };
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; CARTO'
-        }).addTo(map);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+    function initMap() {
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            suppressMarkers: true,
+            polylineOptions: { strokeColor: '#3b82f6', strokeWeight: 6, strokeOpacity: 0.8 }
+        });
 
-        // Position utilisateur (Point Bleu)
-        let uPos = null;
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                uPos = [pos.coords.latitude, pos.coords.longitude];
-                const blueDot = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: '<div style="width:16px;height:16px;background:#3b82f6;border:2px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse-blue 2s infinite;"></div>',
-                    iconSize: [16, 16], iconAnchor: [8, 8]
-                });
-                L.marker(uPos, { icon: blueDot }).addTo(map);
-            });
-        }
+        map = new google.maps.Map(document.getElementById("propertyMap"), {
+            zoom: 16,
+            center: propertyPos,
+            mapId: "LOGER_TOGO_MAP_ID",
+            disableDefaultUI: false,
+            zoomControl: true,
+            mapTypeControl: false,
+            streetViewControl: true,
+            fullscreenControl: false,
+        });
 
-        // Étiquette de PRIX
+        directionsRenderer.setMap(map);
+
+        // Marqueur de prix personnalisé (style Premium)
         const price = "{{ property.price|format_price }}";
         const catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
-        const priceIcon = L.divIcon({
-            html: `<div style="background:${catColor};color:white;border-radius:50px;padding:6px 14px;font-weight:800;font-size:14px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);border:2px solid white;">${price} F</div>`,
-            className: '',
-            iconAnchor: [40, 20]
-        });
-
-        const marker = L.marker([lat, lng], { icon: priceIcon }).addTo(map);
         
-        const popupContent = `
-            <div style="min-width:160px;">
-                <strong style="display:block;margin-bottom:5px;">{{ property.title|escapejs }}</strong>
-                <button id="getRouteBtn" class="btn btn-sm btn-primary w-100" style="border-radius:8px;font-weight:700;">
-                    <i class="fas fa-route me-1"></i> {% trans "Y aller (Route)" %}
-                </button>
-            </div>`;
-            
-        marker.bindPopup(popupContent);
-
-        // Fullscreen Toggle
-        window.toggleDetailFullscreen = function() {
-            const el = document.getElementById('propertyMap');
-            el.classList.toggle('fullscreen');
-            setTimeout(() => map.invalidateSize(), 300);
-        };
-
-        window.hideDetailRoute = function() {
-            document.getElementById('routeInfoDetail').style.display = 'none';
-            if (activeRoute) map.removeLayer(activeRoute);
-        };
-
-        // Itinéraire OSRM
-        let activeRoute = null;
-        window.calculateDetailRoute = async function() {
-            if (!uPos) { alert("{% trans 'Activez votre GPS' %}"); return; }
-            if (activeRoute) map.removeLayer(activeRoute);
-            const url = `https://router.project-osrm.org/route/v1/driving/${uPos[1]},${uPos[0]};${lng},${lat}?overview=full&geometries=geojson`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                const route = data.routes[0];
-                activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
-                map.fitBounds(activeRoute.getBounds(), { padding: [40, 40] });
-                
-                document.getElementById('detailDist').textContent = (route.distance / 1000).toFixed(1);
-                document.getElementById('detailTime').textContent = Math.round(route.duration / 60);
-                document.getElementById('routeInfoDetail').style.display = 'flex';
-                marker.closePopup();
-            } catch(e) { console.error(e); }
-        };
-
-        map.on('popupopen', function() {
-            const btn = document.getElementById('getRouteBtn');
-            if (btn) btn.onclick = calculateDetailRoute;
+        propertyMarker = new google.maps.Marker({
+            position: propertyPos,
+            map: map,
+            title: "{{ property.title|escapejs }}",
+            label: {
+                text: `${price} F`,
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '800'
+            },
+            icon: {
+                path: 'M -40,-15 L 40,-15 L 40,15 L -40,15 z',
+                fillColor: catColor,
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2,
+                labelOrigin: new google.maps.Point(0, 0)
+            }
         });
-    });
 
-    // Favorite Toggle Logic
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div style="color:black;min-width:160px;">
+                    <strong style="display:block;margin-bottom:5px;">{{ property.title|escapejs }}</strong>
+                    <button onclick="calculateDetailRoute()" class="btn btn-sm btn-primary w-100" style="border-radius:8px;font-weight:700;">
+                        <i class="fas fa-route me-1"></i> {% trans "Y aller (Route)" %}
+                    </button>
+                </div>`
+        });
+
+        propertyMarker.addListener("click", () => {
+            infoWindow.open(map, propertyMarker);
+        });
+
+        // Géolocalisation utilisateur
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const uPos = { lat: position.coords.latitude, lng: position.coords.longitude };
+                userMarker = new google.maps.Marker({
+                    position: uPos,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#4285F4',
+                        fillOpacity: 1,
+                        scale: 8,
+                        strokeColor: 'white',
+                        strokeWeight: 2,
+                    },
+                    title: "{% trans "Votre position" %}"
+                });
+            });
+        }
+    }
+
+    window.calculateDetailRoute = function() {
+        if (!userMarker) { alert("{% trans 'Activez votre GPS et autorisez la localisation' %}"); return; }
+        
+        const request = {
+            origin: userMarker.getPosition(),
+            destination: propertyPos,
+            travelMode: 'DRIVING'
+        };
+
+        directionsService.route(request, function(result, status) {
+            if (status == 'OK') {
+                directionsRenderer.setDirections(result);
+                const route = result.routes[0].legs[0];
+                document.getElementById('detailDist').textContent = (route.distance.value / 1000).toFixed(1);
+                document.getElementById('detailTime').textContent = Math.round(route.duration.value / 60);
+                document.getElementById('routeInfoDetail').style.display = 'flex';
+            }
+        });
+    };
+
+    window.toggleDetailFullscreen = function() {
+        const el = document.getElementById('propertyMap');
+        el.classList.toggle('fullscreen');
+        google.maps.event.trigger(map, 'resize');
+    };
+
+    window.hideDetailRoute = function() {
+        document.getElementById('routeInfoDetail').style.display = 'none';
+        directionsRenderer.setDirections({routes: []});
+        map.setCenter(propertyPos);
+        map.setZoom(16);
+    };
+
     function toggleFavorite(propertyId) {
         if ("{{ user.is_authenticated }}" === "False") {
             window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
             return;
         }
-
         fetch(`/favori/basculer/${propertyId}/`, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': "{{ csrf_token }}",
-                'Content-Type': 'application/json'
-            }
+            headers: { 'X-CSRFToken': "{{ csrf_token }}", 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(data => {
             const btn = document.getElementById("favoriteBtn");
-            if (data.status === 'added') {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            if (data.status === 'added') btn.classList.add('active');
+            else btn.classList.remove('active');
         });
     }
 </script>

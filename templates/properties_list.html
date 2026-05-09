@@ -4,11 +4,6 @@
 {% block title %}{% trans "Annonces Immobilières au Togo" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-<link rel="dns-prefetch" href="https://router.project-osrm.org">
-<link rel="dns-prefetch" href="https://basemaps.cartocdn.com">
 <style>
     :root {
         --color-dark-green: #0b4629;
@@ -203,11 +198,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=geometry&callback=initMap" async defer></script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
 const MAP_MARKERS = {{ map_markers_json|safe }};
-let map, userPos = null, activeRoute = null;
+let map, directionsService, directionsRenderer, userMarker, markerCluster;
+const markers = [];
 
 function toggleAdvanced() {
     const div = document.getElementById('advancedFilters');
@@ -217,103 +213,154 @@ function toggleAdvanced() {
 function toggleMapFullscreen() {
     const el = document.getElementById('mapWrapper');
     el.classList.toggle('fullscreen');
-    setTimeout(() => map.invalidateSize(), 300);
+    google.maps.event.trigger(map, 'resize');
 }
 
 function hideRoute() {
     document.getElementById('routeInfo').style.display = 'none';
-    if (activeRoute) map.removeLayer(activeRoute);
+    directionsRenderer.setDirections({routes: []});
 }
 
 function centerOnUser() {
-    if (userPos) map.setView(userPos, 14);
-    else {
+    if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-            userPos = [pos.coords.latitude, pos.coords.longitude];
-            L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5)"></div>' }) }).addTo(map);
-            map.setView(userPos, 14);
+            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            if (!userMarker) {
+                userMarker = new google.maps.Marker({
+                    position: loc,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#4285F4',
+                        fillOpacity: 1,
+                        scale: 8,
+                        strokeColor: 'white',
+                        strokeWeight: 2,
+                    },
+                    title: "{% trans "Votre position" %}"
+                });
+            } else {
+                userMarker.setPosition(loc);
+            }
+            map.setCenter(loc);
+            map.setZoom(14);
         });
     }
 }
 
-async function calculateRoute(tLat, tLng) {
-    if (!userPos) {
+function calculateRoute(tLat, tLng) {
+    if (!userMarker) {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
-                userPos = [pos.coords.latitude, pos.coords.longitude];
-                L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5)"></div>' }) }).addTo(map);
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                userMarker = new google.maps.Marker({
+                    position: loc,
+                    map: map,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#4285F4', fillOpacity: 1, scale: 8, strokeColor: 'white', strokeWeight: 2 },
+                    title: "{% trans "Votre position" %}"
+                });
                 calculateRoute(tLat, tLng);
-            }, () => {
-                console.log("GPS refusé");
             });
         }
         return;
     }
-    if (activeRoute) map.removeLayer(activeRoute);
-    const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${tLng},${tLat}?overview=full&geometries=geojson`;
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.routes && data.routes.length > 0) {
-            const route = data.routes[0];
-            activeRoute = L.polyline(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
-            map.fitBounds(activeRoute.getBounds(), { padding: [80, 80] });
-            document.getElementById('routeDist').textContent = (route.distance / 1000).toFixed(1) + ' km';
-            document.getElementById('routeTime').textContent = Math.round(route.duration / 60) + ' min';
+
+    const request = {
+        origin: userMarker.getPosition(),
+        destination: { lat: tLat, lng: tLng },
+        travelMode: 'DRIVING'
+    };
+
+    directionsService.route(request, function(result, status) {
+        if (status == 'OK') {
+            directionsRenderer.setDirections(result);
+            const route = result.routes[0].legs[0];
+            document.getElementById('routeDist').textContent = route.distance.text;
+            document.getElementById('routeTime').textContent = route.duration.text;
             document.getElementById('routeInfo').style.display = 'flex';
-        } else {
-            alert("{% trans 'Impossible de trouver un chemin routier.' %}");
         }
-    } catch(e) { 
-        console.error(e);
-        alert("{% trans 'Erreur de connexion au service d itinéraire.' %}");
-    }
+    });
 }
 
 function initMap() {
-    map = L.map('leaflet-map', { zoomControl: false }).setView([6.137, 1.222], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: '#3b82f6', strokeWeight: 6, strokeOpacity: 0.8 }
+    });
+
+    map = new google.maps.Map(document.getElementById('leaflet-map'), {
+        center: { lat: 6.137, lng: 1.222 },
+        zoom: 12,
+        mapId: "LOGER_TOGO_LIST_ID",
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+    });
+
+    directionsRenderer.setMap(map);
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-            userPos = [pos.coords.latitude, pos.coords.longitude];
-            L.marker(userPos, { icon: L.divIcon({ className:'', html:'<div style="width:18px;height:18px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 10px rgba(59,130,246,0.5)"></div>' }) }).addTo(map);
+            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            userMarker = new google.maps.Marker({
+                position: loc,
+                map: map,
+                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#4285F4', fillOpacity: 1, scale: 8, strokeColor: 'white', strokeWeight: 2 },
+                title: "{% trans "Votre position" %}"
+            });
         });
     }
 
-    const bounds = [];
-    const markers = L.markerClusterGroup({
-        showCoverageOnHover: false,
-        spiderfyOnMaxZoom: true,
-        zoomToBoundsOnClick: true
-    });
+    const infoWindow = new google.maps.InfoWindow();
+    const bounds = new google.maps.LatLngBounds();
 
     MAP_MARKERS.forEach(m => {
         const isPremium = m.category === 'FURNISHED' || m.category === 'AUBERGE' || m.type === 'Auberge';
         const color = isPremium ? '#d63384' : '#0b4629';
-        const icon = L.divIcon({
-            html: `<div class="price-tag ${isPremium?'furnished':''}" style="border-color:${color};color:${color}">${m.price.toLocaleString()} F</div>`,
-            iconAnchor: [40, 20]
+        
+        const marker = new google.maps.Marker({
+            position: { lat: m.lat, lng: m.lng },
+            label: {
+                text: `${m.price.toLocaleString()} F`,
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: '800'
+            },
+            icon: {
+                path: 'M -35,-10 L 35,-10 L 35,10 L -35,10 z',
+                fillColor: color,
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 1,
+                labelOrigin: new google.maps.Point(0, 0)
+            }
         });
-        const marker = L.marker([m.lat, m.lng], { icon }).bindPopup(`
-            <div style="width:200px">
-                <img src="${m.img}" style="width:100%;height:110px;object-fit:cover;border-radius:12px" loading="lazy">
-                <strong class="d-block mt-2" style="font-size:14px">${m.title}</strong>
-                <div style="color:${color};font-weight:800;font-size:1.1rem;margin:5px 0">${m.price.toLocaleString()} F</div>
-                <div class="d-flex gap-2">
-                    <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-primary flex-grow-1" style="border-radius:8px">{% trans "Itinéraire" %}</button>
-                    <a href="${m.url}" class="btn btn-sm btn-success px-3" style="border-radius:8px">{% trans "Voir" %}</a>
-                </div>
-            </div>
-        `);
-        markers.addLayer(marker);
-        bounds.push([m.lat, m.lng]);
-    });
-    map.addLayer(markers);
-    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
-}
 
-document.addEventListener('DOMContentLoaded', initMap);
+        marker.addListener("click", () => {
+            const content = `
+                <div style="width:200px;color:black;">
+                    <img src="${m.img}" style="width:100%;height:110px;object-fit:cover;border-radius:12px" loading="lazy">
+                    <strong class="d-block mt-2" style="font-size:14px">${m.title}</strong>
+                    <div style="color:${color};font-weight:800;font-size:1.1rem;margin:5px 0">${m.price.toLocaleString()} F</div>
+                    <div class="d-flex gap-2">
+                        <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-primary flex-grow-1" style="border-radius:8px">{% trans "Route" %}</button>
+                        <a href="${m.url}" class="btn btn-sm btn-success px-3" style="border-radius:8px">{% trans "Voir" %}</a>
+                    </div>
+                </div>`;
+            infoWindow.setContent(content);
+            infoWindow.open(map, marker);
+        });
+
+        markers.push(marker);
+        bounds.extend({ lat: m.lat, lng: m.lng });
+    });
+
+    markerCluster = new markerClusterer.MarkerClusterer({ map, markers });
+
+    if (MAP_MARKERS.length > 0) {
+        map.fitBounds(bounds);
+    }
+}
 </script>
 {% endblock %}

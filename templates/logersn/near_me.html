@@ -133,7 +133,9 @@ const PREMIUM_MAP_STYLE = [
 ];
 
 let map, directionsService, directionsRenderer, userMarker, markerCluster;
-const PROPERTIES = {{ properties_json|safe }};
+let markers = [];
+let propMarkers = {};
+const MARKERS_DATA = {{ properties_json|safe }};
 
 function initMap() {
     directionsService = new google.maps.DirectionsService();
@@ -280,7 +282,7 @@ function renderList(uLat, uLng, filter = 'ALL') {
 
     list.innerHTML = filtered.map(p => `
         <div class="prop-card" id="card-${p.id}" onclick="focusProp('${p.id}')">
-            <img src="${p.img}" class="prop-img">
+            <img src="${p.image}" class="prop-img">
             <div class="prop-details">
                 <div class="fw-bold small text-dark">${p.title}</div>
                 <div class="prop-price text-success fw-bold">${(p.price_night > 0 ? p.price_night : p.price_month).toLocaleString()} F</div>
@@ -350,5 +352,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // initMap is called by callback in script tag
 });
 </script>
-{% endblock %}
 {% endblock %}

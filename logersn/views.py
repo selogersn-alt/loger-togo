@@ -452,7 +452,7 @@ def near_me_view(request):
     focus_id = request.GET.get('focus')
 
     return render(request, 'logersn/near_me.html', {
-        'map_markers_json': json.dumps(map_markers, ensure_ascii=False),
+        'properties_json': json.dumps(map_markers, ensure_ascii=False),
         'total_count': len(map_markers),
         'title': _("Auberges & Meublés à proximité"),
         'focus_id': focus_id

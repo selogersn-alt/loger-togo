@@ -99,7 +99,7 @@
                 </a>
                 {% endif %}
             </div>
-            <span class="btn btn-success btn-sm px-3 rounded-pill fw-bold shadow-sm" style="font-size: 0.75rem;">{% trans "Détails" %} <i class="fa-solid fa-chevron-right ms-1"></i></span>
+            <a href="{{ property.get_absolute_url }}" class="btn btn-success btn-sm px-3 rounded-pill fw-bold shadow-sm" style="font-size: 0.75rem; z-index: 15; position: relative;">{% trans "Détails" %} <i class="fa-solid fa-chevron-right ms-1"></i></a>
         </div>
     </div>
 

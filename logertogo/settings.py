@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-de
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['157.180.127.70', 'logertg.com', 'www.logertg.com', 'logertogo.com', 'www.logertogo.com', 'localhost', '127.0.0.1']
-SITE_URL = 'https://logertg.com'
+SITE_URL = 'https://logertogo.com'
 
 # Security & SSL Configuration (Senior Production Setup)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -36,8 +36,6 @@ SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True') == 'True'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
-    'https://logertg.com',
-    'https://www.logertg.com',
     'https://logertogo.com',
     'https://www.logertogo.com',
 ]
@@ -332,7 +330,7 @@ TERMII_API_KEY = os.environ.get('TERMII_API_KEY', '')
 TERMII_SENDER_ID = os.environ.get('TERMII_SENDER_ID', 'Loger Togo')
 
 # --- GOOGLE MAPS CONFIGURATION ---
-GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', 'AIzaSyB6pKXlArUQVWsQHP9usAxkS0eFG2cpV68')
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 
 # --- CONFIGURATION LOCALE (ZÉRO CONFLIT) ---
 # Ce bloc permet de surcharger les réglages (comme la BDD) sur le serveur

@@ -468,7 +468,11 @@ window.placeMarker = function(location) {
         window.showStatus('✅ {% trans "Position ajustée." %}', 'success');
     });
 
-    window.updateCoords(location.lat ? location.lat() : location.lat, location.lng ? location.lng() : location.lng);
+    // Correction : Détecter si lat/lng sont des fonctions ou des nombres
+    const finalLat = (typeof location.lat === 'function') ? location.lat() : location.lat;
+    const finalLng = (typeof location.lng === 'function') ? location.lng() : location.lng;
+
+    window.updateCoords(finalLat, finalLng);
     const mapEl = document.getElementById('mapWrapper');
     if(mapEl) mapEl.classList.add('pinned');
     markerPinned = true;

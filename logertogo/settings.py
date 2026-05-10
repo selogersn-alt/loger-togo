@@ -330,7 +330,7 @@ TERMII_API_KEY = os.environ.get('TERMII_API_KEY', '')
 TERMII_SENDER_ID = os.environ.get('TERMII_SENDER_ID', 'Loger Togo')
 
 # --- GOOGLE MAPS CONFIGURATION ---
-GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
+GOOGLE_MAPS_API_KEY = 'AIzaSyB6pKXlArUQVWsQHP9usAxkS0eFG2cpV68'
 
 # --- CONFIGURATION LOCALE (ZÉRO CONFLIT) ---
 # Ce bloc permet de surcharger les réglages (comme la BDD) sur le serveur

@@ -8,15 +8,118 @@
     :root {
         --color-dark-green: #0b4629;
         --color-gold: #f5c42f;
+        --color-light-green: #28a745;
     }
     
     .filter-section {
-        background: white;
-        padding: 25px;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        margin-bottom: 30px;
-        border: 1px solid #f1f1f1;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 24px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.03);
+        margin-bottom: 40px;
+        transition: all 0.3s ease;
+    }
+    .filter-section:hover {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    }
+
+    .filter-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-input-group {
+        background: #f8f9fa;
+        border: 2px solid transparent;
+        border-radius: 14px;
+        padding: 4px 12px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-input-group:focus-within {
+        background: #ffffff;
+        border-color: var(--color-light-green);
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.1);
+    }
+
+    .filter-input-group i {
+        color: var(--color-dark-green);
+        font-size: 1rem;
+        opacity: 0.6;
+    }
+
+    .filter-control {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-weight: 600;
+        color: #333;
+        padding: 8px 0;
+    }
+
+    .search-btn-premium {
+        background: linear-gradient(135deg, var(--color-dark-green), #145c3a);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        height: 54px;
+        font-weight: 800;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(11, 70, 41, 0.15);
+    }
+
+    .search-btn-premium:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(11, 70, 41, 0.25);
+        color: white;
+    }
+
+    .advanced-toggle-btn {
+        background: transparent;
+        border: none;
+        color: var(--color-dark-green);
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 20px auto 0;
+        padding: 10px 20px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+
+    .advanced-toggle-btn:hover {
+        background: rgba(11, 70, 41, 0.05);
+    }
+
+    .advanced-filters-panel {
+        display: none;
+        padding-top: 25px;
+        margin-top: 25px;
+        border-top: 1px solid #f0f0f0;
+        animation: fadeInDown 0.4s ease;
+    }
+
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Style UNIFORME des Étiquettes de Prix (Identique à Near Me) */
@@ -44,11 +147,11 @@
 
     #mapWrapper {
         height: 450px;
-        border-radius: 20px;
+        border-radius: 24px;
         overflow: hidden;
         margin-bottom: 30px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        border: 1px solid #eee;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
         position: relative;
     }
     #mapWrapper.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border-radius: 0; margin: 0; }
@@ -64,18 +167,6 @@
     .map-controls { position: absolute; right: 20px; top: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
     .map-btn { width: 40px; height: 40px; background: white; border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); color: var(--color-dark-green); cursor: pointer; }
 
-    .search-btn {
-        background: var(--color-dark-green);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        height: 48px;
-        font-weight: 700;
-        transition: all 0.3s;
-    }
-    .search-btn:hover { background: #08351f; transform: scale(1.02); }
-    .advanced-filters { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #eee; }
-
     .fallback-alert {
         background: #fff4e5;
         border-left: 5px solid #ffa117;
@@ -89,69 +180,102 @@
 
 {% block content %}
 <div class="container py-4">
-    <!-- Moteur de Recherche Amélioré -->
+    <!-- Moteur de Recherche Premium -->
     <div class="filter-section">
         <form method="GET" action="{% url 'properties_list' %}" id="filterForm">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-city me-1"></i> {% trans "Ville" %}</label>
-                    <select name="city" class="form-select border-0 bg-light rounded-3">
-                        <option value="">{% trans "Toutes les villes" %}</option>
-                        {% for city in cities %}<option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>{% endfor %}
-                    </select>
+            <div class="row g-4">
+                <!-- Ville -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="filter-label"><i class="fas fa-city text-success"></i> {% trans "Ville" %}</label>
+                    <div class="filter-input-group">
+                        <select name="city" class="form-select filter-control">
+                            <option value="">{% trans "Toutes les villes" %}</option>
+                            {% for city in cities %}<option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city }}</option>{% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-map-marker-alt me-1"></i> {% trans "Quartier" %}</label>
-                    <input type="text" name="neighborhood" class="form-control border-0 bg-light rounded-3" placeholder="{% trans 'Où cherchez-vous ?' %}" value="{{ request.GET.neighborhood }}">
+
+                <!-- Quartier -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="filter-label"><i class="fas fa-map-marker-alt text-success"></i> {% trans "Quartier" %}</label>
+                    <div class="filter-input-group">
+                        <input type="text" name="neighborhood" class="form-control filter-control" placeholder="{% trans 'Où cherchez-vous ?' %}" value="{{ request.GET.neighborhood }}">
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-home me-1"></i> {% trans "Nature" %}</label>
-                    <select name="listing_category" class="form-select border-0 bg-light rounded-3">
-                        <option value="">{% trans "Toutes les natures" %}</option>
-                        {% for code, name in listing_categories %}
-                        <option value="{{ code }}" {% if request.GET.listing_category == code %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                    </select>
+
+                <!-- Nature & Type -->
+                <div class="col-lg-4 col-md-8">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="filter-label"><i class="fas fa-layer-group text-success"></i> {% trans "Nature" %}</label>
+                            <div class="filter-input-group">
+                                <select name="listing_category" class="form-select filter-control">
+                                    <option value="">{% trans "Toutes" %}</option>
+                                    {% for code, name in listing_categories %}
+                                    <option value="{{ code }}" {% if request.GET.listing_category == code %}selected{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="filter-label"><i class="fas fa-home text-success"></i> {% trans "Type" %}</label>
+                            <div class="filter-input-group">
+                                <select name="property_type" class="form-select filter-control">
+                                    <option value="">{% trans "Tous" %}</option>
+                                    {% for code, name in property_types %}
+                                    <option value="{{ code }}" {% if request.GET.property_type == code %}selected{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-home me-1"></i> {% trans "Type" %}</label>
-                    <select name="property_type" class="form-select border-0 bg-light rounded-3">
-                        <option value="">{% trans "Tous types" %}</option>
-                        {% for code, name in property_types %}
-                        <option value="{{ code }}" {% if request.GET.property_type == code %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="small fw-bold text-muted mb-1"><i class="fas fa-tag me-1"></i> {% trans "Budget Max" %}</label>
-                    <input type="number" name="max_price" class="form-control border-0 bg-light rounded-3" placeholder="FCFA" value="{{ request.GET.max_price }}">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn search-btn w-100">
-                        <i class="fas fa-search me-2"></i> {% trans "Chercher" %}
+
+                <!-- Budget & CTA -->
+                <div class="col-lg-2 col-md-4">
+                    <label class="filter-label"><i class="fas fa-tag text-success"></i> {% trans "Budget Max" %}</label>
+                    <div class="filter-input-group mb-3">
+                        <input type="number" name="max_price" class="form-control filter-control" placeholder="FCFA" value="{{ request.GET.max_price }}">
+                    </div>
+                    <button type="submit" class="btn search-btn-premium w-100">
+                        <i class="fas fa-search"></i> {% trans "Chercher" %}
                     </button>
                 </div>
             </div>
-            <div id="advancedFilters" class="advanced-filters">
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="small fw-bold text-muted mb-1">{% trans "Chambres min" %}</label>
-                        <input type="number" name="min_bedrooms" class="form-control border-0 bg-light" value="{{ request.GET.min_bedrooms }}">
+
+            <!-- Bouton Filtres Avancés -->
+            <button type="button" onclick="toggleAdvancedFilters()" class="advanced-toggle-btn">
+                <i class="fas fa-sliders-h"></i> <span>{% trans "Plus de critères" %}</span>
+            </button>
+
+            <!-- Panel Filtres Avancés -->
+            <div id="advancedFiltersPanel" class="advanced-filters-panel">
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <label class="filter-label">{% trans "Chambres min" %}</label>
+                        <div class="filter-input-group">
+                            <input type="number" name="min_bedrooms" class="form-control filter-control" value="{{ request.GET.min_bedrooms }}" placeholder="0">
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <label class="small fw-bold text-muted mb-1">{% trans "WiFi" %}</label>
-                        <select name="wifi" class="form-select border-0 bg-light"><option value="">-</option><option value="1">{% trans "Oui" %}</option></select>
+                    <div class="col-md-3">
+                        <label class="filter-label">{% trans "WiFi" %}</label>
+                        <div class="filter-input-group">
+                            <select name="wifi" class="form-select filter-control">
+                                <option value="">{% trans "Peu importe" %}</option>
+                                <option value="1" {% if request.GET.wifi == '1' %}selected{% endif %}>{% trans "Oui" %}</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <label class="small fw-bold text-muted mb-1">{% trans "Clim" %}</label>
-                        <select name="ac" class="form-select border-0 bg-light"><option value="">-</option><option value="1">{% trans "Oui" %}</option></select>
+                    <div class="col-md-3">
+                        <label class="filter-label">{% trans "Climatisation" %}</label>
+                        <div class="filter-input-group">
+                            <select name="ac" class="form-select filter-control">
+                                <option value="">{% trans "Peu importe" %}</option>
+                                <option value="1" {% if request.GET.ac == '1' %}selected{% endif %}>{% trans "Oui" %}</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="text-center mt-3">
-                <button type="button" class="btn btn-link text-decoration-none small fw-bold text-success" onclick="toggleAdvanced()">
-                    <i class="fas fa-sliders-h me-1"></i> {% trans "Plus de critères" %}
-                </button>
             </div>
         </form>
     </div>
@@ -354,8 +478,8 @@ window.centerOnUser = function() {
     }
 };
 
-window.toggleAdvanced = function() {
-    const div = document.getElementById('advancedFilters');
+window.toggleAdvancedFilters = function() {
+    const div = document.getElementById('advancedFiltersPanel');
     if (div) div.style.display = div.style.display === 'block' ? 'none' : 'block';
 };
 </script>

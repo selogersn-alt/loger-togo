@@ -1,7 +1,7 @@
-# Redirection de l'IP brute vers le domaine
+# Bloc par défaut : capte l'IP brute en HTTP
 server {
-    listen 80;
-    server_name 157.180.127.70;
+    listen 80 default_server;
+    server_name _;
     return 301 https://logertogo.com$request_uri;
 }
 

@@ -1,3 +1,10 @@
+# Redirection de l'IP brute vers le domaine
+server {
+    listen 80;
+    server_name 157.180.127.70;
+    return 301 https://logertogo.com$request_uri;
+}
+
 server {
     listen 80;
     server_name logertogo.com www.logertogo.com;
@@ -7,7 +14,7 @@ server {
     }
 
     location / {
-        return 301 https://$host$request_uri;
+        return 301 https://logertogo.com$request_uri;
     }
 }
 

@@ -159,7 +159,8 @@ def properties_list_view(request):
                 'neighborhood': p.neighborhood or "",
                 'category': p.listing_category,
                 'url': p.get_absolute_url(),
-                'img': img_url or ""
+                'image': img_url or "",
+                'city': p.city or ""
             })
 
     context = {
@@ -440,7 +441,7 @@ def near_me_view(request):
             'neighborhood': p.neighborhood or '',
             'city': p.get_city_display() if p.city else '',
             'url': request.build_absolute_uri(p.get_absolute_url()),
-            'img': img_url,
+            'image': img_url,
             'phone': phone,
             'bedrooms': p.bedrooms or 0,
             'wifi': getattr(p, 'wifi', False),

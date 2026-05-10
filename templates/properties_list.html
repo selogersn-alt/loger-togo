@@ -350,7 +350,7 @@ function initMap() {
         polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6, strokeOpacity: 0.8 }
     });
 
-    const mapElement = document.getElementById('map') || document.getElementById('leaflet-map');
+    const mapElement = document.getElementById('leaflet-map');
     if (!mapElement) return;
 
     map = new google.maps.Map(mapElement, {
@@ -365,12 +365,24 @@ function initMap() {
 
     directionsRenderer.setMap(map);
 
+    // Dictionnaire pour gérer les collisions de coordonnées (Jitter)
+    const coordCounts = {};
+
     const markers = MAP_MARKERS.map(m => {
         const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#d63384' : '#0b4629';
         
+        // Gestion du jitter si plusieurs biens sont au même endroit
+        let lat = m.lat;
+        let lng = m.lng;
+        const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+        if (coordCounts[key]) {
+            lat += (Math.random() - 0.5) * 0.0001;
+            lng += (Math.random() - 0.5) * 0.0001;
+        }
+        coordCounts[key] = (coordCounts[key] || 0) + 1;
+
         const marker = new google.maps.Marker({
-            position: { lat: m.lat, lng: m.lng },
-            map: map,
+            position: { lat: lat, lng: lng },
             icon: {
                 path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
                 fillColor: catColor,

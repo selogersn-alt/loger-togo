@@ -207,15 +207,24 @@ async function showRoute(targetLat, targetLng) {
 
 function placeMarkers() {
     const infoWindow = new google.maps.InfoWindow();
+    const coordCounts = {};
 
     MARKERS_DATA.forEach(p => {
         const price = p.price_night > 0 ? p.price_night : p.price_month;
         const isPremium = p.property_type === 'AUBERGE' || p.category === 'FURNISHED';
         const color = isPremium ? '#d63384' : '#0b4629';
         
+        let lat = p.lat;
+        let lng = p.lng;
+        const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+        if (coordCounts[key]) {
+            lat += (Math.random() - 0.5) * 0.0001;
+            lng += (Math.random() - 0.5) * 0.0001;
+        }
+        coordCounts[key] = (coordCounts[key] || 0) + 1;
+
         const marker = new google.maps.Marker({
-            position: { lat: p.lat, lng: p.lng },
-            map: map,
+            position: { lat: lat, lng: lng },
             icon: {
                 path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
                 fillColor: color,

@@ -68,6 +68,7 @@
     #map { height: 50vh; }
     .side-panel { width: 100%; height: 50vh; min-width: unset; }
 }
+    .marker-label-shift { margin-top: -45px; }
 </style>
 {% endblock %}
 
@@ -214,19 +215,22 @@ function placeMarkers() {
         
         const marker = new google.maps.Marker({
             position: { lat: p.lat, lng: p.lng },
-            label: {
-                text: `${price.toLocaleString()} F`,
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: '800'
-            },
+            map: map,
             icon: {
-                path: 'M -35,-10 L 35,-10 L 35,10 L -35,10 z',
+                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
                 fillColor: color,
                 fillOpacity: 1,
                 strokeColor: 'white',
-                strokeWeight: 1,
-                labelOrigin: new google.maps.Point(0, 0)
+                strokeWeight: 2,
+                scale: 2,
+                anchor: new google.maps.Point(12, 22),
+            },
+            label: {
+                text: `${(price / 1000).toFixed(0)}k`,
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: '800',
+                className: 'marker-label-shift'
             }
         });
 

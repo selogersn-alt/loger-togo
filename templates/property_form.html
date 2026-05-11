@@ -842,10 +842,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // INTERCEPTION DU SUBMIT POUR COMPRESSION
     form.addEventListener('submit', async (e) => {
-        if (selectedFiles.length === 0) return; 
+        // Empêcher la soumission multiple
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        // Affichage IMMÉDIAT de l'overlay
+        overlay.style.display = 'flex';
+        overlay.classList.add('animate__fadeIn');
+        
+        if (selectedFiles.length === 0) {
+            // Si pas d'images, on laisse le formulaire partir normalement
+            return;
+        }
         
         e.preventDefault();
-        overlay.style.display = 'flex';
+
         
         const compressedFiles = [];
         const options = {

@@ -340,6 +340,10 @@ except ImportError:
     pass
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+ 
+# --- UPLOAD LIMITS (Fix 413 error) ---
+DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000 # 500 Mo
+FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000 # 500 Mo
 
 # --- CACHE CONFIGURATION (Haute Performance) ---
 # Utilisation de DatabaseCache pour la persistance si Redis n'est pas présent

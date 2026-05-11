@@ -327,20 +327,24 @@
 <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places,geometry&callback=initMap" async defer></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
-// ─── PREMIUM MAP STYLE (Ultra-Épurée : Rues & Quartiers uniquement) ──
+// ─── PREMIUM MAP STYLE (Minimaliste Absolu : Focus Biens) ────────────
 const PREMIUM_MAP_STYLE = [
-  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#a2daf2" }] },
-  { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
-  { "featureType": "poi", "stylers": [{ "visibility": "off" }] }, // Cache tout (Banques, Hôtels, etc.)
+  { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
+  { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
+  { "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+  { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f5f5f5" }] },
+  { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
+  { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
+  { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
+  { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+  { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
+  { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+  { "featureType": "road.local", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] },
   { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "administrative.neighborhood", "elementType": "labels.text.fill", "stylers": [{ "visibility": "on" }, { "color": "#0b4629" }] },
-  { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [{ "visibility": "on" }, { "color": "#0b4629" }] },
-  { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "visibility": "on" }, { "color": "#757575" }] },
-  { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#fbc02d" }] },
-  { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#f9a825" }] },
-  { "featureType": "road.arterial", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
-  { "featureType": "road.local", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] }
+  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#c9c9c9" }] },
+  { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] }
 ];
+
 
 
 let map, directionsService, directionsRenderer, userMarker, markerCluster;
@@ -407,28 +411,36 @@ function initMap() {
 
         const infoWindow = new google.maps.InfoWindow({
             content: `
-                <div style="width:230px; font-family: 'Outfit', sans-serif; overflow:hidden;">
-                    <div style="position:relative; margin-bottom:12px;">
-                        <img src="${m.image}" style="width:100%; height:130px; object-fit:cover; border-radius:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                        <div style="position:absolute; top:10px; right:10px; background:var(--color-dark-green); color:white; padding:4px 10px; border-radius:10px; font-weight:800; font-size:0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                            ${m.price.toLocaleString()} F
+                <div style="width:260px; font-family: 'Outfit', sans-serif; overflow:hidden; border-radius:18px;">
+                    <div style="position:relative; margin-bottom:15px; border-radius:15px; overflow:hidden; height:150px;">
+                        <img src="${m.image}" style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
+                        <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 12px 10px;">
+                            <div style="color:white; font-weight:800; font-size:1.1rem;">
+                                ${m.price.toLocaleString()} F <small style="font-weight:400; font-size:0.7rem; opacity:0.8;">CFA</small>
+                            </div>
+                        </div>
+                        <div style="position:absolute; top:10px; left:10px; background:white; color:var(--color-dark-green); padding:4px 10px; border-radius:30px; font-weight:700; font-size:0.7rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                             <i class="fas fa-star me-1" style="color:#ffc107;"></i> Loger Togo
                         </div>
                     </div>
-                    <div style="padding:0 5px;">
-                        <strong style="display:block; font-size:1rem; color:#333; margin-bottom:4px; line-height:1.2;">${m.title}</strong>
-                        <p style="color:#777; font-size:0.8rem; margin-bottom:12px;"><i class="fas fa-map-marker-alt text-success me-1"></i> ${m.city}</p>
-                        <div class="d-flex gap-2">
-                            <a href="${m.url}" class="btn btn-sm btn-success flex-grow-1" style="border-radius:12px; font-weight:700; padding:8px 0;">
-                                <i class="fas fa-eye me-1"></i> {% trans "Voir l'annonce" %}
+                    <div style="padding:0 5px 5px;">
+                        <strong style="display:block; font-size:0.95rem; color:#1a1a1a; margin-bottom:4px; line-height:1.2; text-transform:capitalize;">${m.title}</strong>
+                        <p style="color:#666; font-size:0.75rem; margin-bottom:15px; display:flex; align-items:center;">
+                            <i class="fas fa-map-marker-alt text-success me-1" style="font-size:0.9rem;"></i> ${m.city}
+                        </p>
+                        <div style="display:flex; gap:10px;">
+                            <a href="${m.url}" style="background:var(--color-dark-green); color:white; flex:1; text-align:center; padding:10px; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(11,70,41,0.2);">
+                                <i class="fas fa-eye"></i> {% trans "Voir le bien" %}
                             </a>
-                            <button onclick="calculateRoute(${m.lat}, ${m.lng})" class="btn btn-sm btn-outline-success" style="border-radius:12px; padding:8px 12px; border-width:2px;">
-                                <i class="fas fa-route"></i>
+                            <button onclick="calculateRoute(${m.lat}, ${m.lng})" style="background:#f0f7f4; border:2px solid var(--color-dark-green); color:var(--color-dark-green); padding:10px 14px; border-radius:12px; cursor:pointer; transition: all 0.2s;">
+                                <i class="fas fa-location-arrow"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             `
         });
+
 
         marker.addListener('click', () => {
             infoWindow.open(map, marker);

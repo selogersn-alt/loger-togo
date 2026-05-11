@@ -103,8 +103,45 @@
     background: linear-gradient(90deg, var(--color-light-green), var(--color-yellow));
     width: 0%;
     transition: width 0.3s ease;
+  /* Magical Submit Button */
+  .btn-primary-custom {
+    background: linear-gradient(135deg, var(--color-dark-green), var(--color-light-green));
+    border: none;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .btn-primary-custom::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    transform: scale(0);
+    transition: transform 0.6s ease-out;
+  }
+  .btn-primary-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(11, 70, 41, 0.3);
+  }
+  .btn-primary-custom:hover::before {
+    transform: scale(1);
+  }
+  
+  /* Magic Entry Animation */
+  .magic-fade-in {
+    animation: magicFade 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    opacity: 0;
+  }
+  @keyframes magicFade {
+    0% { opacity: 0; transform: translateY(30px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 </style>
+
 
 
 {% endblock %}
@@ -112,8 +149,8 @@
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
-    <div class="col-lg-9">
-      <div class="card border-0 shadow-lg" style="border-radius:20px;background:var(--bg-card);">
+    <div class="col-lg-10 mx-auto magic-fade-in">
+      <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 24px; background: var(--bg-card);">
         <div class="card-body p-4 p-md-5">
 
           <div class="text-center mb-5">
@@ -494,18 +531,20 @@
 <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
 
 <script>
-// ─── PREMIUM MAP STYLE (Vibrant Signature) ──────────────────────────
+// ─── PREMIUM MAP STYLE (Version Purifiée - No POI) ──────────────────
 const PREMIUM_MAP_STYLE = [
   { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#a2daf2" }] },
   { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
-  { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "color": "#d5e8d4" }] },
+  { "featureType": "poi", "stylers": [{ "visibility": "off" }] }, // DÉSACTIVE TOUS LES POINTS D'INTÉRÊT (Hôtels, Bars, etc.)
+  { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "visibility": "on" }, { "color": "#d5e8d4" }] },
   { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#fbc02d" }] },
   { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#f9a825" }] },
   { "featureType": "road.arterial", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
   { "featureType": "road.local", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
   { "featureType": "administrative", "elementType": "labels.text.fill", "stylers": [{ "color": "#0b4629" }] },
-  { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#0b4629" }] }
+  { "featureType": "transit", "stylers": [{ "visibility": "off" }] } // Cache les gares/arrêts bus
 ];
+
 
 // ─── CONFIG & GLOBALS ──────────────────────────────────────────────────
 let map, marker, autocomplete;

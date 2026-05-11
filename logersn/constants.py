@@ -1,6 +1,10 @@
 from django.utils.translation import gettext_lazy as _
 
 PROPERTY_TYPE_CHOICES = [
+    ('UNE_PIECE', _('Une pièce')),
+    ('CHAMBRE_SALON', _('Chambre salon')),
+    ('DEUX_CHAMBRES_SALON', _('2 chambres salon')),
+    ('TROIS_CHAMBRES_SALON', _('3 chambres salon')),
     ('STUDIO', _('Studio')),
     ('APPARTEMENT', _('Appartement')),
     ('CHAMBRE', _('Chambre')),

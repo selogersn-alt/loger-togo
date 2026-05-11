@@ -3,23 +3,73 @@
 {% block title %}{% trans "Publier une annonce" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
-<style>
-  .form-control, .form-select {
-    background-color: var(--bg-body) !important;
-    color: var(--text-main) !important;
-    border-color: var(--border-color) !important;
-    padding: 12px; border-radius: 10px;
+  /* Image Upload Premium UI */
+  .upload-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    background: var(--bg-body);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
   }
-  .form-control:focus, .form-select:focus {
-    box-shadow: 0 0 0 0.25rem rgba(127,212,125,.25) !important;
-    border-color: var(--color-light-green) !important;
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--color-light-green);
+    background: rgba(40, 167, 69, 0.05);
   }
-  .section-divider { border-color: var(--border-color) !important; }
-  #mapWrapper.pinned { border-color: var(--color-light-green) !important; box-shadow: 0 0 0 4px rgba(127,212,125,.2) !important; }
-  .map-status { font-size:.82rem; padding: 6px 12px; border-radius: 8px; margin-top: 8px; display: none; }
-  .map-status.visible { display:block; }
-  .geocode-btn { transition: all .25s; }
+  .preview-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+  }
+  .preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .preview-item .remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(220, 53, 69, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  /* Loading Overlay */
+  #upload-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    backdrop-filter: blur(5px);
+  }
 </style>
+
 {% endblock %}
 
 {% block content %}
@@ -320,12 +370,47 @@
                 </div>
               </div>
 
-              <!-- ─ PHOTOS ─ -->
+              <!-- ─ PHOTOS OPTIMISÉES ─ -->
               <div class="col-12 pt-3 border-top section-divider">
-                <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{{ form.images.label }}</label>
-                {{ form.images }}
-                <small class="text-muted d-block mt-1">{% trans "Formats acceptés : JPG, PNG, WEBP. Convertis automatiquement en WebP haute qualité." %}</small>
+                <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{% trans "Photos du bien" %}</label>
+                
+                <div class="upload-zone" id="drop-zone">
+                  <input type="file" id="image-input" multiple accept="image/*" class="d-none">
+                  <div class="upload-icon mb-2">
+                    <i class="fa-solid fa-cloud-arrow-up fs-1 text-success"></i>
+                  </div>
+                  <h6 class="fw-bold">{% trans "Cliquez ou glissez vos photos ici" %}</h6>
+                  <p class="text-muted small">{% trans "Optimisation automatique activée pour un envoi ultra-rapide." %}</p>
+                  <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="document.getElementById('image-input').click()">
+                    {% trans "Sélectionner des fichiers" %}
+                  </button>
+                </div>
+
+                <div class="preview-container" id="preview-container"></div>
+                
+                <!-- Champ réel caché pour Django -->
+                <div class="d-none">
+                  {{ form.images }}
+                </div>
+                
+                <small class="text-muted d-block mt-3">
+                  <i class="fa-solid fa-circle-check text-success me-1"></i>
+                  {% trans "Vos photos seront compressées sans perte de qualité visible avant l'envoi." %}
+                </small>
               </div>
+
+              <!-- Overlay de chargement -->
+              <div id="upload-overlay">
+                <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4 class="fw-bold">{% trans "Optimisation des images..." %}</h4>
+                <p id="upload-status-text">{% trans "Traitement de vos fichiers pour un envoi ultra-rapide vers Cloudflare R2." %}</p>
+                <div class="progress w-50" style="height: 10px; border-radius: 10px; background: rgba(255,255,255,0.1);">
+                  <div id="upload-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
 
               <!-- ─ INFOS PRIVÉES (RÉSERVÉ ADMIN/ROBOT) ─ -->
               <div class="col-12 pt-3 border-top section-divider">
@@ -360,7 +445,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Library de compression ultra-performante -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
+
 <script>
 // ─── PREMIUM MAP STYLE (Vibrant Signature) ──────────────────────────
 const PREMIUM_MAP_STYLE = [
@@ -597,6 +685,121 @@ document.addEventListener('DOMContentLoaded', function() {
         priceInput.addEventListener('input', calculateFinalPrice);
         discountInput.addEventListener('input', calculateFinalPrice);
     }
+
+    // ─── LOGIQUE D'UPLOAD ET COMPRESSION D'IMAGES ────────────────────────
+    const imageInput = document.getElementById('image-input');
+    const realInput = document.querySelector('input[type="file"][name="images"]');
+    const previewContainer = document.getElementById('preview-container');
+    const dropZone = document.getElementById('drop-zone');
+    const form = document.getElementById('property-form');
+    const overlay = document.getElementById('upload-overlay');
+    const progressBar = document.getElementById('upload-progress-bar');
+    const statusText = document.getElementById('upload-status-text');
+
+    let selectedFiles = [];
+
+    // Gestion du Drag & Drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', e => {
+        handleFiles(e.dataTransfer.files);
+    });
+
+    imageInput.addEventListener('change', e => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        const fileList = Array.from(files);
+        fileList.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                selectedFiles.push(file);
+                renderPreview(file);
+            }
+        });
+        updateRealInput();
+    }
+
+    function renderPreview(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const div = document.createElement('div');
+            div.className = 'preview-item animate__animated animate__zoomIn';
+            div.innerHTML = `
+                <img src="${e.target.result}">
+                <button type="button" class="remove-btn"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            div.querySelector('.remove-btn').onclick = () => {
+                selectedFiles = selectedFiles.filter(f => f !== file);
+                div.remove();
+                updateRealInput();
+            };
+            previewContainer.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updateRealInput() {
+        // Cette fonction sera appelée juste avant le submit pour la compression finale
+        // Pour l'instant on garde une trace pour la prévisualisation
+    }
+
+    // INTERCEPTION DU SUBMIT POUR COMPRESSION
+    form.addEventListener('submit', async (e) => {
+        if (selectedFiles.length === 0) return; // Laisser Django gérer l'erreur de validation si requis
+        
+        e.preventDefault();
+        overlay.style.display = 'flex';
+        
+        const compressedFiles = [];
+        const options = {
+            maxSizeMB: 0.8,
+            maxWidthOrHeight: 1200,
+            useWebWorker: true,
+            fileType: 'image/webp'
+        };
+
+        try {
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const progress = Math.round(((i) / selectedFiles.length) * 100);
+                progressBar.style.width = `${progress}%`;
+                statusText.innerText = `{% trans "Compression de l'image" %} ${i + 1}/${selectedFiles.length}...`;
+                
+                const compressedFile = await imageCompression(file, options);
+                compressedFiles.push(new File([compressedFile], file.name.split('.')[0] + '.webp', { type: 'image/webp' }));
+            }
+
+            progressBar.style.width = '100%';
+            statusText.innerText = `{% trans "Envoi vers le serveur..." %}`;
+
+            // Créer un nouveau DataTransfer pour injecter les fichiers compressés dans le vrai input
+            const dataTransfer = new DataTransfer();
+            compressedFiles.forEach(file => dataTransfer.items.add(file));
+            realInput.files = dataTransfer.files;
+
+            // Soumettre le formulaire réellement
+            form.submit();
+        } catch (error) {
+            console.error('Compression error:', error);
+            overlay.style.display = 'none';
+            alert('{% trans "Une erreur est survenue lors de l\'optimisation des images. Veuillez réessayer." %}');
+        }
+    });
 });
+
 </script>
 {% endblock %}

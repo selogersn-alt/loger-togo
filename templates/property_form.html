@@ -52,23 +52,60 @@
     justify-content: center;
     cursor: pointer;
   }
-  /* Loading Overlay */
+  /* Loading Overlay Premium Glassmorphism */
   #upload-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 9999;
+    background: rgba(11, 70, 41, 0.85); /* Vert Loger profond */
+    z-index: 10000;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     color: white;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: all 0.5s ease;
+  }
+  .loading-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 40px;
+    border-radius: 30px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    max-width: 450px;
+    width: 90%;
+  }
+  .loading-spinner-custom {
+    width: 80px;
+    height: 80px;
+    border: 8px solid rgba(255,255,255,0.1);
+    border-top: 8px solid var(--color-yellow);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 25px;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  
+  .progress-custom {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+  .progress-bar-custom {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-light-green), var(--color-yellow));
+    width: 0%;
+    transition: width 0.3s ease;
   }
 </style>
+
 
 {% endblock %}
 
@@ -399,17 +436,24 @@
                 </small>
               </div>
 
-              <!-- Overlay de chargement -->
+              <!-- Overlay de chargement Premium -->
               <div id="upload-overlay">
-                <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-                <h4 class="fw-bold">{% trans "Optimisation des images..." %}</h4>
-                <p id="upload-status-text">{% trans "Traitement de vos fichiers pour un envoi ultra-rapide vers Cloudflare R2." %}</p>
-                <div class="progress w-50" style="height: 10px; border-radius: 10px; background: rgba(255,255,255,0.1);">
-                  <div id="upload-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="loading-card animate__animated animate__fadeInUp">
+                  <div class="loading-spinner-custom"></div>
+                  <h3 class="fw-bold mb-2">{% trans "Optimisation en cours" %}</h3>
+                  <p id="upload-status-text" class="small opacity-75 mb-0">{% trans "Nous préparons vos photos pour un affichage ultra-rapide..." %}</p>
+                  
+                  <div class="progress-custom">
+                    <div id="upload-progress-bar" class="progress-bar-custom"></div>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between x-small opacity-50 mt-2" style="font-size: 0.75rem;">
+                    <span>{% trans "Traitement sécurisé" %}</span>
+                    <span id="progress-percentage">0%</span>
+                  </div>
                 </div>
               </div>
+
 
 
               <!-- ─ INFOS PRIVÉES (RÉSERVÉ ADMIN/ROBOT) ─ -->
@@ -759,17 +803,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // INTERCEPTION DU SUBMIT POUR COMPRESSION
     form.addEventListener('submit', async (e) => {
-        if (selectedFiles.length === 0) return; // Laisser Django gérer l'erreur de validation si requis
+        if (selectedFiles.length === 0) return; 
         
         e.preventDefault();
         overlay.style.display = 'flex';
         
         const compressedFiles = [];
         const options = {
-            maxSizeMB: 0.8,
-            maxWidthOrHeight: 1200,
+            maxSizeMB: 0.5, // Plus agressif : 500 Ko max
+            maxWidthOrHeight: 1280,
             useWebWorker: true,
-            fileType: 'image/webp'
+            fileType: 'image/webp',
+            initialQuality: 0.7
         };
 
         try {
@@ -777,28 +822,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 const file = selectedFiles[i];
                 const progress = Math.round(((i) / selectedFiles.length) * 100);
                 progressBar.style.width = `${progress}%`;
-                statusText.innerText = `{% trans "Compression de l'image" %} ${i + 1}/${selectedFiles.length}...`;
+                document.getElementById('progress-percentage').innerText = `${progress}%`;
+                statusText.innerText = `{% trans "Optimisation de l'image" %} ${i + 1}/${selectedFiles.length}...`;
                 
                 const compressedFile = await imageCompression(file, options);
                 compressedFiles.push(new File([compressedFile], file.name.split('.')[0] + '.webp', { type: 'image/webp' }));
             }
 
             progressBar.style.width = '100%';
-            statusText.innerText = `{% trans "Envoi vers le serveur..." %}`;
+            document.getElementById('progress-percentage').innerText = `100%`;
+            statusText.innerText = `{% trans "Envoi final vers Loger Togo..." %}`;
 
-            // Créer un nouveau DataTransfer pour injecter les fichiers compressés dans le vrai input
+            // Injecter les fichiers dans le vrai input (plus robuste)
             const dataTransfer = new DataTransfer();
             compressedFiles.forEach(file => dataTransfer.items.add(file));
-            realInput.files = dataTransfer.files;
+            
+            // Trouver le vrai input de fichier de Django
+            const actualFileInput = form.querySelector('input[type="file"][name="images"]');
+            if (actualFileInput) {
+                actualFileInput.files = dataTransfer.files;
+            }
 
-            // Soumettre le formulaire réellement
-            form.submit();
+            // Soumettre
+            setTimeout(() => { form.submit(); }, 500);
         } catch (error) {
             console.error('Compression error:', error);
             overlay.style.display = 'none';
-            alert('{% trans "Une erreur est survenue lors de l\'optimisation des images. Veuillez réessayer." %}');
+            alert('{% trans "Erreur d\'optimisation. Vos images sont peut-être corrompues." %}');
         }
     });
+
 });
 
 </script>

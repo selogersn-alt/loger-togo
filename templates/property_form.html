@@ -743,59 +743,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateFields() {
         if (!categorySelect) return;
-        const category = categorySelect.value;
-        const propertyType = propertyTypeSelect ? propertyTypeSelect.value : '';
-        console.log("Mise à jour des champs - Catégorie :", category, "Type :", propertyType);
+        
+        const val = categorySelect.value ? categorySelect.value.toUpperCase() : '';
+        const text = categorySelect.options[categorySelect.selectedIndex] ? categorySelect.options[categorySelect.selectedIndex].text.toUpperCase() : '';
+        const propTypeVal = propertyTypeSelect ? propertyTypeSelect.value.toUpperCase() : '';
+        
+        // Détection intelligente : Valeur technique OU texte affiché (pour parer aux problèmes de traduction/version)
+        const isSale = (val === 'SALE' || text.includes('VENTE'));
+        const isFurnished = (val === 'FURNISHED' || text.includes('MEUBLÉ') || text.includes('MEUBLE'));
+        const isRent = (val === 'RENT' || text.includes('LOCATION'));
+        const isAppart = (propTypeVal === 'APPARTEMENT');
+        const isTerrain = (propTypeVal === 'TERRAIN' || propTypeVal === 'PARCELLES');
 
-        if (pricePerNightContainer) {
-            pricePerNightContainer.style.display = (category === 'FURNISHED') ? 'block' : 'none';
+        console.log("LOGER TOGO - Category:", val, "| Text:", text, "| IsSale:", isSale);
+
+        // 1. TYPE DE DOCUMENT (Priorité Haute)
+        if (documentTypeContainer) {
+            if (isSale || isAppart) {
+                documentTypeContainer.style.setProperty('display', 'block', 'important');
+            } else {
+                documentTypeContainer.style.setProperty('display', 'none', 'important');
+            }
         }
         
+        // 2. PRIX PAR NUITÉE (Meublés)
+        if (pricePerNightContainer) {
+            pricePerNightContainer.style.setProperty('display', isFurnished ? 'block' : 'none', 'important');
+        }
+        
+        // 3. LIBELLÉS DE PRIX
         if (priceLabel) {
-            if (category === 'FURNISHED') {
+            if (isFurnished) {
                 priceLabel.innerText = '{% trans "Loyer mensuel (Obligatoire)" %}';
-            } else if (category === 'SALE') {
+            } else if (isSale) {
                 priceLabel.innerText = '{% trans "Prix de vente total" %}';
             } else {
                 priceLabel.innerText = '{% trans "Loyer mensuel" %}';
             }
         }
         
-        if (documentTypeContainer) {
-            // Afficher si c'est une vente OU si c'est un appartement (selon demande client)
-            documentTypeContainer.style.display = (category === 'SALE' || propertyType === 'APPARTEMENT') ? 'block' : 'none';
-        }
-        
+        // 4. CONDITIONS DE LOCATION
         if (rentalConditionsContainer) {
-            rentalConditionsContainer.style.display = (category === 'RENT' || category === 'FURNISHED') ? 'block' : 'none';
+            rentalConditionsContainer.style.setProperty('display', (isRent || isFurnished) ? 'block' : 'none', 'important');
         }
 
-        // --- MASQUAGE DES PIÈCES POUR LES TERRAINS ---
-        const technicalSection = document.querySelector('.section-divider'); // La section "Détails Techniques"
+        // 5. MASQUAGE TECHNIQUE (Terrains)
         const roomsFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
-        
-        if (propertyType === 'TERRAIN') {
-            roomsFields.forEach(f => {
-                const el = document.getElementById('id_' + f);
-                if (el && el.closest('.col-md-3')) {
-                    el.closest('.col-md-3').style.display = 'none';
-                }
-            });
-            // On cache aussi les équipements (WiFi, etc.) pour un terrain
-            const equipCollapse = document.getElementById('equipmentsCollapse');
-            if (equipCollapse) {
-                const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
-                if (equipBtn) equipBtn.closest('.section-divider').style.display = 'none';
+        roomsFields.forEach(f => {
+            const el = document.getElementById('id_' + f);
+            if (el) {
+                const parent = el.closest('.col-md-3');
+                if (parent) parent.style.display = isTerrain ? 'none' : 'block';
             }
-        } else {
-            roomsFields.forEach(f => {
-                const el = document.getElementById('id_' + f);
-                if (el && el.closest('.col-md-3')) {
-                    el.closest('.col-md-3').style.display = 'block';
-                }
-            });
-            const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
-            if (equipBtn) equipBtn.closest('.section-divider').style.display = 'block';
+        });
+
+        const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
+        if (equipBtn) {
+            const section = equipBtn.closest('.section-divider');
+            if (section) section.style.display = isTerrain ? 'none' : 'block';
         }
     }
 

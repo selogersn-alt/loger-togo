@@ -556,14 +556,19 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
 <script>
-// ─── CONFIG & GLOBALS ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  LOGER TOGO — Script du Formulaire de Soumission d'Annonce
+//  Corrigé et stabilisé définitivement.
+// ═══════════════════════════════════════════════════════
+
+// ─── 1. CARTE LEAFLET ─────────────────────────────────
 let map, marker;
 const LOME_CENTER = [6.1375, 1.2123];
 
-// ─── INIT MAP ─────────────────────────────────────────────────────────
 function initMap() {
     const mapContainer = document.getElementById('map-picker');
-    if (!mapContainer) return;
+    if (!mapContainer || window._mapInitialized) return;
+    window._mapInitialized = true;
 
     map = L.map('map-picker', {
         center: LOME_CENTER,
@@ -571,24 +576,19 @@ function initMap() {
         zoomControl: true,
         scrollWheelZoom: true
     });
-    
     window.map = map;
 
-    // Carte OSM Standard - Plus robuste pour la prod
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
     }).addTo(map);
 
-    // Fix pour le rectangle gris (Leaflet resize bug)
-    setTimeout(() => {
-        if(window.map) window.map.invalidateSize();
-    }, 500);
-    setTimeout(() => {
-        if(window.map) window.map.invalidateSize();
-    }, 1200);
+    // Fix rectangle gris : forcer le recalcul de taille après rendu
+    setTimeout(() => { map.invalidateSize(); }, 300);
+    setTimeout(() => { map.invalidateSize(); }, 800);
+    setTimeout(() => { map.invalidateSize(); }, 1500);
 
-
-    // Restaurer coords existantes
+    // Restaurer des coordonnées existantes (mode édition)
     const existingLat = "{{ form.instance.latitude|default:'' }}";
     const existingLng = "{{ form.instance.longitude|default:'' }}";
     if (existingLat && existingLat !== 'None' && existingLng && existingLng !== 'None') {
@@ -606,16 +606,9 @@ function initMap() {
     });
 }
 
-// Initialisation immédiate et sécurisée pour Leaflet
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMap);
-} else {
-    initMap();
-}
-
+// Placement du marqueur
 window.placeMarker = function(latlng) {
     if (!map) return;
-    
     if (marker) {
         marker.setLatLng(latlng);
     } else {
@@ -623,25 +616,22 @@ window.placeMarker = function(latlng) {
             draggable: true,
             icon: L.divIcon({
                 className: 'custom-div-icon',
-                html: "<div style='background-color:#0b4629; width:30px; height:30px; border-radius:50%; border:3px solid #f5c42f; display:flex; align-items:center; justify-content:center; color:white;'><i class='fa fa-house-chimney' style='font-size:12px;'></i></div>",
+                html: "<div style='background-color:#0b4629;width:30px;height:30px;border-radius:50%;border:3px solid #f5c42f;display:flex;align-items:center;justify-content:center;color:white;'><i class='fa fa-house-chimney' style='font-size:12px;'></i></div>",
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
             })
         }).addTo(map);
-
-        marker.on('dragend', function(e) {
+        marker.on('dragend', function() {
             const pos = marker.getLatLng();
             window.updateCoords(pos.lat, pos.lng);
             window.showStatus('✅ {% trans "Position ajustée." %}', 'success');
         });
     }
-
-    const finalLat = latlng.lat || (Array.isArray(latlng) ? latlng[0] : latlng.lat);
-    const finalLng = latlng.lng || (Array.isArray(latlng) ? latlng[1] : latlng.lng);
-
+    const finalLat = latlng.lat !== undefined ? latlng.lat : (Array.isArray(latlng) ? latlng[0] : 0);
+    const finalLng = latlng.lng !== undefined ? latlng.lng : (Array.isArray(latlng) ? latlng[1] : 0);
     window.updateCoords(finalLat, finalLng);
     const mapEl = document.getElementById('mapWrapper');
-    if(mapEl) mapEl.classList.add('pinned');
+    if (mapEl) mapEl.classList.add('pinned');
 };
 
 window.updateCoords = function(lat, lng) {
@@ -649,46 +639,43 @@ window.updateCoords = function(lat, lng) {
     const lngR = parseFloat(lng).toFixed(7);
     const latInput = document.getElementById('id_latitude');
     const lngInput = document.getElementById('id_longitude');
-    if(latInput) latInput.value = latR;
-    if(lngInput) lngInput.value = lngR;
-    
+    if (latInput) latInput.value = latR;
+    if (lngInput) lngInput.value = lngR;
     const latDisp = document.getElementById('lat-display');
     const lngDisp = document.getElementById('lng-display');
-    if(latDisp) latDisp.textContent = latR;
-    if(lngDisp) lngDisp.textContent = lngR;
-    
+    if (latDisp) latDisp.textContent = latR;
+    if (lngDisp) lngDisp.textContent = lngR;
     const coordsRow = document.getElementById('coords-display');
-    const coordsOk = document.getElementById('coords-ok');
-    if(coordsRow) {
+    if (coordsRow) {
         coordsRow.classList.remove('d-none');
-        coordsRow.style.setProperty('display', 'flex', 'important');
+        coordsRow.style.display = 'flex';
     }
-    if(coordsOk) coordsOk.style.display = 'inline';
+    const coordsOk = document.getElementById('coords-ok');
+    if (coordsOk) coordsOk.style.display = 'inline';
 };
 
 window.showStatus = function(msg, type) {
     const statusBox = document.getElementById('map-status');
     if (!statusBox) return;
-    statusBox.className = `map-status alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} visible`;
+    const cls = type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'info' ? 'info' : 'danger';
+    statusBox.className = `map-status alert alert-${cls} visible`;
     statusBox.innerHTML = msg;
     setTimeout(() => { statusBox.className = 'map-status alert'; }, 5000);
 };
 
-// ─── GÉOCODAGE PAR ADRESSE (Nominatim / OpenStreetMap) ──────────────────
+
+// ─── 2. GÉOCODAGE NOMINATIM ───────────────────────────
 async function geocodeAddress() {
     const city = document.getElementById('id_city');
     const neighborhood = document.getElementById('id_neighborhood');
     const cityText = city ? city.options[city.selectedIndex]?.text : '';
     const neighborhoodText = neighborhood ? neighborhood.value.trim() : '';
-
     if (!neighborhoodText && !cityText) {
-        showStatus(`⚠️ {% trans "Veuillez d'abord renseigner la ville et le quartier." %}`, 'warning');
+        window.showStatus(`⚠️ {% trans "Veuillez d'abord renseigner la ville et le quartier." %}`, 'warning');
         return;
     }
-
     const query = `${neighborhoodText}, ${cityText}, Togo`;
-    showStatus(`🔍 {% trans "Recherche de" %} "${query}"…`, 'info');
-
+    window.showStatus(`🔍 {% trans "Recherche de" %} "${query}"…`, 'info');
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=tg`);
         const data = await response.json();
@@ -696,208 +683,159 @@ async function geocodeAddress() {
             const latlng = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
             map.setView(latlng, 16);
             placeMarker(latlng);
-            showStatus(`✅ {% trans "Adresse trouvée" %}`, 'success');
+            window.showStatus(`✅ {% trans "Adresse trouvée" %}`, 'success');
         } else {
-            showStatus(`❌ {% trans "Adresse introuvable. Veuillez placer le marqueur manuellement." %}`, 'danger');
+            window.showStatus(`❌ {% trans "Adresse introuvable. Veuillez placer le marqueur manuellement." %}`, 'danger');
         }
     } catch (error) {
-        console.error("Geocoding error:", error);
-        showStatus(`❌ {% trans "Erreur de connexion lors de la recherche." %}`, 'danger');
+        window.showStatus(`❌ {% trans "Erreur de connexion lors de la recherche." %}`, 'danger');
     }
 }
 
-// ─── GPS NAVIGATEUR (Version stabilisée) ──────────────────────────────────
+
+// ─── 3. GPS NAVIGATEUR ────────────────────────────────
 function useMyGPS() {
     if (!navigator.geolocation) {
-        showStatus(`❌ {% trans "La géolocalisation n'est pas supportée par votre navigateur." %}`, 'danger');
+        window.showStatus(`❌ {% trans "La géolocalisation n'est pas supportée par votre navigateur." %}`, 'danger');
         return;
     }
-
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        showStatus(`⚠️ {% trans "Le GPS nécessite une connexion sécurisée (HTTPS)." %}`, 'warning');
-    }
-
-    showStatus('📡 {% trans "Détection GPS haute précision en cours…" %}', 'info');
-    
-    const geoOptions = {
-        enableHighAccuracy: true,
-        timeout: 15000, // Augmenté à 15s pour les connexions mobiles
-        maximumAge: 0
-    };
-
+    window.showStatus('📡 {% trans "Détection GPS haute précision en cours…" %}', 'info');
     navigator.geolocation.getCurrentPosition(
         function(pos) {
             const latlng = [pos.coords.latitude, pos.coords.longitude];
             placeMarker(latlng);
             map.setView(latlng, 17);
-            showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
+            window.showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
         },
         function(err) {
             let msg = '{% trans "Accès GPS refusé ou impossible." %}';
             if (err.code === 1) msg = '{% trans "Veuillez autoriser l\'accès à votre position." %}';
             if (err.code === 2) msg = '{% trans "Position indisponible (Signal faible)." %}';
             if (err.code === 3) msg = '{% trans "Délai d\'attente dépassé (Timeout)." %}';
-            showStatus('⚠️ ' + msg, 'warning');
+            window.showStatus('⚠️ ' + msg, 'warning');
         },
-        geoOptions
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
 }
 
 
-// ─── LOGIQUE DYNAMIQUE DU FORMULAIRE (NATURE & TYPE DE BIEN) ──────────────────
+// ─── 4. LOGIQUE DYNAMIQUE DU FORMULAIRE ───────────────
+// Répond aux valeurs EXACTES du modèle Django : 'RENT', 'SALE', 'FURNISHED'
 function applyDynamicFormLogic() {
-    console.log("Exécution de la logique dynamique du formulaire Loger Togo...");
-    
-    const categorySelect = document.getElementById('id_listing_category');
+    const categorySelect   = document.getElementById('id_listing_category');
     const propertyTypeSelect = document.getElementById('id_property_type');
-    const priceLabel = document.getElementById('price_label');
-    
-    const pricePerNightContainer = document.getElementById('price_per_night_container');
+    const priceLabel         = document.getElementById('price_label');
+    const pricePerNightContainer    = document.getElementById('price_per_night_container');
     const rentalConditionsContainer = document.getElementById('rental_conditions_container');
-    const documentTypeContainer = document.getElementById('document_type_container');
-    
-    // Assigner la datalist si elle existe
+    const documentTypeContainer     = document.getElementById('document_type_container');
+
+    // Relier le quartier à sa datalist
     const neighborhoodInput = document.getElementById('id_neighborhood');
-    if (neighborhoodInput) neighborhoodInput.setAttribute('list', 'neighborhoods-list');
+    if (neighborhoodInput && !neighborhoodInput.getAttribute('list')) {
+        neighborhoodInput.setAttribute('list', 'neighborhoods-list');
+    }
+
+    if (!categorySelect) return;
+
+    function show(el) { if (el) el.style.display = 'block'; }
+    function hide(el) { if (el) el.style.display = 'none'; }
 
     function updateFields() {
-        if (!categorySelect) return;
-        
-        const val = categorySelect.value ? categorySelect.value.trim().toUpperCase() : '';
-        const propTypeVal = propertyTypeSelect ? propertyTypeSelect.value.trim().toUpperCase() : '';
-        
-        const isSale = val.includes('SALE') || val === 'VENTE';
-        const isFurnished = val.includes('FURNISHED') || val === 'MEUBLE';
-        const isRent = val.includes('RENT') || val === 'LOCATION';
-        const isTerrain = propTypeVal.includes('TERRAIN') || propTypeVal.includes('PARCELLE');
+        const val      = (categorySelect.value || '').trim().toUpperCase();
+        const propType = propertyTypeSelect ? (propertyTypeSelect.value || '').trim().toUpperCase() : '';
 
-        console.log("Statuts détectés - Vente:", isSale, "Meublé:", isFurnished, "Location:", isRent, "Terrain:", isTerrain);
+        const isSale     = val === 'SALE';
+        const isFurnished = val === 'FURNISHED';
+        const isRent     = val === 'RENT';
+        const isTerrain  = propType === 'TERRAIN' || propType.includes('PARCELLE') || propType.includes('TERRAIN');
 
-        // 1. TYPE DE DOCUMENT (Uniquement Vente)
-        if (documentTypeContainer) {
-            documentTypeContainer.style.display = isSale ? 'block' : 'none';
-        }
-        
-        // 2. PRIX PAR NUITÉE (Uniquement Meublé)
-        if (pricePerNightContainer) {
-            pricePerNightContainer.style.display = isFurnished ? 'block' : 'none';
-        }
-        
-        // 3. CONDITIONS DE BAIL (Caution, Avance, Commission -> Location & Meublé)
-        if (rentalConditionsContainer) {
-            rentalConditionsContainer.style.display = (isRent || isFurnished) ? 'block' : 'none';
-        }
+        console.log('[LogerTogo Form] Catégorie:', val, '| Type:', propType, '| isSale:', isSale, '| isFurnished:', isFurnished, '| isRent:', isRent);
 
-        // 4. CHAMPS TECHNIQUES (Masqués si Terrain)
-        const technicalFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
-        technicalFields.forEach(f => {
+        // Type de document → seulement pour VENTE
+        isSale ? show(documentTypeContainer) : hide(documentTypeContainer);
+
+        // Prix par nuitée → seulement pour MEUBLÉ
+        isFurnished ? show(pricePerNightContainer) : hide(pricePerNightContainer);
+
+        // Conditions de bail (caution, avance, commission) → LOCATION + MEUBLÉ
+        (isRent || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
+
+        // Champs techniques → masqués si TERRAIN
+        ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {
             const el = document.getElementById('id_' + f);
-            if (el && el.closest('.col-md-3')) {
-                el.closest('.col-md-3').style.display = isTerrain ? 'none' : 'block';
-            }
+            const col = el ? el.closest('[class*="col-"]') : null;
+            if (col) col.style.display = isTerrain ? 'none' : 'block';
         });
-        
-        const equipSections = document.querySelectorAll('.section-divider');
-        equipSections.forEach(s => {
-            if (s.innerHTML.includes('Équipements') || s.innerHTML.includes('Equipements')) {
+        document.querySelectorAll('.section-divider').forEach(s => {
+            if (s.textContent.includes('Équipements') || s.textContent.includes('quipement')) {
                 s.style.display = isTerrain ? 'none' : 'block';
             }
         });
 
-        // 5. LIBELLÉS DYNAMIQUES DU PRIX
+        // Libellé du prix
         if (priceLabel) {
-            if (isSale) {
-                priceLabel.innerText = 'Prix de vente total (FCFA)';
-            } else if (isFurnished) {
-                priceLabel.innerText = 'Loyer mensuel (Meublé)';
-            } else {
-                priceLabel.innerText = 'Loyer mensuel (FCFA)';
-            }
+            if (isSale) priceLabel.innerText = 'Prix de vente total (FCFA)';
+            else if (isFurnished) priceLabel.innerText = 'Loyer mensuel (Meublé)';
+            else priceLabel.innerText = 'Loyer mensuel (FCFA)';
         }
     }
 
-    if (categorySelect) {
-        categorySelect.addEventListener('change', updateFields);
-        if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
-        // Exécution initiale
-        updateFields();
-    }
+    categorySelect.addEventListener('change', updateFields);
+    if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
+    updateFields(); // Application immédiate au chargement
 }
 
-// Lancement sécurisé (fonctionne même si la page est déjà chargée)
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyDynamicFormLogic);
-} else {
-    applyDynamicFormLogic();
-}
 
-// Sécurité supplémentaire : ré-appliquer après 500ms au cas où
-setTimeout(applyDynamicFormLogic, 500);
-
-    const priceInput = document.getElementById('id_price');
+// ─── 5. CALCUL DU PRIX FINAL ──────────────────────────
+function initPriceCalculation() {
+    const priceInput      = document.getElementById('id_price');
     const pricePerNightInput = document.getElementById('id_price_per_night');
-    const discountInput = document.getElementById('id_discount_percentage');
+    const discountInput   = document.getElementById('id_discount_percentage');
     const finalPriceInput = document.getElementById('id_discount_price');
+    if (!priceInput || !discountInput) return;
 
-    function calculateFinalPrice() {
-        const basePrice = parseFloat(priceInput.value) || 0;
+    function calc() {
+        const base     = parseFloat(priceInput.value) || 0;
         const discount = parseFloat(discountInput.value) || 0;
         if (finalPriceInput) {
-            finalPriceInput.value = discount > 0 ? Math.round(basePrice - (basePrice * discount / 100)) : basePrice;
+            finalPriceInput.value = discount > 0 ? Math.round(base - (base * discount / 100)) : base;
         }
     }
-    if (priceInput && discountInput) {
-        priceInput.addEventListener('input', calculateFinalPrice);
-        pricePerNightInput.addEventListener('input', calculateFinalPrice);
-        discountInput.addEventListener('input', calculateFinalPrice);
-    }
+    priceInput.addEventListener('input', calc);
+    if (pricePerNightInput) pricePerNightInput.addEventListener('input', calc);
+    discountInput.addEventListener('input', calc);
+}
 
 
-    // ─── LOGIQUE D'UPLOAD ET COMPRESSION D'IMAGES ────────────────────────
-    const imageInput = document.getElementById('image-input');
-    const realInput = document.querySelector('input[type="file"][name="images"]');
+// ─── 6. UPLOAD & COMPRESSION D'IMAGES ────────────────
+function initImageUpload() {
+    const imageInput     = document.getElementById('image-input');
     const previewContainer = document.getElementById('preview-container');
-    const dropZone = document.getElementById('drop-zone');
-    const form = document.getElementById('property-form');
-    const overlay = document.getElementById('upload-overlay');
-    const progressBar = document.getElementById('upload-progress-bar');
-    const statusText = document.getElementById('upload-status-text');
+    const dropZone       = document.getElementById('drop-zone');
+    const form           = document.getElementById('property-form');
+    const overlay        = document.getElementById('upload-overlay');
+    const progressBar    = document.getElementById('upload-progress-bar');
+    const statusText     = document.getElementById('upload-status-text');
+
+    if (!imageInput || !dropZone || !form) return;
 
     let selectedFiles = [];
 
-    // Gestion du Drag & Drop
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, e => {
-            e.preventDefault();
-            e.stopPropagation();
-        }, false);
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+        dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false);
     });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-    });
-
-    dropZone.addEventListener('drop', e => {
-        handleFiles(e.dataTransfer.files);
-    });
-
-    imageInput.addEventListener('change', e => {
-        handleFiles(e.target.files);
-    });
+    ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.add('dragover'), false));
+    ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('dragover'), false));
+    dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+    imageInput.addEventListener('change', e => handleFiles(e.target.files));
 
     function handleFiles(files) {
-        const fileList = Array.from(files);
-        fileList.forEach(file => {
+        Array.from(files).forEach(file => {
             if (file.type.startsWith('image/')) {
                 selectedFiles.push(file);
                 renderPreview(file);
             }
         });
-        updateRealInput();
     }
 
     function renderPreview(file) {
@@ -905,108 +843,72 @@ setTimeout(applyDynamicFormLogic, 500);
         reader.onload = e => {
             const div = document.createElement('div');
             div.className = 'preview-item animate__animated animate__zoomIn';
-            div.innerHTML = `
-                <img src="${e.target.result}">
-                <button type="button" class="remove-btn"><i class="fa-solid fa-xmark"></i></button>
-            `;
+            div.innerHTML = `<img src="${e.target.result}"><button type="button" class="remove-btn"><i class="fa-solid fa-xmark"></i></button>`;
             div.querySelector('.remove-btn').onclick = () => {
                 selectedFiles = selectedFiles.filter(f => f !== file);
                 div.remove();
-                updateRealInput();
             };
             previewContainer.appendChild(div);
         };
         reader.readAsDataURL(file);
     }
 
-    function updateRealInput() {
-        // Cette fonction sera appelée juste avant le submit pour la compression finale
-        // Pour l'instant on garde une trace pour la prévisualisation
-    }
-
-    // INTERCEPTION DU SUBMIT POUR COMPRESSION
     let isSubmitting = false;
     form.addEventListener('submit', async (e) => {
-        if (isSubmitting) {
-            e.preventDefault();
-            return;
-        }
-        
-        // Empêcher la soumission multiple
+        if (isSubmitting) { e.preventDefault(); return; }
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> {% trans "Traitement en cours..." %}`;
         }
         isSubmitting = true;
-
-        // Affichage IMMÉDIAT de l'overlay
-        overlay.style.display = 'flex';
-        overlay.classList.add('animate__fadeIn');
-        
-        if (selectedFiles.length === 0) {
-            // Si pas d'images, on laisse le formulaire partir normalement
-            return;
-        }
-        
+        if (overlay) { overlay.style.display = 'flex'; overlay.classList.add('animate__fadeIn'); }
+        if (selectedFiles.length === 0) return; // Soumettre normalement sans images
         e.preventDefault();
 
-        
-        const compressedFiles = [];
-        const options = {
-            maxSizeMB: 0.8, // Équilibre entre qualité et poids
-            maxWidthOrHeight: 1600,
-            useWebWorker: true,
-            fileType: 'image/webp',
-            initialQuality: 0.8
-        };
-
+        const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1600, useWebWorker: true, fileType: 'image/webp', initialQuality: 0.8 };
         try {
-            // Traitement PARALLÈLE (Vitesse augmentée x3)
-            statusText.innerText = `{% trans "Optimisation des images en cours..." %}`;
-            
-            const compressionPromises = selectedFiles.map(async (file, index) => {
+            if (statusText) statusText.innerText = `{% trans "Optimisation des images en cours..." %}`;
+            const compressed = await Promise.all(selectedFiles.map(async (file, idx) => {
                 try {
-                    const compressedFile = await imageCompression(file, options);
-                    
-                    // Mise à jour de la barre de progression (approximatif pour le parallèle)
-                    const progress = Math.round(((index + 1) / selectedFiles.length) * 100);
-                    progressBar.style.width = `${progress}%`;
-                    document.getElementById('progress-percentage').innerText = `${progress}%`;
-                    
-                    return new File([compressedFile], file.name.split('.')[0] + '.webp', { type: 'image/webp' });
-                } catch (e) {
-                    console.error("Single image compression error:", e);
-                    return file; // Fallback sur le fichier original si erreur
-                }
-            });
-
-            const compressedFiles = await Promise.all(compressionPromises);
-
-            progressBar.style.width = '100%';
-            document.getElementById('progress-percentage').innerText = `100%`;
-            statusText.innerText = `{% trans "Envoi final vers Loger Togo..." %}`;
-
-            // Injecter les fichiers dans le vrai input (plus robuste)
-            const dataTransfer = new DataTransfer();
-            compressedFiles.forEach(file => dataTransfer.items.add(file));
-            
-            // Trouver le vrai input de fichier de Django
+                    const c = await imageCompression(file, options);
+                    if (progressBar) progressBar.style.width = `${Math.round(((idx + 1) / selectedFiles.length) * 100)}%`;
+                    const pct = document.getElementById('progress-percentage');
+                    if (pct) pct.innerText = `${Math.round(((idx + 1) / selectedFiles.length) * 100)}%`;
+                    return new File([c], file.name.split('.')[0] + '.webp', { type: 'image/webp' });
+                } catch { return file; }
+            }));
+            if (progressBar) progressBar.style.width = '100%';
+            if (statusText) statusText.innerText = `{% trans "Envoi final vers Loger Togo..." %}`;
+            const dt = new DataTransfer();
+            compressed.forEach(f => dt.items.add(f));
             const actualFileInput = form.querySelector('input[type="file"][name="images"]');
-            if (actualFileInput) {
-                actualFileInput.files = dataTransfer.files;
-            }
-
-            // Soumettre
-            setTimeout(() => { form.submit(); }, 500);
-        } catch (error) {
-            console.error('Compression error:', error);
-            overlay.style.display = 'none';
+            if (actualFileInput) actualFileInput.files = dt.files;
+            setTimeout(() => form.submit(), 500);
+        } catch (err) {
+            console.error(err);
+            if (overlay) overlay.style.display = 'none';
             alert('{% trans "Erreur d\'optimisation. Vos images sont peut-être corrompues." %}');
         }
     });
+}
 
-});
+
+// ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
+function initAll() {
+    initMap();
+    applyDynamicFormLogic();
+    initPriceCalculation();
+    initImageUpload();
+}
+
+// Exécution résiliente selon l'état du DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+} else {
+    initAll();
+}
 
 </script>
 {% endblock %}
+

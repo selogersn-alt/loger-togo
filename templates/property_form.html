@@ -568,21 +568,19 @@
 // ═══════════════════════════════════════════════════════
 
 // ─── 1. CARTE LEAFLET ─────────────────────────────────
-let map, marker;
-const LOME_CENTER = [6.1375, 1.2123];
+window.lome_center = [6.1375, 1.2123];
 
 function initMap() {
     const mapContainer = document.getElementById('map-picker');
     if (!mapContainer || window._mapInitialized) return;
     window._mapInitialized = true;
 
-    map = L.map('map-picker', {
-        center: LOME_CENTER,
+    window.map = L.map('map-picker', {
+        center: window.lome_center,
         zoom: 13,
         zoomControl: true,
         scrollWheelZoom: true
     });
-    window.map = map;
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -590,9 +588,9 @@ function initMap() {
     }).addTo(map);
 
     // Fix rectangle gris : forcer le recalcul de taille après rendu
-    setTimeout(() => { map.invalidateSize(); }, 300);
-    setTimeout(() => { map.invalidateSize(); }, 800);
-    setTimeout(() => { map.invalidateSize(); }, 1500);
+    setTimeout(() => { window.map.invalidateSize(); }, 300);
+    setTimeout(() => { window.map.invalidateSize(); }, 800);
+    setTimeout(() => { window.map.invalidateSize(); }, 1500);
 
     // Restaurer des coordonnées existantes (mode édition)
     const existingLat = "{{ form.instance.latitude|default:'' }}";
@@ -602,11 +600,11 @@ function initMap() {
         const lng = parseFloat(existingLng.replace(',', '.'));
         if (!isNaN(lat) && !isNaN(lng)) {
             placeMarker([lat, lng]);
-            map.setView([lat, lng], 16);
+            window.map.setView([lat, lng], 16);
         }
     }
 
-    map.on('click', function(e) {
+    window.map.on('click', function(e) {
         placeMarker(e.latlng);
         window.showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
     });
@@ -614,11 +612,11 @@ function initMap() {
 
 // Placement du marqueur
 window.placeMarker = function(latlng) {
-    if (!map) return;
-    if (marker) {
-        marker.setLatLng(latlng);
+    if (!window.map) return;
+    if (window.marker) {
+        window.marker.setLatLng(latlng);
     } else {
-        marker = L.marker(latlng, {
+        window.marker = L.marker(latlng, {
             draggable: true,
             icon: L.divIcon({
                 className: 'custom-div-icon',
@@ -626,9 +624,9 @@ window.placeMarker = function(latlng) {
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
             })
-        }).addTo(map);
-        marker.on('dragend', function() {
-            const pos = marker.getLatLng();
+        }).addTo(window.map);
+        window.marker.on('dragend', function() {
+            const pos = window.marker.getLatLng();
             window.updateCoords(pos.lat, pos.lng);
             window.showStatus('✅ {% trans "Position ajustée." %}', 'success');
         });
@@ -687,7 +685,7 @@ async function geocodeAddress() {
         const data = await response.json();
         if (data && data.length > 0) {
             const latlng = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-            map.setView(latlng, 16);
+            window.map.setView(latlng, 16);
             placeMarker(latlng);
             window.showStatus(`✅ {% trans "Adresse trouvée" %}`, 'success');
         } else {
@@ -710,7 +708,7 @@ function useMyGPS() {
         function(pos) {
             const latlng = [pos.coords.latitude, pos.coords.longitude];
             placeMarker(latlng);
-            map.setView(latlng, 17);
+            window.map.setView(latlng, 17);
             window.showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
         },
         function(err) {

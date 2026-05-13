@@ -142,7 +142,12 @@
     0% { opacity: 0; transform: translateY(30px) scale(0.98); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
+
+  /* LEAFLET FIX */
+  .leaflet-container { font-family: 'Inter', sans-serif !important; }
 </style>
+<!-- LEAFLET CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 {% endblock %}
 
 {% block content %}
@@ -555,6 +560,9 @@
 <!-- Library de compression ultra-performante -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 
 
 <script>
@@ -748,55 +756,68 @@ document.addEventListener('DOMContentLoaded', function() {
         const text = categorySelect.options[categorySelect.selectedIndex] ? categorySelect.options[categorySelect.selectedIndex].text.toUpperCase() : '';
         const propTypeVal = propertyTypeSelect ? propertyTypeSelect.value.toUpperCase() : '';
         
-        // Détection simplifiée et fiable
+        // 1. DÉTECTION DES ÉTATS
         const isSale = (val === 'SALE' || text.includes('VENTE'));
         const isFurnished = (val === 'FURNISHED' || text.includes('MEUBLÉ') || text.includes('MEUBLE'));
         const isRent = (val === 'RENT' || text.includes('LOCATION'));
+        
+        // Types de biens spécifiques
         const isTerrain = (propTypeVal === 'TERRAIN' || propTypeVal === 'PARCELLES');
+        const isAppart = (propTypeVal === 'APPARTEMENT');
+        const isMaison = (propTypeVal === 'MAISON' || propTypeVal === 'VILLA');
 
-        console.log("UPDATE - Category:", val, "| IsSale:", isSale, "| IsFurnished:", isFurnished);
+        console.log("FLEX - Category:", val, "| PropType:", propTypeVal);
 
-        // 1. TYPE DE DOCUMENT : Uniquement pour les Ventes
+        // 2. VISIBILITÉ DOCUMENT (Uniquement pour les Ventes)
         if (documentTypeContainer) {
             documentTypeContainer.style.setProperty('display', isSale ? 'block' : 'none', 'important');
         }
         
-        // 2. PRIX PAR NUITÉE : Uniquement pour les Meublés
+        // 3. PRIX PAR NUITÉE (Uniquement pour les Meublés)
         if (pricePerNightContainer) {
             pricePerNightContainer.style.setProperty('display', isFurnished ? 'block' : 'none', 'important');
         }
         
-        // 3. LIBELLÉS DE PRIX
-        if (priceLabel) {
-            if (isFurnished) {
-                priceLabel.innerText = '{% trans "Loyer mensuel (Obligatoire)" %}';
-            } else if (isSale) {
-                priceLabel.innerText = '{% trans "Prix de vente total" %}';
-            } else {
-                priceLabel.innerText = '{% trans "Loyer mensuel" %}';
-            }
-        }
-        
-        // 4. CONDITIONS DE LOCATION : Uniquement pour Location ou Meublé
+        // 4. CONDITIONS DE LOCATION (Bail)
         if (rentalConditionsContainer) {
             rentalConditionsContainer.style.setProperty('display', (isRent || isFurnished) ? 'block' : 'none', 'important');
         }
 
-        // 5. MASQUAGE TECHNIQUE : Pour les Terrains on cache les pièces
-        const roomsFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
-        roomsFields.forEach(f => {
-            const el = document.getElementById('id_' + f);
-            if (el) {
-                const parent = el.closest('.col-md-3');
-                if (parent) parent.style.display = isTerrain ? 'none' : 'block';
-            }
-        });
+        // 5. FLEXIBILITÉ DES CHAMPS TECHNIQUES (Masquage si Terrain)
+        // On définit les groupes de champs
+        const technicalFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
+        const sectionDivider = document.querySelector('.section-divider');
+        
+        if (isTerrain) {
+            // Pour un terrain, on cache tout le bloc technique sauf la surface
+            technicalFields.forEach(f => {
+                const el = document.getElementById('id_' + f);
+                if (el) el.closest('.col-md-3').style.display = 'none';
+            });
+            // On cache aussi les équipements (wifi, piscine, etc.)
+            const equipSection = document.querySelector('#equipmentsCollapse')?.closest('.section-divider');
+            if (equipSection) equipSection.style.display = 'none';
+            const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]')?.closest('.section-divider');
+            if (equipBtn) equipBtn.style.display = 'none';
+        } else {
+            // Pour les autres biens, on affiche tout
+            technicalFields.forEach(f => {
+                const el = document.getElementById('id_' + f);
+                if (el) el.closest('.col-md-3').style.display = 'block';
+            });
+            const equipSections = document.querySelectorAll('.section-divider');
+            equipSections.forEach(s => s.style.display = 'block');
+        }
 
-        // Masquage de la section équipements pour les terrains
-        const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
-        if (equipBtn) {
-            const section = equipBtn.closest('.section-divider');
-            if (section) section.style.display = isTerrain ? 'none' : 'block';
+        // 6. LIBELLÉS DYNAMIQUES
+        if (priceLabel) {
+            if (isSale) {
+                priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
+            } else if (isFurnished) {
+                priceLabel.innerText = '{% trans "Loyer mensuel (Meublé)" %}';
+            } else {
+                priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
+            }
         }
     }
 

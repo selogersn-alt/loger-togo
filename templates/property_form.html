@@ -748,25 +748,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const text = categorySelect.options[categorySelect.selectedIndex] ? categorySelect.options[categorySelect.selectedIndex].text.toUpperCase() : '';
         const propTypeVal = propertyTypeSelect ? propertyTypeSelect.value.toUpperCase() : '';
         
-        // Détection intelligente : Valeur technique OU texte affiché (pour parer aux problèmes de traduction/version)
+        // Détection simplifiée et fiable
         const isSale = (val === 'SALE' || text.includes('VENTE'));
         const isFurnished = (val === 'FURNISHED' || text.includes('MEUBLÉ') || text.includes('MEUBLE'));
         const isRent = (val === 'RENT' || text.includes('LOCATION'));
-        const isAppart = (propTypeVal === 'APPARTEMENT');
         const isTerrain = (propTypeVal === 'TERRAIN' || propTypeVal === 'PARCELLES');
 
-        console.log("LOGER TOGO - Category:", val, "| Text:", text, "| IsSale:", isSale);
+        console.log("UPDATE - Category:", val, "| IsSale:", isSale, "| IsFurnished:", isFurnished);
 
-        // 1. TYPE DE DOCUMENT (Priorité Haute)
+        // 1. TYPE DE DOCUMENT : Uniquement pour les Ventes
         if (documentTypeContainer) {
-            if (isSale || isAppart) {
-                documentTypeContainer.style.setProperty('display', 'block', 'important');
-            } else {
-                documentTypeContainer.style.setProperty('display', 'none', 'important');
-            }
+            documentTypeContainer.style.setProperty('display', isSale ? 'block' : 'none', 'important');
         }
         
-        // 2. PRIX PAR NUITÉE (Meublés)
+        // 2. PRIX PAR NUITÉE : Uniquement pour les Meublés
         if (pricePerNightContainer) {
             pricePerNightContainer.style.setProperty('display', isFurnished ? 'block' : 'none', 'important');
         }
@@ -782,12 +777,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // 4. CONDITIONS DE LOCATION
+        // 4. CONDITIONS DE LOCATION : Uniquement pour Location ou Meublé
         if (rentalConditionsContainer) {
             rentalConditionsContainer.style.setProperty('display', (isRent || isFurnished) ? 'block' : 'none', 'important');
         }
 
-        // 5. MASQUAGE TECHNIQUE (Terrains)
+        // 5. MASQUAGE TECHNIQUE : Pour les Terrains on cache les pièces
         const roomsFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
         roomsFields.forEach(f => {
             const el = document.getElementById('id_' + f);
@@ -797,6 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Masquage de la section équipements pour les terrains
         const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
         if (equipBtn) {
             const section = equipBtn.closest('.section-divider');

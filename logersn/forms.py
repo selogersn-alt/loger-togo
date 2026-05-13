@@ -82,11 +82,10 @@ class PropertyForm(forms.ModelForm):
             cleaned_data['advance_months'] = 0
             cleaned_data['agency_fee_months'] = 0
 
-        # 3. Pour les ventes et appartements, le type de document est obligatoire
-        property_type = cleaned_data.get('property_type')
-        if listing_category == 'SALE' or property_type == 'APPARTEMENT':
+        # 3. Le type de document est obligatoire UNIQUEMENT pour les VENTES
+        if listing_category == 'SALE':
             if not cleaned_data.get('document_type') or cleaned_data.get('document_type') == 'NONE':
-                self.add_error('document_type', _("Le type de document est obligatoire pour les ventes et les appartements."))
+                self.add_error('document_type', _("Le type de document est obligatoire pour les ventes."))
         
         return cleaned_data
     

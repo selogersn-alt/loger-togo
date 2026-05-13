@@ -3,5 +3,5 @@
     "python.analysis.extraPaths": [
         "d:\\HDIGITAL\\SOLVABLE.LOGERSN"
     ],
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

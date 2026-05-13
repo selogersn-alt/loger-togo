@@ -150,8 +150,9 @@ def properties_list_view(request):
     for p in properties:
         if p.latitude and p.longitude:
             img_url = p.get_main_image
-            # Déterminer le prix à afficher sur la carte
-            display_price = int(p.price_per_night) if (p.listing_category == 'FURNISHED' and p.price_per_night) else int(p.price) if p.price else 0
+            # Déterminer le prix à afficher sur la carte et le type
+            is_nightly = bool(p.listing_category == 'FURNISHED' and p.price_per_night and p.price_per_night > 0)
+            display_price = int(p.price_per_night) if is_nightly else int(p.price) if p.price else 0
             
             map_markers.append({
                 'id': str(p.id),
@@ -159,6 +160,7 @@ def properties_list_view(request):
                 'lng': float(p.longitude) if p.longitude else 0,
                 'title': p.title or "",
                 'price': display_price,
+                'is_nightly': is_nightly,
                 'category': p.listing_category,
                 'type': p.get_property_type_display(),
                 'document_type': p.get_document_type_display() if p.listing_category == 'SALE' else '',
@@ -451,13 +453,19 @@ def near_me_view(request):
         # Téléphone du propriétaire (masqué sur 4 derniers chiffres)
         phone = getattr(p.owner, 'phone', '') or ''
 
+        # Déterminer le prix et s'il s'agit d'un prix par nuitée
+        price_night = int(p.price_per_night or 0)
+        price_month = int(p.price or 0)
+        is_nightly = bool(p.listing_category == 'FURNISHED' and price_night > 0)
+
         map_markers.append({
             'id': str(p.id),
             'lat': lat_val,
             'lng': lng_val,
             'title': p.title,
-            'price_night': int(p.price_per_night or 0),
-            'price_month': int(p.price or 0),
+            'price_night': price_night,
+            'price_month': price_month,
+            'is_nightly': is_nightly,
             'property_type': p.property_type,
             'type_label': p.get_property_type_display(),
             'category': p.listing_category,

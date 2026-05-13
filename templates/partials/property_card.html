@@ -49,8 +49,8 @@
         
         <!-- Prix -->
         <div class="property-price-tag" style="position: absolute; bottom: 12px; right: 12px; background: var(--color-dark-green); color: white; padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; z-index: 5; box-shadow: 0 8px 25px rgba(0,0,0,0.4); white-space: nowrap; display: flex; flex-direction: column; align-items: flex-end;">
-            {% if property.listing_category == 'FURNISHED' %}
-                {# On affiche uniquement le prix par nuitée dans la liste pour les meublés #}
+            {% if property.listing_category == 'FURNISHED' and property.price_per_night %}
+                {# On affiche uniquement le prix par nuitée dans la liste pour les meublés S'IL EXISTE #}
                 {{ property.price_per_night|format_price }}
             {% else %}
                 {% if property.discount_price and property.discount_price < property.price %}
@@ -62,11 +62,11 @@
             {% endif %}
             
             <small style="font-size: 0.7rem; opacity: 0.9; font-weight: 600;">
-                FCFA{% if property.listing_category == 'FURNISHED' %}/{% trans "Nuit" %}{% elif property.listing_category != 'SALE' %}/{% trans "Mois" %}{% endif %}
+                FCFA{% if property.listing_category == 'FURNISHED' and property.price_per_night %}/{% trans "Nuit" %}{% elif property.listing_category != 'SALE' %}/{% trans "Mois" %}{% endif %}
             </small>
         </div>
 
-        {% if property.discount_price and property.listing_category != 'FURNISHED' %}
+        {% if property.discount_price and property.listing_category != 'FURNISHED' and property.discount_percentage > 0 %}
         <div class="promo-badge" style="position: absolute; top: 12px; right: 50px; background: #ff4757; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; z-index: 5; animation: pulse 2s infinite;">
             <i class="fas fa-fire me-1"></i>PROMO -{{ property.discount_percentage }}%
         </div>

@@ -382,7 +382,7 @@ function initMap() {
                     <img src="${m.image}" style="width:100%; height:100%; object-fit:cover;">
                     <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 12px 10px;">
                         <div style="color:white; font-weight:800; font-size:1.1rem;">
-                            ${m.price.toLocaleString()} F <small style="font-weight:400; font-size:0.7rem; opacity:0.8;">CFA ${m.category === 'FURNISHED' ? '/ nuit' : ''}</small>
+                            ${m.price.toLocaleString()} F <small style="font-weight:400; font-size:0.7rem; opacity:0.8;">CFA ${m.is_nightly ? '/ nuit' : ''}</small>
                         </div>
                     </div>
                 </div>
@@ -397,7 +397,7 @@ function initMap() {
                             <i class="fas fa-eye"></i> {% trans "Voir le bien" %}
                         </a>
                         <button onclick="calculateRoute(${m.lat}, ${m.lng})" style="background:#f0f7f4; border:2px solid var(--color-dark-green); color:var(--color-dark-green); padding:10px 14px; border-radius:12px; cursor:pointer;">
-                            <i class="fas fa-location-arrow"></i>
+                            <i class="fas fa-route"></i>
                         </button>
                     </div>
                 </div>
@@ -439,6 +439,14 @@ window.toggleMapFullscreen = function() {
         el.classList.toggle('fullscreen');
         setTimeout(() => map.invalidateSize(), 300);
     }
+};
+
+window.hideRoute = function() { 
+    if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+    }
+    document.getElementById('routeInfo').style.display = 'none'; 
 };
 
 window.calculateRoute = function(tLat, tLng) {

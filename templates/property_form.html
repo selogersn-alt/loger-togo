@@ -203,13 +203,15 @@
                   <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:var(--color-dark-green);border-radius:0 10px 10px 0;">FCFA</span>
                 </div>
               </div>
-              <div class="col-md-6" id="price_per_night_container" style="display:none;">
+              {% with cat=form.listing_category.value %}
+              <div class="col-md-6" id="price_per_night_container" style="display:{% if cat == 'FURNISHED' %}block{% else %}none{% endif %};">  
                 <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.price_per_night.label }} <span class="text-muted small">({% trans "Optionnel" %})</span></label>
                 <div class="input-group">
                   {{ form.price_per_night }}
                   <span class="input-group-text border-0 fw-bold" style="background:var(--color-yellow);color:var(--color-dark-green);border-radius:0 10px 10px 0;">/ {% trans "Nuitée" %}</span>
                 </div>
               </div>
+              {% endwith %}
 
               <!-- ─ REMISES (Senior Module) ─ -->
               <div class="col-md-6">
@@ -232,13 +234,16 @@
                 <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.property_type.label }}</label>
                 {{ form.property_type }}
               </div>
-              <div class="col-md-6" id="document_type_container" style="display:none;">
+              {% with cat=form.listing_category.value %}
+              <div class="col-md-6" id="document_type_container" style="display:{% if cat == 'SALE' %}block{% else %}none{% endif %};">  
                 <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.document_type.label }} <span class="text-danger">*</span></label>
                 {{ form.document_type }}
               </div>
+              {% endwith %}
 
               <!-- ─ CONDITIONS DE LOCATION (Apparaît si location ou meublé) ─ -->
-              <div class="col-12" id="rental_conditions_container" style="display:none;">
+              {% with cat=form.listing_category.value %}
+              <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' or cat == 'FURNISHED' %}block{% else %}none{% endif %};">  
                 <div class="p-3 rounded-4 mt-2" style="background:var(--bg-body);border:1px solid var(--border-color);">
                   <h6 class="fw-bold mb-3" style="color:var(--text-main);">
                     <i class="fa-solid fa-file-contract me-2 text-success"></i>{% trans "Conditions de Location (Bail)" %}
@@ -259,6 +264,7 @@
                   </div>
                 </div>
               </div>
+              {% endwith %}
 
               <!-- ─ FRAIS DE VISITE ─ -->
               <div class="col-md-6">
@@ -314,7 +320,7 @@
 
                   <!-- Carte Leaflet uniformisée -->
                   <div id="mapWrapper" style="display:block;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);border:2px solid var(--border-color);">
-                      <div id="map-picker" style="height:360px; z-index: 1; background-color: #e5e5e5;"></div>
+                      <div id="map-picker" style="height:360px; z-index: 1;"></div>
                   </div>
 
                   <!-- Statut géolocalisation -->

@@ -3,6 +3,7 @@
 {% block title %}{% trans "Publier une annonce" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
+<style>
 
   /* Image Upload Premium UI */
   .upload-zone {
@@ -142,9 +143,6 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 </style>
-
-
-
 {% endblock %}
 
 {% block content %}
@@ -726,19 +724,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateFields() {
         if (!categorySelect) return;
         const category = categorySelect.value;
-        if (category === 'FURNISHED') {
-            pricePerNightContainer.style.display = 'block';
-            priceLabel.innerText = '{% trans "Loyer mensuel (si applicable)" %}';
-        } else {
-            pricePerNightContainer.style.display = 'none';
-            priceLabel.innerText = category === 'SALE' ? '{% trans "Prix de vente total" %}' : '{% trans "Loyer mensuel" %}';
+        console.log("Mise à jour des champs pour la catégorie :", category);
+
+        if (pricePerNightContainer) {
+            pricePerNightContainer.style.display = (category === 'FURNISHED') ? 'block' : 'none';
         }
-        documentTypeContainer.style.display = category === 'SALE' ? 'block' : 'none';
-        rentalConditionsContainer.style.display = (category === 'RENT' || category === 'FURNISHED') ? 'block' : 'none';
+        
+        if (priceLabel) {
+            if (category === 'FURNISHED') {
+                priceLabel.innerText = '{% trans "Loyer mensuel (si applicable)" %}';
+            } else if (category === 'SALE') {
+                priceLabel.innerText = '{% trans "Prix de vente total" %}';
+            } else {
+                priceLabel.innerText = '{% trans "Loyer mensuel" %}';
+            }
+        }
+        
+        if (documentTypeContainer) {
+            documentTypeContainer.style.display = (category === 'SALE') ? 'block' : 'none';
+        }
+        
+        if (rentalConditionsContainer) {
+            rentalConditionsContainer.style.display = (category === 'RENT' || category === 'FURNISHED') ? 'block' : 'none';
+        }
     }
+
     if (categorySelect) {
         categorySelect.addEventListener('change', updateFields);
+        // Exécution immédiate ET après un court délai pour être sûr que le DOM est prêt
         updateFields();
+        setTimeout(updateFields, 100);
     }
 
     const priceInput = document.getElementById('id_price');

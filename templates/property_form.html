@@ -201,7 +201,7 @@
                 </div>
               </div>
               <div class="col-md-6" id="price_per_night_container" style="display:none;">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.price_per_night.label }}</label>
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.price_per_night.label }} <span class="text-muted small">({% trans "Optionnel" %})</span></label>
                 <div class="input-group">
                   {{ form.price_per_night }}
                   <span class="input-group-text border-0 fw-bold" style="background:var(--color-yellow);color:var(--color-dark-green);border-radius:0 10px 10px 0;">/ {% trans "Nuitée" %}</span>
@@ -230,7 +230,7 @@
                 {{ form.property_type }}
               </div>
               <div class="col-md-6" id="document_type_container" style="display:none;">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.document_type.label }}</label>
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.document_type.label }} <span class="text-danger">*</span></label>
                 {{ form.document_type }}
               </div>
 
@@ -732,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (priceLabel) {
             if (category === 'FURNISHED') {
-                priceLabel.innerText = '{% trans "Loyer mensuel (si applicable)" %}';
+                priceLabel.innerText = '{% trans "Loyer mensuel (Obligatoire)" %}';
             } else if (category === 'SALE') {
                 priceLabel.innerText = '{% trans "Prix de vente total" %}';
             } else {

@@ -20,12 +20,15 @@ class Property(models.Model):
         FURNISHED = 'FURNISHED', _('Meublé')
 
     class DocumentTypeEnum(models.TextChoices):
+        TITRE_FONCIER_INDIVIDUEL = 'TITRE_FONCIER_INDIVIDUEL', _('Titre foncier individuel')
+        TITRE_FONCIER_GLOBAL = 'TITRE_FONCIER_GLOBAL', _('Titre foncier global')
         BAIL = 'BAIL', _('Bail')
-        TITRE_FONCIER_INDIVIDUEL = 'TITRE_FONCIER_INDIVIDUEL', _('Titre Foncier Individuel')
-        TITRE_FONCIER_GLOBAL = 'TITRE_FONCIER_GLOBAL', _('Titre Foncier Global')
-        ACTE_COUTUMIER = 'ACTE_COUTUMIER', _('Acte Coutumier')
+        ACTE_DE_VENTE = 'ACTE_DE_VENTE', _('Acte de vente')
+        PAPIER_COUTUMIER = 'PAPIER_COUTUMIER', _('Papier coutumier')
         DEUX_TAMPONS = 'DEUX_TAMPONS', _('2 Tampons')
         TROIS_TAMPONS = 'TROIS_TAMPONS', _('3 Tampons')
+        NONE = 'NONE', _('Aucun / Autre')
+
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')

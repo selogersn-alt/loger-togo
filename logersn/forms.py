@@ -146,7 +146,7 @@ class PropertyForm(forms.ModelForm):
             'property_type': _("Type de bien"),
             'city': _("Ville"),
             'neighborhood': _("Quartier"),
-            'document_type': _("Type de document (Vente uniquement)"),
+            'document_type': _("Nom du papier administratif (Obligatoire pour les ventes)"),
             'price': _("Prix / Loyer mensuel (FCFA)"),
             'price_per_night': _("Prix par nuitée (Meublé)"),
             'description': _("Description détaillée"),

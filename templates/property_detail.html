@@ -511,7 +511,7 @@
                         {# Prix mensuel secondaire #}
                         <div class="mt-3 p-2 rounded-3" style="background: rgba(0,0,0,0.03); border: 1px dashed var(--border-color);">
                             <div class="small text-muted mb-1">{% trans "Tarif mensuel" %} :</div>
-                            {% if property.discount_price %}
+                            {% if property.discount_price and property.discount_percentage > 0 %}
                                 <span class="text-muted text-decoration-line-through small">{{ property.price|format_price }}</span>
                                 <span class="text-success fw-bold d-block">{{ property.discount_price|format_price }} FCFA</span>
                                 <span class="badge bg-danger x-small">PROMO -{{ property.discount_percentage }}%</span>
@@ -520,7 +520,7 @@
                             {% endif %}
                         </div>
                     {% else %}
-                        {% if property.discount_price and property.discount_price < property.price %}
+                        {% if property.discount_price and property.discount_percentage > 0 and property.discount_price < property.price %}
                             <div class="text-muted text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>
                             <span class="text-success">{{ property.discount_price|format_price }} FCFA</span>
                         {% else %}
@@ -781,7 +781,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places,geometry&callback=initMap" async defer></script>
+<!-- Google Maps script removed as requested -->
 <script>
     // ─── Galerie & Images ───
     function changeImage(element) {
@@ -813,7 +813,7 @@
         });
     });
 
-    let map, propertyMarker, userMarker;
+    let map, propertyMarker, userMarker, routingControlDetail;
     const propertyPos = [ 
         parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.')), 
         parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.')) 
@@ -876,12 +876,48 @@
     document.addEventListener('DOMContentLoaded', initMap);
 
     window.calculateDetailRoute = function() {
-        // Redirection vers Google Maps externe pour une meilleure expérience de navigation mobile
-        const url = `https://www.google.com/maps/dir/?api=1&destination=${propertyPos[0]},${propertyPos[1]}`;
-        window.open(url, '_blank');
+        if (!userMarker) {
+            alert("{% trans 'Veuillez autoriser la géolocalisation pour calculer l\'itinéraire.' %}");
+            return;
+        }
+
+        if (routingControlDetail) {
+            map.removeControl(routingControlDetail);
+        }
+
+        routingControlDetail = L.Routing.control({
+            waypoints: [
+                L.latLng(userMarker.getLatLng()),
+                L.latLng(propertyPos)
+            ],
+            lineOptions: {
+                styles: [{ color: '#0b4629', opacity: 0.8, weight: 6 }]
+            },
+            createMarker: function() { return null; },
+            addWaypoints: false,
+            draggableWaypoints: false,
+            routeWhileDragging: false,
+            show: false
+        }).addTo(map);
+
+        routingControlDetail.on('routesfound', function(e) {
+            const routes = e.routes;
+            const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
+            const time = Math.round(routes[0].summary.totalTime / 60);
+            
+            document.getElementById('detailDist').textContent = dist;
+            document.getElementById('detailTime').textContent = time;
+            document.getElementById('routeInfoDetail').style.display = 'flex';
+            
+            map.fitBounds(L.latLngBounds(userMarker.getLatLng(), propertyPos).pad(0.2));
+        });
     };
 
     window.hideDetailRoute = function() {
+        if (routingControlDetail) {
+            map.removeControl(routingControlDetail);
+            routingControlDetail = null;
+        }
         document.getElementById('routeInfoDetail').style.display = 'none';
         map.setView(propertyPos, 16);
     };

@@ -62,13 +62,31 @@
 .price-tag { background: white; border: 2px solid var(--color-dark-green); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; color: var(--color-dark-green); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .price-tag.active { background: var(--color-dark-green); color: white; }
 
+/* Filter Bar */
+.filter-bar {
+    position: absolute; top: 20px; left: 20px; z-index: 1000;
+    display: flex; gap: 10px;
+}
+.filter-chip {
+    background: white; border: none; padding: 8px 18px; border-radius: 50px;
+    font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    color: var(--color-dark-green); cursor: pointer; transition: all 0.2s;
+}
+.filter-chip.active { background: var(--color-dark-green); color: white; }
+
+/* Side panel header */
+.side-header { padding: 20px; border-bottom: 1px solid #eee; }
+.gps-status { font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.gps-active { color: var(--color-light-green); }
+.gps-warning { color: #f39c12; }
+.property-list { flex: 1; overflow-y: auto; padding: 15px; }
+
 /* Mobile */
 @media (max-width: 768px) {
     .geo-wrapper { flex-direction: column; }
     #map { height: 50vh; }
     .side-panel { width: 100%; height: 50vh; min-width: unset; }
 }
-    .marker-label-shift { margin-top: -45px; }
 </style>
 {% endblock %}
 
@@ -88,7 +106,7 @@
         </div>
         <div style="width:1px; height:30px; background:rgba(255,255,255,0.2)"></div>
         <div class="stat">
-            <span class="label">{% trans "Temps estimé" %}</span>
+            <span class="label">{% trans "Temps" %}</span>
             <span class="value" id="routeTime">-- min</span>
         </div>
         <button class="btn btn-sm btn-light rounded-pill ms-3" onclick="hideRoute()">×</button>
@@ -117,51 +135,37 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places,geometry,marker&callback=initMap" async defer></script>
-<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
-// ─── PREMIUM MAP STYLE (Ultra-Épurée : Rues & Quartiers uniquement) ──
-const PREMIUM_MAP_STYLE = [
-  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#a2daf2" }] },
-  { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
-  { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "administrative.neighborhood", "elementType": "labels.text.fill", "stylers": [{ "visibility": "on" }, { "color": "#0b4629" }] },
-  { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [{ "visibility": "on" }, { "color": "#0b4629" }] },
-  { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "visibility": "on" }, { "color": "#757575" }] },
-  { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#fbc02d" }] },
-  { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#f9a825" }] },
-  { "featureType": "road.arterial", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
-  { "featureType": "road.local", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] }
-];
-
-
-let map, directionsService, directionsRenderer, userMarker, markerCluster;
+let map, markerCluster, userMarker, routingControl;
 let markers = [];
 let propMarkers = {};
 const MARKERS_DATA = {{ properties_json|safe }};
 
 function initMap() {
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: true,
-        polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6, strokeOpacity: 0.8 }
-    });
-
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    map = new google.maps.Map(mapContainer, {
-        center: { lat: 6.137, lng: 1.222 },
+    map = L.map('map', {
+        center: [6.137, 1.222],
         zoom: 14,
-        styles: PREMIUM_MAP_STYLE,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER }
+        zoomControl: false,
+        scrollWheelZoom: true
     });
 
-    directionsRenderer.setMap(map);
+    // Zoom control position
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Carte Premium (CartoDB Voyager)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+
+    markerCluster = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        spiderfyOnMaxZoom: true
+    });
+
     placeMarkers();
     renderList(null, null);
     startWatch();
@@ -170,46 +174,56 @@ function initMap() {
 function toggleFullscreen() {
     const wrapper = document.getElementById('geoWrapper');
     wrapper.classList.toggle('fullscreen');
-    google.maps.event.trigger(map, 'resize');
-}
-
-function showRouteInfo(dist, dur) {
-    const box = document.getElementById('routeInfo');
-    document.getElementById('routeDist').textContent = dist;
-    document.getElementById('routeTime').textContent = dur;
-    box.style.display = 'flex';
+    setTimeout(() => map.invalidateSize(), 300);
 }
 
 function hideRoute() { 
+    if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+    }
     document.getElementById('routeInfo').style.display = 'none'; 
-    directionsRenderer.setDirections({routes: []});
 }
 
-async function showRoute(targetLat, targetLng) {
+function showRoute(targetLat, targetLng) {
     if (!userMarker) { 
-        startWatch(() => showRoute(targetLat, targetLng));
+        alert("{% trans 'Position GPS nécessaire pour l\'itinéraire.' %}");
         return; 
     }
-    const request = {
-        origin: userMarker.getPosition(),
-        destination: { lat: targetLat, lng: targetLng },
-        travelMode: 'DRIVING'
-    };
-    directionsService.route(request, (result, status) => {
-        if (status == 'OK') {
-            directionsRenderer.setDirections(result);
-            const route = result.routes[0].legs[0];
-            showRouteInfo(route.distance.text, route.duration.text);
-            const bounds = new google.maps.LatLngBounds();
-            bounds.extend(userMarker.getPosition());
-            bounds.extend({ lat: targetLat, lng: targetLng });
-            map.fitBounds(bounds, 80);
-        }
+
+    if (routingControl) {
+        map.removeControl(routingControl);
+    }
+
+    routingControl = L.Routing.control({
+        waypoints: [
+            userMarker.getLatLng(),
+            L.latLng(targetLat, targetLng)
+        ],
+        lineOptions: {
+            styles: [{ color: '#0b4629', opacity: 0.8, weight: 6 }]
+        },
+        createMarker: function() { return null; },
+        addWaypoints: false,
+        draggableWaypoints: false,
+        routeWhileDragging: false,
+        show: false
+    }).addTo(map);
+
+    routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
+        const time = Math.round(routes[0].summary.totalTime / 60);
+        
+        document.getElementById('routeDist').textContent = dist + ' km';
+        document.getElementById('routeTime').textContent = time + ' min';
+        document.getElementById('routeInfo').style.display = 'flex';
+        
+        map.fitBounds(L.latLngBounds(userMarker.getLatLng(), [targetLat, targetLng]).pad(0.2));
     });
 }
 
 function placeMarkers() {
-    const infoWindow = new google.maps.InfoWindow();
     const coordCounts = {};
 
     MARKERS_DATA.forEach(p => {
@@ -226,123 +240,108 @@ function placeMarkers() {
         }
         coordCounts[key] = (coordCounts[key] || 0) + 1;
 
-        const marker = new google.maps.Marker({
-            position: { lat: lat, lng: lng },
-            icon: {
-                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-                fillColor: color,
-                fillOpacity: 1,
-                strokeColor: 'white',
-                strokeWeight: 2,
-                scale: 2,
-                anchor: new google.maps.Point(12, 22),
-            },
-            label: {
-                text: `${(price / 1000).toFixed(0)}k`,
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: '800',
-                className: 'marker-label-shift'
-            }
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color:${color}; width:35px; height:35px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:10px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">${(price / 1000).toFixed(0)}k</div>`,
+                iconSize: [35, 35],
+                iconAnchor: [17, 35]
+            })
         });
 
-        marker.addListener("click", () => {
-            const content = `
-                <div style="width:230px; font-family: 'Outfit', sans-serif; overflow:hidden;">
-                    <div style="position:relative; margin-bottom:12px;">
-                        <img src="${p.image}" style="width:100%; height:130px; object-fit:cover; border-radius:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                        <div style="position:absolute; top:10px; right:10px; background:${color}; color:white; padding:4px 10px; border-radius:10px; font-weight:800; font-size:0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                            ${price.toLocaleString()} F
-                        </div>
+        const popupContent = `
+            <div style="width:230px; font-family: 'Outfit', sans-serif; overflow:hidden;">
+                <div style="position:relative; margin-bottom:12px;">
+                    <img src="${p.image}" style="width:100%; height:130px; object-fit:cover; border-radius:15px;">
+                    <div style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.7); color:white; padding:4px 10px; border-radius:10px; font-weight:800; font-size:0.8rem;">
+                        ${price.toLocaleString()} F ${p.category === 'FURNISHED' ? '/ nuit' : ''}
                     </div>
-                    <div style="padding:0 5px;">
-                        <strong style="display:block; font-size:1rem; color:#333; margin-bottom:4px; line-height:1.2;">${p.title}</strong>
-                        <p style="color:#777; font-size:0.8rem; margin-bottom:12px;"><i class="fas fa-map-marker-alt text-success me-1"></i> {% trans "À proximité" %}</p>
-                        <div class="d-flex gap-2">
-                            <a href="${p.url}" class="btn btn-sm btn-success flex-grow-1" style="border-radius:12px; font-weight:700; padding:8px 0;">
-                                <i class="fas fa-eye me-1"></i> {% trans "Voir" %}
-                            </a>
-                            <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-outline-success" style="border-radius:12px; padding:8px 12px; border-width:2px;">
-                                <i class="fas fa-route"></i>
-                            </button>
-                        </div>
+                </div>
+                <div style="padding:0 5px;">
+                    <strong style="display:block; font-size:1rem; color:#333; margin-bottom:4px; line-height:1.2;">${p.title}</strong>
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="${p.url}" class="btn btn-sm btn-success flex-grow-1" style="border-radius:12px; font-weight:700; padding:8px 0; background-color:var(--color-dark-green); border:none;">
+                            <i class="fas fa-eye me-1"></i> {% trans "Voir" %}
+                        </a>
+                        <button onclick="showRoute(${p.lat}, ${p.lng})" class="btn btn-sm btn-outline-success" style="border-radius:12px; padding:8px 12px; border-color:var(--color-dark-green); color:var(--color-dark-green);">
+                            <i class="fas fa-route"></i>
+                        </button>
                     </div>
-                </div>`;
-            infoWindow.setContent(content);
-            infoWindow.open(map, marker);
-        });
-
+                </div>
+            </div>`;
+        
+        marker.bindPopup(popupContent);
         propMarkers[p.id] = marker;
+        markerCluster.addLayer(marker);
         markers.push(marker);
     });
 
-    markerCluster = new markerClusterer.MarkerClusterer({ map, markers });
+    map.addLayer(markerCluster);
 }
 
 function renderList(uLat, uLng, filter = 'ALL') {
     const list = document.getElementById('property-list');
     document.getElementById('list-loading').style.display = 'none';
     
-    const filtered = MARKERS_DATA.filter(p => filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED'))
-        .map(p => {
-            let dist = null;
-            if (uLat && uLng) {
-                dist = google.maps.geometry.spherical.computeDistanceBetween(
-                    new google.maps.LatLng(uLat, uLng),
-                    new google.maps.LatLng(p.lat, p.lng)
-                ) / 1000;
-            }
+    let filtered = MARKERS_DATA.filter(p => filter === 'ALL' || p.property_type === filter || (filter === 'FURNISHED' && p.category === 'FURNISHED'));
+    
+    if (uLat && uLng) {
+        filtered = filtered.map(p => {
+            const dist = getDistance(uLat, uLng, p.lat, p.lng);
             return { ...p, dist };
-        })
-        .sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
+        }).sort((a, b) => (a.dist ?? 999) - (b.dist ?? 999));
+    }
 
     list.innerHTML = filtered.map(p => `
         <div class="prop-card" id="card-${p.id}" onclick="focusProp('${p.id}')">
             <img src="${p.image}" class="prop-img">
             <div class="prop-details">
                 <div class="fw-bold small text-dark">${p.title}</div>
-                <div class="prop-price text-success fw-bold">${(p.price_night > 0 ? p.price_night : p.price_month).toLocaleString()} F</div>
+                <div class="prop-price text-success fw-bold">${(p.price_night > 0 ? p.price_night : p.price_month).toLocaleString()} F${p.category === 'FURNISHED' ? '/ nuit' : ''}</div>
                 ${p.dist ? `<div class="badge mt-1" style="background:var(--color-gold);color:var(--color-dark-green)">${p.dist.toFixed(1)} km</div>` : ''}
             </div>
         </div>`).join('');
 }
 
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
 function focusProp(id) {
     const m = propMarkers[id];
     if (m) { 
-        map.setCenter(m.getPosition());
-        map.setZoom(17);
-        google.maps.event.trigger(m, 'click');
+        map.setView(m.getLatLng(), 17);
+        m.openPopup();
     }
 }
 
-function startWatch(callback) {
+function startWatch() {
     if (!navigator.geolocation) return;
     document.getElementById('gps-label').textContent = "{% trans 'Localisation...' %}";
     navigator.geolocation.getCurrentPosition((pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const loc = [pos.coords.latitude, pos.coords.longitude];
         if (!userMarker) {
-            userMarker = new google.maps.Marker({
-                position: loc,
-                map: map,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: '#4285F4',
-                    fillOpacity: 1,
-                    scale: 8,
-                    strokeColor: 'white',
-                    strokeWeight: 2,
-                },
-                title: "{% trans "Votre position" %}"
-            });
+            userMarker = L.circleMarker(loc, {
+                radius: 8,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                color: 'white',
+                weight: 2
+            }).addTo(map).bindPopup("{% trans "Votre position" %}");
         } else { 
-            userMarker.setPosition(loc); 
+            userMarker.setLatLng(loc); 
         }
         document.getElementById('gps-badge').className = "gps-status gps-active";
         document.getElementById('gps-label').textContent = "{% trans 'GPS Actif' %}";
         map.panTo(loc);
-        renderList(loc.lat, loc.lng);
-        if (callback) callback();
+        renderList(loc[0], loc[1]);
     }, () => { 
         document.getElementById('gps-label').textContent = "{% trans 'GPS indisponible' %}"; 
     });
@@ -353,19 +352,18 @@ function filterType(type) {
         btn.classList.toggle('active', btn.getAttribute('onclick').includes(type));
     });
     
-    // Update markers on map
-    markers.forEach(m => {
-        const p = MARKERS_DATA.find(d => propMarkers[d.id] === m);
+    markerCluster.clearLayers();
+    MARKERS_DATA.forEach(p => {
         const visible = type === 'ALL' || p.property_type === type || (type === 'FURNISHED' && p.category === 'FURNISHED');
-        m.setVisible(visible);
+        if (visible) {
+            markerCluster.addLayer(propMarkers[p.id]);
+        }
     });
     
-    const uPos = userMarker ? userMarker.getPosition() : null;
-    renderList(uPos ? uPos.lat() : null, uPos ? uPos.lng() : null, type);
+    const uPos = userMarker ? userMarker.getLatLng() : null;
+    renderList(uPos ? uPos.lat : null, uPos ? uPos.lng : null, type);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // initMap is called by callback in script tag
-});
+document.addEventListener('DOMContentLoaded', initMap);
 </script>
 {% endblock %}

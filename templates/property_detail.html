@@ -813,121 +813,88 @@
         });
     });
 
-    window.map = null;
-    window.propertyMarker = null;
-    window.userMarker = null;
-    window.routingControlDetail = null;
-    const propertyPos = [ 
-        parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.')), 
-        parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.')) 
-    ];
+    // === GOOGLE MAPS - DETAIL ===
+    var _dmap = null, _dpropMarker = null, _duserPos = null, _dDirections = null, _dRenderer = null;
+    var propertyPos = {
+        lat: parseFloat("{{ property.latitude|default:6.1375 }}".replace(',','.')),
+        lng: parseFloat("{{ property.longitude|default:1.2123 }}".replace(',','.'))
+    };
+    var catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
 
     function initMap() {
-        const mapContainer = document.getElementById("propertyMap");
-        if (!mapContainer || window._mapDetailInitialized) return;
-        window._mapDetailInitialized = true;
-
-        window.map = L.map('propertyMap', {
+        var el = document.getElementById('propertyMap');
+        if (!el || typeof google === 'undefined') return;
+        _dmap = new google.maps.Map(el, {
             center: propertyPos,
             zoom: 16,
-            zoomControl: true,
-            scrollWheelZoom: false
+            mapTypeControl: false,
+            streetViewControl: false
+        });
+        _dDirections = new google.maps.DirectionsService();
+        _dRenderer  = new google.maps.DirectionsRenderer({
+            suppressMarkers: true,
+            polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6, strokeOpacity: 0.85 }
+        });
+        _dRenderer.setMap(_dmap);
+
+        _dpropMarker = new google.maps.Marker({
+            position: propertyPos,
+            map: _dmap,
+            title: "{{ property.title|escapejs }}",
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14,
+                    fillColor: catColor, fillOpacity: 1,
+                    strokeColor: '#ffffff', strokeWeight: 3 }
         });
 
-        // Carte Premium (CartoDB Voyager) - Plus esthétique
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        }).addTo(window.map);
+        var iw = new google.maps.InfoWindow({ content:
+            '<div style="min-width:160px;padding:6px;">' +
+            '<strong style="display:block;margin-bottom:8px;">{{ property.title|escapejs }}</strong>' +
+            '<button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100" style="border-radius:10px;font-weight:700;">' +
+            '<i class="fas fa-route me-1"></i> Itin\u00e9raire</button></div>'
+        });
+        _dpropMarker.addListener('click', function(){ iw.open(_dmap, _dpropMarker); });
 
-        setTimeout(() => { window.map.invalidateSize(); }, 300);
-        setTimeout(() => { window.map.invalidateSize(); }, 800);
-        setTimeout(() => { window.map.invalidateSize(); }, 1500);
-
-        // Marqueur Premium personnalisé
-        const catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
-        
-        window.propertyMarker = L.marker(propertyPos, {
-            icon: L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div style="background-color:${catColor}; width:35px; height:35px; border-radius:50%; border:3px solid white; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 10px rgba(0,0,0,0.3);"><i class="fa fa-house" style="font-size:14px;"></i></div>`,
-                iconSize: [35, 35],
-                iconAnchor: [17, 35]
-            })
-        }).addTo(window.map);
-
-        const popupContent = `
-            <div style="color:black;min-width:160px;padding:5px;">
-                <strong style="display:block;margin-bottom:8px;">{{ property.title|escapejs }}</strong>
-                <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px;font-weight:700;">
-                    <i class="fas fa-route me-1"></i> {% trans "Y aller (Itinéraire)" %}
-                </button>
-            </div>`;
-
-        window.propertyMarker.bindPopup(popupContent);
-
-        // Géolocalisation utilisateur
+        // Marqueur utilisateur
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const uPos = [position.coords.latitude, position.coords.longitude];
-                window.userMarker = L.circleMarker(uPos, {
-                    radius: 8,
-                    fillColor: '#4285F4',
-                    fillOpacity: 1,
-                    color: 'white',
-                    weight: 2
-                }).addTo(window.map).bindPopup("{% trans "Votre position" %}");
+            navigator.geolocation.getCurrentPosition(function(p) {
+                _duserPos = { lat: p.coords.latitude, lng: p.coords.longitude };
+                new google.maps.Marker({
+                    position: _duserPos, map: _dmap,
+                    title: 'Votre position',
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8,
+                            fillColor: '#4285F4', fillOpacity: 1,
+                            strokeColor: '#fff', strokeWeight: 2 }
+                });
             });
         }
     }
 
-    // Initialisation immédiate
-    document.addEventListener('DOMContentLoaded', initMap);
-
     window.calculateDetailRoute = function() {
-        if (!window.userMarker) {
-            alert("{% trans 'Veuillez autoriser la géolocalisation pour calculer l\'itinéraire.' %}");
+        if (!_duserPos) {
+            alert('Veuillez autoriser la g\u00e9olocalisation pour calculer l\'itin\u00e9raire.');
             return;
         }
-
-        if (window.routingControlDetail) {
-            window.map.removeControl(window.routingControlDetail);
-        }
-
-        window.routingControlDetail = L.Routing.control({
-            waypoints: [
-                L.latLng(window.userMarker.getLatLng()),
-                L.latLng(propertyPos)
-            ],
-            lineOptions: {
-                styles: [{ color: '#0b4629', opacity: 0.8, weight: 6 }]
-            },
-            createMarker: function() { return null; },
-            addWaypoints: false,
-            draggableWaypoints: false,
-            routeWhileDragging: false,
-            show: false
-        }).addTo(window.map);
-
-        window.routingControlDetail.on('routesfound', function(e) {
-            const routes = e.routes;
-            const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
-            const time = Math.round(routes[0].summary.totalTime / 60);
-            
-            document.getElementById('detailDist').textContent = dist;
-            document.getElementById('detailTime').textContent = time;
-            document.getElementById('routeInfoDetail').style.display = 'flex';
-            
-            window.map.fitBounds(L.latLngBounds(window.userMarker.getLatLng(), propertyPos).pad(0.2));
+        _dDirections.route({
+            origin: _duserPos, destination: propertyPos,
+            travelMode: google.maps.TravelMode.DRIVING
+        }, function(result, status) {
+            if (status === 'OK') {
+                _dRenderer.setDirections(result);
+                var leg = result.routes[0].legs[0];
+                var dist = leg.distance.text;
+                var time = leg.duration.text;
+                document.getElementById('detailDist').textContent = dist;
+                document.getElementById('detailTime').textContent = time;
+                document.getElementById('routeInfoDetail').style.display = 'flex';
+            }
         });
     };
 
     window.hideDetailRoute = function() {
-        if (window.routingControlDetail) {
-            window.map.removeControl(window.routingControlDetail);
-            window.routingControlDetail = null;
-        }
+        _dRenderer.setDirections({ routes: [] });
         document.getElementById('routeInfoDetail').style.display = 'none';
-        window.map.setView(propertyPos, 16);
+        _dmap.setCenter(propertyPos);
+        _dmap.setZoom(16);
     };
 
 
@@ -961,4 +928,7 @@
         }
     }
 </style>
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&libraries=directions&loading=async" async defer></script>
 {% endblock %}
+

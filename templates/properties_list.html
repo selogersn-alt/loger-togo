@@ -324,205 +324,130 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
-
-window.map = null;
-window.markerCluster = null;
-window.userMarker = null;
-window.routingControl = null;
+var _lmap = null, _lclusters = null, _luserMarker = null, _luserPos = null;
+var _lDirections = null, _lRenderer = null;
 const MAP_MARKERS = {{ map_markers_json|safe }};
 
 function initMap() {
-    const mapElement = document.getElementById('leaflet-map');
-    if (!mapElement || window._mapListInitialized) return;
-    window._mapListInitialized = true;
-
-    window.map = L.map('leaflet-map', {
-        center: [6.137, 1.222],
+    var el = document.getElementById('leaflet-map');
+    if (!el || typeof google === 'undefined') return;
+    _lmap = new google.maps.Map(el, {
+        center: { lat: 6.137, lng: 1.222 },
         zoom: 13,
-        zoomControl: true,
-        scrollWheelZoom: true
+        mapTypeControl: false,
+        streetViewControl: false
     });
-
-    // Carte Premium (CartoDB Voyager) - Plus esthétique
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }).addTo(window.map);
-
-    setTimeout(() => { window.map.invalidateSize(); }, 300);
-    setTimeout(() => { window.map.invalidateSize(); }, 800);
-    setTimeout(() => { window.map.invalidateSize(); }, 1500);
-
-    window.markerCluster = L.markerClusterGroup({
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        spiderfyOnMaxZoom: true,
-        removeOutsideVisibleBounds: true
+    _lDirections = new google.maps.DirectionsService();
+    _lRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6 }
     });
+    _lRenderer.setMap(_lmap);
 
-    const coordCounts = {};
-    const markers = [];
-
-    MAP_MARKERS.forEach(m => {
-        const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#d63384' : '#0b4629';
-        
-        let lat = m.lat;
-        let lng = m.lng;
-        const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
-        if (coordCounts[key]) {
-            lat += (Math.random() - 0.5) * 0.0001;
-            lng += (Math.random() - 0.5) * 0.0001;
-        }
-        coordCounts[key] = (coordCounts[key] || 0) + 1;
-
-        const marker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div style="background-color:${catColor}; width:35px; height:35px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:10px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">${(m.price / 1000).toFixed(0)}k</div>`,
-                iconSize: [35, 35],
-                iconAnchor: [17, 35]
-            })
+    var rawMarkers = MAP_MARKERS.map(function(m) {
+        var catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#d63384' : '#0b4629';
+        var marker = new google.maps.Marker({
+            position: { lat: m.lat, lng: m.lng },
+            map: _lmap,
+            title: m.title,
+            label: { text: (m.price / 1000).toFixed(0) + 'k', color: '#fff', fontSize: '10px', fontWeight: '800' },
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 18,
+                    fillColor: catColor, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
         });
-
-        const popupContent = `
-            <div style="width:260px; font-family: 'Outfit', sans-serif; overflow:hidden; border-radius:18px;">
-                <div style="position:relative; margin-bottom:15px; border-radius:15px; overflow:hidden; height:150px;">
-                    <img src="${m.image}" style="width:100%; height:100%; object-fit:cover;">
-                    <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 12px 10px;">
-                        <div style="color:white; font-weight:800; font-size:1.1rem;">
-                            ${m.price.toLocaleString()} F <small style="font-weight:400; font-size:0.7rem; opacity:0.8;">CFA ${m.is_nightly ? '/ nuit' : ''}</small>
-                        </div>
-                    </div>
-                </div>
-                <div style="padding:0 5px 5px;">
-                    <strong style="display:block; font-size:0.95rem; color:#1a1a1a; margin-bottom:4px; line-height:1.2; text-transform:capitalize;">${m.title}</strong>
-                    <div style="color:#666; font-size:0.75rem; margin-bottom:15px;">
-                        <p style="margin-bottom:4px;"><i class="fas fa-map-marker-alt text-success me-1"></i> ${m.neighborhood}, ${m.city}</p>
-                        ${m.category === 'SALE' ? `<p style="margin-bottom:0; color:var(--color-dark-green); font-weight:700;"><i class="fas fa-file-contract me-1"></i> ${m.document_type}</p>` : ''}
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <a href="${m.url}" style="background:var(--color-dark-green); color:white; flex:1; text-align:center; padding:10px; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <i class="fas fa-eye"></i> {% trans "Voir le bien" %}
-                        </a>
-                        <button onclick="calculateRoute(${m.lat}, ${m.lng})" style="background:#f0f7f4; border:2px solid var(--color-dark-green); color:var(--color-dark-green); padding:10px 14px; border-radius:12px; cursor:pointer;">
-                            <i class="fas fa-route"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        marker.bindPopup(popupContent);
-        window.markerCluster.addLayer(marker);
-        markers.push(marker);
+        var content = '<div style="width:260px;font-family:Outfit,sans-serif;border-radius:14px;overflow:hidden;">' +
+            '<div style="position:relative;height:150px;"><img src="' + m.image + '" style="width:100%;height:100%;object-fit:cover;">' +
+            '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);padding:20px 12px 10px;">' +
+            '<div style="color:#fff;font-weight:800;font-size:1.1rem;">' + m.price.toLocaleString() + ' F <small style="font-weight:400;font-size:.7rem;opacity:.8;">CFA ' + (m.is_nightly ? '/ nuit' : '') + '</small></div></div></div>' +
+            '<div style="padding:10px;">' +
+            '<strong style="display:block;font-size:.95rem;color:#1a1a1a;margin-bottom:4px;">' + m.title + '</strong>' +
+            '<div style="color:#666;font-size:.75rem;margin-bottom:12px;"><i class="fas fa-map-marker-alt text-success me-1"></i>' + m.neighborhood + ', ' + m.city + '</div>' +
+            '<div style="display:flex;gap:10px;">' +
+            '<a href="' + m.url + '" style="background:var(--color-dark-green);color:#fff;flex:1;text-align:center;padding:10px;border-radius:12px;text-decoration:none;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-eye"></i>Voir le bien</a>' +
+            '<button onclick="calculateRoute(' + m.lat + ',' + m.lng + ')" style="background:#f0f7f4;border:2px solid var(--color-dark-green);color:var(--color-dark-green);padding:10px 14px;border-radius:12px;cursor:pointer;"><i class="fas fa-route"></i></button>' +
+            '</div></div></div>';
+        var iw = new google.maps.InfoWindow({ content: content });
+        marker.addListener('click', function() { iw.open(_lmap, marker); });
+        return marker;
     });
 
-    window.map.addLayer(window.markerCluster);
+    _lclusters = new markerClusterer.MarkerClusterer({ map: _lmap, markers: rawMarkers });
 
-    if (markers.length > 0) {
-        const group = new L.featureGroup(markers);
-        window.map.fitBounds(group.getBounds().pad(0.1));
+    if (rawMarkers.length > 0) {
+        var bounds = new google.maps.LatLngBounds();
+        MAP_MARKERS.forEach(function(m) { bounds.extend({ lat: m.lat, lng: m.lng }); });
+        _lmap.fitBounds(bounds);
     }
 
-    // Géolocalisation initiale
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const loc = [pos.coords.latitude, pos.coords.longitude];
-            window.userMarker = L.circleMarker(loc, {
-                radius: 8,
-                fillColor: '#4285F4',
-                fillOpacity: 1,
-                color: 'white',
-                weight: 2
-            }).addTo(window.map).bindPopup("{% trans "Votre position" %}");
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            _luserPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            _luserMarker = new google.maps.Marker({
+                position: _luserPos, map: _lmap, title: 'Votre position',
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8,
+                        fillColor: '#4285F4', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
+            });
         });
     }
 }
 
-// Initialisation immédiate
-document.addEventListener('DOMContentLoaded', initMap);
-
 window.toggleMapFullscreen = function() {
-    const el = document.getElementById('mapWrapper');
+    var el = document.getElementById('mapWrapper');
     if (el) {
         el.classList.toggle('fullscreen');
-        setTimeout(() => window.map.invalidateSize(), 300);
+        if (_lmap) google.maps.event.trigger(_lmap, 'resize');
     }
-};
-
-window.hideRoute = function() { 
-    if (window.routingControl) {
-        window.map.removeControl(window.routingControl);
-        window.routingControl = null;
-    }
-    document.getElementById('routeInfo').style.display = 'none'; 
-};
-
-window.calculateRoute = function(tLat, tLng) {
-    if (!window.userMarker) {
-        alert("{% trans 'Veuillez autoriser la géolocalisation pour calculer l\'itinéraire.' %}");
-        // Centrer sur le bien quand même
-        window.map.setView([tLat, tLng], 15);
-        return;
-    }
-    
-    if (window.routingControl) {
-        window.map.removeControl(window.routingControl);
-    }
-
-    window.routingControl = L.Routing.control({
-        waypoints: [
-            L.latLng(window.userMarker.getLatLng()),
-            L.latLng(tLat, tLng)
-        ],
-        lineOptions: {
-            styles: [{ color: '#0b4629', opacity: 0.8, weight: 6 }]
-        },
-        createMarker: function() { return null; },
-        addWaypoints: false,
-        draggableWaypoints: false,
-        routeWhileDragging: false,
-        show: false
-    }).addTo(window.map);
-
-    window.routingControl.on('routesfound', function(e) {
-        const routes = e.routes;
-        const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
-        const time = Math.round(routes[0].summary.totalTime / 60);
-        
-        document.getElementById('routeDist').textContent = dist + ' km';
-        document.getElementById('routeTime').textContent = time + ' min';
-        document.getElementById('routeInfo').style.display = 'flex';
-        
-        window.map.fitBounds(L.latLngBounds(window.userMarker.getLatLng(), [tLat, tLng]).pad(0.2));
-    });
 };
 
 window.hideRoute = function() {
-    if (window.routingControl) {
-        window.map.removeControl(window.routingControl);
-        window.routingControl = null;
-    }
+    if (_lRenderer) _lRenderer.setDirections({ routes: [] });
     document.getElementById('routeInfo').style.display = 'none';
 };
 
+window.calculateRoute = function(tLat, tLng) {
+    if (!_luserPos) {
+        alert('Veuillez autoriser la g\u00e9olocalisation pour calculer l\'itin\u00e9raire.');
+        _lmap.setCenter({ lat: tLat, lng: tLng });
+        _lmap.setZoom(15);
+        return;
+    }
+    _lDirections.route({
+        origin: _luserPos,
+        destination: { lat: tLat, lng: tLng },
+        travelMode: google.maps.TravelMode.DRIVING
+    }, function(result, status) {
+        if (status === 'OK') {
+            _lRenderer.setDirections(result);
+            var leg = result.routes[0].legs[0];
+            document.getElementById('routeDist').textContent = leg.distance.text;
+            document.getElementById('routeTime').textContent = leg.duration.text;
+            document.getElementById('routeInfo').style.display = 'flex';
+        }
+    });
+};
+
 window.centerOnUser = function() {
-    if (userMarker) {
-        map.setView(userMarker.getLatLng(), 14);
+    if (_luserPos) {
+        _lmap.setCenter(_luserPos);
+        _lmap.setZoom(14);
     } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const loc = [pos.coords.latitude, pos.coords.longitude];
-            map.setView(loc, 14);
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            _lmap.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+            _lmap.setZoom(14);
         });
     }
 };
 
-
 window.toggleAdvancedFilters = function() {
-    const div = document.getElementById('advancedFiltersPanel');
+    var div = document.getElementById('advancedFiltersPanel');
     if (div) div.style.display = div.style.display === 'block' ? 'none' : 'block';
 };
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&loading=async" async defer></script>
 <style>
     .marker-label-shift { margin-top: -38px; }
 </style>
 {% endblock %}
+
+

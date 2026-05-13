@@ -533,21 +533,6 @@
 
 
 <script>
-// ─── PREMIUM MAP STYLE (Version Purifiée - No POI) ──────────────────
-const PREMIUM_MAP_STYLE = [
-  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#a2daf2" }] },
-  { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
-  { "featureType": "poi", "stylers": [{ "visibility": "off" }] }, // DÉSACTIVE TOUS LES POINTS D'INTÉRÊT (Hôtels, Bars, etc.)
-  { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "visibility": "on" }, { "color": "#d5e8d4" }] },
-  { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#fbc02d" }] },
-  { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#f9a825" }] },
-  { "featureType": "road.arterial", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
-  { "featureType": "road.local", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }] },
-  { "featureType": "administrative", "elementType": "labels.text.fill", "stylers": [{ "color": "#0b4629" }] },
-  { "featureType": "transit", "stylers": [{ "visibility": "off" }] } // Cache les gares/arrêts bus
-];
-
-
 // ─── CONFIG & GLOBALS ──────────────────────────────────────────────────
 let map, marker;
 const LOME_CENTER = [6.1375, 1.2123];
@@ -564,9 +549,11 @@ function initMap() {
         scrollWheelZoom: true
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    // Carte Premium (CartoDB Voyager) - Plus esthétique
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(map);
+
 
     // Restaurer coords existantes
     const existingLat = "{{ form.instance.latitude|default:'' }}";

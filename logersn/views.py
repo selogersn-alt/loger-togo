@@ -150,18 +150,22 @@ def properties_list_view(request):
     for p in properties:
         if p.latitude and p.longitude:
             img_url = p.get_main_image
+            # Déterminer le prix à afficher sur la carte
+            display_price = int(p.price_per_night) if (p.listing_category == 'FURNISHED' and p.price_per_night) else int(p.price) if p.price else 0
+            
             map_markers.append({
                 'id': str(p.id),
                 'lat': float(p.latitude) if p.latitude else 0,
                 'lng': float(p.longitude) if p.longitude else 0,
                 'title': p.title or "",
-                'price': int(p.price) if p.price else 0,
-                'type': p.get_property_type_display(),
-                'neighborhood': p.neighborhood or "",
+                'price': display_price,
                 'category': p.listing_category,
+                'type': p.get_property_type_display(),
+                'document_type': p.get_document_type_display() if p.listing_category == 'SALE' else '',
+                'neighborhood': p.neighborhood or "",
+                'city': p.city or "",
                 'url': p.get_absolute_url(),
-                'image': img_url or "",
-                'city': p.city or ""
+                'image': img_url or ""
             })
 
     context = {

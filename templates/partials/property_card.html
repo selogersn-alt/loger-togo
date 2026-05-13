@@ -50,12 +50,8 @@
         <!-- Prix -->
         <div class="property-price-tag" style="position: absolute; bottom: 12px; right: 12px; background: var(--color-dark-green); color: white; padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; z-index: 5; box-shadow: 0 8px 25px rgba(0,0,0,0.4); white-space: nowrap; display: flex; flex-direction: column; align-items: flex-end;">
             {% if property.listing_category == 'FURNISHED' %}
-                {% if property.discount_price and property.discount_price < property.price_per_night %}
-                    <span style="font-size: 0.75rem; text-decoration: line-through; opacity: 0.7; display: block; line-height: 1; margin-bottom: 2px;">{{ property.price_per_night|format_price }}</span>
-                    {{ property.discount_price|format_price }}
-                {% else %}
-                    {{ property.price_per_night|format_price }}
-                {% endif %}
+                {# On affiche uniquement le prix par nuitée dans la liste pour les meublés #}
+                {{ property.price_per_night|format_price }}
             {% else %}
                 {% if property.discount_price and property.discount_price < property.price %}
                     <span style="font-size: 0.75rem; text-decoration: line-through; opacity: 0.7; display: block; line-height: 1; margin-bottom: 2px;">{{ property.price|format_price }}</span>
@@ -70,7 +66,7 @@
             </small>
         </div>
 
-        {% if property.discount_price %}
+        {% if property.discount_price and property.listing_category != 'FURNISHED' %}
         <div class="promo-badge" style="position: absolute; top: 12px; right: 50px; background: #ff4757; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; z-index: 5; animation: pulse 2s infinite;">
             <i class="fas fa-fire me-1"></i>PROMO -{{ property.discount_percentage }}%
         </div>
@@ -80,7 +76,12 @@
     </div>
 
     <div class="property-details p-3" style="position: relative; z-index: 6;">
-        <h3 class="property-title h6 fw-bold mb-1 text-truncate" style="color: var(--color-dark-green);">{{ property.title }}</h3>
+        <div class="d-flex justify-content-between align-items-start mb-1">
+            <h3 class="property-title h6 fw-bold mb-0 text-truncate" style="color: var(--color-dark-green); flex: 1;">{{ property.title }}</h3>
+            {% if property.listing_category == 'SALE' and property.document_type and property.document_type != 'NONE' %}
+                <span class="badge bg-light text-dark border ms-2 x-small" style="font-size: 0.6rem; border-radius: 4px;">{{ property.get_document_type_display }}</span>
+            {% endif %}
+        </div>
         
         <div class="owner-info mb-2 small fw-bold" style="color: var(--color-light-green);">
             <i class="fa-solid fa-user-tie me-1"></i> 

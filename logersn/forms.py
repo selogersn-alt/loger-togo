@@ -72,11 +72,9 @@ class PropertyForm(forms.ModelForm):
         # Logique de cohérence par catégorie (Conflits de logique)
         listing_category = cleaned_data.get('listing_category')
         
-        # 1. Si ce n'est pas un meublé, on ignore le prix par nuitée
+        # 1. Pour les meublés, le prix par nuitée est optionnel
         if listing_category != 'FURNISHED':
             cleaned_data['price_per_night'] = None
-        elif not cleaned_data.get('price_per_night'):
-            self.add_error('price_per_night', _("Le prix par nuitée est obligatoire pour les meublés."))
 
         # 2. Si ce n'est pas une location, on ignore les mois de caution/avance
         if listing_category != 'RENT':
@@ -84,8 +82,11 @@ class PropertyForm(forms.ModelForm):
             cleaned_data['advance_months'] = 0
             cleaned_data['agency_fee_months'] = 0
 
-        # 3. Si ce n'est pas une vente, on ignore le type de document
-        if listing_category != 'SALE':
+        # 3. Pour les ventes, le type de document est obligatoire
+        if listing_category == 'SALE':
+            if not cleaned_data.get('document_type') or cleaned_data.get('document_type') == 'NONE':
+                self.add_error('document_type', _("Le type de document est obligatoire pour les ventes."))
+        else:
             cleaned_data['document_type'] = 'NONE'
 
         return cleaned_data

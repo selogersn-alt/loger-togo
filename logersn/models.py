@@ -120,13 +120,14 @@ class Property(models.Model):
 
     def save(self, *args, **kwargs):
         # Calcul automatique du prix remisé (Senior Logic)
-        base_price = self.price_per_night if self.listing_category == 'FURNISHED' else self.price
+        # Pour les meublés, la réduction s'applique sur le prix mensuel (self.price)
+        # Pour les autres, c'est aussi sur self.price (qui est le prix de vente ou loyer classique)
+        base_price = self.price
         
         if self.discount_percentage > 0 and base_price and base_price > 0:
             reduction = (base_price * self.discount_percentage) / 100
             self.discount_price = base_price - reduction
         else:
-            # On ne force plus le prix remisé égal au prix de base si pas de remise
             self.discount_price = None
 
 
@@ -182,13 +183,10 @@ class PropertyImage(models.Model):
                 import io
                 from django.core.files.base import ContentFile
                 
-                # Ouvrir l'image
                 img = Image.open(self.image_url)
                 
-                # Si ce n'est pas déjà du WebP, on convertit
                 if img.format != 'WEBP':
                     output = io.BytesIO()
-                    # Convertir en RGB si nécessaire (pour JPEG/PNG avec alpha vers WebP)
                     if img.mode in ('RGBA', 'P'):
                         img = img.convert('RGB')
                     

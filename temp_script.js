@@ -1,0 +1,790 @@
+﻿
+>                 <script>
+                    document.getElementById('id_neighborhood').setAttribute('list', 'neighborhoods-list');
+                  </script>
+                </div>
+  
+                <!-- ─ DESCRIPTION ─ -->
+                <div class="col-12">
+                  <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.description.label 
+}}</label>
+                  {{ form.description }}
+                </div>
+  
+                <!-- ════════════════════════════════════════════
+                     SECTION : LOCALISATION SUR LA CARTE
+                ════════════════════════════════════════════ -->
+                <div class="col-12 mt-2">
+                  <div class="p-4 rounded-4" style="background:var(--bg-body);border:1px solid var(--border-color);">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                      <div>
+                        <h5 class="fw-bold m-0" style="color:var(--color-dark-green);">
+                          <i class="fa-solid fa-map-location-dot me-2 text-success"></i>{% trans "Localisation sur la 
+carte" %}
+                        </h5>
+                        <small class="text-muted">{% trans "Cliquez sur la carte pour placer votre bien. C'est plus 
+précis et sans risque de blocage !" %}</small>
+                      </div>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-success geocode-btn rounded-pill px-3" 
+onclick="geocodeAddress()">
+                          <i class="fa-solid fa-magnifying-glass-location me-1"></i>{% trans "Géocoder l'adresse" %}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="useMyGPS()">
+                          <i class="fa-solid fa-crosshairs me-1"></i>{% trans "Ma position GPS" %}
+                        </button>
+                      </div>
+                    </div>
+  
+                    <!-- Carte Leaflet uniformisée -->
+                    <div id="mapWrapper" 
+style="display:block;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px 
+rgba(0,0,0,.12);border:2px solid var(--border-color);">
+                        <div id="map-picker" style="height:360px; z-index: 1; background-color: #e5e5e5;"></div>
+                    </div>
+  
+                    <!-- Statut géolocalisation -->
+                    <div id="map-status" class="map-status alert mb-0 py-2 px-3 mt-2"></div>
+  
+                    <!-- Coordonnées affichées -->
+                    <div class="d-flex gap-3 mt-2" id="coords-display" style="display:none!important;">
+                      <small class="text-muted"><i class="fa-solid fa-location-dot text-success me-1"></i>Lat: <span 
+id="lat-display">—</span></small>
+                      <small class="text-muted"><i class="fa-solid fa-location-dot text-success me-1"></i>Lng: <span 
+id="lng-display">—</span></small>
+                      <small class="text-muted text-success fw-bold" id="coords-ok" style="display:none;"><i 
+class="fa-solid fa-check-circle me-1"></i>{% trans "Position enregistrée" %}</small>
+                    </div>
+  
+                    <!-- Champs cachés soumis avec le formulaire -->
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default:'' }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default:'' 
+}}">
+                  </div>
+                </div>
+  
+                <!-- ─ DÉTAILS TECHNIQUES ─ -->
+                <div class="col-12 mt-2 pt-3 border-top section-divider">
+                  <h5 class="fw-bold mb-3" style="color:var(--text-main);">{% trans "Détails Techniques" %} <span 
+class="text-muted fw-normal small">({% trans "Optionnel" %})</span></h5>
+                  <div class="row g-3">
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Surface (m²)" 
+%}</label>{{ form.surface }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Chambres" 
+%}</label>{{ form.bedrooms }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Toilettes" 
+%}</label>{{ form.toilets }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Salons" 
+%}</label>{{ form.salons }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Cuisines" 
+%}</label>{{ form.kitchens }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Pièces totales" 
+%}</label>{{ form.total_rooms }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Ménages" 
+%}</label>{{ form.households }}</div>
+                    <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Niveau d'étage" 
+%}</label>{{ form.floor_level }}</div>
+                  </div>
+                  <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                      <div class="form-check mt-2">
+                        {{ form.has_balcony }}
+                        <label class="form-check-label fw-bold small ms-2">{{ form.has_balcony.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-check mt-2">
+                        {{ form.has_terrace }}
+                        <label class="form-check-label fw-bold small ms-2">{{ form.has_terrace.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-check mt-2">
+                        {{ form.has_courtyard }}
+                        <label class="form-check-label fw-bold small ms-2">{{ form.has_courtyard.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-check mt-2">
+                        {{ form.has_garden }}
+                        <label class="form-check-label fw-bold small ms-2">{{ form.has_garden.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-check mt-2">
+                        {{ form.has_garage }}
+                        <label class="form-check-label fw-bold small ms-2">{{ form.has_garage.label }}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- ─ ÉQUIPEMENTS ─ -->
+                <div class="col-12 pt-3 border-top section-divider">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0" style="color:var(--text-main);">{% trans "Équipements" %} <span 
+class="text-muted fw-normal small">({% trans "Optionnel" %})</span></h5>
+                    <button class="btn btn-sm btn-outline-success rounded-pill" type="button" 
+data-bs-toggle="collapse" data-bs-target="#equipmentsCollapse" aria-expanded="false" 
+aria-controls="equipmentsCollapse">
+                      <i class="fa-solid fa-plus me-1"></i>{% trans "Ajouter des équipements" %}
+                    </button>
+                  </div>
+                  <div class="collapse" id="equipmentsCollapse">
+                    <div class="row g-2">
+                      <div class="col-6 col-md-4">
+                        <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                          {{ form.wifi }}
+                          <label class="form-check-label small fw-bold ms-2">{{ form.wifi.label }}</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                          {{ form.air_conditioning }}
+                          <label class="form-check-label small fw-bold ms-2">{{ form.air_conditioning.label }}</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                          {{ form.swimming_pool }}
+                          <label class="form-check-label small fw-bold ms-2">{{ form.swimming_pool.label }}</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                          {{ form.gym }}
+                          <label class="form-check-label small fw-bold ms-2">{{ form.gym.label }}</label>
+                        </div>
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.refrigerator }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.refrigerator.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.washing_machine }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.washing_machine.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.microwave }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.microwave.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.tv_cable }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.tv_cable.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.generator }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.generator.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <div class="form-check p-3 rounded-3 border" 
+style="background:var(--bg-card);border-color:var(--border-color)!important;">
+                        {{ form.water_tank }}
+                        <label class="form-check-label small fw-bold ms-2">{{ form.water_tank.label }}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- ─ PHOTOS OPTIMISÉES ─ -->
+                <div class="col-12 pt-3 border-top section-divider">
+                  <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{% trans 
+"Photos du bien" %}</label>
+                  
+                  {% if is_edit and property.images.all %}
+                    <div class="row g-2 mb-4 bg-light p-3 rounded-4 border">
+                      <label class="form-label small fw-bold text-muted mb-2">{% trans "Photos déjà en ligne (Cliquez 
+sur X pour supprimer)" %}</label>
+                      <div class="d-flex flex-wrap gap-2">
+                      {% for img in property.images.all %}
+                        <div class="position-relative" style="width: 80px;">
+                          <img src="{{ img.image_url.url }}" class="img-thumbnail rounded-3" style="width: 80px; 
+height: 80px; object-fit:cover;">
+                          <a href="{% url 'delete_property_image' img.id %}" class="btn btn-danger btn-sm 
+position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center" style="width:22px; height:22px; 
+border-radius:50%; border:2px solid white; transform: translate(30%, -30%);" onclick="return confirm('{% trans 
+'Supprimer cette image ?' %}')">
+                            <i class="fa-solid fa-xmark" style="font-size:10px;"></i>
+                          </a>
+                        </div>
+                      {% endfor %}
+                      </div>
+                    </div>
+                  {% endif %}
+  
+                  <div class="upload-zone" id="drop-zone">
+                    <input type="file" id="image-input" multiple accept="image/*" class="d-none">
+                    <div class="upload-icon mb-2">
+                      <i class="fa-solid fa-cloud-arrow-up fs-1 text-success"></i>
+                    </div>
+                    <h6 class="fw-bold">{% trans "Cliquez ou glissez vos photos ici" %}</h6>
+                    <p class="text-muted small">{% trans "Optimisation automatique activée pour un envoi 
+ultra-rapide." %}</p>
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3" 
+onclick="document.getElementById('image-input').click()">
+                      {% trans "Sélectionner des fichiers" %}
+                    </button>
+                  </div>
+  
+                  <div class="preview-container" id="preview-container"></div>
+                  
+                  <!-- Champ réel caché pour Django -->
+                  <div class="d-none">
+                    {{ form.images }}
+                  </div>
+                  
+                  <small class="text-muted d-block mt-3">
+                    <i class="fa-solid fa-circle-check text-success me-1"></i>
+                    {% trans "Vos photos seront compressées sans perte de qualité visible avant l'envoi." %}
+                  </small>
+                </div>
+  
+                <!-- Overlay de chargement Premium -->
+                <div id="upload-overlay">
+                  <div class="loading-card animate__animated animate__fadeInUp">
+                    <div class="loading-spinner-custom"></div>
+                    <h3 class="fw-bold mb-2">{% trans "Optimisation en cours" %}</h3>
+                    <p id="upload-status-text" class="small opacity-75 mb-0">{% trans "Nous préparons vos photos pour 
+un affichage ultra-rapide..." %}</p>
+                    
+                    <div class="progress-custom">
+                      <div id="upload-progress-bar" class="progress-bar-custom"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between x-small opacity-50 mt-2" style="font-size: 0.75rem;">
+                      <span>{% trans "Traitement sécurisé" %}</span>
+                      <span id="progress-percentage">0%</span>
+                    </div>
+                  </div>
+                </div>
+  
+  
+  
+                <!-- ─ INFOS PRIVÉES (RÉSERVÉ ADMIN/ROBOT) ─ -->
+                <div class="col-12 pt-3 border-top section-divider">
+                  <h5 class="fw-bold mb-3" style="color:var(--color-dark-green);"><i class="fa-solid fa-user-shield 
+me-2"></i>{% trans "Informations Internes (Privées)" %}</h5>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small fw-bold">{% trans "Référence / Lien Source" %}</label>
+                      <input type="text" name="internal_ref" class="form-control" placeholder="{% trans "Lien de 
+l'annonce d'origine" %}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small fw-bold">{% trans "Contact Agent d'origine" %}</label>
+                      <textarea name="private_contact_info" class="form-control" rows="2" placeholder="{% trans "Nom 
+et téléphone du pro d'origine" %}"></textarea>
+                    </div>
+                  </div>
+                  <small class="text-muted">{% trans "Ces informations ne seront JAMAIS visibles par les clients sur 
+le site." %}</small>
+                </div>
+  
+              </div><!-- end row -->
+  
+              <div class="col-12 mt-5">
+                <button type="submit" id="submit-btn" class="btn btn-success w-100 py-3 rounded-pill fw-bold 
+shadow-lg" style="font-size:1.1rem; background: linear-gradient(135deg, #0b4629 0%, #157347 100%); border: none;">
+                  <i class="fa-solid fa-paper-plane me-2"></i>
+                  {% if is_edit %}{% trans "Enregistrer les modifications" %}{% else %}{% trans "Publier mon annonce" 
+%}{% endif %}
+                </button>
+              </div>
+            </form>
+  
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+  
+  {% block extra_js %}
+  <!-- Library de compression ultra-performante -->
+  <script type="text/javascript" 
+src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+  
+> <script>
+  // ─── CONFIG & GLOBALS ──────────────────────────────────────────────────
+  let map, marker;
+  const LOME_CENTER = [6.1375, 1.2123];
+  
+  // ─── INIT MAP ─────────────────────────────────────────────────────────
+  function initMap() {
+      const mapContainer = document.getElementById('map-picker');
+      if (!mapContainer) return;
+  
+      map = L.map('map-picker', {
+          center: LOME_CENTER,
+          zoom: 13,
+          zoomControl: true,
+          scrollWheelZoom: true
+      });
+      
+      window.map = map;
+  
+      // Carte OSM Standard - Plus robuste pour la prod
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+  
+      // Fix pour le rectangle gris (Leaflet resize bug)
+      setTimeout(() => {
+          if(window.map) window.map.invalidateSize();
+      }, 500);
+      setTimeout(() => {
+          if(window.map) window.map.invalidateSize();
+      }, 1200);
+  
+  
+      // Restaurer coords existantes
+      const existingLat = "{{ form.instance.latitude|default:'' }}";
+      const existingLng = "{{ form.instance.longitude|default:'' }}";
+      if (existingLat && existingLat !== 'None' && existingLng && existingLng !== 'None') {
+          const lat = parseFloat(existingLat.replace(',', '.'));
+          const lng = parseFloat(existingLng.replace(',', '.'));
+          if (!isNaN(lat) && !isNaN(lng)) {
+              placeMarker([lat, lng]);
+              map.setView([lat, lng], 16);
+          }
+      }
+  
+      map.on('click', function(e) {
+          placeMarker(e.latlng);
+          window.showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
+      });
+  }
+  
+  // Initialisation immédiate pour Leaflet (pas besoin de callback)
+  document.addEventListener('DOMContentLoaded', initMap);
+  
+  window.placeMarker = function(latlng) {
+      if (!map) return;
+      
+      if (marker) {
+          marker.setLatLng(latlng);
+      } else {
+          marker = L.marker(latlng, {
+              draggable: true,
+              icon: L.divIcon({
+                  className: 'custom-div-icon',
+                  html: "<div style='background-color:#0b4629; width:30px; height:30px; border-radius:50%; border:3px 
+solid #f5c42f; display:flex; align-items:center; justify-content:center; color:white;'><i class='fa fa-house-chimney' 
+style='font-size:12px;'></i></div>",
+                  iconSize: [30, 30],
+                  iconAnchor: [15, 15]
+              })
+          }).addTo(map);
+  
+          marker.on('dragend', function(e) {
+              const pos = marker.getLatLng();
+              window.updateCoords(pos.lat, pos.lng);
+              window.showStatus('✅ {% trans "Position ajustée." %}', 'success');
+          });
+      }
+  
+      const finalLat = latlng.lat || (Array.isArray(latlng) ? latlng[0] : latlng.lat);
+      const finalLng = latlng.lng || (Array.isArray(latlng) ? latlng[1] : latlng.lng);
+  
+      window.updateCoords(finalLat, finalLng);
+      const mapEl = document.getElementById('mapWrapper');
+      if(mapEl) mapEl.classList.add('pinned');
+  };
+  
+  window.updateCoords = function(lat, lng) {
+      const latR = parseFloat(lat).toFixed(7);
+      const lngR = parseFloat(lng).toFixed(7);
+      const latInput = document.getElementById('id_latitude');
+      const lngInput = document.getElementById('id_longitude');
+      if(latInput) latInput.value = latR;
+      if(lngInput) lngInput.value = lngR;
+      
+      const latDisp = document.getElementById('lat-display');
+      const lngDisp = document.getElementById('lng-display');
+      if(latDisp) latDisp.textContent = latR;
+      if(lngDisp) lngDisp.textContent = lngR;
+      
+      const coordsRow = document.getElementById('coords-display');
+      const coordsOk = document.getElementById('coords-ok');
+      if(coordsRow) {
+          coordsRow.classList.remove('d-none');
+          coordsRow.style.setProperty('display', 'flex', 'important');
+      }
+      if(coordsOk) coordsOk.style.display = 'inline';
+  };
+  
+  window.showStatus = function(msg, type) {
+      const statusBox = document.getElementById('map-status');
+      if (!statusBox) return;
+      statusBox.className = `map-status alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' 
+: 'danger'} visible`;
+      statusBox.innerHTML = msg;
+      setTimeout(() => { statusBox.className = 'map-status alert'; }, 5000);
+  };
+  
+  // ─── GÉOCODAGE PAR ADRESSE (Nominatim / OpenStreetMap) ──────────────────
+  async function geocodeAddress() {
+      const city = document.getElementById('id_city');
+      const neighborhood = document.getElementById('id_neighborhood');
+      const cityText = city ? city.options[city.selectedIndex]?.text : '';
+      const neighborhoodText = neighborhood ? neighborhood.value.trim() : '';
+  
+      if (!neighborhoodText && !cityText) {
+          showStatus(`⚠️ {% trans "Veuillez d'abord renseigner la ville et le quartier." %}`, 'warning');
+          return;
+      }
+  
+      const query = `${neighborhoodText}, ${cityText}, Togo`;
+      showStatus(`🔍 {% trans "Recherche de" %} "${query}"…`, 'info');
+  
+      try {
+          const response = await 
+fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=tg`);
+          const data = await response.json();
+          if (data && data.length > 0) {
+              const latlng = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              map.setView(latlng, 16);
+              placeMarker(latlng);
+              showStatus(`✅ {% trans "Adresse trouvée" %}`, 'success');
+          } else {
+              showStatus(`❌ {% trans "Adresse introuvable. Veuillez placer le marqueur manuellement." %}`, 'danger');
+          }
+      } catch (error) {
+          console.error("Geocoding error:", error);
+          showStatus(`❌ {% trans "Erreur de connexion lors de la recherche." %}`, 'danger');
+      }
+  }
+  
+  // ─── GPS NAVIGATEUR (Version stabilisée) ──────────────────────────────────
+  function useMyGPS() {
+      if (!navigator.geolocation) {
+          showStatus(`❌ {% trans "La géolocalisation n'est pas supportée par votre navigateur." %}`, 'danger');
+          return;
+      }
+  
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          showStatus(`⚠️ {% trans "Le GPS nécessite une connexion sécurisée (HTTPS)." %}`, 'warning');
+      }
+  
+      showStatus('📡 {% trans "Détection GPS haute précision en cours…" %}', 'info');
+      
+      const geoOptions = {
+          enableHighAccuracy: true,
+          timeout: 15000, // Augmenté à 15s pour les connexions mobiles
+          maximumAge: 0
+      };
+  
+      navigator.geolocation.getCurrentPosition(
+          function(pos) {
+              const latlng = [pos.coords.latitude, pos.coords.longitude];
+              placeMarker(latlng);
+              map.setView(latlng, 17);
+              showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
+          },
+          function(err) {
+              let msg = '{% trans "Accès GPS refusé ou impossible." %}';
+              if (err.code === 1) msg = '{% trans "Veuillez autoriser l\'accès à votre position." %}';
+              if (err.code === 2) msg = '{% trans "Position indisponible (Signal faible)." %}';
+              if (err.code === 3) msg = '{% trans "Délai d\'attente dépassé (Timeout)." %}';
+              showStatus('⚠️ ' + msg, 'warning');
+          },
+          geoOptions
+      );
+  }
+  
+  
+  // ─── LOGIQUE CATÉGORIE & PRIX ───────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+      const categorySelect = document.getElementById('id_listing_category');
+      const propertyTypeSelect = document.getElementById('id_property_type');
+      const priceLabel = document.getElementById('price_label');
+      const pricePerNightContainer = document.getElementById('price_per_night_container');
+      const rentalConditionsContainer = document.getElementById('rental_conditions_container');
+      const documentTypeContainer = document.getElementById('document_type_container');
+  
+      function updateFields() {
+          if (!categorySelect) return;
+          
+          const val = categorySelect.value ? categorySelect.value.trim().toUpperCase() : '';
+          const propTypeVal = propertyTypeSelect ? propertyTypeSelect.value.trim().toUpperCase() : '';
+          
+          // 1. DÉTECTION DES ÉTATS (Plus robuste)
+          const isSale = (val === 'SALE' || val.indexOf('SALE') !== -1);
+          const isFurnished = (val === 'FURNISHED');
+          const isRent = (val === 'RENT');
+          
+          const isTerrain = (propTypeVal === 'TERRAIN' || propTypeVal === 'PARCELLES');
+  
+          // 2. VISIBILITÉ DOCUMENT (Uniquement pour les Ventes)
+          if (documentTypeContainer) {
+              if (isSale) {
+                  documentTypeContainer.style.setProperty('display', 'block', 'important');
+                  documentTypeContainer.classList.add('animate__animated', 'animate__fadeIn');
+              } else {
+                  documentTypeContainer.style.setProperty('display', 'none', 'important');
+              }
+          }
+          
+          // 3. PRIX PAR NUITÉE (Uniquement pour les Meublés)
+          if (pricePerNightContainer) {
+              if (isFurnished) {
+                  pricePerNightContainer.style.setProperty('display', 'block', 'important');
+              } else {
+                  pricePerNightContainer.style.setProperty('display', 'none', 'important');
+              }
+          }
+          
+          // 4. CONDITIONS DE LOCATION (Bail)
+          if (rentalConditionsContainer) {
+              if (isRent || isFurnished) {
+                  rentalConditionsContainer.style.setProperty('display', 'block', 'important');
+              } else {
+                  rentalConditionsContainer.style.setProperty('display', 'none', 'important');
+              }
+          }
+  
+          // 5. FLEXIBILITÉ DES CHAMPS TECHNIQUES (Masquage si Terrain)
+          const technicalFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 
+'floor_level'];
+          
+          if (isTerrain) {
+              technicalFields.forEach(f => {
+                  const el = document.getElementById('id_' + f);
+                  if (el && el.closest('.col-md-3')) el.closest('.col-md-3').style.setProperty('display', 'none', 
+'important');
+              });
+              const equipSection = document.querySelector('#equipmentsCollapse')?.closest('.section-divider');
+              if (equipSection) equipSection.style.setProperty('display', 'none', 'important');
+              const equipBtn = 
+document.querySelector('[data-bs-target="#equipmentsCollapse"]')?.closest('.section-divider');
+              if (equipBtn) equipBtn.style.setProperty('display', 'none', 'important');
+          } else {
+              technicalFields.forEach(f => {
+                  const el = document.getElementById('id_' + f);
+                  if (el && el.closest('.col-md-3')) el.closest('.col-md-3').style.setProperty('display', 'block', 
+'important');
+              });
+              const equipSections = document.querySelectorAll('.section-divider');
+              equipSections.forEach(s => s.style.setProperty('display', 'block', 'important'));
+          }
+  
+          // 6. LIBELLÉS DYNAMIQUES
+          if (priceLabel) {
+              if (isSale) {
+                  priceLabel.innerText = 'Prix de vente total (FCFA)';
+              } else if (isFurnished) {
+                  priceLabel.innerText = 'Loyer mensuel (Meublé)';
+              } else {
+                  priceLabel.innerText = 'Loyer mensuel (FCFA)';
+              }
+          }
+      }
+  
+      if (categorySelect) {
+          categorySelect.addEventListener('change', updateFields);
+          if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
+          
+          // Force l'exécution multiple pour contrer tout conflit
+          updateFields();
+          setTimeout(updateFields, 200);
+          setTimeout(updateFields, 800);
+      }
+  
+      const priceInput = document.getElementById('id_price');
+      const pricePerNightInput = document.getElementById('id_price_per_night');
+      const discountInput = document.getElementById('id_discount_percentage');
+      const finalPriceInput = document.getElementById('id_discount_price');
+  
+      function calculateFinalPrice() {
+          const basePrice = parseFloat(priceInput.value) || 0;
+          const discount = parseFloat(discountInput.value) || 0;
+          if (finalPriceInput) {
+              finalPriceInput.value = discount > 0 ? Math.round(basePrice - (basePrice * discount / 100)) : basePrice;
+          }
+      }
+      if (priceInput && discountInput) {
+          priceInput.addEventListener('input', calculateFinalPrice);
+          pricePerNightInput.addEventListener('input', calculateFinalPrice);
+          discountInput.addEventListener('input', calculateFinalPrice);
+      }
+  
+  
+      // ─── LOGIQUE D'UPLOAD ET COMPRESSION D'IMAGES ────────────────────────
+      const imageInput = document.getElementById('image-input');
+      const realInput = document.querySelector('input[type="file"][name="images"]');
+      const previewContainer = document.getElementById('preview-container');
+      const dropZone = document.getElementById('drop-zone');
+      const form = document.getElementById('property-form');
+      const overlay = document.getElementById('upload-overlay');
+      const progressBar = document.getElementById('upload-progress-bar');
+      const statusText = document.getElementById('upload-status-text');
+  
+      let selectedFiles = [];
+  
+      // Gestion du Drag & Drop
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, e => {
+              e.preventDefault();
+              e.stopPropagation();
+          }, false);
+      });
+  
+      ['dragenter', 'dragover'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+      });
+  
+      ['dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+      });
+  
+      dropZone.addEventListener('drop', e => {
+          handleFiles(e.dataTransfer.files);
+      });
+  
+      imageInput.addEventListener('change', e => {
+          handleFiles(e.target.files);
+      });
+  
+      function handleFiles(files) {
+          const fileList = Array.from(files);
+          fileList.forEach(file => {
+              if (file.type.startsWith('image/')) {
+                  selectedFiles.push(file);
+                  renderPreview(file);
+              }
+          });
+          updateRealInput();
+      }
+  
+      function renderPreview(file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+              const div = document.createElement('div');
+              div.className = 'preview-item animate__animated animate__zoomIn';
+              div.innerHTML = `
+                  <img src="${e.target.result}">
+                  <button type="button" class="remove-btn"><i class="fa-solid fa-xmark"></i></button>
+              `;
+              div.querySelector('.remove-btn').onclick = () => {
+                  selectedFiles = selectedFiles.filter(f => f !== file);
+                  div.remove();
+                  updateRealInput();
+              };
+              previewContainer.appendChild(div);
+          };
+          reader.readAsDataURL(file);
+      }
+  
+      function updateRealInput() {
+          // Cette fonction sera appelée juste avant le submit pour la compression finale
+          // Pour l'instant on garde une trace pour la prévisualisation
+      }
+  
+      // INTERCEPTION DU SUBMIT POUR COMPRESSION
+      let isSubmitting = false;
+      form.addEventListener('submit', async (e) => {
+          if (isSubmitting) {
+              e.preventDefault();
+              return;
+          }
+          
+          // Empêcher la soumission multiple
+          const submitBtn = form.querySelector('button[type="submit"]');
+          if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> {% trans "Traitement 
+en cours..." %}`;
+          }
+          isSubmitting = true;
+  
+          // Affichage IMMÉDIAT de l'overlay
+          overlay.style.display = 'flex';
+          overlay.classList.add('animate__fadeIn');
+          
+          if (selectedFiles.length === 0) {
+              // Si pas d'images, on laisse le formulaire partir normalement
+              return;
+          }
+          
+          e.preventDefault();
+  
+          
+          const compressedFiles = [];
+          const options = {
+              maxSizeMB: 0.8, // Équilibre entre qualité et poids
+              maxWidthOrHeight: 1600,
+              useWebWorker: true,
+              fileType: 'image/webp',
+              initialQuality: 0.8
+          };
+  
+          try {
+              // Traitement PARALLÈLE (Vitesse augmentée x3)
+              statusText.innerText = `{% trans "Optimisation des images en cours..." %}`;
+              
+              const compressionPromises = selectedFiles.map(async (file, index) => {
+                  try {
+                      const compressedFile = await imageCompression(file, options);
+                      
+                      // Mise à jour de la barre de progression (approximatif pour le parallèle)
+                      const progress = Math.round(((index + 1) / selectedFiles.length) * 100);
+                      progressBar.style.width = `${progress}%`;
+                      document.getElementById('progress-percentage').innerText = `${progress}%`;
+                      
+                      return new File([compressedFile], file.name.split('.')[0] + '.webp', { type: 'image/webp' });
+                  } catch (e) {
+                      console.error("Single image compression error:", e);
+                      return file; // Fallback sur le fichier original si erreur
+                  }
+              });
+  
+              const compressedFiles = await Promise.all(compressionPromises);
+  
+              progressBar.style.width = '100%';
+              document.getElementById('progress-percentage').innerText = `100%`;
+              statusText.innerText = `{% trans "Envoi final vers Loger Togo..." %}`;
+  
+              // Injecter les fichiers dans le vrai input (plus robuste)
+              const dataTransfer = new DataTransfer();
+              compressedFiles.forEach(file => dataTransfer.items.add(file));
+              
+              // Trouver le vrai input de fichier de Django
+              const actualFileInput = form.querySelector('input[type="file"][name="images"]');
+              if (actualFileInput) {
+                  actualFileInput.files = dataTransfer.files;
+              }
+  
+              // Soumettre
+              setTimeout(() => { form.submit(); }, 500);
+          } catch (error) {
+              console.error('Compression error:', error);
+              overlay.style.display = 'none';
+              alert('{% trans "Erreur d\'optimisation. Vos images sont peut-être corrompues." %}');
+          }
+      });
+  
+  });
+  
+  </script>
+  {% endblock %}
+
+

@@ -282,9 +282,6 @@
                     <option value="{{ neighborhood }}">
                   {% endfor %}
                 </datalist>
-                <script>
-                  document.getElementById('id_neighborhood').setAttribute('list', 'neighborhoods-list');
-                </script>
               </div>
 
               <!-- ─ DESCRIPTION ─ -->
@@ -609,8 +606,12 @@ function initMap() {
     });
 }
 
-// Initialisation immédiate pour Leaflet (pas besoin de callback)
-document.addEventListener('DOMContentLoaded', initMap);
+// Initialisation immédiate et sécurisée pour Leaflet
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMap);
+} else {
+    initMap();
+}
 
 window.placeMarker = function(latlng) {
     if (!map) return;
@@ -743,14 +744,21 @@ function useMyGPS() {
 }
 
 
-// ─── LOGIQUE CATÉGORIE & PRIX ───────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
+// ─── LOGIQUE DYNAMIQUE DU FORMULAIRE (NATURE & TYPE DE BIEN) ──────────────────
+function applyDynamicFormLogic() {
+    console.log("Exécution de la logique dynamique du formulaire Loger Togo...");
+    
     const categorySelect = document.getElementById('id_listing_category');
     const propertyTypeSelect = document.getElementById('id_property_type');
     const priceLabel = document.getElementById('price_label');
+    
     const pricePerNightContainer = document.getElementById('price_per_night_container');
     const rentalConditionsContainer = document.getElementById('rental_conditions_container');
     const documentTypeContainer = document.getElementById('document_type_container');
+    
+    // Assigner la datalist si elle existe
+    const neighborhoodInput = document.getElementById('id_neighborhood');
+    if (neighborhoodInput) neighborhoodInput.setAttribute('list', 'neighborhoods-list');
 
     function updateFields() {
         if (!categorySelect) return;
@@ -758,63 +766,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const val = categorySelect.value ? categorySelect.value.trim().toUpperCase() : '';
         const propTypeVal = propertyTypeSelect ? propertyTypeSelect.value.trim().toUpperCase() : '';
         
-        // 1. DÉTECTION DES ÉTATS (Plus robuste)
-        const isSale = (val === 'SALE' || val.indexOf('SALE') !== -1);
-        const isFurnished = (val === 'FURNISHED');
-        const isRent = (val === 'RENT');
-        
-        const isTerrain = (propTypeVal === 'TERRAIN' || propTypeVal === 'PARCELLES');
+        const isSale = val.includes('SALE') || val === 'VENTE';
+        const isFurnished = val.includes('FURNISHED') || val === 'MEUBLE';
+        const isRent = val.includes('RENT') || val === 'LOCATION';
+        const isTerrain = propTypeVal.includes('TERRAIN') || propTypeVal.includes('PARCELLE');
 
-        // 2. VISIBILITÉ DOCUMENT (Uniquement pour les Ventes)
+        console.log("Statuts détectés - Vente:", isSale, "Meublé:", isFurnished, "Location:", isRent, "Terrain:", isTerrain);
+
+        // 1. TYPE DE DOCUMENT (Uniquement Vente)
         if (documentTypeContainer) {
-            if (isSale) {
-                documentTypeContainer.style.setProperty('display', 'block', 'important');
-                documentTypeContainer.classList.add('animate__animated', 'animate__fadeIn');
-            } else {
-                documentTypeContainer.style.setProperty('display', 'none', 'important');
-            }
+            documentTypeContainer.style.display = isSale ? 'block' : 'none';
         }
         
-        // 3. PRIX PAR NUITÉE (Uniquement pour les Meublés)
+        // 2. PRIX PAR NUITÉE (Uniquement Meublé)
         if (pricePerNightContainer) {
-            if (isFurnished) {
-                pricePerNightContainer.style.setProperty('display', 'block', 'important');
-            } else {
-                pricePerNightContainer.style.setProperty('display', 'none', 'important');
-            }
+            pricePerNightContainer.style.display = isFurnished ? 'block' : 'none';
         }
         
-        // 4. CONDITIONS DE LOCATION (Bail)
+        // 3. CONDITIONS DE BAIL (Caution, Avance, Commission -> Location & Meublé)
         if (rentalConditionsContainer) {
-            if (isRent || isFurnished) {
-                rentalConditionsContainer.style.setProperty('display', 'block', 'important');
-            } else {
-                rentalConditionsContainer.style.setProperty('display', 'none', 'important');
-            }
+            rentalConditionsContainer.style.display = (isRent || isFurnished) ? 'block' : 'none';
         }
 
-        // 5. FLEXIBILITÉ DES CHAMPS TECHNIQUES (Masquage si Terrain)
+        // 4. CHAMPS TECHNIQUES (Masqués si Terrain)
         const technicalFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
+        technicalFields.forEach(f => {
+            const el = document.getElementById('id_' + f);
+            if (el && el.closest('.col-md-3')) {
+                el.closest('.col-md-3').style.display = isTerrain ? 'none' : 'block';
+            }
+        });
         
-        if (isTerrain) {
-            technicalFields.forEach(f => {
-                const el = document.getElementById('id_' + f);
-                if (el && el.closest('.col-md-3')) el.closest('.col-md-3').style.setProperty('display', 'none', 'important');
-            });
-            const equipSection = document.querySelector('#equipmentsCollapse')?.closest('.section-divider');
-            if (equipSection) equipSection.style.setProperty('display', 'none', 'important');
-            const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]')?.closest('.section-divider');
-            if (equipBtn) equipBtn.style.setProperty('display', 'none', 'important');
-        } else {
-            technicalFields.forEach(f => {
-                const el = document.getElementById('id_' + f);
-                if (el && el.closest('.col-md-3')) el.closest('.col-md-3').style.setProperty('display', 'block', 'important');
-            });
-            const equipSections = document.querySelectorAll('.section-divider');
-            equipSections.forEach(s => s.style.setProperty('display', 'block', 'important'));
-        }
+        const equipSections = document.querySelectorAll('.section-divider');
+        equipSections.forEach(s => {
+            if (s.innerHTML.includes('Équipements') || s.innerHTML.includes('Equipements')) {
+                s.style.display = isTerrain ? 'none' : 'block';
+            }
+        });
 
-        // 6. LIBELLÉS DYNAMIQUES
+        // 5. LIBELLÉS DYNAMIQUES DU PRIX
         if (priceLabel) {
             if (isSale) {
                 priceLabel.innerText = 'Prix de vente total (FCFA)';
@@ -829,12 +819,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categorySelect) {
         categorySelect.addEventListener('change', updateFields);
         if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
-        
-        // Force l'exécution multiple pour contrer tout conflit
+        // Exécution initiale
         updateFields();
-        setTimeout(updateFields, 200);
-        setTimeout(updateFields, 800);
     }
+}
+
+// Lancement sécurisé (fonctionne même si la page est déjà chargée)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyDynamicFormLogic);
+} else {
+    applyDynamicFormLogic();
+}
+
+// Sécurité supplémentaire : ré-appliquer après 500ms au cas où
+setTimeout(applyDynamicFormLogic, 500);
 
     const priceInput = document.getElementById('id_price');
     const pricePerNightInput = document.getElementById('id_price_per_night');

@@ -1,0 +1,11 @@
+J'ai terminÃ© l'audit approfondi et je viens de corriger les incohÃ©rences que j'ai dÃ©tectÃ©es. Tout a Ã©tÃ© **poussÃ© sur GitHub** avec succÃ¨s sur la branche `loger-togo-prod` (commit `8002f7f`).
+
+### ðŸ› ï¸ Corrections apportÃ©es suite Ã  l'audit :
+
+1. **[CorrigÃ©] Bug d'affichage "Prix / Nuit" trompeur** :
+   * *Avant* : Si un propriÃ©taire de "MeublÃ©" ne renseignait pas de prix par nuitÃ©e, le systÃ¨me affichait son prix mensuel en ajoutant `/ Nuit` Ã  cÃ´tÃ© (ex: `200 000 FCFA / Nuit` au lieu du mois).
+   * *Maintenant* : Une intelligence stricte (`is_nightly`) a Ã©tÃ© ajoutÃ©e. Le label `/ Nuit` ne s'affiche **que** si le prix par nuitÃ©e a Ã©tÃ© rÃ©ellement renseignÃ©. Sinon, il se rabat proprement sur le prix au `/ Mois` pour ne pas faire fuir les clients.
+
+2. **[CorrigÃ©] IncohÃ©rence de navigation sur les listes d'annonces** :
+   * *Avant* : Sur la page de toutes les annonces, cliquer sur le bouton itinÃ©raire centrait simplement la carte sans dessiner la route.
+<truncated 1106 bytes>

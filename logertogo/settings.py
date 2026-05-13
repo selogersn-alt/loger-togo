@@ -139,7 +139,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',
                 'ads.context_processors.ads_processor',
-                'logersn.context_processors.google_maps_api_key',
             ],
             # Rend property_tags et humanize disponibles dans TOUS les templates
             # sans besoin de {% load ... %}
@@ -329,8 +328,6 @@ SPECTACULAR_SETTINGS = {
 TERMII_API_KEY = os.environ.get('TERMII_API_KEY', '')
 TERMII_SENDER_ID = os.environ.get('TERMII_SENDER_ID', 'Loger Togo')
 
-# --- GOOGLE MAPS CONFIGURATION ---
-GOOGLE_MAPS_API_KEY = 'AIzaSyAaAdEGmAMlb8ui_7ueo8CChdbiTYNgOFk'
 
 # --- CONFIGURATION LOCALE (ZÉRO CONFLIT) ---
 # Ce bloc permet de surcharger les réglages (comme la BDD) sur le serveur

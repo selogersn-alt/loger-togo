@@ -164,6 +164,7 @@ def payment_callback_view(request):
         # Actions selon le type de transaction
         if transaction.transaction_type == 'PUBLICATION' and transaction.property:
             transaction.property.is_published = True
+            transaction.property.is_paid = True  # Indispensable pour la validation DigitalH
             transaction.property.save()
             messages.success(request, _("Paiement réussi ! Votre annonce est maintenant en ligne."))
             

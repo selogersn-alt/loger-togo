@@ -662,7 +662,7 @@ window.showStatus = function(msg, type) {
     setTimeout(() => { statusBox.className = 'map-status alert'; }, 5000);
 };
 
-// ─── GÉOCODAGE PAR ADRESSE (Leaflet/Nominatim version) ──────────────────
+// ─── GÉOCODAGE PAR ADRESSE (Nominatim / OpenStreetMap) ──────────────────
 async function geocodeAddress() {
     const city = document.getElementById('id_city');
     const neighborhood = document.getElementById('id_neighborhood');
@@ -686,31 +686,48 @@ async function geocodeAddress() {
             placeMarker(latlng);
             showStatus(`✅ {% trans "Adresse trouvée" %}`, 'success');
         } else {
-            showStatus(`❌ {% trans "Adresse introuvable" %}`, 'danger');
+            showStatus(`❌ {% trans "Adresse introuvable. Veuillez placer le marqueur manuellement." %}`, 'danger');
         }
     } catch (error) {
-        showStatus(`❌ {% trans "Erreur réseau lors de la recherche" %}`, 'danger');
+        console.error("Geocoding error:", error);
+        showStatus(`❌ {% trans "Erreur de connexion lors de la recherche." %}`, 'danger');
     }
 }
 
-// ─── GPS NAVIGATEUR ──────────────────────────────────────────────────────
+// ─── GPS NAVIGATEUR (Version stabilisée) ──────────────────────────────────
 function useMyGPS() {
     if (!navigator.geolocation) {
-        showStatus(`❌ {% trans "La géolocalisation n'est pas disponible." %}`, 'danger');
+        showStatus(`❌ {% trans "La géolocalisation n'est pas supportée par votre navigateur." %}`, 'danger');
         return;
     }
-    showStatus('📡 {% trans "Détection GPS…" %}', 'info');
+
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        showStatus(`⚠️ {% trans "Le GPS nécessite une connexion sécurisée (HTTPS)." %}`, 'warning');
+    }
+
+    showStatus('📡 {% trans "Détection GPS haute précision en cours…" %}', 'info');
+    
+    const geoOptions = {
+        enableHighAccuracy: true,
+        timeout: 15000, // Augmenté à 15s pour les connexions mobiles
+        maximumAge: 0
+    };
+
     navigator.geolocation.getCurrentPosition(
         function(pos) {
             const latlng = [pos.coords.latitude, pos.coords.longitude];
             placeMarker(latlng);
             map.setView(latlng, 17);
-            showStatus('✅ {% trans "Position GPS détectée." %}', 'success');
+            showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
         },
         function(err) {
-            showStatus('⚠️ {% trans "Accès GPS refusé." %}', 'warning');
+            let msg = '{% trans "Accès GPS refusé ou impossible." %}';
+            if (err.code === 1) msg = '{% trans "Veuillez autoriser l\'accès à votre position." %}';
+            if (err.code === 2) msg = '{% trans "Position indisponible (Signal faible)." %}';
+            if (err.code === 3) msg = '{% trans "Délai d\'attente dépassé (Timeout)." %}';
+            showStatus('⚠️ ' + msg, 'warning');
         },
-        {enableHighAccuracy: true, timeout: 8000}
+        geoOptions
     );
 }
 
@@ -751,6 +768,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (rentalConditionsContainer) {
             rentalConditionsContainer.style.display = (category === 'RENT' || category === 'FURNISHED') ? 'block' : 'none';
+        }
+
+        // --- MASQUAGE DES PIÈCES POUR LES TERRAINS ---
+        const technicalSection = document.querySelector('.section-divider'); // La section "Détails Techniques"
+        const roomsFields = ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'];
+        
+        if (propertyType === 'TERRAIN') {
+            roomsFields.forEach(f => {
+                const el = document.getElementById('id_' + f);
+                if (el && el.closest('.col-md-3')) {
+                    el.closest('.col-md-3').style.display = 'none';
+                }
+            });
+            // On cache aussi les équipements (WiFi, etc.) pour un terrain
+            const equipCollapse = document.getElementById('equipmentsCollapse');
+            if (equipCollapse) {
+                const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
+                if (equipBtn) equipBtn.closest('.section-divider').style.display = 'none';
+            }
+        } else {
+            roomsFields.forEach(f => {
+                const el = document.getElementById('id_' + f);
+                if (el && el.closest('.col-md-3')) {
+                    el.closest('.col-md-3').style.display = 'block';
+                }
+            });
+            const equipBtn = document.querySelector('[data-bs-target="#equipmentsCollapse"]');
+            if (equipBtn) equipBtn.closest('.section-divider').style.display = 'block';
         }
     }
 
@@ -883,24 +928,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const compressedFiles = [];
         const options = {
-            maxSizeMB: 0.5, // Plus agressif : 500 Ko max
-            maxWidthOrHeight: 1280,
+            maxSizeMB: 0.8, // Équilibre entre qualité et poids
+            maxWidthOrHeight: 1600,
             useWebWorker: true,
             fileType: 'image/webp',
-            initialQuality: 0.7
+            initialQuality: 0.8
         };
 
         try {
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const file = selectedFiles[i];
-                const progress = Math.round(((i) / selectedFiles.length) * 100);
-                progressBar.style.width = `${progress}%`;
-                document.getElementById('progress-percentage').innerText = `${progress}%`;
-                statusText.innerText = `{% trans "Optimisation de l'image" %} ${i + 1}/${selectedFiles.length}...`;
-                
-                const compressedFile = await imageCompression(file, options);
-                compressedFiles.push(new File([compressedFile], file.name.split('.')[0] + '.webp', { type: 'image/webp' }));
-            }
+            // Traitement PARALLÈLE (Vitesse augmentée x3)
+            statusText.innerText = `{% trans "Optimisation des images en cours..." %}`;
+            
+            const compressionPromises = selectedFiles.map(async (file, index) => {
+                try {
+                    const compressedFile = await imageCompression(file, options);
+                    
+                    // Mise à jour de la barre de progression (approximatif pour le parallèle)
+                    const progress = Math.round(((index + 1) / selectedFiles.length) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    document.getElementById('progress-percentage').innerText = `${progress}%`;
+                    
+                    return new File([compressedFile], file.name.split('.')[0] + '.webp', { type: 'image/webp' });
+                } catch (e) {
+                    console.error("Single image compression error:", e);
+                    return file; // Fallback sur le fichier original si erreur
+                }
+            });
+
+            const compressedFiles = await Promise.all(compressionPromises);
 
             progressBar.style.width = '100%';
             document.getElementById('progress-percentage').innerText = `100%`;

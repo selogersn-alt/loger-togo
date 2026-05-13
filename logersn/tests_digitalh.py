@@ -35,7 +35,7 @@ class DigitalHMonetizationTest(TestCase):
         self.assertEqual(pricing['publication_furnished'], 100.00)
         self.assertEqual(pricing['boost'], 100.00)
         self.assertEqual(pricing['popup'], 500.00)
-        print("✅ Certification Tarifs réussie : 100F/500F validés.")
+        print("[OK] Certification Tarifs réussie : 100F/500F validés.")
 
     def test_transaction_initiation(self):
         """Vérifie la création correcte d'une transaction de publication."""
@@ -44,19 +44,19 @@ class DigitalHMonetizationTest(TestCase):
         self.assertEqual(transaction.amount, 100.00)
         self.assertEqual(transaction.status, 'PENDING')
         self.assertTrue(transaction.reference.startswith('LOGER-'))
-        print(f"✅ Certification Transaction réussie : Référence {transaction.reference} générée.")
+        print(f"[OK] Certification Transaction réussie : Référence {transaction.reference} générée.")
 
     def test_boost_logic(self):
         """Vérifie le calcul pour un boost de 3 jours (300F)."""
         transaction = FedaPayBridge.initiate_transaction(self.user, 'BOOST', self.property, days=3)
         self.assertEqual(transaction.amount, 300.00)
-        print("✅ Certification Boost (3j x 100F = 300F) réussie.")
+        print("[OK] Certification Boost (3j x 100F = 300F) réussie.")
 
     def test_popup_logic(self):
         """Vérifie le calcul pour un pop-up de 2 jours (1000F)."""
         transaction = FedaPayBridge.initiate_transaction(self.user, 'POPUP', self.property, days=2)
         self.assertEqual(transaction.amount, 1000.00)
-        print("✅ Certification Pop-up (2j x 500F = 1000F) réussie.")
+        print("[OK] Certification Pop-up (2j x 500F = 1000F) réussie.")
 
     def test_payment_activation_simulated(self):
         """Vérifie que le paiement active correctement les drapeaux de visibilité."""
@@ -73,4 +73,4 @@ class DigitalHMonetizationTest(TestCase):
         # Re-fetch property
         self.property.refresh_from_db()
         self.assertTrue(self.property.is_paid)
-        print("✅ Certification Flux de Paiement réussie : L'annonce est marquée comme PAYÉE.")
+        print("[OK] Certification Flux de Paiement réussie : L'annonce est marquée comme PAYÉE.")

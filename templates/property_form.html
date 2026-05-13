@@ -320,7 +320,7 @@
 
                   <!-- Carte Leaflet uniformisée -->
                   <div id="mapWrapper" style="display:block;margin-top:14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);border:2px solid var(--border-color);">
-                      <div id="map-picker" style="height:360px; z-index: 1;"></div>
+                      <div id="map-picker" style="height:360px; width:100%; display:block; z-index: 1;"></div>
                   </div>
 
                   <!-- Statut géolocalisation -->
@@ -569,28 +569,62 @@
 
 // ─── 1. CARTE LEAFLET ─────────────────────────────────
 window.lome_center = [6.1375, 1.2123];
+window._formMapReady = false;
 
 function initMap() {
+    // Ne jamais bloquer avec un flag - détruire l'ancienne instance si elle existe
     const mapContainer = document.getElementById('map-picker');
-    if (!mapContainer || window._mapInitialized) return;
-    window._mapInitialized = true;
+    if (!mapContainer) return;
 
-    window.map = L.map('map-picker', {
-        center: window.lome_center,
-        zoom: 13,
-        zoomControl: true,
-        scrollWheelZoom: true
-    });
+    // Si Leaflet a déjà été initialisé sur ce conteneur, le détruire proprement
+    if (window._formMap) {
+        try { window._formMap.remove(); } catch(e) {}
+        window._formMap = null;
+    }
+
+    // S'assurer que le conteneur a des dimensions
+    mapContainer.style.height = '360px';
+    mapContainer.style.width = '100%';
+    mapContainer.style.display = 'block';
+
+    try {
+        window._formMap = L.map(mapContainer, {
+            center: window.lome_center,
+            zoom: 13,
+            zoomControl: true,
+            scrollWheelZoom: true,
+            renderer: L.canvas()
+        });
+        // Alias pour compatibilité
+        window.map = window._formMap;
+    } catch(e) {
+        console.error('[LogerTogo] L.map() failed:', e);
+        return;
+    }
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19
-    }).addTo(window.map);
+        maxZoom: 19,
+        subdomains: 'abcd'
+    }).addTo(window._formMap);
 
-    // Fix rectangle gris : forcer le recalcul de taille après rendu
-    setTimeout(() => { window.map.invalidateSize(); }, 300);
-    setTimeout(() => { window.map.invalidateSize(); }, 800);
-    setTimeout(() => { window.map.invalidateSize(); }, 1500);
+    // Cascade d'invalidateSize ultra-agressive pour corriger le rectangle gris
+    [100, 300, 600, 1000, 1800, 3000].forEach(ms => {
+        setTimeout(() => {
+            if (window._formMap) {
+                window._formMap.invalidateSize({ animate: false, pan: false });
+            }
+        }, ms);
+    });
+
+    // Observer les changements de taille du conteneur parent
+    try {
+        if (window.ResizeObserver) {
+            new ResizeObserver(() => {
+                if (window._formMap) window._formMap.invalidateSize({ animate: false });
+            }).observe(mapContainer);
+        }
+    } catch(e) {}
 
     // Restaurer des coordonnées existantes (mode édition)
     const existingLat = "{{ form.instance.latitude|default:'' }}";
@@ -599,20 +633,25 @@ function initMap() {
         const lat = parseFloat(existingLat.replace(',', '.'));
         const lng = parseFloat(existingLng.replace(',', '.'));
         if (!isNaN(lat) && !isNaN(lng)) {
-            window.placeMarker([lat, lng]);
-            window.map.setView([lat, lng], 16);
+            setTimeout(() => {
+                window.placeMarker([lat, lng]);
+                window._formMap.setView([lat, lng], 16);
+            }, 400);
         }
     }
 
-    window.map.on('click', function(e) {
+    window._formMap.on('click', function(e) {
         window.placeMarker(e.latlng);
         window.showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
     });
+
+    window._formMapReady = true;
 }
 
 // Placement du marqueur
 window.placeMarker = function(latlng) {
-    if (!window.map) return;
+    const theMap = window._formMap || window.map;
+    if (!theMap) return;
     if (window.marker) {
         window.marker.setLatLng(latlng);
     } else {
@@ -624,7 +663,7 @@ window.placeMarker = function(latlng) {
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
             })
-        }).addTo(window.map);
+        }).addTo(theMap);
         window.marker.on('dragend', function() {
             const pos = window.marker.getLatLng();
             window.updateCoords(pos.lat, pos.lng);
@@ -904,16 +943,6 @@ function initAll() {
     try { applyDynamicFormLogic(); } catch(e) { console.error('[LogerTogo] Error applyDynamicFormLogic:', e); }
     try { initPriceCalculation(); } catch(e) { console.error('[LogerTogo] Error initPriceCalculation:', e); }
     try { initImageUpload(); } catch(e) { console.error('[LogerTogo] Error initImageUpload:', e); }
-
-    // ResizeObserver pour résoudre la carte grise (Leaflet bug container)
-    try {
-        const mapWrapper = document.getElementById('mapWrapper');
-        if (mapWrapper && window.ResizeObserver && window.map) {
-            new ResizeObserver(() => {
-                window.map.invalidateSize();
-            }).observe(mapWrapper);
-        }
-    } catch(e) {}
 }
 
 // Exécution résiliente selon l'état du DOM
@@ -929,8 +958,20 @@ setTimeout(() => {
         const cat = document.getElementById('id_listing_category');
         if (cat) cat.dispatchEvent(new Event('change'));
     }
-    if (window.map) window.map.invalidateSize();
-}, 800);
+    // Relancer la carte si elle n'a pas rendu correctement
+    if (!window._formMapReady) {
+        try { initMap(); } catch(e) {}
+    } else if (window._formMap) {
+        window._formMap.invalidateSize({ animate: false });
+    }
+}, 1000);
+
+// Dernier recours : relancer encore après 3 secondes si toujours pas de carte
+setTimeout(() => {
+    if (window._formMap) {
+        window._formMap.invalidateSize({ animate: false });
+    }
+}, 3000);
 
 </script>
 {% endblock %}

@@ -326,14 +326,18 @@
 {% block extra_js %}
 <script>
 
-let map, markerCluster, userMarker, routingControl;
+window.map = null;
+window.markerCluster = null;
+window.userMarker = null;
+window.routingControl = null;
 const MAP_MARKERS = {{ map_markers_json|safe }};
 
 function initMap() {
     const mapElement = document.getElementById('leaflet-map');
-    if (!mapElement) return;
+    if (!mapElement || window._mapListInitialized) return;
+    window._mapListInitialized = true;
 
-    map = L.map('leaflet-map', {
+    window.map = L.map('leaflet-map', {
         center: [6.137, 1.222],
         zoom: 13,
         zoomControl: true,
@@ -343,9 +347,13 @@ function initMap() {
     // Carte Premium (CartoDB Voyager) - Plus esthétique
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }).addTo(map);
+    }).addTo(window.map);
 
-    markerCluster = L.markerClusterGroup({
+    setTimeout(() => { window.map.invalidateSize(); }, 300);
+    setTimeout(() => { window.map.invalidateSize(); }, 800);
+    setTimeout(() => { window.map.invalidateSize(); }, 1500);
+
+    window.markerCluster = L.markerClusterGroup({
         showCoverageOnHover: false,
         zoomToBoundsOnClick: true,
         spiderfyOnMaxZoom: true,
@@ -404,28 +412,28 @@ function initMap() {
             </div>
         `;
         marker.bindPopup(popupContent);
-        markerCluster.addLayer(marker);
+        window.markerCluster.addLayer(marker);
         markers.push(marker);
     });
 
-    map.addLayer(markerCluster);
+    window.map.addLayer(window.markerCluster);
 
     if (markers.length > 0) {
         const group = new L.featureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.1));
+        window.map.fitBounds(group.getBounds().pad(0.1));
     }
 
     // Géolocalisation initiale
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
             const loc = [pos.coords.latitude, pos.coords.longitude];
-            userMarker = L.circleMarker(loc, {
+            window.userMarker = L.circleMarker(loc, {
                 radius: 8,
                 fillColor: '#4285F4',
                 fillOpacity: 1,
                 color: 'white',
                 weight: 2
-            }).addTo(map).bindPopup("{% trans "Votre position" %}");
+            }).addTo(window.map).bindPopup("{% trans "Votre position" %}");
         });
     }
 }
@@ -437,33 +445,33 @@ window.toggleMapFullscreen = function() {
     const el = document.getElementById('mapWrapper');
     if (el) {
         el.classList.toggle('fullscreen');
-        setTimeout(() => map.invalidateSize(), 300);
+        setTimeout(() => window.map.invalidateSize(), 300);
     }
 };
 
 window.hideRoute = function() { 
-    if (routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
+    if (window.routingControl) {
+        window.map.removeControl(window.routingControl);
+        window.routingControl = null;
     }
     document.getElementById('routeInfo').style.display = 'none'; 
 };
 
 window.calculateRoute = function(tLat, tLng) {
-    if (!userMarker) {
+    if (!window.userMarker) {
         alert("{% trans 'Veuillez autoriser la géolocalisation pour calculer l\'itinéraire.' %}");
         // Centrer sur le bien quand même
-        map.setView([tLat, tLng], 15);
+        window.map.setView([tLat, tLng], 15);
         return;
     }
     
-    if (routingControl) {
-        map.removeControl(routingControl);
+    if (window.routingControl) {
+        window.map.removeControl(window.routingControl);
     }
 
-    routingControl = L.Routing.control({
+    window.routingControl = L.Routing.control({
         waypoints: [
-            L.latLng(userMarker.getLatLng()),
+            L.latLng(window.userMarker.getLatLng()),
             L.latLng(tLat, tLng)
         ],
         lineOptions: {
@@ -474,9 +482,9 @@ window.calculateRoute = function(tLat, tLng) {
         draggableWaypoints: false,
         routeWhileDragging: false,
         show: false
-    }).addTo(map);
+    }).addTo(window.map);
 
-    routingControl.on('routesfound', function(e) {
+    window.routingControl.on('routesfound', function(e) {
         const routes = e.routes;
         const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
         const time = Math.round(routes[0].summary.totalTime / 60);
@@ -485,14 +493,14 @@ window.calculateRoute = function(tLat, tLng) {
         document.getElementById('routeTime').textContent = time + ' min';
         document.getElementById('routeInfo').style.display = 'flex';
         
-        map.fitBounds(L.latLngBounds(userMarker.getLatLng(), [tLat, tLng]).pad(0.2));
+        window.map.fitBounds(L.latLngBounds(window.userMarker.getLatLng(), [tLat, tLng]).pad(0.2));
     });
 };
 
 window.hideRoute = function() {
-    if (routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
+    if (window.routingControl) {
+        window.map.removeControl(window.routingControl);
+        window.routingControl = null;
     }
     document.getElementById('routeInfo').style.display = 'none';
 };

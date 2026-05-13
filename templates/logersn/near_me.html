@@ -136,16 +136,19 @@
 
 {% block extra_js %}
 <script>
-let map, markerCluster, userMarker, routingControl;
-let markers = [];
-let propMarkers = {};
+window.markerCluster = null;
+window.userMarker = null;
+window.routingControl = null;
+window.markers = [];
+window.propMarkers = {};
 const MARKERS_DATA = {{ properties_json|safe }};
 
 function initMap() {
     const mapContainer = document.getElementById('map');
-    if (!mapContainer) return;
+    if (!mapContainer || window._mapInitialized) return;
+    window._mapInitialized = true;
 
-    map = L.map('map', {
+    window.map = L.map('map', {
         center: [6.137, 1.222],
         zoom: 14,
         zoomControl: false,
@@ -153,14 +156,18 @@ function initMap() {
     });
 
     // Zoom control position
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(window.map);
 
     // Carte Premium (CartoDB Voyager)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }).addTo(map);
+    }).addTo(window.map);
 
-    markerCluster = L.markerClusterGroup({
+    setTimeout(() => { window.map.invalidateSize(); }, 300);
+    setTimeout(() => { window.map.invalidateSize(); }, 800);
+    setTimeout(() => { window.map.invalidateSize(); }, 1500);
+
+    window.markerCluster = L.markerClusterGroup({
         showCoverageOnHover: false,
         zoomToBoundsOnClick: true,
         spiderfyOnMaxZoom: true
@@ -174,30 +181,30 @@ function initMap() {
 function toggleFullscreen() {
     const wrapper = document.getElementById('geoWrapper');
     wrapper.classList.toggle('fullscreen');
-    setTimeout(() => map.invalidateSize(), 300);
+    setTimeout(() => window.map.invalidateSize(), 300);
 }
 
 function hideRoute() { 
-    if (routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
+    if (window.routingControl) {
+        window.map.removeControl(window.routingControl);
+        window.routingControl = null;
     }
     document.getElementById('routeInfo').style.display = 'none'; 
 }
 
 function showRoute(targetLat, targetLng) {
-    if (!userMarker) { 
+    if (!window.userMarker) { 
         alert("{% trans 'Position GPS nécessaire pour l\'itinéraire.' %}");
         return; 
     }
 
-    if (routingControl) {
-        map.removeControl(routingControl);
+    if (window.routingControl) {
+        window.map.removeControl(window.routingControl);
     }
 
-    routingControl = L.Routing.control({
+    window.routingControl = L.Routing.control({
         waypoints: [
-            userMarker.getLatLng(),
+            window.userMarker.getLatLng(),
             L.latLng(targetLat, targetLng)
         ],
         lineOptions: {
@@ -208,9 +215,9 @@ function showRoute(targetLat, targetLng) {
         draggableWaypoints: false,
         routeWhileDragging: false,
         show: false
-    }).addTo(map);
+    }).addTo(window.map);
 
-    routingControl.on('routesfound', function(e) {
+    window.routingControl.on('routesfound', function(e) {
         const routes = e.routes;
         const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
         const time = Math.round(routes[0].summary.totalTime / 60);
@@ -219,7 +226,7 @@ function showRoute(targetLat, targetLng) {
         document.getElementById('routeTime').textContent = time + ' min';
         document.getElementById('routeInfo').style.display = 'flex';
         
-        map.fitBounds(L.latLngBounds(userMarker.getLatLng(), [targetLat, targetLng]).pad(0.2));
+        window.map.fitBounds(L.latLngBounds(window.userMarker.getLatLng(), [targetLat, targetLng]).pad(0.2));
     });
 }
 
@@ -268,15 +275,15 @@ function placeMarkers() {
                         </button>
                     </div>
                 </div>
-            </div>`;
+            </div>\`;
         
         marker.bindPopup(popupContent);
-        propMarkers[p.id] = marker;
-        markerCluster.addLayer(marker);
-        markers.push(marker);
+        window.propMarkers[p.id] = marker;
+        window.markerCluster.addLayer(marker);
+        window.markers.push(marker);
     });
 
-    map.addLayer(markerCluster);
+    window.map.addLayer(window.markerCluster);
 }
 
 function renderList(uLat, uLng, filter = 'ALL') {
@@ -315,9 +322,9 @@ function getDistance(lat1, lon1, lat2, lon2) {
 }
 
 function focusProp(id) {
-    const m = propMarkers[id];
+    const m = window.propMarkers[id];
     if (m) { 
-        map.setView(m.getLatLng(), 17);
+        window.map.setView(m.getLatLng(), 17);
         m.openPopup();
     }
 }
@@ -327,24 +334,25 @@ function startWatch() {
     document.getElementById('gps-label').textContent = "{% trans 'Localisation...' %}";
     navigator.geolocation.getCurrentPosition((pos) => {
         const loc = [pos.coords.latitude, pos.coords.longitude];
-        if (!userMarker) {
-            userMarker = L.circleMarker(loc, {
+        if (!window.userMarker) {
+            window.userMarker = L.circleMarker(loc, {
                 radius: 8,
                 fillColor: '#4285F4',
                 fillOpacity: 1,
                 color: 'white',
                 weight: 2
-            }).addTo(map).bindPopup("{% trans "Votre position" %}");
+            }).addTo(window.map).bindPopup("{% trans "Votre position" %}");
         } else { 
-            userMarker.setLatLng(loc); 
+            window.userMarker.setLatLng(loc); 
         }
         document.getElementById('gps-badge').className = "gps-status gps-active";
         document.getElementById('gps-label').textContent = "{% trans 'GPS Actif' %}";
-        map.panTo(loc);
-        renderList(loc[0], loc[1]);
-    }, () => { 
-        document.getElementById('gps-label').textContent = "{% trans 'GPS indisponible' %}"; 
-    });
+        window.map.panTo(loc);
+        renderList(pos.coords.latitude, pos.coords.longitude, document.getElementById('filterBtn').textContent.trim() === '{% trans "Meublés" %}' ? 'FURNISHED' : 'ALL');
+    }, (err) => {
+        console.warn('GPS Error', err);
+        document.getElementById('gps-label').textContent = "{% trans 'GPS Refusé' %}";
+    }, { enableHighAccuracy: true });
 }
 
 function filterType(type) {

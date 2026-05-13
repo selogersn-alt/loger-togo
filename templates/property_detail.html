@@ -813,7 +813,10 @@
         });
     });
 
-    let map, propertyMarker, userMarker, routingControlDetail;
+    window.map = null;
+    window.propertyMarker = null;
+    window.userMarker = null;
+    window.routingControlDetail = null;
     const propertyPos = [ 
         parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.')), 
         parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.')) 
@@ -821,9 +824,10 @@
 
     function initMap() {
         const mapContainer = document.getElementById("propertyMap");
-        if (!mapContainer) return;
+        if (!mapContainer || window._mapDetailInitialized) return;
+        window._mapDetailInitialized = true;
 
-        map = L.map('propertyMap', {
+        window.map = L.map('propertyMap', {
             center: propertyPos,
             zoom: 16,
             zoomControl: true,
@@ -833,19 +837,23 @@
         // Carte Premium (CartoDB Voyager) - Plus esthétique
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        }).addTo(map);
+        }).addTo(window.map);
+
+        setTimeout(() => { window.map.invalidateSize(); }, 300);
+        setTimeout(() => { window.map.invalidateSize(); }, 800);
+        setTimeout(() => { window.map.invalidateSize(); }, 1500);
 
         // Marqueur Premium personnalisé
         const catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
         
-        propertyMarker = L.marker(propertyPos, {
+        window.propertyMarker = L.marker(propertyPos, {
             icon: L.divIcon({
                 className: 'custom-div-icon',
                 html: `<div style="background-color:${catColor}; width:35px; height:35px; border-radius:50%; border:3px solid white; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 10px rgba(0,0,0,0.3);"><i class="fa fa-house" style="font-size:14px;"></i></div>`,
                 iconSize: [35, 35],
                 iconAnchor: [17, 35]
             })
-        }).addTo(map);
+        }).addTo(window.map);
 
         const popupContent = `
             <div style="color:black;min-width:160px;padding:5px;">
@@ -855,19 +863,19 @@
                 </button>
             </div>`;
 
-        propertyMarker.bindPopup(popupContent);
+        window.propertyMarker.bindPopup(popupContent);
 
         // Géolocalisation utilisateur
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 const uPos = [position.coords.latitude, position.coords.longitude];
-                userMarker = L.circleMarker(uPos, {
+                window.userMarker = L.circleMarker(uPos, {
                     radius: 8,
                     fillColor: '#4285F4',
                     fillOpacity: 1,
                     color: 'white',
                     weight: 2
-                }).addTo(map).bindPopup("{% trans "Votre position" %}");
+                }).addTo(window.map).bindPopup("{% trans "Votre position" %}");
             });
         }
     }
@@ -876,18 +884,18 @@
     document.addEventListener('DOMContentLoaded', initMap);
 
     window.calculateDetailRoute = function() {
-        if (!userMarker) {
+        if (!window.userMarker) {
             alert("{% trans 'Veuillez autoriser la géolocalisation pour calculer l\'itinéraire.' %}");
             return;
         }
 
-        if (routingControlDetail) {
-            map.removeControl(routingControlDetail);
+        if (window.routingControlDetail) {
+            window.map.removeControl(window.routingControlDetail);
         }
 
-        routingControlDetail = L.Routing.control({
+        window.routingControlDetail = L.Routing.control({
             waypoints: [
-                L.latLng(userMarker.getLatLng()),
+                L.latLng(window.userMarker.getLatLng()),
                 L.latLng(propertyPos)
             ],
             lineOptions: {
@@ -898,9 +906,9 @@
             draggableWaypoints: false,
             routeWhileDragging: false,
             show: false
-        }).addTo(map);
+        }).addTo(window.map);
 
-        routingControlDetail.on('routesfound', function(e) {
+        window.routingControlDetail.on('routesfound', function(e) {
             const routes = e.routes;
             const dist = (routes[0].summary.totalDistance / 1000).toFixed(1);
             const time = Math.round(routes[0].summary.totalTime / 60);
@@ -909,17 +917,17 @@
             document.getElementById('detailTime').textContent = time;
             document.getElementById('routeInfoDetail').style.display = 'flex';
             
-            map.fitBounds(L.latLngBounds(userMarker.getLatLng(), propertyPos).pad(0.2));
+            window.map.fitBounds(L.latLngBounds(window.userMarker.getLatLng(), propertyPos).pad(0.2));
         });
     };
 
     window.hideDetailRoute = function() {
-        if (routingControlDetail) {
-            map.removeControl(routingControlDetail);
-            routingControlDetail = null;
+        if (window.routingControlDetail) {
+            window.map.removeControl(window.routingControlDetail);
+            window.routingControlDetail = null;
         }
         document.getElementById('routeInfoDetail').style.display = 'none';
-        map.setView(propertyPos, 16);
+        window.map.setView(propertyPos, 16);
     };
 
 

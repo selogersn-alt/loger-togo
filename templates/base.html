@@ -55,13 +55,20 @@
     <meta property="og:title" content="{% block og_title %}Loger Togo : La Confiance Immobilière au Togo{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Location d'appartements et de maisons au Togo avec garantie de loyer, vérification d'identité et profils de confiance.{% endblock %}">
     {% block extra_meta %}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
-    <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
+    {% with main_image=property.get_main_image|default:'' %}
+        {% if main_image %}
+            <meta property="og:image" content="{% if 'http' in main_image %}{{ main_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ main_image }}{% endif %}">
+            <meta property="og:image:secure_url" content="{% if 'http' in main_image %}{{ main_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ main_image }}{% endif %}">
+            <meta property="og:image:type" content="image/webp">
+            <meta name="twitter:image" content="{% if 'http' in main_image %}{{ main_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ main_image }}{% endif %}">
+        {% else %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
+            <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
+            <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
+        {% endif %}
+    {% endwith %}
     {% endblock %}
+
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta name="twitter:card" content="summary_large_image">
@@ -125,6 +132,14 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2842167661207856"
      crossorigin="anonymous"></script>
+
+    <!-- Leaflet Maps (Replacement for Google Maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
     
     {% block extra_css %}{% endblock %}
     

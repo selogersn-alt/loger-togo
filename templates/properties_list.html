@@ -324,9 +324,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places,geometry&callback=initMap" async defer></script>
-<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
+
 // ─── PREMIUM MAP STYLE (Minimaliste Absolu : Focus Biens) ────────────
 const PREMIUM_MAP_STYLE = [
   { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
@@ -337,51 +336,37 @@ const PREMIUM_MAP_STYLE = [
   { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
   { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
   { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
-  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#c9c9c9" }] }
-];
-
-
-
-
-let map, directionsService, directionsRenderer, userMarker, markerCluster;
+  { "featureType": "water", "elementType": "geometry", "let map, markerCluster, userMarker;
 const MAP_MARKERS = {{ map_markers_json|safe }};
 
 function initMap() {
     const mapElement = document.getElementById('leaflet-map');
-    if (!mapElement) {
-        console.error("Map container not found!");
-        return;
-    }
+    if (!mapElement) return;
 
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: true,
-        polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6, strokeOpacity: 0.8 }
-    });
-
-    const lomeCenter = { lat: 6.137, lng: 1.222 };
-    
-    map = new google.maps.Map(mapElement, {
-        center: lomeCenter,
+    map = L.map('leaflet-map', {
+        center: [6.137, 1.222],
         zoom: 13,
-        styles: PREMIUM_MAP_STYLE,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-        gestureHandling: 'greedy',
-        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER }
+        zoomControl: true,
+        scrollWheelZoom: true
     });
 
-    directionsRenderer.setMap(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
+    markerCluster = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        spiderfyOnMaxZoom: true,
+        removeOutsideVisibleBounds: true
+    });
 
-    // Dictionnaire pour gérer les collisions de coordonnées (Jitter)
     const coordCounts = {};
+    const markers = [];
 
-    const markers = MAP_MARKERS.map(m => {
+    MAP_MARKERS.forEach(m => {
         const catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#d63384' : '#0b4629';
         
-        // Gestion du jitter si plusieurs biens sont au même endroit
         let lat = m.lat;
         let lng = m.lng;
         const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
@@ -391,133 +376,98 @@ function initMap() {
         }
         coordCounts[key] = (coordCounts[key] || 0) + 1;
 
-        const marker = new google.maps.Marker({
-            position: { lat: lat, lng: lng },
-            icon: {
-                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-                fillColor: catColor,
-                fillOpacity: 1,
-                strokeWeight: 2,
-                strokeColor: "#ffffff",
-                scale: 1.8,
-                anchor: new google.maps.Point(12, 22),
-            },
-            label: {
-                text: `${(m.price / 1000).toFixed(0)}k`,
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                className: 'marker-label-shift'
-            },
-            title: m.title
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color:${catColor}; width:35px; height:35px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:10px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">${(m.price / 1000).toFixed(0)}k</div>`,
+                iconSize: [35, 35],
+                iconAnchor: [17, 35]
+            })
         });
 
-        const infoWindow = new google.maps.InfoWindow({
-            content: `
-                <div style="width:260px; font-family: 'Outfit', sans-serif; overflow:hidden; border-radius:18px;">
-                    <div style="position:relative; margin-bottom:15px; border-radius:15px; overflow:hidden; height:150px;">
-                        <img src="${m.image}" style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
-                        <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 12px 10px;">
-                            <div style="color:white; font-weight:800; font-size:1.1rem;">
-                                ${m.price.toLocaleString()} F <small style="font-weight:400; font-size:0.7rem; opacity:0.8;">CFA</small>
-                            </div>
-                        </div>
-                        <div style="position:absolute; top:10px; left:10px; background:white; color:var(--color-dark-green); padding:4px 10px; border-radius:30px; font-weight:700; font-size:0.7rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-                             <i class="fas fa-star me-1" style="color:#ffc107;"></i> Loger Togo
-                        </div>
-                    </div>
-                    <div style="padding:0 5px 5px;">
-                        <strong style="display:block; font-size:0.95rem; color:#1a1a1a; margin-bottom:4px; line-height:1.2; text-transform:capitalize;">${m.title}</strong>
-                        <p style="color:#666; font-size:0.75rem; margin-bottom:15px; display:flex; align-items:center;">
-                            <i class="fas fa-map-marker-alt text-success me-1" style="font-size:0.9rem;"></i> ${m.city}
-                        </p>
-                        <div style="display:flex; gap:10px;">
-                            <a href="${m.url}" style="background:var(--color-dark-green); color:white; flex:1; text-align:center; padding:10px; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(11,70,41,0.2);">
-                                <i class="fas fa-eye"></i> {% trans "Voir le bien" %}
-                            </a>
-                            <button onclick="calculateRoute(${m.lat}, ${m.lng})" style="background:#f0f7f4; border:2px solid var(--color-dark-green); color:var(--color-dark-green); padding:10px 14px; border-radius:12px; cursor:pointer; transition: all 0.2s;">
-                                <i class="fas fa-location-arrow"></i>
-                            </button>
+        const popupContent = `
+            <div style="width:260px; font-family: 'Outfit', sans-serif; overflow:hidden; border-radius:18px;">
+                <div style="position:relative; margin-bottom:15px; border-radius:15px; overflow:hidden; height:150px;">
+                    <img src="${m.image}" style="width:100%; height:100%; object-fit:cover;">
+                    <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 12px 10px;">
+                        <div style="color:white; font-weight:800; font-size:1.1rem;">
+                            ${m.price.toLocaleString()} F <small style="font-weight:400; font-size:0.7rem; opacity:0.8;">CFA</small>
                         </div>
                     </div>
                 </div>
-            `
-        });
-
-
-        marker.addListener('click', () => {
-            infoWindow.open(map, marker);
-        });
-
-        return marker;
+                <div style="padding:0 5px 5px;">
+                    <strong style="display:block; font-size:0.95rem; color:#1a1a1a; margin-bottom:4px; line-height:1.2; text-transform:capitalize;">${m.title}</strong>
+                    <p style="color:#666; font-size:0.75rem; margin-bottom:15px; display:flex; align-items:center;">
+                        <i class="fas fa-map-marker-alt text-success me-1"></i> ${m.city}
+                    </p>
+                    <div style="display:flex; gap:10px;">
+                        <a href="${m.url}" style="background:var(--color-dark-green); color:white; flex:1; text-align:center; padding:10px; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <i class="fas fa-eye"></i> {% trans "Voir le bien" %}
+                        </a>
+                        <button onclick="calculateRoute(${m.lat}, ${m.lng})" style="background:#f0f7f4; border:2px solid var(--color-dark-green); color:var(--color-dark-green); padding:10px 14px; border-radius:12px; cursor:pointer;">
+                            <i class="fas fa-location-arrow"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        marker.bindPopup(popupContent);
+        markerCluster.addLayer(marker);
+        markers.push(marker);
     });
 
-    if (typeof markerClusterer !== 'undefined' && markers.length > 0) {
-        markerCluster = new markerClusterer.MarkerClusterer({ map, markers });
-    }
+    map.addLayer(markerCluster);
 
     if (markers.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        markers.forEach(m => bounds.extend(m.getPosition()));
-        map.fitBounds(bounds);
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
     }
 
     // Géolocalisation initiale
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            userMarker = new google.maps.Marker({
-                position: loc,
-                map: map,
-                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#4285F4', fillOpacity: 1, scale: 8, strokeColor: 'white', strokeWeight: 2 },
-                title: "{% trans "Votre position" %}"
-            });
+            const loc = [pos.coords.latitude, pos.coords.longitude];
+            userMarker = L.circleMarker(loc, {
+                radius: 8,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                color: 'white',
+                weight: 2
+            }).addTo(map).bindPopup("{% trans "Votre position" %}");
         });
     }
 }
 
+// Initialisation immédiate
+document.addEventListener('DOMContentLoaded', initMap);
+
 window.toggleMapFullscreen = function() {
     const el = document.getElementById('mapWrapper');
-    if (el) el.classList.toggle('fullscreen');
-    google.maps.event.trigger(map, 'resize');
+    if (el) {
+        el.classList.toggle('fullscreen');
+        setTimeout(() => map.invalidateSize(), 300);
+    }
 };
 
 window.calculateRoute = function(tLat, tLng) {
-    if (!userMarker) {
-        alert("{% trans 'Activez votre GPS pour calculer l\'itinéraire.' %}");
-        return;
-    }
-
-    const request = {
-        origin: userMarker.getPosition(),
-        destination: { lat: tLat, lng: tLng },
-        travelMode: 'DRIVING'
-    };
-
-    directionsService.route(request, function(result, status) {
-        if (status == 'OK') {
-            directionsRenderer.setDirections(result);
-            const route = result.routes[0].legs[0];
-            document.getElementById('routeDist').textContent = route.distance.text;
-            document.getElementById('routeTime').textContent = route.duration.text;
-            document.getElementById('routeInfo').style.display = 'flex';
-        }
-    });
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${tLat},${tLng}`;
+    window.open(url, '_blank');
 };
 
 window.hideRoute = function() {
     document.getElementById('routeInfo').style.display = 'none';
-    directionsRenderer.setDirections({routes: []});
 };
 
 window.centerOnUser = function() {
     if (userMarker) {
-        map.setCenter(userMarker.getPosition());
-        map.setZoom(14);
+        map.setView(userMarker.getLatLng(), 14);
     } else if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            map.setCenter(loc);
+            const loc = [pos.coords.latitude, pos.coords.longitude];
+            map.setView(loc, 14);
+        });
+    }
+};
             map.setZoom(14);
         });
     }

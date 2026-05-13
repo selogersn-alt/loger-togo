@@ -120,11 +120,15 @@ class Property(models.Model):
 
     def save(self, *args, **kwargs):
         # Calcul automatique du prix remisé (Senior Logic)
-        if self.discount_percentage > 0 and self.price > 0:
-            reduction = (self.price * self.discount_percentage) / 100
-            self.discount_price = self.price - reduction
-        elif not self.discount_price:
-            self.discount_price = self.price
+        base_price = self.price_per_night if self.listing_category == 'FURNISHED' else self.price
+        
+        if self.discount_percentage > 0 and base_price and base_price > 0:
+            reduction = (base_price * self.discount_percentage) / 100
+            self.discount_price = base_price - reduction
+        else:
+            # On ne force plus le prix remisé égal au prix de base si pas de remise
+            self.discount_price = None
+
 
         if not self.slug:
             base_slug = slugify(self.title)

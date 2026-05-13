@@ -9,10 +9,10 @@
 {% block extra_meta %}
     {% with main_image=property.get_main_image %}
         {% if main_image %}
-            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image }}">
-            <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image }}">
+            <meta property="og:image" content="{% if 'http' in main_image %}{{ main_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ main_image }}{% endif %}">
+            <meta property="og:image:secure_url" content="{% if 'http' in main_image %}{{ main_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ main_image }}{% endif %}">
             <meta property="og:image:type" content="image/webp">
-            <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ main_image }}">
+            <meta name="twitter:image" content="{% if 'http' in main_image %}{{ main_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ main_image }}{% endif %}">
         {% else %}
             <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
             <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
@@ -492,12 +492,22 @@
                 </span>
                 
                 <div class="price-tag">
-                    {% if property.discount_price and property.discount_price < property.price %}
-                        <div class="text-muted text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>
-                        <span class="text-success">{{ property.discount_price|format_price }} FCFA</span>
+                    {% if property.listing_category == 'FURNISHED' %}
+                        {% if property.discount_price and property.discount_price < property.price_per_night %}
+                            <div class="text-muted text-decoration-line-through fs-6 mb-1">{{ property.price_per_night|format_price }} FCFA</div>
+                            <span class="text-success">{{ property.discount_price|format_price }} FCFA</span>
+                        {% else %}
+                            <span class="text-success">{{ property.price_per_night|format_price }} FCFA</span>
+                        {% endif %}
                     {% else %}
-                        {{ property.price|format_price }} FCFA
+                        {% if property.discount_price and property.discount_price < property.price %}
+                            <div class="text-muted text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>
+                            <span class="text-success">{{ property.discount_price|format_price }} FCFA</span>
+                        {% else %}
+                            <span class="text-success">{{ property.price|format_price }} FCFA</span>
+                        {% endif %}
                     {% endif %}
+
                     
                     <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">
                         {% if property.listing_category == 'SALE' %}({% trans "Vente" %})
@@ -794,125 +804,78 @@
     ];
 
 
-    let map, propertyMarker, userMarker, directionsService, directionsRenderer;
-    const propertyPos = { 
-        lat: parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.')), 
-        lng: parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.')) 
-    };
+    let map, propertyMarker, userMarker;
+    const propertyPos = [ 
+        parseFloat("{{ property.latitude|default:6.1375 }}".replace(',', '.')), 
+        parseFloat("{{ property.longitude|default:1.2123 }}".replace(',', '.')) 
+    ];
 
     function initMap() {
-        directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({
-            suppressMarkers: true,
-            polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6, strokeOpacity: 0.8 }
-        });
-
         const mapContainer = document.getElementById("propertyMap");
         if (!mapContainer) return;
 
-        map = new google.maps.Map(mapContainer, {
-            zoom: 16,
+        map = L.map('propertyMap', {
             center: propertyPos,
-            styles: PREMIUM_MAP_STYLE,
-            disableDefaultUI: false,
+            zoom: 16,
             zoomControl: true,
-            mapTypeControl: false,
-            streetViewControl: true,
-            fullscreenControl: true,
-            zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER }
+            scrollWheelZoom: false
         });
 
-        directionsRenderer.setMap(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
         // Marqueur Premium personnalisé
-        const price = "{{ property.price|floatformat:0 }}";
         const catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
         
-        propertyMarker = new google.maps.Marker({
-            position: propertyPos,
-            map: map,
-            animation: google.maps.Animation.DROP,
-            icon: {
-                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-                fillColor: catColor,
-                fillOpacity: 1,
-                strokeWeight: 2,
-                strokeColor: "#ffffff",
-                scale: 2,
-                anchor: new google.maps.Point(12, 22),
-            },
-            label: {
-                text: `${price} F`,
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                className: 'marker-label-shift'
-            }
-        });
+        propertyMarker = L.marker(propertyPos, {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color:${catColor}; width:35px; height:35px; border-radius:50%; border:3px solid white; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 10px rgba(0,0,0,0.3);"><i class="fa fa-house" style="font-size:14px;"></i></div>`,
+                iconSize: [35, 35],
+                iconAnchor: [17, 35]
+            })
+        }).addTo(map);
 
-        const infoWindow = new google.maps.InfoWindow({
-            content: `
-                <div style="color:black;min-width:160px;padding:5px;">
-                    <strong style="display:block;margin-bottom:8px;">{{ property.title|escapejs }}</strong>
-                    <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px;font-weight:700;">
-                        <i class="fas fa-route me-1"></i> {% trans "Y aller (Itinéraire)" %}
-                    </button>
-                </div>`
-        });
+        const popupContent = `
+            <div style="color:black;min-width:160px;padding:5px;">
+                <strong style="display:block;margin-bottom:8px;">{{ property.title|escapejs }}</strong>
+                <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px;font-weight:700;">
+                    <i class="fas fa-route me-1"></i> {% trans "Y aller (Itinéraire)" %}
+                </button>
+            </div>`;
 
-        propertyMarker.addListener("click", () => {
-            infoWindow.open(map, propertyMarker);
-        });
+        propertyMarker.bindPopup(popupContent);
 
         // Géolocalisation utilisateur
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
-                const uPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-                userMarker = new google.maps.Marker({
-                    position: uPos,
-                    map: map,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: '#4285F4',
-                        fillOpacity: 1,
-                        scale: 8,
-                        strokeColor: 'white',
-                        strokeWeight: 2,
-                    }
-                });
+                const uPos = [position.coords.latitude, position.coords.longitude];
+                userMarker = L.circleMarker(uPos, {
+                    radius: 8,
+                    fillColor: '#4285F4',
+                    fillOpacity: 1,
+                    color: 'white',
+                    weight: 2
+                }).addTo(map).bindPopup("{% trans "Votre position" %}");
             });
         }
     }
 
-    window.calculateDetailRoute = function() {
-        if (!userMarker) { 
-            alert("{% trans 'Activez votre GPS et autorisez la localisation pour calculer l\'itinéraire.' %}"); 
-            return; 
-        }
-        
-        const request = {
-            origin: userMarker.getPosition(),
-            destination: propertyPos,
-            travelMode: 'DRIVING'
-        };
+    // Initialisation immédiate
+    document.addEventListener('DOMContentLoaded', initMap);
 
-        directionsService.route(request, function(result, status) {
-            if (status == 'OK') {
-                directionsRenderer.setDirections(result);
-                const route = result.routes[0].legs[0];
-                document.getElementById('detailDist').textContent = (route.distance.value / 1000).toFixed(1);
-                document.getElementById('detailTime').textContent = Math.round(route.duration.value / 60);
-                document.getElementById('routeInfoDetail').style.display = 'flex';
-            }
-        });
+    window.calculateDetailRoute = function() {
+        // Redirection vers Google Maps externe pour une meilleure expérience de navigation mobile
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${propertyPos[0]},${propertyPos[1]}`;
+        window.open(url, '_blank');
     };
 
     window.hideDetailRoute = function() {
         document.getElementById('routeInfoDetail').style.display = 'none';
-        directionsRenderer.setDirections({routes: []});
-        map.setCenter(propertyPos);
-        map.setZoom(16);
+        map.setView(propertyPos, 16);
     };
+
 
     window.toggleFavorite = function(propertyId) {
         if ("{{ user.is_authenticated }}" === "False") {

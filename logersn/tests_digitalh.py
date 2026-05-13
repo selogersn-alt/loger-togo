@@ -11,16 +11,18 @@ class DigitalHMonetizationTest(TestCase):
         # Création de l'environnement de test
         self.user = User.objects.create_user(phone_number="770000000", password="testpassword123")
         self.pricing = PricingConfig.objects.create(
-            publication_fee=100.00,
+            publication_fee_rent=100.00,
+            publication_fee_sale=100.00,
+            publication_fee_furnished=100.00,
             boost_daily_fee=100.00,
-            popup_daily_fee=500.00
+            boost_popup_fee=500.00
         )
         self.property = Property.objects.create(
             owner=self.user,
             title="Villa Test DigitalH",
             description="Une villa de test pour la certification.",
             property_type="VILLA",
-            rent_price=500000.00,
+            price=500000.00,
             is_published=False,
             is_paid=False
         )
@@ -28,7 +30,9 @@ class DigitalHMonetizationTest(TestCase):
     def test_pricing_logic(self):
         """Vérifie que les tarifs DigitalH (100F/500F) sont respectés."""
         pricing = FedaPayBridge.get_pricing()
-        self.assertEqual(pricing['publication'], 100.00)
+        self.assertEqual(pricing['publication_rent'], 100.00)
+        self.assertEqual(pricing['publication_sale'], 100.00)
+        self.assertEqual(pricing['publication_furnished'], 100.00)
         self.assertEqual(pricing['boost'], 100.00)
         self.assertEqual(pricing['popup'], 500.00)
         print("✅ Certification Tarifs réussie : 100F/500F validés.")
@@ -36,6 +40,7 @@ class DigitalHMonetizationTest(TestCase):
     def test_transaction_initiation(self):
         """Vérifie la création correcte d'une transaction de publication."""
         transaction = FedaPayBridge.initiate_transaction(self.user, 'PUBLICATION', self.property)
+        # Assumant que le prix de base pour cette propriété est publication_rent car elle a rent_price
         self.assertEqual(transaction.amount, 100.00)
         self.assertEqual(transaction.status, 'PENDING')
         self.assertTrue(transaction.reference.startswith('LOGER-'))

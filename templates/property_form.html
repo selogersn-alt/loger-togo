@@ -298,10 +298,10 @@
 
               <!-- ═ LOCALISATION GPS ═ -->
               <div class="col-12">
-                <div class="rounded-4" style="background:var(--bg-body);border:2px solid var(--border-color);">
+                <div class="rounded-4" style="border:2px solid var(--border-color);">
 
-                  <!-- En-tête section carte -->
-                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 px-4 pt-4 pb-3" style="border-bottom:1px solid var(--border-color);">
+                  <!-- En-tête -->
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 px-4 pt-4 pb-3" style="border-bottom:1px solid var(--border-color);background:var(--bg-body);">
                     <div>
                       <h5 class="fw-bold m-0" style="color:var(--color-dark-green);">
                         <i class="fa-solid fa-map-location-dot me-2"></i>Localisation GPS
@@ -309,26 +309,27 @@
                       <small class="text-muted">Cliquez sur la carte ou utilisez votre GPS pour placer votre bien.</small>
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
-                      <button type="button" id="btn-geocode" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="geocodeAddr()">
+                      <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="geocodeAddr()">
                         <i class="fa-solid fa-magnifying-glass-location me-1"></i>Localiser l’adresse
                       </button>
-                      <button type="button" id="btn-gps" class="btn btn-sm btn-success rounded-pill px-3" onclick="useGPS()">
+                      <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="useGPS()">
                         <i class="fa-solid fa-crosshairs me-1"></i>Ma position GPS
                       </button>
                     </div>
                   </div>
 
-                  <!-- Carte Leaflet -->
-                  <div id="form-map" style="height:380px;width:100%;display:block;background:#e8ecef;"></div>
+                  <!-- Carte Google Maps -->
+                  <div id="form-map" style="height:400px;width:100%;display:block;"></div>
 
-                  <!-- Barre de statut -->
-                  <div id="form-map-status" class="px-4 py-2" style="min-height:36px;font-size:.875rem;"></div>
+                  <!-- Statut -->
+                  <div id="form-map-status" class="px-4 py-2" style="min-height:34px;font-size:.875rem;background:var(--bg-body);"></div>
 
-                  <!-- Champs cachés -->
+                  <!-- Coordonnées cachées -->
                   <input type="hidden" name="latitude"  id="id_latitude"  value="{{ form.latitude.value|default:'' }}">
                   <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default:'' }}">
                 </div>
               </div>
+
 
 
               <div class="col-12 mt-2 pt-3 border-top section-divider">
@@ -729,58 +730,67 @@ function initImageUpload() {
 }
 
 
-// ─── CARTE LEAFLET FORMULAIRE ───────────────────────────────
-var _fmap = null, _fmarker = null;
+// ─── GOOGLE MAPS ────────────────────────────────
+var _gmap = null, _gmarker = null, _geocoder = null;
 
 function initMap() {
     var el = document.getElementById('form-map');
-    if (!el) return;
-    if (_fmap) { try { _fmap.remove(); } catch(e){} _fmap = null; }
-    el.style.height = '380px';
-    el.style.display = 'block';
-    _fmap = L.map(el, { center: [6.1375, 1.2123], zoom: 13 });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '\u00a9 OpenStreetMap | CARTO', maxZoom: 19, subdomains: 'abcd'
-    }).addTo(_fmap);
-    // Forcer le rendu plusieurs fois
-    [200, 500, 1200, 2500].forEach(function(ms){
-        setTimeout(function(){ if(_fmap) _fmap.invalidateSize(); }, ms);
+    if (!el || typeof google === 'undefined') return;
+    var lome = { lat: 6.1375, lng: 1.2123 };
+    _gmap = new google.maps.Map(el, {
+        center: lome,
+        zoom: 13,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
     });
-    // Charger les coordonnées existantes si mode édition
-    var lat0 = document.getElementById('id_latitude').value;
-    var lng0 = document.getElementById('id_longitude').value;
-    if (lat0 && lng0 && lat0 !== '' && lng0 !== '') {
-        var ll = [parseFloat(lat0), parseFloat(lng0)];
-        if (!isNaN(ll[0]) && !isNaN(ll[1])) {
-            setTimeout(function(){
-                poseMarqueur(ll);
-                _fmap.setView(ll, 16);
-            }, 600);
-        }
+    _geocoder = new google.maps.Geocoder();
+
+    // Charger coordonnées existantes (mode édition)
+    var lat0 = parseFloat(document.getElementById('id_latitude').value);
+    var lng0 = parseFloat(document.getElementById('id_longitude').value);
+    if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
+        var pos = { lat: lat0, lng: lng0 };
+        _gmap.setCenter(pos);
+        _gmap.setZoom(16);
+        poseMarqueur(pos);
     }
-    _fmap.on('click', function(e){ poseMarqueur([e.latlng.lat, e.latlng.lng]); });
+
+    // Clic sur la carte
+    _gmap.addListener('click', function(e) {
+        poseMarqueur(e.latLng);
+    });
 }
 
-function poseMarqueur(ll) {
-    if (!_fmap) return;
-    if (_fmarker) {
-        _fmarker.setLatLng(ll);
+function poseMarqueur(latLng) {
+    var pos = (typeof latLng.lat === 'function') ? { lat: latLng.lat(), lng: latLng.lng() } : latLng;
+    if (_gmarker) {
+        _gmarker.position = pos;
     } else {
-        _fmarker = L.marker(ll, { draggable: true,
-            icon: L.divIcon({
-                className: '',
-                html: '<div style="width:36px;height:36px;background:#0b4629;border:3px solid #f5c42f;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fa fa-house" style="color:#fff;font-size:14px;"></i></div>',
-                iconSize: [36,36], iconAnchor: [18,18]
-            })
-        }).addTo(_fmap);
-        _fmarker.on('dragend', function(){
-            var p = _fmarker.getLatLng();
-            majCoords(p.lat, p.lng);
+        _gmarker = new google.maps.Marker({
+            position: pos,
+            map: _gmap,
+            draggable: true,
+            title: 'Votre bien',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 12,
+                fillColor: '#0b4629',
+                fillOpacity: 1,
+                strokeColor: '#f5c42f',
+                strokeWeight: 3
+            }
+        });
+        _gmarker.addListener('dragend', function() {
+            var p = _gmarker.getPosition();
+            majCoords(p.lat(), p.lng());
             statutMap('Position ajustée.', 'success');
         });
     }
-    majCoords(ll[0], ll[1]);
-    statutMap('\ud83d\udccd Position placée ! Vous pouvez la faire glisser pour ajuster.', 'success');
+    _gmap.panTo(pos);
+    majCoords(pos.lat, pos.lng);
+    statutMap('Position placée ! Faites glisser le marqueur pour affiner.', 'success');
 }
 
 function majCoords(lat, lng) {
@@ -798,22 +808,22 @@ function statutMap(msg, type) {
     setTimeout(function(){ box.innerHTML = ''; }, 6000);
 }
 
-async function geocodeAddr() {
+function geocodeAddr() {
+    if (!_geocoder) return;
     var city = document.getElementById('id_city');
     var hood = document.getElementById('id_neighborhood');
     var q = (hood ? hood.value.trim() : '') + ', ' + (city && city.selectedIndex >= 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
     statutMap('Recherche en cours...', 'info');
-    try {
-        var r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tg&q=' + encodeURIComponent(q));
-        var d = await r.json();
-        if (d && d.length > 0) {
-            var ll = [parseFloat(d[0].lat), parseFloat(d[0].lon)];
-            _fmap.setView(ll, 16);
-            poseMarqueur(ll);
+    _geocoder.geocode({ address: q, region: 'tg' }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+            var pos = results[0].geometry.location;
+            _gmap.setCenter(pos);
+            _gmap.setZoom(16);
+            poseMarqueur({ lat: pos.lat(), lng: pos.lng() });
         } else {
             statutMap('Adresse introuvable. Cliquez sur la carte.', 'warning');
         }
-    } catch(e) { statutMap('Erreur de connexion.', 'danger'); }
+    });
 }
 
 function useGPS() {
@@ -821,9 +831,10 @@ function useGPS() {
     statutMap('Détection GPS...', 'info');
     navigator.geolocation.getCurrentPosition(
         function(p) {
-            var ll = [p.coords.latitude, p.coords.longitude];
-            _fmap.setView(ll, 17);
-            poseMarqueur(ll);
+            var pos = { lat: p.coords.latitude, lng: p.coords.longitude };
+            _gmap.setCenter(pos);
+            _gmap.setZoom(17);
+            poseMarqueur(pos);
         },
         function() { statutMap('GPS refusé. Cliquez manuellement sur la carte.', 'warning'); },
         { enableHighAccuracy: true, timeout: 12000 }
@@ -832,7 +843,7 @@ function useGPS() {
 
 // ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
 function initAll() {
-    try { initMap(); } catch(e) { console.error(e); }
+    // initMap() est appelé par le callback Google Maps (voir script tag en bas)
     try { applyDynamicFormLogic(); } catch(e) { console.error(e); }
     try { initPriceCalculation(); } catch(e) { console.error(e); }
     try { initImageUpload(); } catch(e) { console.error(e); }
@@ -847,13 +858,12 @@ if (document.readyState === 'loading') {
 setTimeout(function(){
     var cat = document.getElementById('id_listing_category');
     if (cat) cat.dispatchEvent(new Event('change'));
-    if (_fmap) _fmap.invalidateSize();
 }, 1000);
 
-setTimeout(function(){
-    if (_fmap) _fmap.invalidateSize();
-}, 3000);
-
 </script>
+
+<!-- Google Maps API - callback = initMap -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&loading=async" async defer></script>
+
 {% endblock %}
 

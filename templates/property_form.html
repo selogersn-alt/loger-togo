@@ -234,33 +234,35 @@
                 {{ form.document_type }}
               </div>
 
-              <!-- ─ CONDITIONS DE LOCATION (Apparaît si location) ─ -->
+              <!-- ─ CONDITIONS DE LOCATION (Apparaît si location ou meublé) ─ -->
               <div class="col-12" id="rental_conditions_container" style="display:none;">
                 <div class="p-3 rounded-4 mt-2" style="background:var(--bg-body);border:1px solid var(--border-color);">
                   <h6 class="fw-bold mb-3" style="color:var(--text-main);">
-                    <i class="fa-solid fa-file-contract me-2 text-success"></i>{% trans "Conditions de Location" %}
+                    <i class="fa-solid fa-file-contract me-2 text-success"></i>{% trans "Conditions de Location (Bail)" %}
                   </h6>
                   <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <label class="form-label fw-bold small text-muted">{{ form.deposit_months.label }}</label>
                       {{ form.deposit_months }}
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <label class="form-label fw-bold small text-muted">{{ form.advance_months.label }}</label>
                       {{ form.advance_months }}
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <label class="form-label fw-bold small text-muted">{{ form.agency_fee_months.label }}</label>
                       {{ form.agency_fee_months }}
                     </div>
-                    <div class="col-md-3">
-                      <label class="form-label fw-bold small text-muted">{{ form.visit_fee.label }}</label>
-                      <div class="input-group input-group-sm">
-                        {{ form.visit_fee }}
-                        <span class="input-group-text" style="background:var(--color-light-green);color:white;">CFA</span>
-                      </div>
-                    </div>
                   </div>
+                </div>
+              </div>
+
+              <!-- ─ FRAIS DE VISITE ─ -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.visit_fee.label }}</label>
+                <div class="input-group">
+                  {{ form.visit_fee }}
+                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:white;border-radius:0 10px 10px 0;">CFA</span>
                 </div>
               </div>
 
@@ -716,6 +718,7 @@ function useMyGPS() {
 // ─── LOGIQUE CATÉGORIE & PRIX ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('id_listing_category');
+    const propertyTypeSelect = document.getElementById('id_property_type');
     const priceLabel = document.getElementById('price_label');
     const pricePerNightContainer = document.getElementById('price_per_night_container');
     const rentalConditionsContainer = document.getElementById('rental_conditions_container');
@@ -724,7 +727,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateFields() {
         if (!categorySelect) return;
         const category = categorySelect.value;
-        console.log("Mise à jour des champs pour la catégorie :", category);
+        const propertyType = propertyTypeSelect ? propertyTypeSelect.value : '';
+        console.log("Mise à jour des champs - Catégorie :", category, "Type :", propertyType);
 
         if (pricePerNightContainer) {
             pricePerNightContainer.style.display = (category === 'FURNISHED') ? 'block' : 'none';
@@ -741,7 +745,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (documentTypeContainer) {
-            documentTypeContainer.style.display = (category === 'SALE') ? 'block' : 'none';
+            // Afficher si c'est une vente OU si c'est un appartement (selon demande client)
+            documentTypeContainer.style.display = (category === 'SALE' || propertyType === 'APPARTEMENT') ? 'block' : 'none';
         }
         
         if (rentalConditionsContainer) {
@@ -751,9 +756,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (categorySelect) {
         categorySelect.addEventListener('change', updateFields);
-        // Exécution immédiate ET après un court délai pour être sûr que le DOM est prêt
+        if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
+        
+        // Exécution immédiate ET après des délais croissants pour garantir l'affichage correct
         updateFields();
         setTimeout(updateFields, 100);
+        setTimeout(updateFields, 500); 
+        setTimeout(updateFields, 1000); 
     }
 
     const priceInput = document.getElementById('id_price');
@@ -762,8 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const finalPriceInput = document.getElementById('id_discount_price');
 
     function calculateFinalPrice() {
-        const category = categorySelect.value;
-        const basePrice = (category === 'FURNISHED' ? parseFloat(pricePerNightInput.value) : parseFloat(priceInput.value)) || 0;
+        const basePrice = parseFloat(priceInput.value) || 0;
         const discount = parseFloat(discountInput.value) || 0;
         finalPriceInput.value = discount > 0 ? Math.round(basePrice - (basePrice * discount / 100)) : basePrice;
     }

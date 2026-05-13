@@ -76,19 +76,18 @@ class PropertyForm(forms.ModelForm):
         if listing_category != 'FURNISHED':
             cleaned_data['price_per_night'] = None
 
-        # 2. Si ce n'est pas une location, on ignore les mois de caution/avance
-        if listing_category != 'RENT':
+        # 2. Conditions de location (Applicable si location classique OU meublé)
+        if listing_category not in ['RENT', 'FURNISHED']:
             cleaned_data['deposit_months'] = 0
             cleaned_data['advance_months'] = 0
             cleaned_data['agency_fee_months'] = 0
 
-        # 3. Pour les ventes, le type de document est obligatoire
-        if listing_category == 'SALE':
+        # 3. Pour les ventes et appartements, le type de document est obligatoire
+        property_type = cleaned_data.get('property_type')
+        if listing_category == 'SALE' or property_type == 'APPARTEMENT':
             if not cleaned_data.get('document_type') or cleaned_data.get('document_type') == 'NONE':
-                self.add_error('document_type', _("Le type de document est obligatoire pour les ventes."))
-        else:
-            cleaned_data['document_type'] = 'NONE'
-
+                self.add_error('document_type', _("Le type de document est obligatoire pour les ventes et les appartements."))
+        
         return cleaned_data
     
     class Meta:

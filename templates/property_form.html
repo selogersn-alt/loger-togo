@@ -585,7 +585,7 @@ function initMap() {
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19
-    }).addTo(map);
+    }).addTo(window.map);
 
     // Fix rectangle gris : forcer le recalcul de taille après rendu
     setTimeout(() => { window.map.invalidateSize(); }, 300);
@@ -599,13 +599,13 @@ function initMap() {
         const lat = parseFloat(existingLat.replace(',', '.'));
         const lng = parseFloat(existingLng.replace(',', '.'));
         if (!isNaN(lat) && !isNaN(lng)) {
-            placeMarker([lat, lng]);
+            window.placeMarker([lat, lng]);
             window.map.setView([lat, lng], 16);
         }
     }
 
     window.map.on('click', function(e) {
-        placeMarker(e.latlng);
+        window.placeMarker(e.latlng);
         window.showStatus('📍 {% trans "Position définie en cliquant sur la carte." %}', 'success');
     });
 }
@@ -686,7 +686,7 @@ async function geocodeAddress() {
         if (data && data.length > 0) {
             const latlng = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
             window.map.setView(latlng, 16);
-            placeMarker(latlng);
+            window.placeMarker(latlng);
             window.showStatus(`✅ {% trans "Adresse trouvée" %}`, 'success');
         } else {
             window.showStatus(`❌ {% trans "Adresse introuvable. Veuillez placer le marqueur manuellement." %}`, 'danger');
@@ -707,7 +707,7 @@ function useMyGPS() {
     navigator.geolocation.getCurrentPosition(
         function(pos) {
             const latlng = [pos.coords.latitude, pos.coords.longitude];
-            placeMarker(latlng);
+            window.placeMarker(latlng);
             window.map.setView(latlng, 17);
             window.showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
         },

@@ -243,7 +243,7 @@
 
               <!-- ─ CONDITIONS DE LOCATION (Apparaît si location ou meublé) ─ -->
               {% with cat=form.listing_category.value %}
-              <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' or cat == 'FURNISHED' %}block{% else %}none{% endif %};">  
+              <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' %}block{% else %}none{% endif %};">  
                 <div class="p-3 rounded-4 mt-2" style="background:var(--bg-body);border:1px solid var(--border-color);">
                   <h6 class="fw-bold mb-3" style="color:var(--text-main);">
                     <i class="fa-solid fa-file-contract me-2 text-success"></i>{% trans "Conditions de Location (Bail)" %}
@@ -584,8 +584,8 @@ function initMap() {
     });
     window.map = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19
     }).addTo(map);
 
@@ -763,8 +763,8 @@ function applyDynamicFormLogic() {
         // Prix par nuitée → seulement pour MEUBLÉ
         isFurnished ? show(pricePerNightContainer) : hide(pricePerNightContainer);
 
-        // Conditions de bail (caution, avance, commission) → LOCATION + MEUBLÉ
-        (isRent || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
+        // Conditions de bail (caution, avance, commission) → LOCATION SEULEMENT
+        isRent ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
 
         // Champs techniques → masqués si TERRAIN
         ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {

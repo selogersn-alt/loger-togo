@@ -144,10 +144,8 @@
   }
 
   /* LEAFLET FIX */
-  .leaflet-container { font-family: 'Inter', sans-serif !important; }
+  .leaflet-container { font-family: 'Inter', sans-serif !important; z-index: 1 !important; }
 </style>
-<!-- LEAFLET CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 {% endblock %}
 
 {% block content %}
@@ -560,11 +558,6 @@
 <!-- Library de compression ultra-performante -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
-<!-- LEAFLET JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-
-
 <script>
 // ─── CONFIG & GLOBALS ──────────────────────────────────────────────────
 let map, marker;
@@ -582,10 +575,18 @@ function initMap() {
         scrollWheelZoom: true
     });
 
-    // Carte Premium (CartoDB Voyager) - Plus esthétique
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    // Carte OSM Standard - Plus robuste pour la prod
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    // Fix pour le rectangle gris (Leaflet resize bug)
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 400);
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 1000);
 
 
     // Restaurer coords existantes
@@ -770,7 +771,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 2. VISIBILITÉ DOCUMENT (Uniquement pour les Ventes)
         if (documentTypeContainer) {
-            documentTypeContainer.style.setProperty('display', isSale ? 'block' : 'none', 'important');
+            const showDoc = isSale;
+            documentTypeContainer.style.display = showDoc ? 'block' : 'none';
+            if (showDoc) documentTypeContainer.classList.add('animate__animated', 'animate__fadeIn');
         }
         
         // 3. PRIX PAR NUITÉE (Uniquement pour les Meublés)
@@ -780,7 +783,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 4. CONDITIONS DE LOCATION (Bail)
         if (rentalConditionsContainer) {
-            rentalConditionsContainer.style.setProperty('display', (isRent || isFurnished) ? 'block' : 'none', 'important');
+            const showRental = (isRent || isFurnished);
+            rentalConditionsContainer.style.display = showRental ? 'block' : 'none';
+            if (showRental) rentalConditionsContainer.classList.add('animate__animated', 'animate__fadeIn');
         }
 
         // 5. FLEXIBILITÉ DES CHAMPS TECHNIQUES (Masquage si Terrain)

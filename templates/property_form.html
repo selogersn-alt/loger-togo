@@ -751,11 +751,11 @@ function useMyGPS() {
             window.showStatus('✅ {% trans "Position GPS détectée avec succès." %}', 'success');
         },
         function(err) {
-            let msg = "{% trans 'Accès GPS refusé ou impossible.' %}";
-            if (err.code === 1) msg = "{% trans 'Veuillez autoriser l\'accès à votre position.' %}";
-            if (err.code === 2) msg = "{% trans 'Position indisponible (Signal faible).' %}";
-            if (err.code === 3) msg = "{% trans 'Délai d\'attente dépassé (Timeout).' %}";
-            window.showStatus('⚠️ ' + msg, 'warning');
+            let msg = "Acc\u00e8s GPS refus\u00e9 ou impossible.";
+            if (err.code === 1) msg = "Veuillez autoriser l\u2019acc\u00e8s \u00e0 votre position.";
+            if (err.code === 2) msg = "Position indisponible (Signal faible).";
+            if (err.code === 3) msg = "D\u00e9lai d\u2019attente d\u00e9pass\u00e9 (Timeout).";
+            window.showStatus("\u26a0\ufe0f " + msg, 'warning');
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );

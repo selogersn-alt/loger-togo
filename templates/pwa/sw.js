@@ -3,8 +3,8 @@
 // Version: 2.0 - Production Safe
 // ============================================
 
-const CACHE_NAME = 'Logertogo-v2';
-const STATIC_CACHE = 'Logertogo-static-v2';
+const CACHE_NAME = 'Logertogo-v3';
+const STATIC_CACHE = 'Logertogo-static-v3';
 
 // Ressources critiques mises en cache au démarrage
 const PRECACHE_URLS = [
@@ -57,7 +57,10 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   if (url.pathname.startsWith('/api/')) return;
   if (url.pathname.startsWith('/admin/')) return;
-  if (url.pathname.includes('media/')) return; // Ne pas cacher les photos uploadées
+  if (url.pathname.includes('media/')) return;
+  // Ne jamais cacher les pages de formulaires (toujours code frais)
+  if (url.pathname.includes('/annonces/nouvelle')) return;
+  if (url.pathname.includes('/annonces/modifier')) return;
 
   // Stratégie : Réseau en priorité, cache en secours
   event.respondWith(

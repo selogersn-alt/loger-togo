@@ -902,10 +902,20 @@ function initImageUpload() {
 
 // ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
 function initAll() {
-    initMap();
-    applyDynamicFormLogic();
-    initPriceCalculation();
-    initImageUpload();
+    try { initMap(); } catch(e) { console.error('[LogerTogo] Error initMap:', e); }
+    try { applyDynamicFormLogic(); } catch(e) { console.error('[LogerTogo] Error applyDynamicFormLogic:', e); }
+    try { initPriceCalculation(); } catch(e) { console.error('[LogerTogo] Error initPriceCalculation:', e); }
+    try { initImageUpload(); } catch(e) { console.error('[LogerTogo] Error initImageUpload:', e); }
+
+    // ResizeObserver pour résoudre la carte grise (Leaflet bug container)
+    try {
+        const mapWrapper = document.getElementById('mapWrapper');
+        if (mapWrapper && window.ResizeObserver && window.map) {
+            new ResizeObserver(() => {
+                window.map.invalidateSize();
+            }).observe(mapWrapper);
+        }
+    } catch(e) {}
 }
 
 // Exécution résiliente selon l'état du DOM
@@ -914,6 +924,15 @@ if (document.readyState === 'loading') {
 } else {
     initAll();
 }
+
+// Sécurité : forcer la mise à jour des champs et de la carte après rendu complet
+setTimeout(() => {
+    if (typeof applyDynamicFormLogic === 'function') {
+        const cat = document.getElementById('id_listing_category');
+        if (cat) cat.dispatchEvent(new Event('change'));
+    }
+    if (window.map) window.map.invalidateSize();
+}, 800);
 
 </script>
 {% endblock %}

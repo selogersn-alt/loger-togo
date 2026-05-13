@@ -60,7 +60,7 @@ from logersn.views import (
     edit_property_view, delete_property_view, submit_review_view, toggle_favorite_view,
     apply_to_property_view, request_reservation_view, request_visit_view,
     duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view,
-    near_me_view, nearby_api_view, seo_search_view
+    near_me_view, nearby_api_view, seo_search_view, delete_image_view
 )
 from chat.views import (
     send_message_view, initiate_chat_view, initiate_pro_chat_view, 
@@ -99,6 +99,7 @@ urlpatterns = [
     path('annonces/<uuid:property_id>/modifier/', edit_property_view, name='edit_property'),
     path('annonces/<uuid:property_id>/dupliquer/', duplicate_property_view, name='duplicate_property'),
     path('annonces/<uuid:property_id>/supprimer/', delete_property_view, name='delete_property'),
+    path('annonces/images/<uuid:image_id>/supprimer/', delete_image_view, name='delete_property_image'),
     path('annonces/<uuid:property_id>/avis/', submit_review_view, name='submit_review'),
     path('annonces/<uuid:property_id>/candidater/', apply_to_property_view, name='apply_to_property'),
     path('annonces/<uuid:property_id>/reserver/', request_reservation_view, name='request_reservation'),

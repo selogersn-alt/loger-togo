@@ -12,16 +12,17 @@ from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 from .serializers import PropertySerializer, PropertyImageSerializer
 import json
 import datetime
-import datetime
-
-# --- API ViewSets ---
-
+import math
+import uuid
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.response import Response
-import math
 
 class PropertyViewSet(viewsets.ModelViewSet):
-    queryset = Property.objects.filter(is_published=True)
+    """
+    ViewSet API pour les annonces (Utilisé par mobile).
+    """
+    queryset = Property.objects.filter(is_published=True).order_by('-is_boosted', '-created_at')
     serializer_class = PropertySerializer
 
     @action(detail=False, methods=['get'])
@@ -207,50 +208,60 @@ from .constants import TOGO_NEIGHBORHOODS
 @login_required
 def create_property_view(request):
     if request.user.role == 'TENANT':
-        messages.error(request, _("Accès pro requis."))
+        messages.error(request, _("Accès professionnel requis pour publier une annonce."))
         return redirect('dashboard')
+
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES)
         if form.is_valid():
             try:
+                # Évite les doubles soumissions par clic rapide (basique)
                 p = form.save(commit=False)
                 p.owner = request.user
                 p.save()
                 
+                # Gestion des images
                 images = request.FILES.getlist('images')
                 for i, img in enumerate(images):
                     PropertyImage.objects.create(property=p, image_url=img, is_primary=(i == 0))
                 
-                messages.success(request, _("Votre annonce a été créée avec succès ! Elle est en attente de validation."))
+                messages.success(request, _("Votre annonce a été créée avec succès !"))
                 return redirect('initiate_payment', property_id=p.id, payment_type='PUBLICATION')
             except Exception as e:
-                # Si erreur de stockage (S3), on garde l'annonce mais on log l'erreur
-                print(f"Erreur d'enregistrement d'image: {e}")
-                messages.warning(request, _("L'annonce a été créée, mais il y a eu un problème lors de l'envoi des images. Veuillez réessayer de les ajouter dans 'Modifier'."))
-                return redirect('dashboard')
+                messages.error(request, _("Erreur lors de la création : %s") % str(e))
     else: 
         form = PropertyForm()
-    return render(request, 'property_form.html', {'form': form, 'togo_neighborhoods': TOGO_NEIGHBORHOODS})
+    
+    return render(request, 'property_form.html', {
+        'form': form, 
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS
+    })
 
 @login_required
 def edit_property_view(request, property_id):
     p = get_object_or_404(Property, id=property_id, owner=request.user)
+    
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES, instance=p)
         if form.is_valid():
             p = form.save()
-            # Ajout de nouvelles images si présentes
-            images = request.FILES.getlist('images')
-            if images:
-                # On ne supprime pas les anciennes, on ajoute juste les nouvelles
-                for img in images:
+            
+            # On n'ajoute des images que si l'utilisateur en a sélectionné de nouvelles
+            new_images = request.FILES.getlist('images')
+            if new_images:
+                for img in new_images:
                     PropertyImage.objects.create(property=p, image_url=img)
-            messages.success(request, _("Annonce modifiée avec succès !"))
-            return redirect('/mon-compte/')
+            
+            messages.success(request, _("Annonce mise à jour avec succès !"))
+            return redirect('/mon-compte/?section=ads')
     else:
         form = PropertyForm(instance=p)
+    
     return render(request, 'property_form.html', {
-        'form': form, 'is_edit': True, 'property': p, 'togo_neighborhoods': TOGO_NEIGHBORHOODS
+        'form': form, 
+        'is_edit': True, 
+        'property': p, 
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS
     })
 
 @login_required
@@ -258,6 +269,14 @@ def delete_property_view(request, property_id):
     p = get_object_or_404(Property, id=property_id, owner=request.user)
     if request.method == 'POST': p.delete(); return redirect('/mon-compte/?section=ads')
     return render(request, 'confirm_delete.html', {'property': p, 'type': 'annonce'})
+
+@login_required
+def delete_image_view(request, image_id):
+    img = get_object_or_404(PropertyImage, id=image_id, property__owner=request.user)
+    property_id = img.property.id
+    img.delete()
+    messages.success(request, _("Image supprimée."))
+    return redirect('edit_property', property_id=property_id)
 
 @login_required
 def toggle_favorite_view(request, property_id):

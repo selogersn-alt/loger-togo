@@ -20,10 +20,16 @@ class MultipleFileField(forms.FileField):
 
 class PropertyForm(forms.ModelForm):
     images = MultipleFileField(
-        label=_("Photos du bien (Obligatoire, vous pouvez en sélectionner plusieurs)"),
+        label=_("Photos du bien (Sélectionnez une ou plusieurs images)"),
         required=True,
         widget=MultipleFileInput(attrs={'class': 'form-control', 'accept': 'image/*'})
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Si on modifie un bien existant, les photos ne sont plus obligatoires
+        if self.instance and self.instance.pk:
+            self.fields['images'].required = False
     
     surface = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'm2'}))
     bedrooms = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control'}))
@@ -62,7 +68,26 @@ class PropertyForm(forms.ModelForm):
         for field in integer_fields:
             if cleaned_data.get(field) is None:
                 cleaned_data[field] = 0
-                
+
+        # Logique de cohérence par catégorie (Conflits de logique)
+        listing_category = cleaned_data.get('listing_category')
+        
+        # 1. Si ce n'est pas un meublé, on ignore le prix par nuitée
+        if listing_category != 'FURNISHED':
+            cleaned_data['price_per_night'] = None
+        elif not cleaned_data.get('price_per_night'):
+            self.add_error('price_per_night', _("Le prix par nuitée est obligatoire pour les meublés."))
+
+        # 2. Si ce n'est pas une location, on ignore les mois de caution/avance
+        if listing_category != 'RENT':
+            cleaned_data['deposit_months'] = 0
+            cleaned_data['advance_months'] = 0
+            cleaned_data['agency_fee_months'] = 0
+
+        # 3. Si ce n'est pas une vente, on ignore le type de document
+        if listing_category != 'SALE':
+            cleaned_data['document_type'] = 'NONE'
+
         return cleaned_data
     
     class Meta:

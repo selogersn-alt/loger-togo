@@ -155,9 +155,17 @@
         <div class="card-body p-4 p-md-5">
 
           <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2 rounded-pill" style="background:rgba(127,212,125,.1);color:var(--color-dark-green);border:1px solid var(--color-light-green);">{% trans "Pour les bailleurs" %}</span>
-            <h2 class="fw-bold" style="color:var(--text-main);">{% trans "Ajouter un bien immobilier" %}</h2>
-            <p class="text-muted">{% trans "Remplissez les informations ci-dessous. Votre annonce sera vérifiée par notre équipe avant publication." %}</p>
+            <span class="badge mb-3 px-3 py-2 rounded-pill" style="background:rgba(127,212,125,.1);color:var(--color-dark-green);border:1px solid var(--color-light-green);">{% trans "Espace Bailleur" %}</span>
+            <h2 class="fw-bold" style="color:var(--text-main);">
+              {% if is_edit %}{% trans "Modifier mon annonce" %}{% else %}{% trans "Ajouter un bien immobilier" %}{% endif %}
+            </h2>
+            <p class="text-muted">
+              {% if is_edit %}
+                {% trans "Mettez à jour les détails de votre annonce pour rester attractif." %}
+              {% else %}
+                {% trans "Remplissez les informations ci-dessous. Votre annonce sera vérifiée par notre équipe avant publication." %}
+              {% endif %}
+            </p>
           </div>
 
           <form method="POST" enctype="multipart/form-data" id="property-form">
@@ -449,6 +457,22 @@
               <div class="col-12 pt-3 border-top section-divider">
                 <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{% trans "Photos du bien" %}</label>
                 
+                {% if is_edit and property.images.all %}
+                  <div class="row g-2 mb-4 bg-light p-3 rounded-4 border">
+                    <label class="form-label small fw-bold text-muted mb-2">{% trans "Photos déjà en ligne (Cliquez sur X pour supprimer)" %}</label>
+                    <div class="d-flex flex-wrap gap-2">
+                    {% for img in property.images.all %}
+                      <div class="position-relative" style="width: 80px;">
+                        <img src="{{ img.image_url.url }}" class="img-thumbnail rounded-3" style="width: 80px; height: 80px; object-fit:cover;">
+                        <a href="{% url 'delete_property_image' img.id %}" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center" style="width:22px; height:22px; border-radius:50%; border:2px solid white; transform: translate(30%, -30%);" onclick="return confirm('{% trans 'Supprimer cette image ?' %}')">
+                          <i class="fa-solid fa-xmark" style="font-size:10px;"></i>
+                        </a>
+                      </div>
+                    {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+
                 <div class="upload-zone" id="drop-zone">
                   <input type="file" id="image-input" multiple accept="image/*" class="d-none">
                   <div class="upload-icon mb-2">
@@ -512,9 +536,10 @@
 
             </div><!-- end row -->
 
-            <div class="mt-5 pt-4 border-top section-divider">
-              <button type="submit" class="btn btn-primary-custom px-4 py-3 w-100 shadow-sm" style="border-radius:12px;font-weight:600;font-size:1.1rem;">
-                <i class="fa-solid fa-cloud-arrow-up me-2"></i>{% trans "Soumettre mon annonce sur Loger Togo" %}
+            <div class="col-12 mt-5">
+              <button type="submit" id="submit-btn" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-lg" style="font-size:1.1rem; background: linear-gradient(135deg, #0b4629 0%, #157347 100%); border: none;">
+                <i class="fa-solid fa-paper-plane me-2"></i>
+                {% if is_edit %}{% trans "Enregistrer les modifications" %}{% else %}{% trans "Publier mon annonce" %}{% endif %}
               </button>
             </div>
           </form>
@@ -806,10 +831,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // INTERCEPTION DU SUBMIT POUR COMPRESSION
+    let isSubmitting = false;
     form.addEventListener('submit', async (e) => {
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+        
         // Empêcher la soumission multiple
         const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.disabled = true;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> {% trans "Traitement en cours..." %}`;
+        }
+        isSubmitting = true;
 
         // Affichage IMMÉDIAT de l'overlay
         overlay.style.display = 'flex';

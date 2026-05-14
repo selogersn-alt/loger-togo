@@ -331,8 +331,14 @@
 
 {% endblock %}
 
+
 {% block extra_js %}
+<!-- MapLibre GL JS -->
+<link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+
 <!-- Library de compression ultra-performante -->
+
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
 <script>
@@ -637,10 +643,6 @@ function initImageUpload() {
 }
 
 
-
-<!-- MapLibre GL JS -->
-<link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
-<script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 
 <script>
     // ─── MAPLIBRE GL - FORM ──────────────────────────

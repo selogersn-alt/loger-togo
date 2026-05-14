@@ -391,6 +391,7 @@
 </div>
 {% endblock %}
 
+{% block extra_js %}
 <!-- MapLibre GL JS -->
 <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
 <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
@@ -399,6 +400,9 @@ var _map = null, _userPos = null, _userMarker = null;
 const MAP_MARKERS = {{ map_markers_json|safe }};
 
 function initMapLibreListMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer || _map) return;
+
     _map = new maplibregl.Map({
         container: 'map',
         style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
@@ -499,21 +503,9 @@ window.toggleAdvancedFilters = function() {
     if (div) div.style.display = div.style.display === 'block' ? 'none' : 'block';
 };
 
-// Route calculation (simplified for Leaflet)
-window.calculateRoute = function(tLat, tLng) {
-    if (!_userPos) {
-        alert('{% trans "Veuillez autoriser la géolocalisation." %}');
-        _map.easeTo({ center: [tLng, tLat], zoom: 16 });
-        return;
-    }
-    // MapLibre doesn't have built-in distanceTo on LngLat directly like Leaflet, 
-    // but we can approximate or use a utility if needed.
-    // For now, focus on the view transition.
-    _map.fitBounds([_userPos, [tLng, tLat]], { padding: 100 });
-};
-
 window.hideRoute = function() {
     document.getElementById('routeInfo').style.display = 'none';
 };
 </script>
 {% endblock %}
+

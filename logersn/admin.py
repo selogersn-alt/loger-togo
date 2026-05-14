@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from .models import (
     Property, PropertyImage, Transaction, PricingConfig, Favorite, 
     PropertyEquipment, PropertyReview, PropertyAlert, Reservation, 
-    PropertyAvailability, VisitRequest, MarketingCampaign
+    PropertyAvailability, VisitRequest, MarketingCampaign, MarketingCampaignTemplate
 )
 from users.models import User
 from django.core.mail import EmailMultiAlternatives

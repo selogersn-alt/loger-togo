@@ -109,6 +109,41 @@
         background: rgba(11, 70, 41, 0.05);
     }
 
+    /* Cluster Styling Premium */
+    .cluster-marker {
+        background: var(--color-dark-green);
+        border: 4px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        color: white;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .price-marker {
+        background: white;
+        border: 2px solid var(--color-dark-green);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--color-dark-green);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    .price-marker:hover {
+        transform: scale(1.1);
+        z-index: 1000;
+        background: var(--color-dark-green);
+        color: white;
+    }
+    .price-marker.sale { border-color: #dc3545; color: #dc3545; }
+    .price-marker.sale:hover { background: #dc3545; color: white; }
+    .price-marker.furnished { border-color: var(--color-gold); color: #0b4629; }
+    .price-marker.furnished:hover { background: var(--color-gold); color: #0b4629; }
+
     .advanced-filters-panel {
         display: none;
         padding-top: 25px;
@@ -367,14 +402,18 @@ function initLeafletMap() {
     _map = L.map('map', {
         center: [6.137, 1.222],
         zoom: 13,
-        zoomControl: false
+        zoomControl: false,
+        scrollWheelZoom: true
     });
 
-    L.control.zoom({ position: 'bottomright' }).addTo(_map);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    // Tiles Premium 'Voyager' - Design épuré et moderne
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
     }).addTo(_map);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(_map);
 
     _clusters = L.markerClusterGroup({
         showCoverageOnHover: false,

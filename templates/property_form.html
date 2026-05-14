@@ -115,14 +115,14 @@
           </div>
 
           <!-- DOCUMENT TYPE (Visible pour Vente) -->
-          <div class="col-md-6" id="document-type-container">
+          <div class="col-md-6" id="document_type_container">
             <label class="form-label">{{ form.document_type.label }} <span class="text-danger">*</span></label>
             {{ form.document_type }}
           </div>
 
           <!-- PRIX ET UNITÉ INTÉGRÉS -->
-          <div class="col-md-6" id="price-container">
-            <label class="form-label" id="price-label">{% trans "Prix / Loyer" %}</label>
+          <div class="col-md-6" id="price_container">
+            <label class="form-label" id="price_label">{% trans "Prix / Loyer" %}</label>
             <div class="input-group">
               {{ form.price }}
               <button class="btn btn-outline-success dropdown-toggle fw-bold" type="button" id="price-unit-btn" data-bs-toggle="dropdown" aria-expanded="false" style="border:2px solid #e8e8e8; border-left:none; border-radius:0 12px 12px 0; background:#f8f9fa; color:var(--green-dark);">
@@ -149,7 +149,7 @@
           </div>
 
           <!-- CONDITIONS DE LOCATION (Rent/Furnished) -->
-          <div class="col-12" id="rental-conditions-container">
+          <div class="col-12" id="rental_conditions_container">
             <div class="p-4 rounded-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
               <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-file-contract me-2"></i>{% trans "Bail & Conditions" %}</h6>
               <div class="row g-3">
@@ -340,23 +340,37 @@
 // ─── 4. LOGIQUE DYNAMIQUE DU FORMULAIRE ───────────────
 // Répond aux valeurs EXACTES du modèle Django : 'RENT', 'SALE', 'FURNISHED'
 function applyDynamicFormLogic() {
-    const categorySelect   = document.getElementById('id_listing_category');
-    const propertyTypeSelect = document.getElementById('id_property_type');
-    const priceLabel         = document.getElementById('price_label');
-    const pricePerNightContainer    = document.getElementById('price_per_night_container');
+    const categorySelect      = document.getElementById('id_listing_category');
+    const propertyTypeSelect    = document.getElementById('id_property_type');
+    const priceLabel            = document.getElementById('price_label');
     const rentalConditionsContainer = document.getElementById('rental_conditions_container');
     const documentTypeContainer     = document.getElementById('document_type_container');
-
-    // Relier le quartier à sa datalist
-    const neighborhoodInput = document.getElementById('id_neighborhood');
-    if (neighborhoodInput && !neighborhoodInput.getAttribute('list')) {
-        neighborhoodInput.setAttribute('list', 'neighborhoods-list');
-    }
+    const priceInput            = document.getElementById('id_price');
+    const pricePerNightInput    = document.getElementById('id_price_per_night');
+    const unitBtn               = document.getElementById('price-unit-btn');
+    const unitSelector          = document.getElementById('price-unit-selector');
 
     if (!categorySelect) return;
 
-    function show(el) { if (el) el.style.display = 'block'; }
-    function hide(el) { if (el) el.style.display = 'none'; }
+    function show(el) { 
+        if (el) {
+            el.style.display = 'block';
+            el.querySelectorAll('select, input, textarea').forEach(i => {
+                if (i.dataset.wasRequired === 'true') i.required = true;
+            });
+        }
+    }
+    function hide(el) { 
+        if (el) {
+            el.style.display = 'none';
+            el.querySelectorAll('select, input, textarea').forEach(i => {
+                if (i.required) {
+                    i.dataset.wasRequired = 'true';
+                    i.required = false;
+                }
+            });
+        }
+    }
 
     function updateFields() {
         const val      = (categorySelect.value || '').trim().toUpperCase();
@@ -364,106 +378,113 @@ function applyDynamicFormLogic() {
 
         const isSale      = val === 'SALE';
         const isFurnished = val === 'FURNISHED';
-        const isRent      = val === 'RENT';
         const isTerrain   = propType === 'TERRAIN' || propType.includes('PARCELLE');
 
-        // Type de document → seulement pour VENTE
+        // Visibilité des conteneurs
         isSale ? show(documentTypeContainer) : hide(documentTypeContainer);
+        (val === 'RENT' || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
 
-        // Sélecteur d'unité de prix (Intégré avec Dropdown)
-        const unitBtn = document.getElementById('price-unit-btn');
-        const unitSelector = document.getElementById('price-unit-selector');
-        const priceInput = document.getElementById('id_price');
-        const pricePerNightInput = document.getElementById('id_price_per_night');
-        const unitItems = document.querySelectorAll('[data-unit]');
-
-        const setUnit = (u) => {
-            unitSelector.value = u;
-            let text = '';
-            if (u === 'month') text = '{% trans "mensuel" %}';
-            else if (u === 'night') text = '{% trans "nuitée" %}';
-            else text = '{% trans "Total" %}';
-            if (unitBtn) unitBtn.innerText = text;
-            syncPrices();
-        };
-
-        unitItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                setUnit(item.dataset.unit);
-            });
-        });
-
-        // Filtrage des options selon la catégorie
-        if (isFurnished) {
-            // Montrer mensuel et nuitée
-        } else if (isSale) {
+        // Unité de prix
+        if (isSale) {
             setUnit('total');
             if (unitBtn) unitBtn.classList.add('disabled');
+        } else if (isFurnished) {
+            if (unitBtn) unitBtn.classList.remove('disabled');
         } else {
             setUnit('month');
             if (unitBtn) unitBtn.classList.add('disabled');
         }
 
-        // Synchronisation des prix
-        function syncPrices() {
-            const val = priceInput.value;
-            if (isFurnished) {
-                if (unitSelector.value === 'night') {
-                    pricePerNightInput.value = val;
-                } else {
-                    pricePerNightInput.value = '';
-                }
-            } else {
-                pricePerNightInput.value = '';
-            }
-        };
-
-        if (priceInput) priceInput.addEventListener('input', syncPrices);
-        syncPrices();
+        // Champs spécifiques selon le type de bien
         ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {
             const el = document.getElementById('id_' + f);
             const col = el ? el.closest('[class*="col-"]') : null;
-            if (col) col.style.display = isTerrain ? 'none' : 'block';
-        });
-        document.querySelectorAll('.section-divider').forEach(s => {
-            if (s.textContent.includes('Équipements') || s.textContent.includes('quipement')) {
-                s.style.display = isTerrain ? 'none' : 'block';
-            }
+            if (col) isTerrain ? hide(col) : show(col);
         });
 
         // Libellé du prix
         if (priceLabel) {
-            if (isSale)           priceLabel.innerText = 'Prix de vente total (FCFA)';
-            else if (isFurnished) priceLabel.innerText = 'Loyer mensuel — Meublé (FCFA)';
-            else                  priceLabel.innerText = 'Loyer mensuel (FCFA)';
+            if (isSale)           priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
+            else if (isFurnished) priceLabel.innerText = '{% trans "Loyer mensuel / Nuitée (FCFA)" %}';
+            else                  priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
         }
     }
 
+    function setUnit(u) {
+        if (!unitSelector) return;
+        unitSelector.value = u;
+        let text = '';
+        if (u === 'month') text = '{% trans "mensuel" %}';
+        else if (u === 'night') text = '{% trans "nuitée" %}';
+        else text = '{% trans "Total" %}';
+        if (unitBtn) unitBtn.innerText = text;
+        syncPrices();
+    }
+
+    function syncPrices() {
+        if (!priceInput || !pricePerNightInput || !unitSelector) return;
+        const val = priceInput.value;
+        const isFurnished = categorySelect.value === 'FURNISHED';
+        if (isFurnished && unitSelector.value === 'night') {
+            pricePerNightInput.value = val;
+        } else {
+            pricePerNightInput.value = '';
+        }
+    }
+
+    // Event Listeners (Attachés UNE SEULE FOIS)
     categorySelect.addEventListener('change', updateFields);
     if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
-    updateFields(); // Application immédiate au chargement
+    if (priceInput) priceInput.addEventListener('input', syncPrices);
+    
+    document.querySelectorAll('[data-unit]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            setUnit(item.dataset.unit);
+        });
+    });
+
+    updateFields();
 }
 
 
 // ─── 5. CALCUL DU PRIX FINAL ──────────────────────────
 function initPriceCalculation() {
     const priceInput      = document.getElementById('id_price');
-    const pricePerNightInput = document.getElementById('id_price_per_night');
     const discountInput   = document.getElementById('id_discount_percentage');
     const finalPriceInput = document.getElementById('id_discount_price');
-    if (!priceInput || !discountInput) return;
+    
+    if (!priceInput || !discountInput || !finalPriceInput) return;
 
-    function calc() {
-        const base     = parseFloat(priceInput.value) || 0;
-        const discount = parseFloat(discountInput.value) || 0;
-        if (finalPriceInput) {
-            finalPriceInput.value = discount > 0 ? Math.round(base - (base * discount / 100)) : base;
+    let isUpdating = false;
+
+    // Calcul du Prix Final à partir du Pourcentage
+    function updateFromPercentage() {
+        if (isUpdating) return;
+        isUpdating = true;
+        const base = parseFloat(priceInput.value) || 0;
+        const pct  = parseFloat(discountInput.value) || 0;
+        if (base > 0) {
+            finalPriceInput.value = Math.round(base - (base * pct / 100));
         }
+        isUpdating = false;
     }
-    priceInput.addEventListener('input', calc);
-    if (pricePerNightInput) pricePerNightInput.addEventListener('input', calc);
-    discountInput.addEventListener('input', calc);
+
+    // Calcul du Pourcentage à partir du Prix Final
+    function updateFromFinalPrice() {
+        if (isUpdating) return;
+        isUpdating = true;
+        const base  = parseFloat(priceInput.value) || 0;
+        const final = parseFloat(finalPriceInput.value) || 0;
+        if (base > 0 && final <= base) {
+            discountInput.value = Math.round(((base - final) / base) * 100);
+        }
+        isUpdating = false;
+    }
+
+    priceInput.addEventListener('input', updateFromPercentage);
+    discountInput.addEventListener('input', updateFromPercentage);
+    finalPriceInput.addEventListener('input', updateFromFinalPrice);
 }
 
 
@@ -622,54 +643,37 @@ function initImageUpload() {
     // ─── LEAFLET MAP - FORM ──────────────────────────
     var _map = null, _marker = null;
 
-    function initLeafletFormMap() {
+    window.initLeafletFormMap = function() {
         var el = document.getElementById('form-map');
-        if (!el || _map) return; // Déjà initialisée ou conteneur absent
-
-        // Correction des chemins des icônes
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        });
+        if (!el || _map) return;
 
         var lome = [6.1375, 1.2123];
         _map = L.map('form-map', {
             center: lome,
             zoom: 13,
-            zoomControl: false,
-            fadeAnimation: false,
-            zoomAnimation: false
+            zoomControl: false
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap',
-            maxZoom: 19
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(_map);
 
         L.control.zoom({ position: 'bottomright' }).addTo(_map);
 
         _map.on('click', function(e) { poseMarqueur([e.latlng.lat, e.latlng.lng]); });
 
-        // Force le rendu correct immédiat
-        setTimeout(() => { _map.invalidateSize(); }, 300);
-    }
-
-        // Charger coordonnées existantes (mode édition)
+        // Charger coordonnées existantes
         var lat0 = parseFloat(document.getElementById('id_latitude').value.replace(',', '.'));
         var lng0 = parseFloat(document.getElementById('id_longitude').value.replace(',', '.'));
-        
         if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
             var pos = [lat0, lng0];
             _map.setView(pos, 16);
             poseMarqueur(pos);
         }
 
-        // Clic sur la carte
-        _map.on('click', function(e) {
-            poseMarqueur(e.latlng);
-        });
+        setTimeout(() => { _map.invalidateSize(); }, 300);
     }
 
     function poseMarqueur(latlng) {
@@ -721,7 +725,7 @@ function initImageUpload() {
         setTimeout(function(){ box.innerHTML = ''; }, 6000);
     }
 
-    function geocodeAddr() {
+    window.geocodeAddr = function() {
         var city = document.getElementById('id_city');
         var hood = document.getElementById('id_neighborhood');
         var q = (hood ? hood.value.trim() : '') + ' ' + (city && city.selectedIndex >= 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
@@ -734,26 +738,27 @@ function initImageUpload() {
         statutMap('{% trans "Recherche en cours..." %}', 'info');
 
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=tg`, {
-            headers: { 'Accept-Language': 'fr' }
+            headers: { 'Accept-Language': 'fr', 'User-Agent': 'LogerTogo-App' }
         })
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
                     var pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                    _map.setView(pos, 16);
-                    poseMarqueur(pos);
+                    if (_map) {
+                        _map.setView(pos, 16);
+                        poseMarqueur(pos);
+                    }
                     statutMap('{% trans "Adresse trouvée !" %}', 'success');
                 } else {
-                    statutMap('{% trans "Adresse introuvable. Veuillez cliquer manuellement sur la carte." %}', 'warning');
+                    statutMap('{% trans "Adresse introuvable." %}', 'warning');
                 }
             })
             .catch(err => {
-                console.error('Geocoding error:', err);
-                statutMap('{% trans "Erreur de recherche (Serveur indisponible)." %}', 'danger');
+                statutMap('{% trans "Erreur de recherche." %}', 'danger');
             });
     }
 
-    function useGPS() {
+    window.useGPS = function() {
         if (!navigator.geolocation) { statutMap('{% trans "GPS non supporté." %}', 'danger'); return; }
         statutMap('{% trans "Détection GPS..." %}', 'info');
         navigator.geolocation.getCurrentPosition(
@@ -771,16 +776,20 @@ function initImageUpload() {
     var TOTAL_STEPS = 4;
     var currentStep = 1;
 
-    function goStep(n) {
+    window.goStep = function(n) {
         if (n < 1 || n > TOTAL_STEPS) return;
-        document.getElementById('step-' + currentStep).classList.remove('active');
-        document.getElementById('si-' + currentStep).classList.remove('active');
-        document.getElementById('si-' + currentStep).classList.add('done');
+        
+        // On cache l'étape actuelle
+        var currentEl = document.getElementById('step-' + currentStep);
+        if (currentEl) currentEl.classList.remove('active');
 
         currentStep = n;
-        document.getElementById('step-' + currentStep).classList.add('active');
+        
+        // On affiche la nouvelle étape
+        var nextEl = document.getElementById('step-' + currentStep);
+        if (nextEl) nextEl.classList.add('active');
 
-        // Step indicators
+        // Mise à jour des indicateurs visuels
         for (var i = 1; i <= TOTAL_STEPS; i++) {
             var si = document.getElementById('si-' + i);
             if (!si) continue;
@@ -788,7 +797,6 @@ function initImageUpload() {
             if (i < currentStep) si.classList.add('done');
             else if (i === currentStep) si.classList.add('active');
         }
-        // Step lines
         for (var j = 1; j < TOTAL_STEPS; j++) {
             var sl = document.getElementById('sl-' + j);
             if (sl) sl.classList.toggle('done', j < currentStep);
@@ -796,16 +804,10 @@ function initImageUpload() {
 
         window.scrollTo({top: 0, behavior: 'smooth'});
 
-        // Initialisation ou rafraîchissement de la carte à l'étape 2
+        // Init Map à l'étape 2
         if (n === 2) {
-            if (!_map) {
-                initLeafletFormMap();
-            } else {
-                setTimeout(() => { 
-                    _map.invalidateSize(true); 
-                    window.dispatchEvent(new Event('resize'));
-                }, 300);
-            }
+            if (!_map) window.initLeafletFormMap();
+            else setTimeout(() => { _map.invalidateSize(true); }, 300);
         }
     }
 

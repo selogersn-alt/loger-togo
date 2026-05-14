@@ -79,10 +79,12 @@ def admin_statistics_view(request):
         total_payments = paid_payments = late_payments = unpaid_payments = collection_rate = 0
         kyc_compliance_rate = total_pros = pro_verification_rate = 0
         total_revenue = revenue_publication = revenue_boost = revenue_popup = month_revenue = 0
-        months = user_growth = contract_growth = []
+        months = ["Jan", "Fev", "Mar", "Avr", "Mai", "Juin"]
+        user_growth = [0, 0, 0, 0, 0, 0]
+        contract_growth = [0, 0, 0, 0, 0, 0]
         users_by_role = []
         import logging
-        logging.error(f"Admin Statistics 500 prevention alert: {e}")
+        logging.getLogger('django').error(f"Admin Statistics 500 prevention alert: {e}")
 
     # Handle Excel Export
     if request.GET.get('export') == 'excel':

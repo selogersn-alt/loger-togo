@@ -14,7 +14,7 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     model = User
     
-    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'phone_otp', 'is_phone_verified', 'is_verified_pro', 'is_active', 'is_staff')
+    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'marketing_action', 'is_verified_pro', 'is_active', 'is_staff')
     search_fields = ('email', 'phone_number', 'company_name', 'first_name', 'last_name', 'phone_otp')
     list_filter = ('role', 'is_verified_pro', 'is_active', 'is_staff', 'is_phone_verified')
     actions = [
@@ -207,12 +207,20 @@ class UserAdmin(BaseUserAdmin):
         
         return response
 
-    @admin.action(description="📢 Envoyer un Modèle de Mail (Marketing)")
+    @admin.action(description="📢 Envoyer un Modèle de Mail (Studio Marketing)")
     def send_templated_email(self, request, queryset):
         # On convertit les UUID en string pour la session
         user_ids = [str(uid) for uid in queryset.values_list('id', flat=True)]
         request.session['selected_users_for_email'] = user_ids
         return HttpResponseRedirect(reverse_lazy('admin_select_email_template'))
+
+    def marketing_action(self, obj):
+        url = f"/admin/marketing/studio/?user_id={obj.id}"
+        return format_html(
+            '<a class="button" href="{}" style="background-color: #0b4629; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px;"><i class="fas fa-bullhorn"></i> Studio</a>',
+            url
+        )
+    marketing_action.short_description = "Action"
 
 
 @admin.register(KYCProfile)

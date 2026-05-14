@@ -402,8 +402,8 @@ JAZZMIN_SETTINGS = {
     "search_model": ["users.User", "logersn.Property"],
     "topmenu_links": [
         {"name": "Dashboard",  "url": "admin:index"},
-        {"name": "Studio Marketing", "url": "/admin/logersn/marketingcampaign/add/", "permissions": ["users.view_user"]},
-        {"name": "Statistiques Réelles", "url": "/admin/statistiques/", "permissions": ["users.view_user"], "new_window": False},
+        {"name": "Studio Marketing", "url": "admin_select_email_template"},
+        {"name": "Statistiques Réelles", "url": "admin_statistics"},
         {"name": "Voir le site", "url": "/", "new_window": True},
     ],
     "show_sidebar": True,

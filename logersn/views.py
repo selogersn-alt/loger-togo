@@ -10,7 +10,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from rest_framework import viewsets
-from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication, MarketingCampaignTemplate
+from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication, MarketingCampaignTemplate, MarketingCampaign
 from .forms import PropertyForm
 from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 from .serializers import PropertySerializer, PropertyImageSerializer
@@ -629,6 +629,12 @@ def get_campaign_template_view(request, template_id):
 @staff_member_required
 def admin_select_email_template(request):
     user_ids = request.session.get('selected_users_for_email', [])
+    
+    # Prise en charge d'un ID unique via URL (pour le bouton direct dans l'admin)
+    single_user_id = request.GET.get('user_id')
+    if single_user_id and single_user_id not in user_ids:
+        user_ids = [single_user_id]
+        
     if not user_ids:
         messages.error(request, "Aucun utilisateur sélectionné.")
         return HttpResponseRedirect('/admin/users/user/')

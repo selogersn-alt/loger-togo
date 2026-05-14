@@ -409,6 +409,19 @@ class VisitRequest(models.Model):
         verbose_name = _("Demande de visite")
         verbose_name_plural = _("Demandes de visite")
 
+
+class MarketingCampaignTemplate(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_("Nom du modèle"))
+    subject = models.CharField(max_length=255, verbose_name=_("Objet par défaut"))
+    content = models.TextField(verbose_name=_("Contenu HTML"))
+
+    class Meta:
+        verbose_name = _("Modèle de Campagne")
+        verbose_name_plural = _("Modèles de Campagnes")
+
+    def __str__(self):
+        return self.name
+
 class MarketingCampaign(models.Model):
     class RecipientGroup(models.TextChoices):
         ALL = 'ALL', _('Tous les utilisateurs')
@@ -417,6 +430,14 @@ class MarketingCampaign(models.Model):
         TENANTS = 'TENANTS', _('Locataires / Chercheurs')
         VERIFIED = 'VERIFIED', _('Professionnels Vérifiés uniquement')
 
+    template = models.ForeignKey(
+        MarketingCampaignTemplate, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        verbose_name=_("Utiliser un modèle"),
+        help_text=_("Si sélectionné, le sujet et le contenu seront pré-remplis (vous pourrez les modifier).")
+    )
     subject = models.CharField(max_length=255, verbose_name=_("Objet de l'e-mail"))
     content = models.TextField(verbose_name=_("Contenu (HTML supporté)"), help_text=_("Utilisez [PRENOM] ou [NOM] pour personnaliser."))
     recipient_group = models.CharField(

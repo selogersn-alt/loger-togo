@@ -223,6 +223,11 @@ class PropertyAvailabilityAdmin(admin.ModelAdmin):
     list_display = ('property', 'start_date', 'end_date', 'is_available')
     list_filter = ('is_available',)
 
+@admin.register(MarketingCampaignTemplate)
+class MarketingCampaignTemplateAdmin(admin.ModelAdmin):
+    list_display = ('name', 'subject')
+    search_fields = ('name', 'subject', 'content')
+
 @admin.register(MarketingCampaign)
 class MarketingCampaignAdmin(admin.ModelAdmin):
     list_display = ('subject', 'recipient_group', 'is_sent', 'sent_at', 'created_at')
@@ -281,3 +286,6 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
             self.message_user(request, f"🚀 Succès : Campagne '{campaign.subject}' envoyée à {count} utilisateurs.")
     
     send_campaign.short_description = "🚀 Lancer la campagne (Envoi immédiat)"
+
+    class Media:
+        js = ('js/admin_campaign_helper.js',)

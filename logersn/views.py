@@ -607,3 +607,18 @@ def seo_search_view(request, listing_category=None, property_type=None, city=Non
     if neighborhood: mutable_get['neighborhood'] = neighborhood
     request.GET = mutable_get
     return properties_list_view(request)
+
+from django.http import JsonResponse
+from .models import MarketingCampaignTemplate
+
+def get_campaign_template_view(request, template_id):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    try:
+        template = MarketingCampaignTemplate.objects.get(id=template_id)
+        return JsonResponse({
+            'subject': template.subject,
+            'content': template.content
+        })
+    except MarketingCampaignTemplate.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)

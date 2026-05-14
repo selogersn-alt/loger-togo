@@ -82,6 +82,7 @@ urlpatterns = [
 
     path('admin/statistiques/', admin_statistics_view, name='admin_statistics'), # Custom Admin Route
     path('admin/campagne-email/', admin_marketing_email_view, name='admin_marketing_email'),
+    path('admin/marketing/template/<int:template_id>/', get_campaign_template_view, name='admin_get_campaign_template'),
     
     # API Routes
     path('api/', include(router.urls)),

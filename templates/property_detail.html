@@ -836,23 +836,24 @@
 
             _map.on('load', function() {
                 const el = document.createElement('div');
-                el.style.background = catColor;
-                el.style.width = '24px';
-                el.style.height = '24px';
-                el.style.borderRadius = '50%';
-                el.style.border = '4px solid white';
-                el.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+                el.className = 'premium-marker form-drop-marker';
+                el.innerHTML = '<i class="fas fa-home"></i>';
 
                 const popup = new maplibregl.Popup({ offset: 25 }).setHTML(`
-                    <div style="min-width:160px; padding:5px; font-family:'Outfit', sans-serif;">
-                        <strong style="display:block; margin-bottom:10px;">{{ property.title|escapejs }}</strong>
-                        <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px; font-weight:700;">
-                            <i class="fas fa-route me-1"></i> {% trans "Itinéraire" %}
-                        </button>
+                    <div style="width:240px; font-family:'Outfit', sans-serif;">
+                        <div style="position:relative; height:120px; overflow:hidden;">
+                            <img src="{{ property.get_main_image }}" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
+                        <div style="padding:15px;">
+                            <strong style="display:block; margin-bottom:10px;">{{ property.title|escapejs }}</strong>
+                            <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px; font-weight:700;">
+                                <i class="fas fa-route me-1"></i> {% trans "Y aller" %}
+                            </button>
+                        </div>
                     </div>
                 `);
 
-                new maplibregl.Marker({ element: el })
+                new maplibregl.Marker({ element: el, offset: [0, -20] })
                     .setLngLat(propertyPos)
                     .setPopup(popup)
                     .addTo(_map)

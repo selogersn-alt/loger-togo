@@ -685,17 +685,13 @@ function initImageUpload() {
             _marker.setLngLat(lngLat);
         } else {
             const el = document.createElement('div');
-            el.className = 'custom-marker-gl';
-            el.style.background = '#0b4629';
-            el.style.width = '24px';
-            el.style.height = '24px';
-            el.style.borderRadius = '50%';
-            el.style.border = '3px solid #f5c42f';
-            el.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
-
+            el.className = 'premium-marker form-drop-marker';
+            el.innerHTML = '<i class="fas fa-home"></i>';
+            
             _marker = new maplibregl.Marker({
                 element: el,
-                draggable: true
+                draggable: true,
+                offset: [0, -20]
             })
             .setLngLat(lngLat)
             .addTo(_map);
@@ -703,11 +699,11 @@ function initImageUpload() {
             _marker.on('dragend', function() {
                 var p = _marker.getLngLat();
                 majCoords(p.lat, p.lng);
-                statutMap('{% trans "Position ajustée." %}', 'success');
+                statutMap('{% trans "Position ajustée avec précision." %}', 'success');
             });
         }
         
-        _map.easeTo({ center: lngLat });
+        _map.easeTo({ center: lngLat, zoom: 16 });
         majCoords(lngLat[1], lngLat[0]); // lat, lng
     }
 

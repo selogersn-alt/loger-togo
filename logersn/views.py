@@ -2,8 +2,12 @@ from django.utils.translation import gettext as _
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.db.models import Q, Avg
+from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.urls import reverse
 from rest_framework import viewsets
 
 from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication
@@ -622,3 +626,54 @@ def get_campaign_template_view(request, template_id):
         })
     except MarketingCampaignTemplate.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
+
+
+@staff_member_required
+def admin_select_email_template(request):
+    user_ids = request.session.get('selected_users_for_email', [])
+    if not user_ids:
+        messages.error(request, "Aucun utilisateur sélectionné.")
+        return HttpResponseRedirect('/admin/users/user/')
+    
+    from users.models import User
+    
+    if request.method == 'POST':
+        template_id = request.POST.get('template_id')
+        template = get_object_or_404(MarketingCampaignTemplate, id=template_id)
+        users = User.objects.filter(id__in=user_ids)
+        
+        count = 0
+        for user in users:
+            if user.email:
+                # Remplacement dynamique des tags
+                content = template.content
+                if user.first_name:
+                    content = content.replace('[PRENOM]', user.first_name)
+                if user.last_name:
+                    content = content.replace('[NOM]', user.last_name)
+                
+                # Nettoyage si les tags sont vides
+                content = content.replace('[PRENOM]', "").replace('[NOM]', "")
+                
+                email = EmailMultiAlternatives(
+                    subject=template.subject,
+                    body="Veuillez utiliser un client mail compatible HTML.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[user.email]
+                )
+                email.attach_alternative(content, "text/html")
+                email.send()
+                count += 1
+        
+        messages.success(request, f"Succès : {count} emails envoyés avec le modèle '{template.name}'.")
+        # On nettoie la session
+        if 'selected_users_for_email' in request.session:
+            del request.session['selected_users_for_email']
+        return HttpResponseRedirect('/admin/users/user/')
+
+    templates = MarketingCampaignTemplate.objects.all()
+    return render(request, 'admin/select_email_template.html', {
+        'templates': templates,
+        'user_count': len(user_ids),
+        'title': "Sélectionner un modèle d'email"
+    })

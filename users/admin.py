@@ -4,6 +4,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from django.utils.html import format_html
 from django.utils import timezone
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 
 @admin.register(User)
@@ -19,7 +21,7 @@ class UserAdmin(BaseUserAdmin):
         'verify_professionals', 'revoke_professionals', 'generate_recovery_code', 
         'send_otp_whatsapp', 'send_otp_email', 'generate_frontend_reset_link', 
         'send_reset_link_email', 'admin_set_temp_password', 'export_marketing_data',
-        'make_staff', 'revoke_staff',
+        'send_templated_email', 'make_staff', 'revoke_staff',
     ]
     ordering = ('-date_joined',)
     
@@ -202,6 +204,13 @@ class UserAdmin(BaseUserAdmin):
             ])
         
         return response
+
+    @admin.action(description="📢 Envoyer un Modèle de Mail (Marketing)")
+    def send_templated_email(self, request, queryset):
+        # On stocke les IDs dans la session pour la page suivante
+        user_ids = list(queryset.values_list('id', flat=True))
+        request.session['selected_users_for_email'] = user_ids
+        return HttpResponseRedirect(reverse('admin_select_email_template'))
 
 
 @admin.register(KYCProfile)

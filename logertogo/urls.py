@@ -61,7 +61,7 @@ from logersn.views import (
     apply_to_property_view, request_reservation_view, request_visit_view,
     duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view,
     near_me_view, nearby_api_view, seo_search_view, delete_image_view,
-    get_campaign_template_view
+    get_campaign_template_view, admin_select_email_template
 )
 from chat.views import (
     send_message_view, initiate_chat_view, initiate_pro_chat_view, 
@@ -84,6 +84,7 @@ urlpatterns = [
     path('admin/statistiques/', admin_statistics_view, name='admin_statistics'), # Custom Admin Route
     path('admin/campagne-email/', admin_marketing_email_view, name='admin_marketing_email'),
     path('admin/marketing/template/<int:template_id>/', get_campaign_template_view, name='admin_get_campaign_template'),
+    path('admin/marketing/select-template/', admin_select_email_template, name='admin_select_email_template'),
     
     # API Routes
     path('api/', include(router.urls)),

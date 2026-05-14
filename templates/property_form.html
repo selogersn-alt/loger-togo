@@ -3,7 +3,6 @@
 {% block title %}{% trans "Publier une annonce" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 :root { --green-dark:#0b4629; --green-mid:#157347; --green-light:#28a745; --gold:#f5c42f; --radius:18px; }
 .form-page-bg { background:linear-gradient(135deg,#f0f9f4,#e8f5e9 50%,#f0f4ff); min-height:100vh; padding:40px 0 80px; }
@@ -648,11 +647,14 @@ function initImageUpload() {
     // ─── MAPLIBRE GL - FORM ──────────────────────────
     var _map = null, _marker = null;
 
+
     window.initMapLibreFormMap = function() {
         var el = document.getElementById('form-map');
         if (!el || _map) return;
 
-        // Note: MapLibre utilise [lng, lat]
+        // On ne peut pas init une map sur un élément caché (zero width)
+        if (el.offsetWidth === 0) return;
+
         var lome = [1.2123, 6.1375]; 
         
         _map = new maplibregl.Map({
@@ -670,19 +672,24 @@ function initImageUpload() {
         });
 
         // Charger coordonnées existantes
-        var lat0 = parseFloat(document.getElementById('id_latitude').value.replace(',', '.'));
-        var lng0 = parseFloat(document.getElementById('id_longitude').value.replace(',', '.'));
-        if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
-            var pos = [lng0, lat0];
-            _map.setCenter(pos);
-            _map.setZoom(16);
-            poseMarqueur(pos);
+        var latE = document.getElementById('id_latitude');
+        var lngE = document.getElementById('id_longitude');
+        if (latE && lngE && latE.value && lngE.value) {
+            var lat0 = parseFloat(latE.value.replace(',', '.'));
+            var lng0 = parseFloat(lngE.value.replace(',', '.'));
+            if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
+                var pos = [lng0, lat0];
+                _map.setCenter(pos);
+                _map.setZoom(16);
+                poseMarqueur(pos);
+            }
         }
         
-        _map.on('load', () => { _map.resize(); });
+        _map.on('load', () => { setTimeout(() => { _map.resize(); }, 150); });
     }
 
     function poseMarqueur(lngLat) {
+        if (!lngLat || isNaN(lngLat[0])) return;
         if (_marker) {
             _marker.setLngLat(lngLat);
         } else {
@@ -706,7 +713,7 @@ function initImageUpload() {
         }
         
         _map.easeTo({ center: lngLat, zoom: 16 });
-        majCoords(lngLat[1], lngLat[0]); // lat, lng
+        majCoords(lngLat[1], lngLat[0]); 
     }
 
     function majCoords(lat, lng) {
@@ -723,10 +730,11 @@ function initImageUpload() {
     function statutMap(msg, type) {
         var box = document.getElementById('form-map-status');
         if (!box) return;
-        var color = type === 'success' ? 'var(--color-dark-green)' : type === 'danger' ? '#dc3545' : '#856404';
+        var color = type === 'success' ? '#0b4629' : type === 'danger' ? '#dc3545' : '#856404';
         box.innerHTML = '<span style="color:' + color + ';font-weight:600;">' + msg + '</span>';
-        setTimeout(function(){ box.innerHTML = ''; }, 6000);
+        setTimeout(function(){ box.innerHTML = ''; }, 5000);
     }
+
 
     window.geocodeAddr = function() {
         var city = document.getElementById('id_city');
@@ -775,59 +783,63 @@ function initImageUpload() {
         );
     }
 
+
     // ─── NAVIGATION MULTI-ÉTAPES ──────────────────────────
-    var TOTAL_STEPS = 4;
     var currentStep = 1;
 
     window.goStep = function(n) {
-        if (n < 1 || n > TOTAL_STEPS) return;
+        if (n < 1 || n > 4) return;
         
-        // On cache l'étape actuelle
-        var currentEl = document.getElementById('step-' + currentStep);
-        if (currentEl) currentEl.classList.remove('active');
+        // 1. Cacher tout par sécurité
+        document.querySelectorAll('.step-panel').forEach(p => {
+            p.classList.remove('active');
+            p.style.display = 'none';
+        });
 
-        currentStep = n;
-        
-        // On affiche la nouvelle étape
-        var nextEl = document.getElementById('step-' + currentStep);
-        if (nextEl) nextEl.classList.add('active');
-
-        // Mise à jour des indicateurs visuels
-        for (var i = 1; i <= TOTAL_STEPS; i++) {
-            var si = document.getElementById('si-' + i);
-            if (!si) continue;
-            si.classList.remove('active', 'done');
-            if (i < currentStep) si.classList.add('done');
-            else if (i === currentStep) si.classList.add('active');
+        // 2. Afficher la cible
+        var next = document.getElementById('step-' + n);
+        if (next) {
+            next.classList.add('active');
+            next.style.display = 'block';
+            currentStep = n;
         }
-        for (var j = 1; j < TOTAL_STEPS; j++) {
-            var sl = document.getElementById('sl-' + j);
-            if (sl) sl.classList.toggle('done', j < currentStep);
+
+        // 3. Indicators
+        for (var i = 1; i <= 4; i++) {
+            var si = document.getElementById('si-' + i);
+            if (si) {
+                si.classList.remove('active', 'done');
+                if (i < n) si.classList.add('done');
+                else if (i === n) si.classList.add('active');
+            }
+            var sl = document.getElementById('sl-' + i);
+            if (sl) sl.classList.toggle('done', i < n);
         }
 
         window.scrollTo({top: 0, behavior: 'smooth'});
 
-        // Init Map à l'étape 2
+        // 4. Map init/resize
         if (n === 2) {
             if (!_map) window.initMapLibreFormMap();
-            else setTimeout(() => { _map.resize(); }, 300);
+            else setTimeout(() => { if(_map) _map.resize(); }, 200);
         }
     }
 
-    // ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
+    // ─── INITIALISATION ───────────────────────────
     function initAll() {
-        try { window.initMapLibreFormMap(); } catch(e) { console.error(e); }
-        try { applyDynamicFormLogic(); } catch(e) { console.error(e); }
-        try { initPriceCalculation(); } catch(e) { console.error(e); }
-        try { initImageUpload(); } catch(e) { console.error(e); }
+        try { applyDynamicFormLogic(); } catch(e) {}
+        try { initPriceCalculation(); } catch(e) {}
+        try { initImageUpload(); } catch(e) {}
+        
+        // Si on est déjà à l'étape 2 (ex: après erreur form)
+        var s2 = document.getElementById('step-2');
+        if (s2 && s2.classList.contains('active')) {
+            window.initMapLibreFormMap();
+        }
     }
 
     document.addEventListener('DOMContentLoaded', initAll);
-
-    setTimeout(function(){
-        var cat = document.getElementById('id_listing_category');
-        if (cat) cat.dispatchEvent(new Event('change'));
-    }, 1000);
 </script>
 {% endblock %}
+
 

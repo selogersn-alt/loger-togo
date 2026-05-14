@@ -60,7 +60,8 @@ from logersn.views import (
     edit_property_view, delete_property_view, submit_review_view, toggle_favorite_view,
     apply_to_property_view, request_reservation_view, request_visit_view,
     duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view,
-    near_me_view, nearby_api_view, seo_search_view, delete_image_view
+    near_me_view, nearby_api_view, seo_search_view, delete_image_view,
+    get_campaign_template_view
 )
 from chat.views import (
     send_message_view, initiate_chat_view, initiate_pro_chat_view, 

@@ -14,7 +14,7 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     model = User
     
-    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'marketing_action', 'is_verified_pro', 'is_active', 'is_staff')
+    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'is_verified_pro', 'is_active', 'is_staff')
     search_fields = ('email', 'phone_number', 'company_name', 'first_name', 'last_name', 'phone_otp')
     list_filter = ('role', 'is_verified_pro', 'is_active', 'is_staff', 'is_phone_verified')
     actions = [

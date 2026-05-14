@@ -81,14 +81,16 @@ urlpatterns = [
     path('professionnels/', verified_professionals_view, name='professionals_list'),
     path('agences/', lambda r: redirect('professionals_list')), # Aliasing legacy URL from Menu
 
-    path('admin/statistiques/', admin_statistics_view, name='admin_statistics'),
-    path('admin/marketing/template/<int:template_id>/', get_campaign_template_view, name='admin_get_campaign_template'),
-    path('admin/marketing/studio/', admin_select_email_template, name='admin_select_email_template'),
     path('admin/campagne-email/', lambda r: redirect('admin_select_email_template')), # Legacy redirect
     
     # API Routes
     path('api/', include(router.urls)),
     
+    # Custom Admin Routes (MUST be before admin.site.urls)
+    path('admin/statistiques/', admin_statistics_view, name='admin_statistics'),
+    path('admin/marketing/studio/', admin_select_email_template, name='admin_select_email_template'),
+    path('admin/marketing/template/<int:template_id>/', get_campaign_template_view, name='admin_get_campaign_template'),
+
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/logersn/', include('logersn.urls')),

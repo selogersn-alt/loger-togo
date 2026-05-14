@@ -120,19 +120,20 @@
             {{ form.document_type }}
           </div>
 
-          <!-- PRIX ET UNITÉ -->
+          <!-- PRIX ET UNITÉ INTÉGRÉS -->
           <div class="col-md-6" id="price-container">
-            <div class="d-flex justify-content-between align-items-end mb-2">
-              <label class="form-label mb-0" id="price-label">{% trans "Prix / Loyer" %}</label>
-              <select class="form-select border-0 p-0 h-auto w-auto fw-bold text-success" id="price-unit-selector" style="font-size:0.8rem; box-shadow:none; cursor:pointer; background-color:transparent;">
-                  <option value="month">/ {% trans "mois" %}</option>
-                  <option value="night">/ {% trans "nuit" %}</option>
-                  <option value="total">{% trans "Total" %}</option>
-              </select>
-            </div>
+            <label class="form-label" id="price-label">{% trans "Prix / Loyer" %}</label>
             <div class="input-group">
               {{ form.price }}
-              <span class="input-group-text bg-light fw-bold" id="unit-display" style="border-radius:0 12px 12px 0; border:2px solid #e8e8e8; border-left:none; font-size:0.8rem; color:#666;">/ {% trans "mois" %}</span>
+              <button class="btn btn-outline-success dropdown-toggle fw-bold" type="button" id="price-unit-btn" data-bs-toggle="dropdown" aria-expanded="false" style="border:2px solid #e8e8e8; border-left:none; border-radius:0 12px 12px 0; background:#f8f9fa; color:var(--green-dark);">
+                {% trans "mensuel" %}
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:none; padding:8px;">
+                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="month">{% trans "mensuel" %}</a></li>
+                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="night">{% trans "nuitée" %}</a></li>
+                <li><a class="dropdown-item rounded-3" href="#" data-unit="total">{% trans "Prix Total" %}</a></li>
+              </ul>
+              <input type="hidden" id="price-unit-selector" value="month">
             </div>
             <div class="d-none">{{ form.price_per_night }}</div>
           </div>
@@ -369,41 +370,43 @@ function applyDynamicFormLogic() {
         // Type de document → seulement pour VENTE
         isSale ? show(documentTypeContainer) : hide(documentTypeContainer);
 
-        // Sélecteur d'unité de prix
+        // Sélecteur d'unité de prix (Intégré avec Dropdown)
+        const unitBtn = document.getElementById('price-unit-btn');
         const unitSelector = document.getElementById('price-unit-selector');
-        const unitDisplay = document.getElementById('unit-display');
         const priceInput = document.getElementById('id_price');
         const pricePerNightInput = document.getElementById('id_price_per_night');
+        const unitItems = document.querySelectorAll('[data-unit]');
 
-        // Réinitialiser les options du sélecteur
-        Array.from(unitSelector.options).forEach(opt => opt.style.display = 'none');
-
-        if (isFurnished) {
-            unitSelector.style.display = 'block';
-            unitSelector.querySelector('option[value="month"]').style.display = 'block';
-            unitSelector.querySelector('option[value="night"]').style.display = 'block';
-            if (!unitSelector.value || unitSelector.value === 'total') unitSelector.value = 'night';
-        } else if (isSale) {
-            unitSelector.style.display = 'block';
-            unitSelector.querySelector('option[value="total"]').style.display = 'block';
-            unitSelector.value = 'total';
-        } else {
-            unitSelector.style.display = 'block';
-            unitSelector.querySelector('option[value="month"]').style.display = 'block';
-            unitSelector.value = 'month';
-        }
-
-        // Mise à jour de l'affichage de l'unité
-        const updateUnitDisplay = () => {
-            const val = unitSelector.value;
-            if (val === 'night') unitDisplay.innerText = '/ ' + '{% trans "nuit" %}';
-            else if (val === 'month') unitDisplay.innerText = '/ ' + '{% trans "mois" %}';
-            else unitDisplay.innerText = '{% trans "Total" %}';
+        const setUnit = (u) => {
+            unitSelector.value = u;
+            let text = '';
+            if (u === 'month') text = '{% trans "mensuel" %}';
+            else if (u === 'night') text = '{% trans "nuitée" %}';
+            else text = '{% trans "Total" %}';
+            if (unitBtn) unitBtn.innerText = text;
+            syncPrices();
         };
 
-        // Synchronisation des prix lors de la saisie ou du changement d'unité
-        const syncPrices = () => {
-            updateUnitDisplay();
+        unitItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                setUnit(item.dataset.unit);
+            });
+        });
+
+        // Filtrage des options selon la catégorie
+        if (isFurnished) {
+            // Montrer mensuel et nuitée
+        } else if (isSale) {
+            setUnit('total');
+            if (unitBtn) unitBtn.classList.add('disabled');
+        } else {
+            setUnit('month');
+            if (unitBtn) unitBtn.classList.add('disabled');
+        }
+
+        // Synchronisation des prix
+        function syncPrices() {
             const val = priceInput.value;
             if (isFurnished) {
                 if (unitSelector.value === 'night') {
@@ -416,9 +419,8 @@ function applyDynamicFormLogic() {
             }
         };
 
-        if (unitSelector) unitSelector.addEventListener('change', syncPrices);
         if (priceInput) priceInput.addEventListener('input', syncPrices);
-        syncPrices(); // Init display
+        syncPrices();
         ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {
             const el = document.getElementById('id_' + f);
             const col = el ? el.closest('[class*="col-"]') : null;

@@ -72,8 +72,11 @@ class PropertyForm(forms.ModelForm):
         # Logique de cohérence par catégorie (Conflits de logique)
         listing_category = cleaned_data.get('listing_category')
         
-        # 1. Pour les meublés, le prix par nuitée est optionnel
-        if listing_category != 'FURNISHED':
+        # 1. Pour les meublés, on gère les deux types de prix
+        if listing_category == 'FURNISHED':
+            # On s'assure que si l'un est rempli, l'autre peut l'être aussi
+            pass
+        elif listing_category != 'FURNISHED':
             cleaned_data['price_per_night'] = None
 
         # 2. Conditions de location (Applicable si location classique OU meublé)

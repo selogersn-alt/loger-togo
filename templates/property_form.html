@@ -364,7 +364,12 @@ function applyDynamicFormLogic() {
         // Conditions de bail → LOCATION ou MEUBLÉ
         (isRent || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
 
-        // Champs techniques → masqués si TERRAIN
+        // Libellé du prix principal
+        if (priceLabel) {
+            if (isSale)           priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
+            else if (isFurnished) priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
+            else                  priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
+        }
         ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {
             const el = document.getElementById('id_' + f);
             const col = el ? el.closest('[class*="col-"]') : null;
@@ -508,23 +513,40 @@ function initImageUpload() {
 
             if (statusText) statusText.innerText = `{% trans "Envoi des données..." %}`;
             
-            // Envoi via Fetch pour un contrôle total
+            // Envoi via Fetch avec CSRF
             const response = await fetch(form.action || window.location.href, {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
             });
 
             if (response.ok) {
-                const result = await response.url;
-                window.location.href = result || '/dashboard/';
+                // Si la réponse est une redirection ou un succès JSON
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    const data = await response.json().catch(() => ({}));
+                    if (data.redirect) window.location.href = data.redirect;
+                    else if (data.id) window.location.href = '/annonces/' + data.id + '/';
+                    else window.location.href = '/dashboard/';
+                }
             } else {
-                // Si erreur 400 (validation Django), on recharge la page normalement pour afficher les erreurs
+                // Gestion des erreurs de validation (400)
                 if (response.status === 400) {
-                    const html = await response.text();
-                    document.documentElement.innerHTML = html;
-                    // Il faut ré-initialiser les scripts après avoir injecté le HTML
-                    initAll();
+                    const text = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const newForm = doc.getElementById('property-form');
+                    if (newForm) {
+                        document.getElementById('property-form').innerHTML = newForm.innerHTML;
+                        initAll(); // Ré-attacher les événements
+                        goStep(1); // Retour à l'étape 1 pour voir les erreurs
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
                     throw new Error('Server error: ' + response.status);
                 }
@@ -724,8 +746,12 @@ function initImageUpload() {
 
         // Leaflet needs invalidate when step 2 becomes visible
         if (n === 2 && _map) {
-            setTimeout(function() { _map.invalidateSize(true); }, 100);
-            setTimeout(function() { _map.invalidateSize(true); }, 500);
+            setTimeout(function() { 
+                _map.invalidateSize(true);
+                // Force a resize event to trigger internal Leaflet logic
+                window.dispatchEvent(new Event('resize'));
+            }, 200);
+            setTimeout(function() { _map.invalidateSize(true); }, 800);
         }
     }
 

@@ -94,71 +94,32 @@
     <div class="form-wizard-card mb-3 step-panel active" id="step-1">
       <div class="step-header">
         <h3><i class="fa-solid fa-file-lines me-2"></i>{% trans "Informations Générales" %}</h3>
-        <p>{% trans "Titre, catégorie, prix et type de bien." %}</p>
+        <p>{% trans "Définissez la nature et le prix de votre bien." %}</p>
       </div>
       <div class="step-body">
         <div class="row g-4">
+          <!-- TITRE -->
           <div class="col-12">
             <label class="form-label">{{ form.title.label }}</label>
             {{ form.title }}
           </div>
+          
+          <!-- CATÉGORIE ET TYPE -->
           <div class="col-md-6">
             <label class="form-label">{{ form.listing_category.label }}</label>
             {{ form.listing_category }}
           </div>
           <div class="col-md-6">
-            <label class="form-label" id="price_label">{{ form.price.label }}</label>
-            <div class="input-group">{{ form.price }}<span class="input-group-text fw-bold" style="background:#28a745;color:white;border:none;border-radius:0 12px 12px 0;">FCFA</span></div>
-          </div>
-          {% with cat=form.listing_category.value|stringformat:"s" %}
-          <div class="col-md-6" id="price_per_night_container" style="display:{% if cat == 'FURNISHED' %}block{% else %}none{% endif %};">
-            <label class="form-label">{{ form.price_per_night.label }}</label>
-            <div class="input-group">{{ form.price_per_night }}<span class="input-group-text fw-bold" style="background:#f5c42f;color:#0b4629;border:none;border-radius:0 12px 12px 0;">/Nuit</span></div>
-          </div>
-          {% endwith %}
-          <div class="col-md-6">
-            <label class="form-label"><i class="fa-solid fa-tag me-1 text-success"></i>{{ form.discount_percentage.label }}</label>
-            <div class="input-group">{{ form.discount_percentage }}<span class="input-group-text" style="background:#28a745;color:white;border:none;border-radius:0 12px 12px 0;">%</span></div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label text-muted">{{ form.discount_price.label }}</label>
-            {{ form.discount_price }}
-            <small class="text-muted">{% trans "Calculé automatiquement." %}</small>
-          </div>
-          <div class="col-md-6">
             <label class="form-label">{{ form.property_type.label }}</label>
             {{ form.property_type }}
           </div>
-          {% with cat=form.listing_category.value|stringformat:"s" %}
-          <div class="col-md-6" id="document_type_container" style="display:{% if cat == 'SALE' or form.document_type.errors %}block{% else %}none{% endif %};">
-            <label class="form-label">{{ form.document_type.label }} <span class="text-danger">*</span></label>
-            {{ form.document_type }}
-            {% if form.document_type.errors %}
-              <div class="text-danger small mt-1">{{ form.document_type.errors.0 }}</div>
-            {% endif %}
-          </div>
-          {% endwith %}
-          {% with cat=form.listing_category.value|stringformat:"s" %}
-          <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' or cat == 'FURNISHED' %}block{% else %}none{% endif %};">
-            <div class="p-4 rounded-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
-              <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-file-contract me-2"></i>{% trans "Conditions de Location" %}</h6>
-              <div class="row g-3">
-                <div class="col-md-4"><label class="form-label">{{ form.deposit_months.label }}</label>{{ form.deposit_months }}</div>
-                <div class="col-md-4"><label class="form-label">{{ form.advance_months.label }}</label>{{ form.advance_months }}</div>
-                <div class="col-md-4"><label class="form-label">{{ form.agency_fee_months.label }}</label>{{ form.agency_fee_months }}</div>
-              </div>
-            </div>
-          </div>
-          {% endwith %}
-          <div class="col-md-6">
-            <label class="form-label">{{ form.visit_fee.label }}</label>
-            <div class="input-group">{{ form.visit_fee }}<span class="input-group-text" style="background:#0b4629;color:white;border:none;border-radius:0 12px 12px 0;">CFA</span></div>
-          </div>
+
+          <!-- PRIX ET UNITÉ -->
           <div class="col-md-6" id="price-container">
             <label class="form-label" id="price-label">{% trans "Prix / Loyer" %}</label>
             <div class="input-group">
               {{ form.price }}
-              <select class="form-select w-auto" id="price-unit-selector" style="flex:0 0 100px; border-top-left-radius:0; border-bottom-left-radius:0; background-color:#f8f9fa;">
+              <select class="form-select w-auto" id="price-unit-selector" style="flex:0 0 100px; border-top-left-radius:0; border-bottom-left-radius:0; background-color:#f8f9fa; font-weight:700; color:var(--green-dark);">
                   <option value="month">/ {% trans "mois" %}</option>
                   <option value="night">/ {% trans "nuit" %}</option>
                   <option value="total">{% trans "Total" %}</option>
@@ -166,17 +127,48 @@
             </div>
             <div class="d-none">{{ form.price_per_night }}</div>
           </div>
+
+          <!-- DOCUMENT TYPE (Visible pour Vente) -->
           <div class="col-md-6" id="document-type-container">
-            <label class="form-label">{% trans "Type de document" %}</label>
+            <label class="form-label">{{ form.document_type.label }} <span class="text-danger">*</span></label>
             {{ form.document_type }}
           </div>
+
+          <!-- PROMOTIONS -->
+          <div class="col-md-6">
+            <label class="form-label"><i class="fa-solid fa-tag me-1 text-success"></i>{{ form.discount_percentage.label }}</label>
+            <div class="input-group">{{ form.discount_percentage }}<span class="input-group-text" style="background:#28a745;color:white;border:none;border-radius:0 12px 12px 0;">%</span></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">{{ form.discount_price.label }}</label>
+            {{ form.discount_price }}
+          </div>
+
+          <!-- CONDITIONS DE LOCATION (Rent/Furnished) -->
+          <div class="col-12" id="rental-conditions-container">
+            <div class="p-4 rounded-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
+              <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-file-contract me-2"></i>{% trans "Bail & Conditions" %}</h6>
+              <div class="row g-3">
+                <div class="col-md-4"><label class="form-label">{{ form.deposit_months.label }}</label>{{ form.deposit_months }}</div>
+                <div class="col-md-4"><label class="form-label">{{ form.advance_months.label }}</label>{{ form.advance_months }}</div>
+                <div class="col-md-4"><label class="form-label">{{ form.agency_fee_months.label }}</label>{{ form.agency_fee_months }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.visit_fee.label }}</label>
+            <div class="input-group">{{ form.visit_fee }}<span class="input-group-text" style="background:#0b4629;color:white;border:none;border-radius:0 12px 12px 0;">CFA</span></div>
+          </div>
+          
           <div class="col-12">
             <label class="form-label">{{ form.description.label }}</label>
             {{ form.description }}
           </div>
         </div>
+
         <div class="d-flex justify-content-end mt-4">
-          <button type="button" class="btn-step-next" onclick="goStep(2)">{% trans "Suivant" %} <i class="fa-solid fa-arrow-right ms-2"></i></button>
+          <button type="button" class="btn-step-next" onclick="goStep(2)">{% trans "Localisation" %} <i class="fa-solid fa-arrow-right ms-2"></i></button>
         </div>
       </div>
     </div>
@@ -619,9 +611,9 @@ function initImageUpload() {
 
     function initLeafletFormMap() {
         var el = document.getElementById('form-map');
-        if (!el) return;
+        if (!el || _map) return; // Déjà initialisée ou conteneur absent
 
-        // Fix Leaflet icons path
+        // Correction des chemins des icônes
         delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
             iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -643,12 +635,13 @@ function initImageUpload() {
             maxZoom: 19
         }).addTo(_map);
 
-        // Force correct sizing multiple times to handle visibility delays
-        setTimeout(function() { _map.invalidateSize(); }, 200);
-        setTimeout(function() { _map.invalidateSize(); }, 1000);
-        window.addEventListener('resize', function() { _map.invalidateSize(); });
-
         L.control.zoom({ position: 'bottomright' }).addTo(_map);
+
+        _map.on('click', function(e) { poseMarqueur([e.latlng.lat, e.latlng.lng]); });
+
+        // Force le rendu correct immédiat
+        setTimeout(() => { _map.invalidateSize(); }, 300);
+    }
 
         // Charger coordonnées existantes (mode édition)
         var lat0 = parseFloat(document.getElementById('id_latitude').value.replace(',', '.'));
@@ -790,14 +783,16 @@ function initImageUpload() {
 
         window.scrollTo({top: 0, behavior: 'smooth'});
 
-        // Leaflet needs invalidate when step 2 becomes visible
-        if (n === 2 && _map) {
-            setTimeout(function() { 
-                _map.invalidateSize(true);
-                // Force a resize event to trigger internal Leaflet logic
-                window.dispatchEvent(new Event('resize'));
-            }, 200);
-            setTimeout(function() { _map.invalidateSize(true); }, 800);
+        // Initialisation ou rafraîchissement de la carte à l'étape 2
+        if (n === 2) {
+            if (!_map) {
+                initLeafletFormMap();
+            } else {
+                setTimeout(() => { 
+                    _map.invalidateSize(true); 
+                    window.dispatchEvent(new Event('resize'));
+                }, 300);
+            }
         }
     }
 

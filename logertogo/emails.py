@@ -22,7 +22,14 @@ def send_html_email(subject, template_name, context, to_email, bcc_admin=True):
     try:
         return email.send()
     except Exception as e:
-        print(f"[EMAIL ERROR] {e}")
+        import logging
+        logging.getLogger('django').error(f"❌ [SMTP ERROR] Impossible d'envoyer le mail à {to_email}. Erreur : {e}")
+        # Fallback : On tente sans BCC admin si c'était activé
+        if bcc_admin:
+            try:
+                email.bcc = []
+                return email.send()
+            except: pass
         return False
 
 
@@ -36,7 +43,8 @@ def send_simple_email(subject, message_html, to_email):
     try:
         return email.send()
     except Exception as e:
-        print(f"[EMAIL ERROR] {e}")
+        import logging
+        logging.getLogger('django').error(f"❌ [SMTP ERROR SIMPLE] Erreur envoi à {to_email} : {e}")
         return False
 
 

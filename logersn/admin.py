@@ -230,19 +230,23 @@ class MarketingCampaignTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(MarketingCampaign)
 class MarketingCampaignAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'recipient_group', 'is_sent', 'sent_at', 'created_at')
-    list_filter = ('recipient_group', 'is_sent', 'created_at')
+    list_display = ('subject', 'recipient_group', 'is_sent', 'scheduled_for', 'sent_at', 'created_at')
+    list_filter = ('recipient_group', 'is_sent', 'scheduled_for', 'created_at')
     search_fields = ('subject', 'content')
     readonly_fields = ('is_sent', 'sent_at')
-    actions = ['send_campaign']
+    filter_horizontal = ('individual_recipients',)
+    actions = ['send_campaign_now']
 
-    def send_campaign(self, request, queryset):
+    @admin.action(description="🚀 Envoyer MAINTENANT (Ignore la planification)")
+    def send_campaign_now(self, request, queryset):
+        from logertogo.emails import send_simple_email
+        from django.utils import timezone
+        
         for campaign in queryset:
             if campaign.is_sent:
-                self.message_user(request, f"La campagne '{campaign.subject}' a déjà été envoyée.", level='warning')
                 continue
 
-            # Filtrage des destinataires
+            # Logique de récupération des utilisateurs (Groupes + Individuels)
             users = User.objects.filter(is_active=True).exclude(email__isnull=True).exclude(email='')
             
             if campaign.recipient_group == MarketingCampaign.RecipientGroup.AGENTS:
@@ -253,39 +257,26 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
                 users = users.filter(role='TENANT')
             elif campaign.recipient_group == MarketingCampaign.RecipientGroup.VERIFIED:
                 users = users.filter(is_verified_pro=True)
+            
+            # Ajouter les destinataires individuels
+            if campaign.individual_recipients.exists():
+                users = (users | campaign.individual_recipients.all()).distinct()
 
             count = 0
-            from django.utils import timezone
-            
             for user in users:
-                # Personnalisation
                 first_name = user.first_name or "Client"
                 last_name = user.last_name or ""
                 html_content = campaign.content.replace('[PRENOM]', first_name).replace('[NOM]', last_name)
-                text_content = f"Veuillez utiliser un client mail compatible HTML pour voir ce message.\n\nObjet : {campaign.subject}"
-
-                email = EmailMultiAlternatives(
-                    campaign.subject,
-                    text_content,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email]
-                )
-                email.attach_alternative(html_content, "text/html")
                 
-                try:
-                    email.send()
+                # Utilisation de la fonction centralisée pour le design pro
+                if send_simple_email(campaign.subject, html_content, user.email):
                     count += 1
-                except Exception as e:
-                    import logging
-                    logging.getLogger(__name__).error(f"Erreur envoi campagne {campaign.id} à {user.email}: {e}")
 
             campaign.is_sent = True
             campaign.sent_at = timezone.now()
             campaign.save()
 
             self.message_user(request, f"🚀 Succès : Campagne '{campaign.subject}' envoyée à {count} utilisateurs.")
-    
-    send_campaign.short_description = "🚀 Lancer la campagne (Envoi immédiat)"
 
     class Media:
         js = ('js/admin_campaign_helper.js',)

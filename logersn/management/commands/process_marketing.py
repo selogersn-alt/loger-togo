@@ -24,40 +24,35 @@ class Command(BaseCommand):
             self.stdout.write(f"Traitement de la campagne : {campaign.subject}")
             
             # Détermination des destinataires
-            recipients = []
+            from users.models import User
+            users = User.objects.filter(is_active=True).exclude(email__isnull=True).exclude(email='')
+            
+            if campaign.recipient_group == 'AGENTS':
+                users = users.filter(role__in=['AGENCY', 'BROKER', 'AGENT'])
+            elif campaign.recipient_group == 'OWNERS':
+                users = users.filter(role='LANDLORD')
+            elif campaign.recipient_group == 'TENANTS':
+                users = users.filter(role='TENANT')
+            elif campaign.recipient_group == 'VERIFIED':
+                users = users.filter(is_verified_pro=True)
+            elif campaign.recipient_group == 'ALL':
+                pass # Already got all active users with email
+            
+            # Combiner avec les destinataires individuels
             if campaign.individual_recipients.exists():
-                recipients = campaign.individual_recipients.all()
-            else:
-                from users.models import User
-                if campaign.recipient_group == 'ALL':
-                    recipients = User.objects.filter(is_active=True)
-                elif campaign.recipient_group == 'AGENTS':
-                    recipients = User.objects.filter(role__in=['AGENCY', 'BROKER', 'AGENT'])
-                # ... autres groupes si nécessaire
+                users = (users | campaign.individual_recipients.all()).distinct()
 
             count = 0
-            for user in recipients:
-                if user.email:
-                    # Personnalisation
-                    user_content = campaign.content.replace('[PRENOM]', user.first_name or "").replace('[NOM]', user.last_name or "")
-                    
-                    email = EmailMultiAlternatives(
-                        subject=campaign.subject,
-                        body="HTML needed",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to=[user.email]
-                    )
-                    html_content = render_to_string('emails/base_email.html', {
-                        'content': user_content,
-                        'site_url': 'https://logertogo.com'
-                    })
-                    email.attach_alternative(html_content, "text/html")
-                    
-                    try:
-                        email.send()
-                        count += 1
-                    except Exception as e:
-                        self.stderr.write(f"Erreur d'envoi à {user.email}: {e}")
+            from logertogo.emails import send_simple_email
+            
+            for user in users:
+                # Personnalisation
+                first_name = user.first_name or "Client"
+                last_name = user.last_name or ""
+                user_content = campaign.content.replace('[PRENOM]', first_name).replace('[NOM]', last_name)
+                
+                if send_simple_email(campaign.subject, user_content, user.email):
+                    count += 1
 
             campaign.is_sent = True
             campaign.sent_at = now

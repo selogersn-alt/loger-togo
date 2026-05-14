@@ -56,8 +56,15 @@ def logout_view(request):
 
 @login_required
 def dashboard_view(request):
-    if request.user.role == 'TENANT': return redirect('management:tenant_dashboard')
-    return redirect('management:landlord_dashboard')
+    """Redirection intelligente selon le rôle de l'utilisateur."""
+    user = request.user
+    if user.role == User.RoleEnum.TENANT:
+        return redirect('management:tenant_dashboard')
+    elif user.role in [User.RoleEnum.LANDLORD, User.RoleEnum.AGENCY, User.RoleEnum.BROKER, User.RoleEnum.AGENT]:
+        return redirect('management:landlord_dashboard')
+    elif user.is_staff:
+        return redirect('admin:index')
+    return redirect('home')
 
 def public_profile_view(request, user_id=None, slug=None):
     if slug: user = get_object_or_404(User, slug=slug)

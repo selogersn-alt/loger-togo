@@ -296,8 +296,8 @@ else:
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
     EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '9bf277001@smtp-brevo.com')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
-    EMAIL_TIMEOUT = 15
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'xsmtpsib-87c2f6d6363a0980c6566085a676451e22067784347788448888888-fallback') # Fallback added
+    EMAIL_TIMEOUT = 30
 
 DEFAULT_FROM_EMAIL = 'Loger Togo <contact@logertogo.com>'
 SERVER_EMAIL = 'contact@logertogo.com'
@@ -402,6 +402,7 @@ JAZZMIN_SETTINGS = {
     "search_model": ["users.User", "logersn.Property"],
     "topmenu_links": [
         {"name": "Dashboard",  "url": "admin:index"},
+        {"name": "Studio Marketing", "url": "/admin/logersn/marketingcampaign/add/", "permissions": ["users.view_user"]},
         {"name": "Statistiques Réelles", "url": "/admin/statistiques/", "permissions": ["users.view_user"], "new_window": False},
         {"name": "Voir le site", "url": "/", "new_window": True},
     ],
@@ -411,6 +412,8 @@ JAZZMIN_SETTINGS = {
         "auth": "fas fa-users-cog",
         "users.User": "fas fa-user",
         "logersn.Property": "fas fa-building",
+        "logersn.MarketingCampaign": "fas fa-bullhorn",
+        "logersn.MarketingCampaignTemplate": "fas fa-layer-group",
         "logersn.PropertyEquipment": "fas fa-couch",
     },
     "default_icon_children": "fas fa-circle",

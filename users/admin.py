@@ -21,7 +21,7 @@ class UserAdmin(BaseUserAdmin):
         'verify_professionals', 'revoke_professionals', 'generate_recovery_code', 
         'send_otp_whatsapp', 'send_otp_email', 'generate_frontend_reset_link', 
         'send_reset_link_email', 'admin_set_temp_password', 'export_marketing_data',
-        # 'send_templated_email', 
+        'send_templated_email', 
         'make_staff', 'revoke_staff',
     ]
     ordering = ('-date_joined',)

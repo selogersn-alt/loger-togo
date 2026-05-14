@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aperçu de l'e-mail - Loger Togo</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #333; font-family: sans-serif; }
+        .preview-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .preview-header { padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px; color: #666; font-size: 14px; }
+        .iframe-container { width: 100%; border: none; }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="preview-header">
+            <strong>Aperçu du rendu final</strong> (Note : Les variables [PRENOM]/[NOM] sont remplacées pour l'aperçu)
+        </div>
+        <div>
+            {{ html_content|safe }}
+        </div>
+    </div>
+</body>
+</html>

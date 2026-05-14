@@ -438,16 +438,24 @@ class MarketingCampaign(models.Model):
         verbose_name=_("Utiliser un modèle"),
         help_text=_("Si sélectionné, le sujet et le contenu seront pré-remplis (vous pourrez les modifier).")
     )
+    individual_recipients = models.ManyToManyField(
+        User, 
+        blank=True, 
+        related_name='targeted_campaigns',
+        verbose_name=_("Destinataires individuels")
+    )
     subject = models.CharField(max_length=255, verbose_name=_("Objet de l'e-mail"))
     content = models.TextField(verbose_name=_("Contenu (HTML supporté)"), help_text=_("Utilisez [PRENOM] ou [NOM] pour personnaliser."))
     recipient_group = models.CharField(
         max_length=20, 
         choices=RecipientGroup.choices, 
         default=RecipientGroup.ALL,
-        verbose_name=_("Groupe de destinataires")
+        verbose_name=_("Groupe de destinataires"),
+        help_text=_("Ignoré si des destinataires individuels sont sélectionnés.")
     )
+    scheduled_for = models.DateTimeField(null=True, blank=True, verbose_name=_("Planifié pour"))
     is_sent = models.BooleanField(default=False, verbose_name=_("Envoyé"))
-    sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Date d'envoi"))
+    sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Date d'envoi réel"))
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

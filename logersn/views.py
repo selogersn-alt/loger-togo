@@ -7,7 +7,8 @@ from django.db.models import Q, Avg
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.template.loader import render_to_string
 from rest_framework import viewsets
 from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication, MarketingCampaignTemplate
 from .forms import PropertyForm
@@ -633,44 +634,82 @@ def admin_select_email_template(request):
         return HttpResponseRedirect('/admin/users/user/')
     
     from users.models import User
-    
-    if request.method == 'POST':
-        template_id = request.POST.get('template_id')
-        template = get_object_or_404(MarketingCampaignTemplate, id=template_id)
-        users = User.objects.filter(id__in=user_ids)
-        
-        count = 0
-        for user in users:
-            if user.email:
-                # Remplacement dynamique des tags
-                content = template.content
-                if user.first_name:
-                    content = content.replace('[PRENOM]', user.first_name)
-                if user.last_name:
-                    content = content.replace('[NOM]', user.last_name)
-                
-                # Nettoyage si les tags sont vides
-                content = content.replace('[PRENOM]', "").replace('[NOM]', "")
-                
-                email = EmailMultiAlternatives(
-                    subject=template.subject,
-                    body="Veuillez utiliser un client mail compatible HTML.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[user.email]
-                )
-                email.attach_alternative(content, "text/html")
-                email.send()
-                count += 1
-        
-        messages.success(request, f"Succès : {count} emails envoyés avec le modèle '{template.name}'.")
-        # On nettoie la session
-        if 'selected_users_for_email' in request.session:
-            del request.session['selected_users_for_email']
-        return HttpResponseRedirect('/admin/users/user/')
-
+    users = User.objects.filter(id__in=user_ids)
     templates = MarketingCampaignTemplate.objects.all()
+
+    if request.method == 'POST':
+        action = request.POST.get('action') # 'send' or 'preview'
+        template_id = request.POST.get('template_id')
+        custom_subject = request.POST.get('subject')
+        custom_content = request.POST.get('content')
+        scheduled_for = request.POST.get('scheduled_for')
+        
+        template = None
+        if template_id:
+            template = get_object_or_404(MarketingCampaignTemplate, id=template_id)
+
+        # Remplacement de tags pour la prévisualisation (premier utilisateur)
+        preview_user = users.first()
+        preview_content = custom_content or (template.content if template else "")
+        if preview_user:
+            preview_content = preview_content.replace('[PRENOM]', preview_user.first_name or "Client")
+            preview_content = preview_content.replace('[NOM]', preview_user.last_name or "")
+
+        if action == 'preview':
+            # Rendu du template mail réel pour l'aperçu
+            full_html = render_to_string('emails/base_email.html', {
+                'content': preview_content,
+                'site_url': settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://logertogo.com'
+            })
+            return render(request, 'admin/email_preview.html', {'html_content': full_html})
+
+        elif action == 'send':
+            # Création de la campagne en base
+            campaign = MarketingCampaign.objects.create(
+                template=template,
+                subject=custom_subject or (template.subject if template else "Sans sujet"),
+                content=custom_content or (template.content if template else ""),
+                scheduled_for=scheduled_for if scheduled_for else None
+            )
+            campaign.individual_recipients.set(users)
+            
+            # Si pas de date, on envoie tout de suite
+            if not scheduled_for:
+                count = 0
+                for user in users:
+                    if user.email:
+                        user_content = campaign.content.replace('[PRENOM]', user.first_name or "").replace('[NOM]', user.last_name or "")
+                        email = EmailMultiAlternatives(
+                            subject=campaign.subject,
+                            body="HTML client needed",
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            to=[user.email]
+                        )
+                        email.attach_alternative(render_to_string('emails/base_email.html', {'content': user_content}), "text/html")
+                        email.send()
+                        count += 1
+                campaign.is_sent = True
+                campaign.sent_at = timezone.now()
+                campaign.save()
+                messages.success(request, f"Succès : {count} emails envoyés immédiatement.")
+            else:
+                messages.success(request, f"Campagne planifiée pour le {scheduled_for}.")
+            
+            if 'selected_users_for_email' in request.session:
+                del request.session['selected_users_for_email']
+            return HttpResponseRedirect('/admin/users/user/')
+
     return render(request, 'admin/select_email_template.html', {
         'templates': templates,
-        'user_count': len(user_ids),
-        'title': "Sélectionner un modèle d'email"
+        'users': users,
+        'user_count': users.count(),
+        'title': "Configurer la campagne"
+    })
+
+@staff_member_required
+def get_campaign_template_view(request, template_id):
+    template = get_object_or_404(MarketingCampaignTemplate, id=template_id)
+    return JsonResponse({
+        'subject': template.subject,
+        'content': template.content
     })

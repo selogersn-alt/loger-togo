@@ -4,84 +4,114 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-    .template-card {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        transition: all 0.2s;
-        cursor: pointer;
-        background: #fff;
+    .campaign-container { display: flex; gap: 20px; }
+    .campaign-form { flex: 2; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+    .recipients-list { flex: 1; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; max-height: 800px; overflow-y: auto; }
+    
+    .template-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .template-item { border: 1px solid #ddd; padding: 10px; border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; }
+    .template-item:hover { border-color: #79aec8; background: #f0f7f9; }
+    .template-item.active { border-color: #417690; background: #417690; color: #fff; }
+
+    .form-row { margin-bottom: 15px; }
+    .form-row label { display: block; font-weight: bold; margin-bottom: 5px; color: #417690; }
+    .form-row input[type="text"], .form-row textarea, .form-row input[type="datetime-local"] { 
+        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;
     }
-    .template-card:hover {
-        border-color: #79aec8;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .template-card.selected {
-        border-color: #417690;
-        background: #f0f7f9;
-        box-shadow: 0 0 0 2px #417690;
-    }
-    .template-card h3 {
-        margin-top: 0;
-        color: #417690;
-    }
-    .template-card p {
-        margin-bottom: 0;
-        color: #666;
-        font-style: italic;
-    }
-    .selection-info {
-        background: #fffcc2;
-        padding: 10px;
-        border-radius: 4px;
-        margin-bottom: 20px;
-        border: 1px solid #e6db55;
-    }
-    .hidden-radio {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
+    .form-row textarea { height: 300px; }
+    
+    .recipient-item { padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; }
+    .recipient-item:last-child { border-bottom: none; }
+    .recipient-role { font-size: 11px; color: #666; background: #e9ecef; padding: 2px 6px; border-radius: 10px; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
-    <div class="selection-info">
-        <strong>⚡ Envoi groupé :</strong> Vous allez envoyer un e-mail personnalisé à <strong>{{ user_count }}</strong> utilisateur(s) sélectionné(s).
-    </div>
+    <div class="campaign-container">
+        <!-- Formulaire de configuration -->
+        <div class="campaign-form">
+            <h2>📢 Configurer la Campagne Marketing</h2>
+            
+            <form method="post" id="campaign-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="form-action" value="send">
+                <input type="hidden" name="template_id" id="selected-template-id" value="">
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="template-list">
-            {% for template in templates %}
-            <label class="template-card" id="card-{{ template.id }}">
-                <input type="radio" name="template_id" value="{{ template.id }}" required class="hidden-radio" onchange="selectCard({{ template.id }})">
-                <h3>{{ template.name }}</h3>
-                <p>Sujet : {{ template.subject }}</p>
-            </label>
-            {% empty %}
-            <p>Aucun modèle de campagne trouvé. <a href="/admin/logersn/marketingcampaigntemplate/add/">Créez-en un ici</a>.</p>
+                <div class="form-row">
+                    <label>1. Choisir un modèle pré-rempli (Optionnel)</label>
+                    <div class="template-selector">
+                        {% for template in templates %}
+                        <div class="template-item" onclick="loadTemplate({{ template.id }})" id="tmpl-{{ template.id }}">
+                            {{ template.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="subject">2. Objet de l'e-mail</label>
+                    <input type="text" name="subject" id="subject" placeholder="Ex: Bienvenue sur Loger Togo !" required>
+                </div>
+
+                <div class="form-row">
+                    <label for="content">3. Contenu du message (HTML supporté)</label>
+                    <p style="font-size: 12px; color: #666;">Astuce : Utilisez <strong>[PRENOM]</strong> ou <strong>[NOM]</strong> pour personnaliser le message.</p>
+                    <textarea name="content" id="email-content" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <label for="scheduled_for">4. Planifier l'envoi (Laissez vide pour envoi immédiat)</label>
+                    <input type="datetime-local" name="scheduled_for" id="scheduled_for">
+                </div>
+
+                <div class="submit-row" style="background: none; border: none; padding: 0;">
+                    <button type="button" class="button" style="background: #666;" onclick="submitAction('preview')">👁️ Prévisualiser</button>
+                    <button type="button" class="default" onclick="submitAction('send')">🚀 Lancer la campagne</button>
+                    <a href="/admin/users/user/" class="closelink" style="margin-left: 10px;">Annuler</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Liste des destinataires -->
+        <div class="recipients-list">
+            <h3>👥 Destinataires ({{ user_count }})</h3>
+            {% for user in users %}
+            <div class="recipient-item">
+                <strong>{{ user.get_full_name }}</strong><br>
+                <span style="color: #666;">{{ user.email|default:"(Pas d'email)" }}</span>
+                <span class="recipient-role">{{ user.get_role_display }}</span>
+            </div>
             {% endfor %}
         </div>
-
-        <div class="submit-row">
-            <input type="submit" value="Envoyer les emails" class="default" name="_save">
-            <a href="/admin/users/user/" class="closelink">Annuler</a>
-        </div>
-    </form>
+    </div>
 </div>
 
 <script>
-    function selectCard(id) {
-        // Retirer la classe 'selected' de toutes les cartes
-        document.querySelectorAll('.template-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        // Ajouter la classe 'selected' à la carte choisie
-        document.getElementById('card-' + id).classList.add('selected');
+    function loadTemplate(id) {
+        // UI Selection
+        document.querySelectorAll('.template-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('tmpl-' + id).classList.add('active');
+        document.getElementById('selected-template-id').value = id;
+
+        // Fetch template data via API
+        fetch(`/admin/marketing/template/${id}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('subject').value = data.subject;
+                document.getElementById('email-content').value = data.content;
+            });
+    }
+
+    function submitAction(action) {
+        document.getElementById('form-action').value = action;
+        if (action === 'preview') {
+            document.getElementById('campaign-form').target = "_blank";
+        } else {
+            document.getElementById('campaign-form').target = "_self";
+            if (!confirm("Êtes-vous sûr de vouloir lancer cette campagne vers {{ user_count }} utilisateurs ?")) return;
+        }
+        document.getElementById('campaign-form').submit();
     }
 </script>
 {% endblock %}

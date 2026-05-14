@@ -110,7 +110,7 @@
             <label class="form-label" id="price_label">{{ form.price.label }}</label>
             <div class="input-group">{{ form.price }}<span class="input-group-text fw-bold" style="background:#28a745;color:white;border:none;border-radius:0 12px 12px 0;">FCFA</span></div>
           </div>
-          {% with cat=form.listing_category.value %}
+          {% with cat=form.listing_category.value|stringformat:"s" %}
           <div class="col-md-6" id="price_per_night_container" style="display:{% if cat == 'FURNISHED' %}block{% else %}none{% endif %};">
             <label class="form-label">{{ form.price_per_night.label }}</label>
             <div class="input-group">{{ form.price_per_night }}<span class="input-group-text fw-bold" style="background:#f5c42f;color:#0b4629;border:none;border-radius:0 12px 12px 0;">/Nuit</span></div>
@@ -129,14 +129,17 @@
             <label class="form-label">{{ form.property_type.label }}</label>
             {{ form.property_type }}
           </div>
-          {% with cat=form.listing_category.value %}
-          <div class="col-md-6" id="document_type_container" style="display:{% if cat == 'SALE' %}block{% else %}none{% endif %};">
+          {% with cat=form.listing_category.value|stringformat:"s" %}
+          <div class="col-md-6" id="document_type_container" style="display:{% if cat == 'SALE' or form.document_type.errors %}block{% else %}none{% endif %};">
             <label class="form-label">{{ form.document_type.label }} <span class="text-danger">*</span></label>
             {{ form.document_type }}
+            {% if form.document_type.errors %}
+              <div class="text-danger small mt-1">{{ form.document_type.errors.0 }}</div>
+            {% endif %}
           </div>
           {% endwith %}
-          {% with cat=form.listing_category.value %}
-          <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' %}block{% else %}none{% endif %};">
+          {% with cat=form.listing_category.value|stringformat:"s" %}
+          <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' or cat == 'FURNISHED' %}block{% else %}none{% endif %};">
             <div class="p-4 rounded-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
               <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-file-contract me-2"></i>{% trans "Conditions de Location" %}</h6>
               <div class="row g-3">

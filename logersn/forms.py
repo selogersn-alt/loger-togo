@@ -82,10 +82,12 @@ class PropertyForm(forms.ModelForm):
             cleaned_data['advance_months'] = 0
             cleaned_data['agency_fee_months'] = 0
 
-        # 3. Le type de document est obligatoire UNIQUEMENT pour les VENTES
+        # 3. Le type de document est fortement recommandé pour les ventes, mais on autorise "Aucun/Autre"
         if listing_category == 'SALE':
-            if not cleaned_data.get('document_type') or cleaned_data.get('document_type') == 'NONE':
-                self.add_error('document_type', _("Le type de document est obligatoire pour les ventes."))
+            doc_type = cleaned_data.get('document_type')
+            if not doc_type:
+                # On ne bloque plus si c'est 'NONE', seulement si c'est vide
+                self.add_error('document_type', _("Veuillez préciser le type de document (même si Aucun)."))
         
         return cleaned_data
     

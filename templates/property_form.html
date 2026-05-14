@@ -3,549 +3,317 @@
 {% block title %}{% trans "Publier une annonce" %} | Loger Togo{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-
-  /* Image Upload Premium UI */
-  .upload-zone {
-    border: 2px dashed var(--border-color);
-    border-radius: 15px;
-    padding: 30px;
-    text-align: center;
-    background: var(--bg-body);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-  }
-  .upload-zone:hover, .upload-zone.dragover {
-    border-color: var(--color-light-green);
-    background: rgba(40, 167, 69, 0.05);
-  }
-  .preview-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
-  }
-  .preview-item {
-    position: relative;
-    aspect-ratio: 1;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-  }
-  .preview-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .preview-item .remove-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(220, 53, 69, 0.8);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  /* Loading Overlay Premium Glassmorphism */
-  #upload-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(11, 70, 41, 0.85); /* Vert Loger profond */
-    z-index: 10000;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    transition: all 0.5s ease;
-  }
-  .loading-card {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 40px;
-    border-radius: 30px;
-    text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-    max-width: 450px;
-    width: 90%;
-  }
-  .loading-spinner-custom {
-    width: 80px;
-    height: 80px;
-    border: 8px solid rgba(255,255,255,0.1);
-    border-top: 8px solid var(--color-yellow);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 25px;
-  }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  
-  .progress-custom {
-    height: 8px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    margin: 20px 0;
-    overflow: hidden;
-  }
-  .progress-bar-custom {
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-light-green), var(--color-yellow));
-    width: 0%;
-    transition: width 0.3s ease;
-  /* Magical Submit Button */
-  .btn-primary-custom {
-    background: linear-gradient(135deg, var(--color-dark-green), var(--color-light-green));
-    border: none;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  .btn-primary-custom::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-    transform: scale(0);
-    transition: transform 0.6s ease-out;
-  }
-  .btn-primary-custom:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(11, 70, 41, 0.3);
-  }
-  .btn-primary-custom:hover::before {
-    transform: scale(1);
-  }
-  
-  /* Magic Entry Animation */
-  .magic-fade-in {
-    animation: magicFade 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    opacity: 0;
-  }
-  @keyframes magicFade {
-    0% { opacity: 0; transform: translateY(30px) scale(0.98); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-
+:root { --green-dark:#0b4629; --green-mid:#157347; --green-light:#28a745; --gold:#f5c42f; --radius:18px; }
+.form-page-bg { background:linear-gradient(135deg,#f0f9f4,#e8f5e9 50%,#f0f4ff); min-height:100vh; padding:40px 0 80px; }
+.steps-bar { display:flex; align-items:center; justify-content:center; margin-bottom:36px; }
+.step-item { display:flex; flex-direction:column; align-items:center; flex:1; max-width:160px; }
+.step-circle { width:44px; height:44px; border-radius:50%; background:white; border:2px solid #ddd; display:flex; align-items:center; justify-content:center; font-weight:800; color:#aaa; transition:all .3s; position:relative; z-index:2; }
+.step-item.active .step-circle { background:var(--green-dark); border-color:var(--green-dark); color:white; box-shadow:0 0 0 6px rgba(11,70,41,.15); }
+.step-item.done .step-circle { background:var(--green-light); border-color:var(--green-light); color:white; }
+.step-label { font-size:.72rem; font-weight:700; color:#aaa; margin-top:6px; text-align:center; }
+.step-item.active .step-label { color:var(--green-dark); }
+.step-item.done .step-label { color:var(--green-light); }
+.step-line { flex:1; height:2px; background:#ddd; margin-bottom:28px; transition:background .4s; }
+.step-line.done { background:var(--green-light); }
+.form-wizard-card { background:white; border-radius:var(--radius); box-shadow:0 20px 60px rgba(0,0,0,.08); overflow:hidden; }
+.step-panel { display:none; }
+.step-panel.active { display:block; animation:magicFade .4s ease forwards; }
+@keyframes magicFade { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+.step-header { background:linear-gradient(135deg,var(--green-dark),var(--green-mid)); padding:28px 35px; color:white; }
+.step-header h3 { font-weight:800; margin:0; font-size:1.4rem; }
+.step-header p { opacity:.8; margin:4px 0 0; font-size:.9rem; }
+.step-body { padding:32px; }
+.form-control,.form-select { border:2px solid #e8e8e8; border-radius:12px; padding:12px 16px; transition:border-color .2s,box-shadow .2s; }
+.form-control:focus,.form-select:focus { border-color:var(--green-dark); box-shadow:0 0 0 4px rgba(11,70,41,.1); outline:none; }
+.form-label { font-weight:700; font-size:.85rem; margin-bottom:6px; color:#444; }
+.equip-chip { display:flex; align-items:center; gap:8px; padding:10px 14px; border:2px solid #e8e8e8; border-radius:12px; cursor:pointer; transition:all .2s; background:white; user-select:none; }
+.equip-chip:has(input:checked) { border-color:var(--green-dark); background:rgba(11,70,41,.05); }
+.equip-chip input { accent-color:var(--green-dark); }
+.equip-chip i { color:var(--green-dark); width:18px; text-align:center; }
+.map-section { border:2px solid #e8e8e8; border-radius:var(--radius); overflow:hidden; }
+.map-toolbar { background:linear-gradient(135deg,var(--green-dark),var(--green-mid)); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.map-toolbar h6 { color:white; margin:0; font-weight:800; }
+.map-toolbar small { color:rgba(255,255,255,.75); }
+#form-map { height:420px; width:100%; }
+.map-status-bar { padding:10px 20px; background:#f8f9fa; border-top:1px solid #eee; min-height:38px; font-size:.85rem; }
+.coord-row { display:flex; gap:12px; flex-wrap:wrap; padding:10px 20px; background:var(--green-dark); color:white; font-size:.8rem; font-weight:700; }
+.coord-row span { opacity:.65; font-weight:400; }
+.upload-zone { border:2px dashed #ccc; border-radius:var(--radius); padding:40px 20px; text-align:center; background:#fafafa; cursor:pointer; transition:all .3s; }
+.upload-zone:hover,.upload-zone.dragover { border-color:var(--green-light); background:rgba(40,167,69,.04); }
+.preview-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; margin-top:16px; }
+.preview-item { position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid #eee; }
+.preview-item img { width:100%; height:100%; object-fit:cover; }
+.remove-btn { position:absolute; top:4px; right:4px; background:rgba(220,53,69,.85); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+#upload-overlay { position:fixed; inset:0; background:rgba(11,70,41,.9); z-index:10000; display:none; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(12px); }
+.loading-card { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:24px; padding:45px 40px; text-align:center; color:white; max-width:420px; width:90%; }
+.spinner-ring { width:70px; height:70px; border:7px solid rgba(255,255,255,.15); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 24px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.progress-track { height:8px; background:rgba(255,255,255,.15); border-radius:10px; overflow:hidden; margin:20px 0; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--green-light),var(--gold)); width:0%; transition:width .3s; }
+.btn-step-next { background:linear-gradient(135deg,var(--green-dark),var(--green-mid)); color:white; border:none; padding:14px 36px; border-radius:50px; font-weight:800; font-size:1rem; transition:all .3s; box-shadow:0 8px 20px rgba(11,70,41,.25); }
+.btn-step-next:hover { transform:translateY(-3px); color:white; }
+.btn-step-prev { background:#f0f0f0; color:#555; border:none; padding:14px 30px; border-radius:50px; font-weight:700; }
+.btn-step-prev:hover { background:#e0e0e0; }
+@media(max-width:768px) { .step-body{padding:20px} .step-header{padding:20px} .step-label{display:none} }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-10 mx-auto magic-fade-in">
-      <div class="card border-0 shadow-lg" style="border-radius: 24px; background: var(--bg-card);">
-        <div class="card-body p-4 p-md-5">
+<div class="form-page-bg">
+<div class="container" style="max-width:900px;">
 
-          <div class="text-center mb-5">
-            <span class="badge mb-3 px-3 py-2 rounded-pill" style="background:rgba(127,212,125,.1);color:var(--color-dark-green);border:1px solid var(--color-light-green);">{% trans "Espace Bailleur" %}</span>
-            <h2 class="fw-bold" style="color:var(--text-main);">
-              {% if is_edit %}{% trans "Modifier mon annonce" %}{% else %}{% trans "Ajouter un bien immobilier" %}{% endif %}
-            </h2>
-            <p class="text-muted">
-              {% if is_edit %}
-                {% trans "Mettez à jour les détails de votre annonce pour rester attractif." %}
-              {% else %}
-                {% trans "Remplissez les informations ci-dessous. Votre annonce sera vérifiée par notre équipe avant publication." %}
-              {% endif %}
-            </p>
+  <div class="text-center mb-4">
+    <span class="badge px-3 py-2 rounded-pill mb-2" style="background:rgba(11,70,41,.1);color:#0b4629;border:1px solid #28a745;">{% trans "Espace Bailleur" %}</span>
+    <h1 class="fw-black" style="color:#0b4629;font-size:2rem;">{% if is_edit %}{% trans "Modifier l'annonce" %}{% else %}{% trans "Publier un bien" %}{% endif %}</h1>
+    <p class="text-muted">{% trans "Remplissez les 4 étapes. Votre annonce sera vérifiée avant publication." %}</p>
+  </div>
+
+  <div class="steps-bar mb-4">
+    <div class="step-item active" id="si-1"><div class="step-circle">1</div><div class="step-label">{% trans "Infos" %}</div></div>
+    <div class="step-line" id="sl-1"></div>
+    <div class="step-item" id="si-2"><div class="step-circle">2</div><div class="step-label">{% trans "Localisation" %}</div></div>
+    <div class="step-line" id="sl-2"></div>
+    <div class="step-item" id="si-3"><div class="step-circle">3</div><div class="step-label">{% trans "Détails" %}</div></div>
+    <div class="step-line" id="sl-3"></div>
+    <div class="step-item" id="si-4"><div class="step-circle">4</div><div class="step-label">{% trans "Photos" %}</div></div>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" id="property-form">
+    {% csrf_token %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger rounded-4 mb-4">
+      <strong>⚠️ {% trans "Corrigez les erreurs :" %}</strong>
+      <ul class="mb-0 mt-2">{% for f,errs in form.errors.items %}{% for e in errs %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <!-- STEP 1 : INFOS GÉNÉRALES -->
+    <div class="form-wizard-card mb-3 step-panel active" id="step-1">
+      <div class="step-header">
+        <h3><i class="fa-solid fa-file-lines me-2"></i>{% trans "Informations Générales" %}</h3>
+        <p>{% trans "Titre, catégorie, prix et type de bien." %}</p>
+      </div>
+      <div class="step-body">
+        <div class="row g-4">
+          <div class="col-12">
+            <label class="form-label">{{ form.title.label }}</label>
+            {{ form.title }}
           </div>
-
-          <form method="POST" enctype="multipart/form-data" id="property-form">
-            {% csrf_token %}
-
-            {% if form.errors %}
-            <div class="alert alert-danger rounded-3">
-              <strong>⚠️ {% trans "Erreur dans le formulaire :" %}</strong>
-              <ul class="mb-0 mt-2">
-                {% for field, errors in form.errors.items %}
-                  {% for error in errors %}<li>{{ error }}</li>{% endfor %}
-                {% endfor %}
-              </ul>
+          <div class="col-md-6">
+            <label class="form-label">{{ form.listing_category.label }}</label>
+            {{ form.listing_category }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" id="price_label">{{ form.price.label }}</label>
+            <div class="input-group">{{ form.price }}<span class="input-group-text fw-bold" style="background:#28a745;color:white;border:none;border-radius:0 12px 12px 0;">FCFA</span></div>
+          </div>
+          {% with cat=form.listing_category.value %}
+          <div class="col-md-6" id="price_per_night_container" style="display:{% if cat == 'FURNISHED' %}block{% else %}none{% endif %};">
+            <label class="form-label">{{ form.price_per_night.label }}</label>
+            <div class="input-group">{{ form.price_per_night }}<span class="input-group-text fw-bold" style="background:#f5c42f;color:#0b4629;border:none;border-radius:0 12px 12px 0;">/Nuit</span></div>
+          </div>
+          {% endwith %}
+          <div class="col-md-6">
+            <label class="form-label"><i class="fa-solid fa-tag me-1 text-success"></i>{{ form.discount_percentage.label }}</label>
+            <div class="input-group">{{ form.discount_percentage }}<span class="input-group-text" style="background:#28a745;color:white;border:none;border-radius:0 12px 12px 0;">%</span></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">{{ form.discount_price.label }}</label>
+            {{ form.discount_price }}
+            <small class="text-muted">{% trans "Calculé automatiquement." %}</small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">{{ form.property_type.label }}</label>
+            {{ form.property_type }}
+          </div>
+          {% with cat=form.listing_category.value %}
+          <div class="col-md-6" id="document_type_container" style="display:{% if cat == 'SALE' %}block{% else %}none{% endif %};">
+            <label class="form-label">{{ form.document_type.label }} <span class="text-danger">*</span></label>
+            {{ form.document_type }}
+          </div>
+          {% endwith %}
+          {% with cat=form.listing_category.value %}
+          <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' %}block{% else %}none{% endif %};">
+            <div class="p-4 rounded-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
+              <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-file-contract me-2"></i>{% trans "Conditions de Location" %}</h6>
+              <div class="row g-3">
+                <div class="col-md-4"><label class="form-label">{{ form.deposit_months.label }}</label>{{ form.deposit_months }}</div>
+                <div class="col-md-4"><label class="form-label">{{ form.advance_months.label }}</label>{{ form.advance_months }}</div>
+                <div class="col-md-4"><label class="form-label">{{ form.agency_fee_months.label }}</label>{{ form.agency_fee_months }}</div>
+              </div>
             </div>
-            {% endif %}
-
-            <div class="row g-4">
-
-              <!-- ─ TITRE ─ -->
-              <div class="col-12">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.title.label }}</label>
-                {{ form.title }}
-              </div>
-
-              <!-- ─ CATÉGORIE + PRIX ─ -->
-              <div class="col-md-6">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.listing_category.label }}</label>
-                {{ form.listing_category }}
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold" id="price_label" style="color:var(--text-main);">{{ form.price.label }}</label>
-                <div class="input-group">
-                  {{ form.price }}
-                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:var(--color-dark-green);border-radius:0 10px 10px 0;">FCFA</span>
-                </div>
-              </div>
-              {% with cat=form.listing_category.value %}
-              <div class="col-md-6" id="price_per_night_container" style="display:{% if cat == 'FURNISHED' %}block{% else %}none{% endif %};">  
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.price_per_night.label }} <span class="text-muted small">({% trans "Optionnel" %})</span></label>
-                <div class="input-group">
-                  {{ form.price_per_night }}
-                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-yellow);color:var(--color-dark-green);border-radius:0 10px 10px 0;">/ {% trans "Nuitée" %}</span>
-                </div>
-              </div>
-              {% endwith %}
-
-              <!-- ─ REMISES (Senior Module) ─ -->
-              <div class="col-md-6">
-                <label class="form-label fw-bold" style="color:var(--color-light-green);">
-                  <i class="fa-solid fa-tag me-1"></i>{{ form.discount_percentage.label }}
-                </label>
-                <div class="input-group">
-                  {{ form.discount_percentage }}
-                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:white;border-radius:0 10px 10px 0;">%</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold text-muted">{{ form.discount_price.label }}</label>
-                {{ form.discount_price }}
-                <small class="text-muted">{% trans "Calculé automatiquement selon le pourcentage." %}</small>
-              </div>
-
-              <!-- ─ TYPE + DOCUMENT ─ -->
-              <div class="col-md-6">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.property_type.label }}</label>
-                {{ form.property_type }}
-              </div>
-              {% with cat=form.listing_category.value %}
-              <div class="col-md-6" id="document_type_container" style="display:{% if cat == 'SALE' %}block{% else %}none{% endif %};">  
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.document_type.label }} <span class="text-danger">*</span></label>
-                {{ form.document_type }}
-              </div>
-              {% endwith %}
-
-              <!-- ─ CONDITIONS DE LOCATION (Apparaît si location ou meublé) ─ -->
-              {% with cat=form.listing_category.value %}
-              <div class="col-12" id="rental_conditions_container" style="display:{% if cat == 'RENT' %}block{% else %}none{% endif %};">  
-                <div class="p-3 rounded-4 mt-2" style="background:var(--bg-body);border:1px solid var(--border-color);">
-                  <h6 class="fw-bold mb-3" style="color:var(--text-main);">
-                    <i class="fa-solid fa-file-contract me-2 text-success"></i>{% trans "Conditions de Location (Bail)" %}
-                  </h6>
-                  <div class="row g-3">
-                    <div class="col-md-4">
-                      <label class="form-label fw-bold small text-muted">{{ form.deposit_months.label }}</label>
-                      {{ form.deposit_months }}
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-bold small text-muted">{{ form.advance_months.label }}</label>
-                      {{ form.advance_months }}
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-bold small text-muted">{{ form.agency_fee_months.label }}</label>
-                      {{ form.agency_fee_months }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {% endwith %}
-
-              <!-- ─ FRAIS DE VISITE ─ -->
-              <div class="col-md-6">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.visit_fee.label }}</label>
-                <div class="input-group">
-                  {{ form.visit_fee }}
-                  <span class="input-group-text border-0 fw-bold" style="background:var(--color-light-green);color:white;border-radius:0 10px 10px 0;">CFA</span>
-                </div>
-              </div>
-
-              <!-- ─ VILLE + QUARTIER ─ -->
-              <div class="col-md-6">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.city.label }}</label>
-                {{ form.city }}
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.neighborhood.label }}</label>
-                {{ form.neighborhood }}
-                <datalist id="neighborhoods-list">
-                  {% for neighborhood in togo_neighborhoods %}
-                    <option value="{{ neighborhood }}">
-                  {% endfor %}
-                </datalist>
-              </div>
-
-              <!-- ─ DESCRIPTION ─ -->
-              <div class="col-12">
-                <label class="form-label fw-bold" style="color:var(--text-main);">{{ form.description.label }}</label>
-                {{ form.description }}
-              </div>
-
-              <!-- ═ LOCALISATION GPS ═ -->
-              <div class="col-12">
-                <div class="rounded-4" style="border:2px solid var(--border-color);">
-
-                  <!-- En-tête -->
-                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 px-4 pt-4 pb-3" style="border-bottom:1px solid var(--border-color);background:var(--bg-body);">
-                    <div>
-                      <h5 class="fw-bold m-0" style="color:var(--color-dark-green);">
-                        <i class="fa-solid fa-map-location-dot me-2"></i>Localisation GPS
-                      </h5>
-                      <small class="text-muted">Cliquez sur la carte ou utilisez votre GPS pour placer votre bien.</small>
-                    </div>
-                    <div class="d-flex gap-2 flex-wrap">
-                      <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="geocodeAddr()">
-                        <i class="fa-solid fa-magnifying-glass-location me-1"></i>Localiser l’adresse
-                      </button>
-                      <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="useGPS()">
-                        <i class="fa-solid fa-crosshairs me-1"></i>Ma position GPS
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Carte Google Maps -->
-                  <div id="form-map" style="height:400px;width:100%;display:block;"></div>
-
-                  <!-- Statut -->
-                  <div id="form-map-status" class="px-4 py-2" style="min-height:34px;font-size:.875rem;background:var(--bg-body);"></div>
-
-                  <!-- Coordonnées cachées -->
-                  <input type="hidden" name="latitude"  id="id_latitude"  value="{{ form.latitude.value|default:'' }}">
-                  <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default:'' }}">
-                </div>
-              </div>
-
-
-
-              <div class="col-12 mt-2 pt-3 border-top section-divider">
-                <h5 class="fw-bold mb-3" style="color:var(--text-main);">{% trans "Détails Techniques" %} <span class="text-muted fw-normal small">({% trans "Optionnel" %})</span></h5>
-                <div class="row g-3">
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Surface (m²)" %}</label>{{ form.surface }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Chambres" %}</label>{{ form.bedrooms }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Toilettes" %}</label>{{ form.toilets }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Salons" %}</label>{{ form.salons }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Cuisines" %}</label>{{ form.kitchens }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Pièces totales" %}</label>{{ form.total_rooms }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Ménages" %}</label>{{ form.households }}</div>
-                  <div class="col-md-3"><label class="form-label text-muted small fw-bold">{% trans "Niveau d'étage" %}</label>{{ form.floor_level }}</div>
-                </div>
-                <div class="row g-3 mt-2">
-                  <div class="col-md-3">
-                    <div class="form-check mt-2">
-                      {{ form.has_balcony }}
-                      <label class="form-check-label fw-bold small ms-2">{{ form.has_balcony.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-check mt-2">
-                      {{ form.has_terrace }}
-                      <label class="form-check-label fw-bold small ms-2">{{ form.has_terrace.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-check mt-2">
-                      {{ form.has_courtyard }}
-                      <label class="form-check-label fw-bold small ms-2">{{ form.has_courtyard.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-check mt-2">
-                      {{ form.has_garden }}
-                      <label class="form-check-label fw-bold small ms-2">{{ form.has_garden.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-check mt-2">
-                      {{ form.has_garage }}
-                      <label class="form-check-label fw-bold small ms-2">{{ form.has_garage.label }}</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ─ ÉQUIPEMENTS ─ -->
-              <div class="col-12 pt-3 border-top section-divider">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="fw-bold m-0" style="color:var(--text-main);">{% trans "Équipements" %} <span class="text-muted fw-normal small">({% trans "Optionnel" %})</span></h5>
-                  <button class="btn btn-sm btn-outline-success rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#equipmentsCollapse" aria-expanded="false" aria-controls="equipmentsCollapse">
-                    <i class="fa-solid fa-plus me-1"></i>{% trans "Ajouter des équipements" %}
-                  </button>
-                </div>
-                <div class="collapse" id="equipmentsCollapse">
-                  <div class="row g-2">
-                    <div class="col-6 col-md-4">
-                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                        {{ form.wifi }}
-                        <label class="form-check-label small fw-bold ms-2">{{ form.wifi.label }}</label>
-                      </div>
-                    </div>
-                    <div class="col-6 col-md-4">
-                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                        {{ form.air_conditioning }}
-                        <label class="form-check-label small fw-bold ms-2">{{ form.air_conditioning.label }}</label>
-                      </div>
-                    </div>
-                    <div class="col-6 col-md-4">
-                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                        {{ form.swimming_pool }}
-                        <label class="form-check-label small fw-bold ms-2">{{ form.swimming_pool.label }}</label>
-                      </div>
-                    </div>
-                    <div class="col-6 col-md-4">
-                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                        {{ form.gym }}
-                        <label class="form-check-label small fw-bold ms-2">{{ form.gym.label }}</label>
-                      </div>
-                    </div>
-                    <div class="col-6 col-md-4">
-                      <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.refrigerator }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.refrigerator.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.washing_machine }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.washing_machine.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.microwave }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.microwave.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.tv_cable }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.tv_cable.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.generator }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.generator.label }}</label>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="form-check p-3 rounded-3 border" style="background:var(--bg-card);border-color:var(--border-color)!important;">
-                      {{ form.water_tank }}
-                      <label class="form-check-label small fw-bold ms-2">{{ form.water_tank.label }}</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ─ PHOTOS OPTIMISÉES ─ -->
-              <div class="col-12 pt-3 border-top section-divider">
-                <label class="form-label fw-bold text-success"><i class="fa-solid fa-camera me-2"></i>{% trans "Photos du bien" %}</label>
-                
-                {% if is_edit and property.images.all %}
-                  <div class="row g-2 mb-4 bg-light p-3 rounded-4 border">
-                    <label class="form-label small fw-bold text-muted mb-2">{% trans "Photos déjà en ligne (Cliquez sur X pour supprimer)" %}</label>
-                    <div class="d-flex flex-wrap gap-2">
-                    {% for img in property.images.all %}
-                      <div class="position-relative" style="width: 80px;">
-                        <img src="{{ img.image_url.url }}" class="img-thumbnail rounded-3" style="width: 80px; height: 80px; object-fit:cover;">
-                        <a href="{% url 'delete_property_image' img.id %}" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center" style="width:22px; height:22px; border-radius:50%; border:2px solid white; transform: translate(30%, -30%);" onclick="return confirm('{% trans 'Supprimer cette image ?' %}')">
-                          <i class="fa-solid fa-xmark" style="font-size:10px;"></i>
-                        </a>
-                      </div>
-                    {% endfor %}
-                    </div>
-                  </div>
-                {% endif %}
-
-                <div class="upload-zone" id="drop-zone">
-                  <input type="file" id="image-input" multiple accept="image/*" class="d-none">
-                  <div class="upload-icon mb-2">
-                    <i class="fa-solid fa-cloud-arrow-up fs-1 text-success"></i>
-                  </div>
-                  <h6 class="fw-bold">{% trans "Cliquez ou glissez vos photos ici" %}</h6>
-                  <p class="text-muted small">{% trans "Optimisation automatique activée pour un envoi ultra-rapide." %}</p>
-                  <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="document.getElementById('image-input').click()">
-                    {% trans "Sélectionner des fichiers" %}
-                  </button>
-                </div>
-
-                <div class="preview-container" id="preview-container"></div>
-                
-                <!-- Champ réel caché pour Django -->
-                <div class="d-none">
-                  {{ form.images }}
-                </div>
-                
-                <small class="text-muted d-block mt-3">
-                  <i class="fa-solid fa-circle-check text-success me-1"></i>
-                  {% trans "Vos photos seront compressées sans perte de qualité visible avant l'envoi." %}
-                </small>
-              </div>
-
-              <!-- Overlay de chargement Premium -->
-              <div id="upload-overlay">
-                <div class="loading-card animate__animated animate__fadeInUp">
-                  <div class="loading-spinner-custom"></div>
-                  <h3 class="fw-bold mb-2">{% trans "Optimisation en cours" %}</h3>
-                  <p id="upload-status-text" class="small opacity-75 mb-0">{% trans "Nous préparons vos photos pour un affichage ultra-rapide..." %}</p>
-                  
-                  <div class="progress-custom">
-                    <div id="upload-progress-bar" class="progress-bar-custom"></div>
-                  </div>
-                  
-                  <div class="d-flex justify-content-between x-small opacity-50 mt-2" style="font-size: 0.75rem;">
-                    <span>{% trans "Traitement sécurisé" %}</span>
-                    <span id="progress-percentage">0%</span>
-                  </div>
-                </div>
-              </div>
-
-
-
-              <!-- ─ INFOS PRIVÉES (RÉSERVÉ ADMIN/ROBOT) ─ -->
-              <div class="col-12 pt-3 border-top section-divider">
-                <h5 class="fw-bold mb-3" style="color:var(--color-dark-green);"><i class="fa-solid fa-user-shield me-2"></i>{% trans "Informations Internes (Privées)" %}</h5>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold">{% trans "Référence / Lien Source" %}</label>
-                    <input type="text" name="internal_ref" class="form-control" placeholder="{% trans "Lien de l'annonce d'origine" %}">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label text-muted small fw-bold">{% trans "Contact Agent d'origine" %}</label>
-                    <textarea name="private_contact_info" class="form-control" rows="2" placeholder="{% trans "Nom et téléphone du pro d'origine" %}"></textarea>
-                  </div>
-                </div>
-                <small class="text-muted">{% trans "Ces informations ne seront JAMAIS visibles par les clients sur le site." %}</small>
-              </div>
-
-            </div><!-- end row -->
-
-            <div class="col-12 mt-5">
-              <button type="submit" id="submit-btn" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-lg" style="font-size:1.1rem; background: linear-gradient(135deg, #0b4629 0%, #157347 100%); border: none;">
-                <i class="fa-solid fa-paper-plane me-2"></i>
-                {% if is_edit %}{% trans "Enregistrer les modifications" %}{% else %}{% trans "Publier mon annonce" %}{% endif %}
-              </button>
-            </div>
-          </form>
-
+          </div>
+          {% endwith %}
+          <div class="col-md-6">
+            <label class="form-label">{{ form.visit_fee.label }}</label>
+            <div class="input-group">{{ form.visit_fee }}<span class="input-group-text" style="background:#0b4629;color:white;border:none;border-radius:0 12px 12px 0;">CFA</span></div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">{{ form.description.label }}</label>
+            {{ form.description }}
+          </div>
+        </div>
+        <div class="d-flex justify-content-end mt-4">
+          <button type="button" class="btn-step-next" onclick="goStep(2)">{% trans "Suivant" %} <i class="fa-solid fa-arrow-right ms-2"></i></button>
         </div>
       </div>
     </div>
+
+    <!-- STEP 2 : LOCALISATION GPS -->
+    <div class="form-wizard-card mb-3 step-panel" id="step-2">
+      <div class="step-header">
+        <h3><i class="fa-solid fa-map-location-dot me-2"></i>{% trans "Localisation GPS" %}</h3>
+        <p>{% trans "Placez votre bien sur la carte avec précision." %}</p>
+      </div>
+      <div class="step-body">
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">{{ form.city.label }}</label>
+            {{ form.city }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">{{ form.neighborhood.label }}</label>
+            {{ form.neighborhood }}
+            <datalist id="neighborhoods-list">{% for n in togo_neighborhoods %}<option value="{{ n }}">{% endfor %}</datalist>
+          </div>
+        </div>
+        <div class="map-section">
+          <div class="map-toolbar">
+            <div>
+              <h6><i class="fa-solid fa-crosshairs me-2"></i>{% trans "Carte Interactive" %}</h6>
+              <small>{% trans "Cliquez ou glissez le marqueur." %}</small>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-bold" onclick="geocodeAddr()"><i class="fa-solid fa-magnifying-glass-location me-1"></i>{% trans "Localiser" %}</button>
+              <button type="button" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold" onclick="useGPS()"><i class="fa-solid fa-location-dot me-1"></i>{% trans "Ma position" %}</button>
+            </div>
+          </div>
+          <div id="form-map"></div>
+          <div class="map-status-bar" id="form-map-status"></div>
+          <div class="coord-row">
+            <span>LAT :</span> <strong id="coord-lat-display">--</strong>
+            <span class="ms-3">LNG :</span> <strong id="coord-lng-display">--</strong>
+          </div>
+        </div>
+        <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default:'' }}">
+        <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default:'' }}">
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn-step-prev" onclick="goStep(1)"><i class="fa-solid fa-arrow-left me-2"></i>{% trans "Retour" %}</button>
+          <button type="button" class="btn-step-next" onclick="goStep(3)">{% trans "Suivant" %} <i class="fa-solid fa-arrow-right ms-2"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 : DÉTAILS TECHNIQUES -->
+    <div class="form-wizard-card mb-3 step-panel" id="step-3">
+      <div class="step-header">
+        <h3><i class="fa-solid fa-ruler-combined me-2"></i>{% trans "Détails Techniques" %}</h3>
+        <p>{% trans "Surface, pièces et équipements." %}</p>
+      </div>
+      <div class="step-body">
+        <div class="row g-3 mb-4" id="technical-fields">
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Surface (m²)" %}</label>{{ form.surface }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Chambres" %}</label>{{ form.bedrooms }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Toilettes" %}</label>{{ form.toilets }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Salons" %}</label>{{ form.salons }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Cuisines" %}</label>{{ form.kitchens }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Total pièces" %}</label>{{ form.total_rooms }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Ménages" %}</label>{{ form.households }}</div>
+          <div class="col-6 col-md-3"><label class="form-label">{% trans "Étage" %}</label>{{ form.floor_level }}</div>
+        </div>
+        <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-check-double me-2"></i>{% trans "Caractéristiques" %}</h6>
+        <div class="row g-2 mb-4">
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.has_balcony }}<i class="fa-solid fa-building"></i>{{ form.has_balcony.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.has_terrace }}<i class="fa-solid fa-umbrella-beach"></i>{{ form.has_terrace.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.has_courtyard }}<i class="fa-solid fa-tree"></i>{{ form.has_courtyard.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.has_garden }}<i class="fa-solid fa-seedling"></i>{{ form.has_garden.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.has_garage }}<i class="fa-solid fa-car"></i>{{ form.has_garage.label }}</label></div>
+        </div>
+        <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-plug me-2"></i>{% trans "Équipements" %}</h6>
+        <div class="row g-2">
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.wifi }}<i class="fa-solid fa-wifi"></i>{{ form.wifi.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.air_conditioning }}<i class="fa-solid fa-snowflake"></i>{{ form.air_conditioning.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.swimming_pool }}<i class="fa-solid fa-water-ladder"></i>{{ form.swimming_pool.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.gym }}<i class="fa-solid fa-dumbbell"></i>{{ form.gym.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.refrigerator }}<i class="fa-solid fa-box"></i>{{ form.refrigerator.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.washing_machine }}<i class="fa-solid fa-rotate"></i>{{ form.washing_machine.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.microwave }}<i class="fa-solid fa-fire-burner"></i>{{ form.microwave.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.tv_cable }}<i class="fa-solid fa-tv"></i>{{ form.tv_cable.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.generator }}<i class="fa-solid fa-bolt"></i>{{ form.generator.label }}</label></div>
+          <div class="col-6 col-md-4"><label class="equip-chip">{{ form.water_tank }}<i class="fa-solid fa-droplet"></i>{{ form.water_tank.label }}</label></div>
+        </div>
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn-step-prev" onclick="goStep(2)"><i class="fa-solid fa-arrow-left me-2"></i>{% trans "Retour" %}</button>
+          <button type="button" class="btn-step-next" onclick="goStep(4)">{% trans "Suivant" %} <i class="fa-solid fa-arrow-right ms-2"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 : PHOTOS + SUBMIT -->
+    <div class="form-wizard-card mb-3 step-panel" id="step-4">
+      <div class="step-header">
+        <h3><i class="fa-solid fa-camera me-2"></i>{% trans "Photos & Publication" %}</h3>
+        <p>{% trans "Ajoutez vos photos et publiez votre annonce." %}</p>
+      </div>
+      <div class="step-body">
+        {% if is_edit and property.images.all %}
+        <div class="p-3 rounded-4 border mb-4" style="background:#f8f9fa;">
+          <label class="form-label fw-bold text-muted mb-2">{% trans "Photos en ligne" %}</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for img in property.images.all %}
+            <div class="position-relative" style="width:80px;">
+              <img src="{{ img.image_url.url }}" class="rounded-3" style="width:80px;height:80px;object-fit:cover;">
+              <a href="{% url 'delete_property_image' img.id %}" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center" style="width:22px;height:22px;border-radius:50%;border:2px solid white;transform:translate(30%,-30%);" onclick="return confirm('Supprimer ?')"><i class="fa-solid fa-xmark" style="font-size:10px;"></i></a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="upload-zone" id="drop-zone" onclick="document.getElementById('image-input').click()">
+          <input type="file" id="image-input" multiple accept="image/*" class="d-none">
+          <i class="fa-solid fa-cloud-arrow-up fa-3x text-success mb-3"></i>
+          <h5 class="fw-bold">{% trans "Glissez vos photos ici" %}</h5>
+          <p class="text-muted small">{% trans "JPG, PNG, WEBP — Compression automatique activée" %}</p>
+          <span class="btn btn-sm btn-success rounded-pill px-4">{% trans "Parcourir" %}</span>
+        </div>
+        <div class="preview-grid" id="preview-container"></div>
+        <div class="d-none">{{ form.images }}</div>
+        <div class="p-4 rounded-4 mt-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
+          <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-user-shield me-2"></i>{% trans "Infos Internes (Privées)" %}</h6>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">{% trans "Référence source" %}</label><input type="text" name="internal_ref" class="form-control" placeholder="{% trans "Lien source" %}"></div>
+            <div class="col-md-6"><label class="form-label">{% trans "Contact agent" %}</label><textarea name="private_contact_info" class="form-control" rows="2" placeholder="{% trans "Nom / Tel" %}"></textarea></div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn-step-prev" onclick="goStep(3)"><i class="fa-solid fa-arrow-left me-2"></i>{% trans "Retour" %}</button>
+          <button type="submit" id="submit-btn" class="btn-step-next">
+            <i class="fa-solid fa-paper-plane me-2"></i>
+            {% if is_edit %}{% trans "Enregistrer" %}{% else %}{% trans "Publier l'annonce" %}{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</div>
+</div>
+
+<div id="upload-overlay">
+  <div class="loading-card">
+    <div class="spinner-ring"></div>
+    <h3 class="fw-bold mb-2">{% trans "Optimisation en cours" %}</h3>
+    <p id="upload-status-text" class="small opacity-75">{% trans "Compression de vos photos..." %}</p>
+    <div class="progress-track"><div id="upload-progress-bar" class="progress-fill"></div></div>
+    <div class="d-flex justify-content-between" style="font-size:.75rem;opacity:.6;">
+      <span>{% trans "Traitement sécurisé" %}</span><span id="progress-percentage">0%</span>
+    </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -579,12 +347,10 @@ function applyDynamicFormLogic() {
         const val      = (categorySelect.value || '').trim().toUpperCase();
         const propType = propertyTypeSelect ? (propertyTypeSelect.value || '').trim().toUpperCase() : '';
 
-        const isSale     = val === 'SALE';
+        const isSale      = val === 'SALE';
         const isFurnished = val === 'FURNISHED';
-        const isRent     = val === 'RENT';
-        const isTerrain  = propType === 'TERRAIN' || propType.includes('PARCELLE') || propType.includes('TERRAIN');
-
-        console.log('[LogerTogo Form] Catégorie:', val, '| Type:', propType, '| isSale:', isSale, '| isFurnished:', isFurnished, '| isRent:', isRent);
+        const isRent      = val === 'RENT';
+        const isTerrain   = propType === 'TERRAIN' || propType.includes('PARCELLE') || propType.includes('TERRAIN');
 
         // Type de document → seulement pour VENTE
         isSale ? show(documentTypeContainer) : hide(documentTypeContainer);
@@ -592,8 +358,8 @@ function applyDynamicFormLogic() {
         // Prix par nuitée → seulement pour MEUBLÉ
         isFurnished ? show(pricePerNightContainer) : hide(pricePerNightContainer);
 
-        // Conditions de bail (caution, avance, commission) → LOCATION SEULEMENT
-        isRent ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
+        // Conditions de bail → LOCATION ou MEUBLÉ
+        (isRent || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
 
         // Champs techniques → masqués si TERRAIN
         ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {
@@ -609,9 +375,9 @@ function applyDynamicFormLogic() {
 
         // Libellé du prix
         if (priceLabel) {
-            if (isSale) priceLabel.innerText = 'Prix de vente total (FCFA)';
-            else if (isFurnished) priceLabel.innerText = 'Loyer mensuel (Meublé)';
-            else priceLabel.innerText = 'Loyer mensuel (FCFA)';
+            if (isSale)           priceLabel.innerText = 'Prix de vente total (FCFA)';
+            else if (isFurnished) priceLabel.innerText = 'Loyer mensuel — Meublé (FCFA)';
+            else                  priceLabel.innerText = 'Loyer mensuel (FCFA)';
         }
     }
 
@@ -729,11 +495,9 @@ function initImageUpload() {
 }
 
 
-    <!-- Leaflet Assets -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
     // ─── LEAFLET MAP - FORM ──────────────────────────
     var _map = null, _marker = null;
 
@@ -745,12 +509,17 @@ function initImageUpload() {
         _map = L.map('form-map', {
             center: lome,
             zoom: 13,
-            zoomControl: false
+            zoomControl: false,
+            zoomAnimation: false
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
+            attribution: '&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a>',
+            maxZoom: 19
         }).addTo(_map);
+
+        // Force correct sizing when map is hidden on load
+        setTimeout(function() { _map.invalidateSize(); }, 400);
 
         L.control.zoom({ position: 'bottomright' }).addTo(_map);
 
@@ -805,6 +574,10 @@ function initImageUpload() {
         var iLng = document.getElementById('id_longitude');
         if (iLat) iLat.value = parseFloat(lat).toFixed(7);
         if (iLng) iLng.value = parseFloat(lng).toFixed(7);
+        var dLat = document.getElementById('coord-lat-display');
+        var dLng = document.getElementById('coord-lng-display');
+        if (dLat) dLat.textContent = parseFloat(lat).toFixed(5);
+        if (dLng) dLng.textContent = parseFloat(lng).toFixed(5);
     }
 
     function statutMap(msg, type) {
@@ -850,6 +623,42 @@ function initImageUpload() {
         );
     }
 
+    // ─── NAVIGATION MULTI-ÉTAPES ──────────────────────────
+    var TOTAL_STEPS = 4;
+    var currentStep = 1;
+
+    function goStep(n) {
+        if (n < 1 || n > TOTAL_STEPS) return;
+        document.getElementById('step-' + currentStep).classList.remove('active');
+        document.getElementById('si-' + currentStep).classList.remove('active');
+        document.getElementById('si-' + currentStep).classList.add('done');
+
+        currentStep = n;
+        document.getElementById('step-' + currentStep).classList.add('active');
+
+        // Step indicators
+        for (var i = 1; i <= TOTAL_STEPS; i++) {
+            var si = document.getElementById('si-' + i);
+            if (!si) continue;
+            si.classList.remove('active', 'done');
+            if (i < currentStep) si.classList.add('done');
+            else if (i === currentStep) si.classList.add('active');
+        }
+        // Step lines
+        for (var j = 1; j < TOTAL_STEPS; j++) {
+            var sl = document.getElementById('sl-' + j);
+            if (sl) sl.classList.toggle('done', j < currentStep);
+        }
+
+        window.scrollTo({top: 0, behavior: 'smooth'});
+
+        // Leaflet needs invalidate when step 2 becomes visible
+        if (n === 2 && _map) {
+            setTimeout(function() { _map.invalidateSize(true); }, 100);
+            setTimeout(function() { _map.invalidateSize(true); }, 500);
+        }
+    }
+
     // ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
     function initAll() {
         try { initLeafletFormMap(); } catch(e) { console.error(e); }
@@ -864,7 +673,6 @@ function initImageUpload() {
         var cat = document.getElementById('id_listing_category');
         if (cat) cat.dispatchEvent(new Event('change'));
     }, 1000);
-
-    </script>
+</script>
 {% endblock %}
 

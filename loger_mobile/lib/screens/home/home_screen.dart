@@ -4,10 +4,7 @@ import '../../core/constants/colors.dart';
 import '../../providers/property_provider.dart';
 import '../../widgets/property_card.dart';
 import '../search/search_screen.dart';
-import '../auth/login_screen.dart';
 import '../profile/profile_screen.dart';
-import '../property/post_property_screen.dart';
-import '../property/favorites_screen.dart';
 import '../chat/chat_list_screen.dart';
 import '../around_me/around_me_screen.dart';
 
@@ -48,18 +45,23 @@ class _HomeScreenState extends State<HomeScreen> {
         leadingWidth: 150,
         leading: Padding(
           padding: const EdgeInsets.only(left: 15),
-          child: Image.asset(
-            'assets/images/logo.png',
-            fit: BoxFit.contain,
-          ),
+          child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: AppColors.primaryGreen, size: 26),
+            icon: const Icon(
+              Icons.notifications_none,
+              color: AppColors.primaryGreen,
+              size: 26,
+            ),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.menu, color: AppColors.primaryGreen, size: 28),
+            icon: const Icon(
+              Icons.menu,
+              color: AppColors.primaryGreen,
+              size: 28,
+            ),
             onPressed: () {},
           ),
         ],
@@ -75,11 +77,29 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedFontSize: 10,
         unselectedFontSize: 10,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined, size: 24), activeIcon: Icon(Icons.home, size: 24), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.search, size: 24), label: 'Explorer'),
-          BottomNavigationBarItem(icon: Icon(Icons.gps_fixed, size: 24), label: 'Autour'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline, size: 24), activeIcon: Icon(Icons.chat_bubble, size: 24), label: 'Messages'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline, size: 24), activeIcon: Icon(Icons.person, size: 24), label: 'Profil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined, size: 24),
+            activeIcon: Icon(Icons.home, size: 24),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search, size: 24),
+            label: 'Explorer',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.gps_fixed, size: 24),
+            label: 'Autour',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline, size: 24),
+            activeIcon: Icon(Icons.chat_bubble, size: 24),
+            label: 'Messages',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline, size: 24),
+            activeIcon: Icon(Icons.person, size: 24),
+            label: 'Profil',
+          ),
         ],
       ),
     );
@@ -98,18 +118,23 @@ class _HomeBody extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-            decoration: const BoxDecoration(
-              color: AppColors.primaryGreen,
-            ),
+            decoration: const BoxDecoration(color: AppColors.primaryGreen),
             child: Column(
               children: [
                 RichText(
                   textAlign: TextAlign.center,
                   text: const TextSpan(
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                     children: [
                       TextSpan(text: 'Trouvez votre '),
-                      TextSpan(text: 'logement\nidéal', style: TextStyle(color: AppColors.secondaryYellow)),
+                      TextSpan(
+                        text: 'logement\nidéal',
+                        style: TextStyle(color: AppColors.secondaryYellow),
+                      ),
                       TextSpan(text: ' au Togo'),
                     ],
                   ),
@@ -121,7 +146,7 @@ class _HomeBody extends StatelessWidget {
                   style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 30),
-                
+
                 // Floating Search Card
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -148,14 +173,26 @@ class _HomeBody extends StatelessWidget {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.secondaryYellow,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.search, color: AppColors.primaryGreen),
+                                Icon(
+                                  Icons.search,
+                                  color: AppColors.primaryGreen,
+                                ),
                                 SizedBox(width: 10),
-                                Text('RECHERCHER', style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(
+                                  'RECHERCHER',
+                                  style: TextStyle(
+                                    color: AppColors.primaryGreen,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -167,7 +204,7 @@ class _HomeBody extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Recent Ads Section
           Padding(
             padding: const EdgeInsets.all(20),
@@ -177,28 +214,40 @@ class _HomeBody extends StatelessWidget {
                 const Expanded(
                   child: Text(
                     'Annonces récentes',
-                    style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 20),
+                    style: TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
                 TextButton(
                   onPressed: () {},
-                  child: const Text('Tout voir', style: TextStyle(color: AppColors.statusGreen)),
+                  child: const Text(
+                    'Tout voir',
+                    style: TextStyle(color: AppColors.statusGreen),
+                  ),
                 ),
               ],
             ),
           ),
-          
+
           Consumer<PropertyProvider>(
             builder: (context, provider, child) {
               if (provider.isLoading && provider.recentProperties.isEmpty) {
-                return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryGreen,
+                  ),
+                );
               }
               return ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: provider.recentProperties.length,
-                itemBuilder: (context, index) => PropertyCard(property: provider.recentProperties[index]),
+                itemBuilder: (context, index) =>
+                    PropertyCard(property: provider.recentProperties[index]),
               );
             },
           ),
@@ -212,12 +261,26 @@ class _HomeBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 5),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(value, style: const TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.primaryGreen,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
             const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
           ],
         ),

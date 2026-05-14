@@ -3,7 +3,7 @@
 
 {% block content %}
     <h2 style="color: #0b4629; margin-bottom: 20px;">{% trans "Vérification de sécurité" %}</h2>
-    <p>{% blocktrans %}Bonjour {{ user_name }},{% endblocktrans %}</p>
+    <p>{% blocktrans %}Bonjour {{ user.get_full_name }},{% endblocktrans %}</p>
     <p>{% trans "Pour finaliser votre action sur Loger Togo, veuillez utiliser le code de vérification à usage unique (OTP) ci-dessous :" %}</p>
     
     <div style="text-align: center;">

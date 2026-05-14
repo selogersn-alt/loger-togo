@@ -19,9 +19,10 @@ class UserManager(BaseUserManager):
         user = self.model(phone_number=phone_number or None, **extra_fields)
         user.set_password(password)
         
-        # Génération d'un code OTP à 6 chiffres pour vérification manuelle par l'admin
-        import random
-        user.phone_otp = str(random.randint(100000, 999999))
+        # Génération d'un code OTP sécurisé à 6 chiffres
+        import secrets
+        user.phone_otp = str(secrets.SystemRandom().randint(100000, 999999))
+        user.otp_created_at = timezone.now()
         
         user.is_phone_verified = True # Auto-verify phone since we abandoned SMS
         user.save(using=self._db)
@@ -63,6 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_picture = models.FileField(upload_to='profile_pics/', null=True, blank=True, verbose_name=_("Photo de profil ou Logo"))
     is_phone_verified = models.BooleanField(default=False, verbose_name=_("Téléphone vérifié"))
     phone_otp = models.CharField(max_length=6, null=True, blank=True, verbose_name=_("Code OTP"))
+    otp_created_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Date de génération de l'OTP"))
     first_name = models.CharField(max_length=150, null=True, blank=True, verbose_name=_("Prénom"))
     last_name = models.CharField(max_length=150, null=True, blank=True, verbose_name=_("Nom"))
     cni_number = models.CharField(max_length=50, null=True, blank=True, db_index=True, verbose_name=_("Numéro CNI / Passeport"))

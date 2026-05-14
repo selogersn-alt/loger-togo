@@ -115,8 +115,9 @@ class UserAdmin(BaseUserAdmin):
         for user in queryset:
             if user.email:
                 if not user.phone_otp:
-                    import random
-                    user.phone_otp = str(random.randint(100000, 999999))
+                    import secrets
+                    user.phone_otp = str(secrets.SystemRandom().randint(100000, 999999))
+                    user.otp_created_at = timezone.now()
                     user.save()
                 
                 from logertogo.emails import send_otp_email

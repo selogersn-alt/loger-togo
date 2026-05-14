@@ -2,7 +2,14 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from .models import Property, PropertyImage, Transaction, PricingConfig, Favorite, PropertyEquipment, PropertyReview, PropertyAlert, Reservation, PropertyAvailability, VisitRequest
+from .models import (
+    Property, PropertyImage, Transaction, PricingConfig, Favorite, 
+    PropertyEquipment, PropertyReview, PropertyAlert, Reservation, 
+    PropertyAvailability, VisitRequest, MarketingCampaign
+)
+from users.models import User
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from logertogo.emails import send_property_published_email
 
 class PropertyImageInline(admin.TabularInline):
@@ -215,3 +222,62 @@ class VisitRequestAdmin(admin.ModelAdmin):
 class PropertyAvailabilityAdmin(admin.ModelAdmin):
     list_display = ('property', 'start_date', 'end_date', 'is_available')
     list_filter = ('is_available',)
+
+@admin.register(MarketingCampaign)
+class MarketingCampaignAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'recipient_group', 'is_sent', 'sent_at', 'created_at')
+    list_filter = ('recipient_group', 'is_sent', 'created_at')
+    search_fields = ('subject', 'content')
+    readonly_fields = ('is_sent', 'sent_at')
+    actions = ['send_campaign']
+
+    def send_campaign(self, request, queryset):
+        for campaign in queryset:
+            if campaign.is_sent:
+                self.message_user(request, f"La campagne '{campaign.subject}' a déjà été envoyée.", level='warning')
+                continue
+
+            # Filtrage des destinataires
+            users = User.objects.filter(is_active=True).exclude(email__isnull=True).exclude(email='')
+            
+            if campaign.recipient_group == MarketingCampaign.RecipientGroup.AGENTS:
+                users = users.filter(role='AGENT')
+            elif campaign.recipient_group == MarketingCampaign.RecipientGroup.OWNERS:
+                users = users.filter(role='OWNER')
+            elif campaign.recipient_group == MarketingCampaign.RecipientGroup.TENANTS:
+                users = users.filter(role='TENANT')
+            elif campaign.recipient_group == MarketingCampaign.RecipientGroup.VERIFIED:
+                users = users.filter(is_verified_pro=True)
+
+            count = 0
+            from django.utils import timezone
+            
+            for user in users:
+                # Personnalisation
+                first_name = user.first_name or "Client"
+                last_name = user.last_name or ""
+                html_content = campaign.content.replace('[PRENOM]', first_name).replace('[NOM]', last_name)
+                text_content = f"Veuillez utiliser un client mail compatible HTML pour voir ce message.\n\nObjet : {campaign.subject}"
+
+                email = EmailMultiAlternatives(
+                    campaign.subject,
+                    text_content,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email]
+                )
+                email.attach_alternative(html_content, "text/html")
+                
+                try:
+                    email.send()
+                    count += 1
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Erreur envoi campagne {campaign.id} à {user.email}: {e}")
+
+            campaign.is_sent = True
+            campaign.sent_at = timezone.now()
+            campaign.save()
+
+            self.message_user(request, f"🚀 Succès : Campagne '{campaign.subject}' envoyée à {count} utilisateurs.")
+    
+    send_campaign.short_description = "🚀 Lancer la campagne (Envoi immédiat)"

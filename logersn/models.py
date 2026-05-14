@@ -408,3 +408,30 @@ class VisitRequest(models.Model):
     class Meta:
         verbose_name = _("Demande de visite")
         verbose_name_plural = _("Demandes de visite")
+
+class MarketingCampaign(models.Model):
+    class RecipientGroup(models.TextChoices):
+        ALL = 'ALL', _('Tous les utilisateurs')
+        AGENTS = 'AGENTS', _('Agences immobilières')
+        OWNERS = 'OWNERS', _('Particuliers (Bailleurs)')
+        TENANTS = 'TENANTS', _('Locataires / Chercheurs')
+        VERIFIED = 'VERIFIED', _('Professionnels Vérifiés uniquement')
+
+    subject = models.CharField(max_length=255, verbose_name=_("Objet de l'e-mail"))
+    content = models.TextField(verbose_name=_("Contenu (HTML supporté)"), help_message=_("Utilisez [PRENOM] ou [NOM] pour personnaliser."))
+    recipient_group = models.CharField(
+        max_length=20, 
+        choices=RecipientGroup.choices, 
+        default=RecipientGroup.ALL,
+        verbose_name=_("Groupe de destinataires")
+    )
+    is_sent = models.BooleanField(default=False, verbose_name=_("Envoyé"))
+    sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Date d'envoi"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Campagne Marketing")
+        verbose_name_plural = _("Campagnes Marketing")
+
+    def __str__(self):
+        return self.subject

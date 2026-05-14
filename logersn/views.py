@@ -9,8 +9,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
 from rest_framework import viewsets
-
-from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication
+from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication, MarketingCampaignTemplate
 from .forms import PropertyForm
 from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 from .serializers import PropertySerializer, PropertyImageSerializer
@@ -612,8 +611,6 @@ def seo_search_view(request, listing_category=None, property_type=None, city=Non
     request.GET = mutable_get
     return properties_list_view(request)
 
-from django.http import JsonResponse
-from .models import MarketingCampaignTemplate
 
 def get_campaign_template_view(request, template_id):
     if not request.user.is_staff:

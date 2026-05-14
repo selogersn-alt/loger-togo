@@ -157,7 +157,7 @@
         background: #f0f0f0;
     }
     #mapWrapper.fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border-radius: 0; margin: 0; }
-    #leaflet-map { height: 100%; width: 100%; min-height: 450px; }
+    #google-map { height: 100%; width: 100%; min-height: 450px; }
 
     .route-info-box {
         position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -177,7 +177,40 @@
         margin-bottom: 25px;
         color: #663c00;
     }
+
+    /* Leaflet Customizations */
+    .leaflet-container { font-family: 'Outfit', sans-serif; border-radius: 20px; }
+    .price-marker {
+        background: white;
+        border: 2px solid var(--color-dark-green);
+        border-radius: 20px;
+        padding: 4px 8px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        color: var(--color-dark-green);
+        white-space: nowrap;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        text-align: center;
+        min-width: 40px;
+    }
+    .price-marker.sale { border-color: #e74c3c; color: #e74c3c; }
+    .price-marker.furnished { border-color: #d63384; color: #d63384; }
+    
+    .cluster-marker {
+        background: var(--color-dark-green);
+        border: 3px solid white;
+        border-radius: 50%;
+        color: white;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 {% endblock %}
 
 {% block content %}
@@ -289,7 +322,7 @@
     </div>
     {% endif %}
 
-    <!-- Carte Uniformisée -->
+    <!-- Carte Leaflet -->
     <div id="mapWrapper">
         <div class="map-controls">
             <button type="button" class="map-btn" onclick="toggleMapFullscreen()"><i class="fas fa-expand"></i></button>
@@ -303,7 +336,7 @@
             </div>
             <button type="button" class="btn btn-sm btn-link text-white ms-2 p-0" onclick="hideRoute()">×</button>
         </div>
-        <div id="leaflet-map" style="height: 450px; width: 100%; border-radius: 20px; background: #eee;"></div>
+        <div id="map" style="height: 450px; width: 100%; border-radius: 20px; background: #f8f9fa;"></div>
     </div>
 
     <!-- Liste des Résultats -->
@@ -324,130 +357,136 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script>
-var _lmap = null, _lclusters = null, _luserMarker = null, _luserPos = null;
-var _lDirections = null, _lRenderer = null;
+var _map = null, _clusters = null, _userPos = null, _userMarker = null;
 const MAP_MARKERS = {{ map_markers_json|safe }};
 
-function initMap() {
-    var el = document.getElementById('leaflet-map');
-    if (!el || typeof google === 'undefined') return;
-    _lmap = new google.maps.Map(el, {
-        center: { lat: 6.137, lng: 1.222 },
+function initLeafletMap() {
+    _map = L.map('map', {
+        center: [6.137, 1.222],
         zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false
+        zoomControl: false
     });
-    _lDirections = new google.maps.DirectionsService();
-    _lRenderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: true,
-        polylineOptions: { strokeColor: '#0b4629', strokeWeight: 6 }
-    });
-    _lRenderer.setMap(_lmap);
 
-    var rawMarkers = MAP_MARKERS.map(function(m) {
-        var catColor = m.category === 'SALE' ? '#e74c3c' : m.category === 'FURNISHED' ? '#d63384' : '#0b4629';
-        var marker = new google.maps.Marker({
-            position: { lat: m.lat, lng: m.lng },
-            map: _lmap,
-            title: m.title,
-            label: { text: (m.price / 1000).toFixed(0) + 'k', color: '#fff', fontSize: '10px', fontWeight: '800' },
-            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 18,
-                    fillColor: catColor, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
+    L.control.zoom({ position: 'bottomright' }).addTo(_map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(_map);
+
+    _clusters = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        iconCreateFunction: function(cluster) {
+            return L.divIcon({
+                html: '<span>' + cluster.getChildCount() + '</span>',
+                className: 'cluster-marker',
+                iconSize: L.point(40, 40)
+            });
+        }
+    });
+
+    MAP_MARKERS.forEach(function(m) {
+        if (!m.lat || !m.lng) return;
+
+        const catClass = m.category === 'SALE' ? 'sale' : m.category === 'FURNISHED' ? 'furnished' : '';
+        const icon = L.divIcon({
+            html: '<div class="price-marker ' + catClass + '">' + (m.price / 1000).toFixed(0) + 'k</div>',
+            className: 'custom-div-icon',
+            iconSize: [60, 30],
+            iconAnchor: [30, 30]
         });
-        var content = '<div style="width:260px;font-family:Outfit,sans-serif;border-radius:14px;overflow:hidden;">' +
-            '<div style="position:relative;height:150px;"><img src="' + m.image + '" style="width:100%;height:100%;object-fit:cover;">' +
-            '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);padding:20px 12px 10px;">' +
-            '<div style="color:#fff;font-weight:800;font-size:1.1rem;">' + m.price.toLocaleString() + ' F <small style="font-weight:400;font-size:.7rem;opacity:.8;">CFA ' + (m.is_nightly ? '/ nuit' : '') + '</small></div></div></div>' +
-            '<div style="padding:10px;">' +
-            '<strong style="display:block;font-size:.95rem;color:#1a1a1a;margin-bottom:4px;">' + m.title + '</strong>' +
-            '<div style="color:#666;font-size:.75rem;margin-bottom:12px;"><i class="fas fa-map-marker-alt text-success me-1"></i>' + m.neighborhood + ', ' + m.city + '</div>' +
-            '<div style="display:flex;gap:10px;">' +
-            '<a href="' + m.url + '" style="background:var(--color-dark-green);color:#fff;flex:1;text-align:center;padding:10px;border-radius:12px;text-decoration:none;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-eye"></i>Voir le bien</a>' +
-            '<button onclick="calculateRoute(' + m.lat + ',' + m.lng + ')" style="background:#f0f7f4;border:2px solid var(--color-dark-green);color:var(--color-dark-green);padding:10px 14px;border-radius:12px;cursor:pointer;"><i class="fas fa-route"></i></button>' +
-            '</div></div></div>';
-        var iw = new google.maps.InfoWindow({ content: content });
-        marker.addListener('click', function() { iw.open(_lmap, marker); });
-        return marker;
+
+        const marker = L.marker([m.lat, m.lng], { icon: icon });
+        
+        const popupContent = `
+            <div style="width:240px; font-family: 'Outfit', sans-serif;">
+                <div style="position:relative; height:140px; border-radius:12px; overflow:hidden; margin-bottom:10px;">
+                    <img src="${m.image}" style="width:100%; height:100%; object-fit:cover;">
+                    <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:10px;">
+                        <div style="color:white; font-weight:800; font-size:1.1rem;">${m.price.toLocaleString()} F</div>
+                    </div>
+                </div>
+                <strong style="display:block; font-size:0.95rem; margin-bottom:4px;">${m.title}</strong>
+                <div style="color:#666; font-size:0.75rem; margin-bottom:12px;">
+                    <i class="fas fa-map-marker-alt text-success"></i> ${m.neighborhood}, ${m.city}
+                </div>
+                <a href="${m.url}" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px; font-weight:700;">
+                    <i class="fas fa-eye me-1"></i> {% trans "Voir le bien" %}
+                </a>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent, { maxWidth: 300 });
+        _clusters.addLayer(marker);
     });
 
-    _lclusters = new markerClusterer.MarkerClusterer({ map: _lmap, markers: rawMarkers });
+    _map.addLayer(_clusters);
 
-    if (rawMarkers.length > 0) {
-        var bounds = new google.maps.LatLngBounds();
-        MAP_MARKERS.forEach(function(m) { bounds.extend({ lat: m.lat, lng: m.lng }); });
-        _lmap.fitBounds(bounds);
+    if (MAP_MARKERS.length > 0) {
+        const bounds = L.latLngBounds(MAP_MARKERS.map(m => [m.lat, m.lng]));
+        _map.fitBounds(bounds, { padding: [50, 50] });
     }
 
+    // Géo-localisation
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
-            _luserPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            _luserMarker = new google.maps.Marker({
-                position: _luserPos, map: _lmap, title: 'Votre position',
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8,
-                        fillColor: '#4285F4', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
-            });
+            _userPos = L.latLng(pos.coords.latitude, pos.coords.longitude);
+            _userMarker = L.circleMarker(_userPos, {
+                radius: 8,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                color: 'white',
+                weight: 2
+            }).addTo(_map).bindPopup("{% trans 'Votre position' %}");
         });
     }
 }
 
+document.addEventListener('DOMContentLoaded', initLeafletMap);
+
 window.toggleMapFullscreen = function() {
-    var el = document.getElementById('mapWrapper');
-    if (el) {
-        el.classList.toggle('fullscreen');
-        if (_lmap) google.maps.event.trigger(_lmap, 'resize');
-    }
-};
-
-window.hideRoute = function() {
-    if (_lRenderer) _lRenderer.setDirections({ routes: [] });
-    document.getElementById('routeInfo').style.display = 'none';
-};
-
-window.calculateRoute = function(tLat, tLng) {
-    if (!_luserPos) {
-        alert('Veuillez autoriser la g\u00e9olocalisation pour calculer l\'itin\u00e9raire.');
-        _lmap.setCenter({ lat: tLat, lng: tLng });
-        _lmap.setZoom(15);
-        return;
-    }
-    _lDirections.route({
-        origin: _luserPos,
-        destination: { lat: tLat, lng: tLng },
-        travelMode: google.maps.TravelMode.DRIVING
-    }, function(result, status) {
-        if (status === 'OK') {
-            _lRenderer.setDirections(result);
-            var leg = result.routes[0].legs[0];
-            document.getElementById('routeDist').textContent = leg.distance.text;
-            document.getElementById('routeTime').textContent = leg.duration.text;
-            document.getElementById('routeInfo').style.display = 'flex';
-        }
-    });
+    const el = document.getElementById('mapWrapper');
+    el.classList.toggle('fullscreen');
+    setTimeout(() => _map.invalidateSize(), 300);
 };
 
 window.centerOnUser = function() {
-    if (_luserPos) {
-        _lmap.setCenter(_luserPos);
-        _lmap.setZoom(14);
+    if (_userPos) {
+        _map.setView(_userPos, 15);
     } else if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
-            _lmap.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-            _lmap.setZoom(14);
+            _userPos = L.latLng(pos.coords.latitude, pos.coords.longitude);
+            _map.setView(_userPos, 15);
         });
     }
 };
 
 window.toggleAdvancedFilters = function() {
-    var div = document.getElementById('advancedFiltersPanel');
+    const div = document.getElementById('advancedFiltersPanel');
     if (div) div.style.display = div.style.display === 'block' ? 'none' : 'block';
 };
+
+// Route calculation (simplified for Leaflet)
+window.calculateRoute = function(tLat, tLng) {
+    if (!_userPos) {
+        alert('{% trans "Veuillez autoriser la géolocalisation." %}');
+        _map.setView([tLat, tLng], 16);
+        return;
+    }
+    const dist = _userPos.distanceTo([tLat, tLng]) / 1000;
+    document.getElementById('routeDist').textContent = dist.toFixed(1) + ' km';
+    document.getElementById('routeTime').textContent = Math.round(dist * 2) + ' min'; // Approximation
+    document.getElementById('routeInfo').style.display = 'flex';
+    
+    // On trace une ligne simple pour l'itinéraire (ou on peut utiliser un service externe)
+    const polyline = L.polyline([_userPos, [tLat, tLng]], { color: 'var(--color-dark-green)', weight: 4, dashArray: '10, 10' }).addTo(_map);
+    _map.fitBounds(polyline.getBounds(), { padding: [100, 100] });
+};
+
+window.hideRoute = function() {
+    document.getElementById('routeInfo').style.display = 'none';
+};
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&loading=async" async defer></script>
-<style>
-    .marker-label-shift { margin-top: -38px; }
-</style>
 {% endblock %}
-
-

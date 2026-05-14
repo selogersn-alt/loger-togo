@@ -121,6 +121,11 @@ class Property(models.Model):
             return reverse('property_detail_slug', kwargs={'slug': self.slug})
         return reverse('property_detail', kwargs={'property_id': self.id})
 
+    @property
+    def rent_price(self):
+        """Alias for backward compatibility with legacy views."""
+        return self.price
+
     def save(self, *args, **kwargs):
         # Calcul automatique du prix remisé (Senior Logic)
         # Pour les meublés, la réduction s'applique sur le prix mensuel (self.price)
@@ -132,7 +137,6 @@ class Property(models.Model):
             self.discount_price = base_price - reduction
         else:
             self.discount_price = None
-
 
         if not self.slug:
             base_slug = slugify(self.title)

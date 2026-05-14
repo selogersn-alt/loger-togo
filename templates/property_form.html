@@ -143,8 +143,7 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* LEAFLET FIX */
-  .leaflet-container { font-family: 'Inter', sans-serif !important; z-index: 1 !important; }
+
 </style>
 {% endblock %}
 
@@ -730,140 +729,142 @@ function initImageUpload() {
 }
 
 
-// ─── GOOGLE MAPS ────────────────────────────────
-var _gmap = null, _gmarker = null, _geocoder = null;
+    <!-- Leaflet Assets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-function initMap() {
-    var el = document.getElementById('form-map');
-    if (!el || typeof google === 'undefined') return;
-    var lome = { lat: 6.1375, lng: 1.2123 };
-    _gmap = new google.maps.Map(el, {
-        center: lome,
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-        styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
-    });
-    _geocoder = new google.maps.Geocoder();
+    <script>
+    // ─── LEAFLET MAP - FORM ──────────────────────────
+    var _map = null, _marker = null;
 
-    // Charger coordonnées existantes (mode édition)
-    var lat0 = parseFloat(document.getElementById('id_latitude').value);
-    var lng0 = parseFloat(document.getElementById('id_longitude').value);
-    if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
-        var pos = { lat: lat0, lng: lng0 };
-        _gmap.setCenter(pos);
-        _gmap.setZoom(16);
-        poseMarqueur(pos);
-    }
+    function initLeafletFormMap() {
+        var el = document.getElementById('form-map');
+        if (!el) return;
 
-    // Clic sur la carte
-    _gmap.addListener('click', function(e) {
-        poseMarqueur(e.latLng);
-    });
-}
-
-function poseMarqueur(latLng) {
-    var pos = (typeof latLng.lat === 'function') ? { lat: latLng.lat(), lng: latLng.lng() } : latLng;
-    if (_gmarker) {
-        _gmarker.position = pos;
-    } else {
-        _gmarker = new google.maps.Marker({
-            position: pos,
-            map: _gmap,
-            draggable: true,
-            title: 'Votre bien',
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 12,
-                fillColor: '#0b4629',
-                fillOpacity: 1,
-                strokeColor: '#f5c42f',
-                strokeWeight: 3
-            }
+        var lome = [6.1375, 1.2123];
+        _map = L.map('form-map', {
+            center: lome,
+            zoom: 13,
+            zoomControl: false
         });
-        _gmarker.addListener('dragend', function() {
-            var p = _gmarker.getPosition();
-            majCoords(p.lat(), p.lng());
-            statutMap('Position ajustée.', 'success');
-        });
-    }
-    _gmap.panTo(pos);
-    majCoords(pos.lat, pos.lng);
-    statutMap('Position placée ! Faites glisser le marqueur pour affiner.', 'success');
-}
 
-function majCoords(lat, lng) {
-    var iLat = document.getElementById('id_latitude');
-    var iLng = document.getElementById('id_longitude');
-    if (iLat) iLat.value = parseFloat(lat).toFixed(7);
-    if (iLng) iLng.value = parseFloat(lng).toFixed(7);
-}
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(_map);
 
-function statutMap(msg, type) {
-    var box = document.getElementById('form-map-status');
-    if (!box) return;
-    var color = type === 'success' ? 'var(--color-dark-green)' : type === 'danger' ? '#dc3545' : '#856404';
-    box.innerHTML = '<span style="color:' + color + ';font-weight:600;">' + msg + '</span>';
-    setTimeout(function(){ box.innerHTML = ''; }, 6000);
-}
+        L.control.zoom({ position: 'bottomright' }).addTo(_map);
 
-function geocodeAddr() {
-    if (!_geocoder) return;
-    var city = document.getElementById('id_city');
-    var hood = document.getElementById('id_neighborhood');
-    var q = (hood ? hood.value.trim() : '') + ', ' + (city && city.selectedIndex >= 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
-    statutMap('Recherche en cours...', 'info');
-    _geocoder.geocode({ address: q, region: 'tg' }, function(results, status) {
-        if (status === 'OK' && results[0]) {
-            var pos = results[0].geometry.location;
-            _gmap.setCenter(pos);
-            _gmap.setZoom(16);
-            poseMarqueur({ lat: pos.lat(), lng: pos.lng() });
-        } else {
-            statutMap('Adresse introuvable. Cliquez sur la carte.', 'warning');
-        }
-    });
-}
-
-function useGPS() {
-    if (!navigator.geolocation) { statutMap('GPS non supporté par ce navigateur.', 'danger'); return; }
-    statutMap('Détection GPS...', 'info');
-    navigator.geolocation.getCurrentPosition(
-        function(p) {
-            var pos = { lat: p.coords.latitude, lng: p.coords.longitude };
-            _gmap.setCenter(pos);
-            _gmap.setZoom(17);
+        // Charger coordonnées existantes (mode édition)
+        var lat0 = parseFloat(document.getElementById('id_latitude').value.replace(',', '.'));
+        var lng0 = parseFloat(document.getElementById('id_longitude').value.replace(',', '.'));
+        
+        if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
+            var pos = [lat0, lng0];
+            _map.setView(pos, 16);
             poseMarqueur(pos);
-        },
-        function() { statutMap('GPS refusé. Cliquez manuellement sur la carte.', 'warning'); },
-        { enableHighAccuracy: true, timeout: 12000 }
-    );
-}
+        }
 
-// ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
-function initAll() {
-    // initMap() est appelé par le callback Google Maps (voir script tag en bas)
-    try { applyDynamicFormLogic(); } catch(e) { console.error(e); }
-    try { initPriceCalculation(); } catch(e) { console.error(e); }
-    try { initImageUpload(); } catch(e) { console.error(e); }
-}
+        // Clic sur la carte
+        _map.on('click', function(e) {
+            poseMarqueur(e.latlng);
+        });
+    }
 
-if (document.readyState === 'loading') {
+    function poseMarqueur(latlng) {
+        var pos = L.latLng(latlng);
+        
+        if (_marker) {
+            _marker.setLatLng(pos);
+        } else {
+            var customIcon = L.divIcon({
+                html: '<div style="background:#0b4629; width:24px; height:24px; border-radius:50%; border:3px solid #f5c42f; box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>',
+                className: 'custom-marker',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
+            _marker = L.marker(pos, {
+                icon: customIcon,
+                draggable: true
+            }).addTo(_map);
+
+            _marker.on('dragend', function() {
+                var p = _marker.getLatLng();
+                majCoords(p.lat, p.lng);
+                statutMap('{% trans "Position ajustée." %}', 'success');
+            });
+        }
+        
+        _map.panTo(pos);
+        majCoords(pos.lat, pos.lng);
+        statutMap('{% trans "Position placée ! Faites glisser le marqueur pour affiner." %}', 'success');
+    }
+
+    function majCoords(lat, lng) {
+        var iLat = document.getElementById('id_latitude');
+        var iLng = document.getElementById('id_longitude');
+        if (iLat) iLat.value = parseFloat(lat).toFixed(7);
+        if (iLng) iLng.value = parseFloat(lng).toFixed(7);
+    }
+
+    function statutMap(msg, type) {
+        var box = document.getElementById('form-map-status');
+        if (!box) return;
+        var color = type === 'success' ? 'var(--color-dark-green)' : type === 'danger' ? '#dc3545' : '#856404';
+        box.innerHTML = '<span style="color:' + color + ';font-weight:600;">' + msg + '</span>';
+        setTimeout(function(){ box.innerHTML = ''; }, 6000);
+    }
+
+    function geocodeAddr() {
+        var city = document.getElementById('id_city');
+        var hood = document.getElementById('id_neighborhood');
+        var q = (hood ? hood.value.trim() : '') + ', ' + (city && city.selectedIndex >= 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
+        
+        statutMap('{% trans "Recherche en cours..." %}', 'info');
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=tg`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    var pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                    _map.setView(pos, 16);
+                    poseMarqueur(pos);
+                } else {
+                    statutMap('{% trans "Adresse introuvable. Cliquez sur la carte." %}', 'warning');
+                }
+            })
+            .catch(() => statutMap('{% trans "Erreur de recherche." %}', 'danger'));
+    }
+
+    function useGPS() {
+        if (!navigator.geolocation) { statutMap('{% trans "GPS non supporté." %}', 'danger'); return; }
+        statutMap('{% trans "Détection GPS..." %}', 'info');
+        navigator.geolocation.getCurrentPosition(
+            function(p) {
+                var pos = [p.coords.latitude, p.coords.longitude];
+                _map.setView(pos, 17);
+                poseMarqueur(pos);
+            },
+            function() { statutMap('{% trans "GPS refusé. Cliquez manuellement." %}', 'warning'); },
+            { enableHighAccuracy: true, timeout: 12000 }
+        );
+    }
+
+    // ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
+    function initAll() {
+        try { initLeafletFormMap(); } catch(e) { console.error(e); }
+        try { applyDynamicFormLogic(); } catch(e) { console.error(e); }
+        try { initPriceCalculation(); } catch(e) { console.error(e); }
+        try { initImageUpload(); } catch(e) { console.error(e); }
+    }
+
     document.addEventListener('DOMContentLoaded', initAll);
-} else {
-    initAll();
-}
 
-setTimeout(function(){
-    var cat = document.getElementById('id_listing_category');
-    if (cat) cat.dispatchEvent(new Event('change'));
-}, 1000);
+    setTimeout(function(){
+        var cat = document.getElementById('id_listing_category');
+        if (cat) cat.dispatchEvent(new Event('change'));
+    }, 1000);
 
-</script>
-
-<!-- Google Maps API - callback = initMap -->
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&loading=async" async defer></script>
-
+    </script>
 {% endblock %}
 

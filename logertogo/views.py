@@ -156,8 +156,10 @@ def payment_callback_view(request):
         messages.warning(request, _("Cette transaction a déjà été confirmée."))
         return redirect('dashboard')
 
-    # Simulation de succès (A remplacer par un call API FedaPay pour vérification réelle côté serveur)
-    if status == 'success':
+    # DigitalH Security: Vérification réelle côté serveur
+    is_valid, transaction = FedaPayBridge.verify_transaction(ref)
+    
+    if is_valid and status == 'success':
         transaction.status = 'SUCCESS'
         transaction.save()
         

@@ -812,92 +812,82 @@
             });
         });
     </script>
-    <!-- Leaflet Assets -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MapLibre GL JS -->
+    <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
     <script>
         var _map = null, _userPos = null, _userMarker = null;
         var propertyPos = [
-            parseFloat("{{ property.latitude|default:6.1375 }}".replace(',','.')),
-            parseFloat("{{ property.longitude|default:1.2123 }}".replace(',','.'))
+            parseFloat("{{ property.longitude|default:1.2123 }}".replace(',','.')),
+            parseFloat("{{ property.latitude|default:6.1375 }}".replace(',','.'))
         ];
         var catColor = "{{ property.listing_category }}" === 'SALE' ? '#e74c3c' : "{{ property.listing_category }}" === 'FURNISHED' ? '#d63384' : '#0b4629';
 
-        function initLeafletMap() {
-            var el = document.getElementById('propertyMap');
-            if (!el) return;
-
-            _map = L.map('map', {
+        function initMapLibreDetailMap() {
+            _map = new maplibregl.Map({
+                container: 'propertyMap',
+                style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
                 center: propertyPos,
                 zoom: 16,
-                zoomControl: false
-            });
-            // Update container ID if necessary (it was propertyMap in the original div but I'll use map for consistency if I change it)
-            // Wait, the div id is propertyMap. Let's keep it.
-        }
-        
-        // Let's rewrite the init function to be more robust
-        function initDetailMap() {
-            _map = L.map('propertyMap', {
-                center: propertyPos,
-                zoom: 16,
-                zoomControl: false
+                attributionControl: false
             });
 
-            // Tiles Premium 'Voyager' de CartoDB
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; CARTO',
-                subdomains: 'abcd',
-                maxZoom: 20
-            }).addTo(_map);
+            _map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-            L.control.zoom({ position: 'bottomright' }).addTo(_map);
+            _map.on('load', function() {
+                const el = document.createElement('div');
+                el.style.background = catColor;
+                el.style.width = '24px';
+                el.style.height = '24px';
+                el.style.borderRadius = '50%';
+                el.style.border = '4px solid white';
+                el.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
 
-            var icon = L.divIcon({
-                html: `<div style="background:${catColor}; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>`,
-                className: 'custom-marker',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-
-            L.marker(propertyPos, { icon: icon }).addTo(_map)
-                .bindPopup(`
+                const popup = new maplibregl.Popup({ offset: 25 }).setHTML(`
                     <div style="min-width:160px; padding:5px; font-family:'Outfit', sans-serif;">
                         <strong style="display:block; margin-bottom:10px;">{{ property.title|escapejs }}</strong>
                         <button onclick="calculateDetailRoute()" class="btn btn-sm btn-success w-100 py-2" style="border-radius:10px; font-weight:700;">
                             <i class="fas fa-route me-1"></i> {% trans "Itinéraire" %}
                         </button>
                     </div>
-                `).openPopup();
+                `);
+
+                new maplibregl.Marker({ element: el })
+                    .setLngLat(propertyPos)
+                    .setPopup(popup)
+                    .addTo(_map)
+                    .togglePopup();
+            });
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(p) {
-                    _userPos = L.latLng(p.coords.latitude, p.coords.longitude);
-                    _userMarker = L.circleMarker(_userPos, {
-                        radius: 7,
-                        fillColor: '#4285F4',
-                        fillOpacity: 1,
-                        color: 'white',
-                        weight: 2
-                    }).addTo(_map).bindPopup("{% trans 'Votre position' %}");
+                    const lngLat = [p.coords.longitude, p.coords.latitude];
+                    _userPos = lngLat;
+                    
+                    const el = document.createElement('div');
+                    el.style.width = '14px';
+                    el.style.height = '14px';
+                    el.style.background = '#4285F4';
+                    el.style.border = '2px solid white';
+                    el.style.borderRadius = '50%';
+                    el.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
+
+                    _userMarker = new maplibregl.Marker({ element: el })
+                        .setLngLat(lngLat)
+                        .setPopup(new maplibregl.Popup().setHTML("{% trans 'Votre position' %}"))
+                        .addTo(_map);
                 });
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initDetailMap);
+        document.addEventListener('DOMContentLoaded', initMapLibreDetailMap);
 
         window.calculateDetailRoute = function() {
             if (!_userPos) {
                 alert('{% trans "Veuillez autoriser la géolocalisation." %}');
                 return;
             }
-            var dist = _userPos.distanceTo(propertyPos) / 1000;
-            document.getElementById('detailDist').textContent = dist.toFixed(1);
-            document.getElementById('detailTime').textContent = Math.round(dist * 2.5); // Approximation
-            document.getElementById('routeInfoDetail').style.display = 'flex';
-            
-            var polyline = L.polyline([_userPos, propertyPos], { color: catColor, weight: 4, dashArray: '8, 8' }).addTo(_map);
-            _map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+            _map.fitBounds([_userPos, propertyPos], { padding: 50 });
         };
 
         window.hideDetailRoute = function() {
@@ -907,7 +897,7 @@
 
         window.toggleDetailFullscreen = function() {
             document.getElementById('propertyMap').classList.toggle('fullscreen');
-            setTimeout(() => _map.invalidateSize(), 300);
+            setTimeout(() => { if(_map) _map.resize(); }, 300);
         };
 
         window.toggleFavorite = function(propertyId) {

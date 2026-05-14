@@ -638,72 +638,77 @@ function initImageUpload() {
 
 
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- MapLibre GL JS -->
+<link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+
 <script>
-    // ─── LEAFLET MAP - FORM ──────────────────────────
+    // ─── MAPLIBRE GL - FORM ──────────────────────────
     var _map = null, _marker = null;
 
-    window.initLeafletFormMap = function() {
+    window.initMapLibreFormMap = function() {
         var el = document.getElementById('form-map');
         if (!el || _map) return;
 
-        var lome = [6.1375, 1.2123];
-        _map = L.map('form-map', {
+        // Note: MapLibre utilise [lng, lat]
+        var lome = [1.2123, 6.1375]; 
+        
+        _map = new maplibregl.Map({
+            container: 'form-map',
+            style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
             center: lome,
             zoom: 13,
-            zoomControl: false
+            attributionControl: false
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CARTO',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(_map);
+        _map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-        L.control.zoom({ position: 'bottomright' }).addTo(_map);
-
-        _map.on('click', function(e) { poseMarqueur([e.latlng.lat, e.latlng.lng]); });
+        _map.on('click', function(e) { 
+            poseMarqueur([e.lngLat.lng, e.lngLat.lat]); 
+        });
 
         // Charger coordonnées existantes
         var lat0 = parseFloat(document.getElementById('id_latitude').value.replace(',', '.'));
         var lng0 = parseFloat(document.getElementById('id_longitude').value.replace(',', '.'));
         if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
-            var pos = [lat0, lng0];
-            _map.setView(pos, 16);
+            var pos = [lng0, lat0];
+            _map.setCenter(pos);
+            _map.setZoom(16);
             poseMarqueur(pos);
         }
-
-        setTimeout(() => { _map.invalidateSize(); }, 300);
+        
+        _map.on('load', () => { _map.resize(); });
     }
 
-    function poseMarqueur(latlng) {
-        var pos = L.latLng(latlng);
-        
+    function poseMarqueur(lngLat) {
         if (_marker) {
-            _marker.setLatLng(pos);
+            _marker.setLngLat(lngLat);
         } else {
-            var customIcon = L.divIcon({
-                html: '<div style="background:#0b4629; width:24px; height:24px; border-radius:50%; border:3px solid #f5c42f; box-shadow:0 0 10px rgba(0,0,0,0.3);"></div>',
-                className: 'custom-marker',
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-            });
+            const el = document.createElement('div');
+            el.className = 'custom-marker-gl';
+            el.style.background = '#0b4629';
+            el.style.width = '24px';
+            el.style.height = '24px';
+            el.style.borderRadius = '50%';
+            el.style.border = '3px solid #f5c42f';
+            el.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
 
-            _marker = L.marker(pos, {
-                icon: customIcon,
+            _marker = new maplibregl.Marker({
+                element: el,
                 draggable: true
-            }).addTo(_map);
+            })
+            .setLngLat(lngLat)
+            .addTo(_map);
 
             _marker.on('dragend', function() {
-                var p = _marker.getLatLng();
+                var p = _marker.getLngLat();
                 majCoords(p.lat, p.lng);
                 statutMap('{% trans "Position ajustée." %}', 'success');
             });
         }
         
-        _map.panTo(pos);
-        majCoords(pos.lat, pos.lng);
-        statutMap('{% trans "Position placée ! Faites glisser le marqueur pour affiner." %}', 'success');
+        _map.easeTo({ center: lngLat });
+        majCoords(lngLat[1], lngLat[0]); // lat, lng
     }
 
     function majCoords(lat, lng) {
@@ -743,9 +748,9 @@ function initImageUpload() {
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    var pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                    var pos = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
                     if (_map) {
-                        _map.setView(pos, 16);
+                        _map.easeTo({ center: pos, zoom: 16 });
                         poseMarqueur(pos);
                     }
                     statutMap('{% trans "Adresse trouvée !" %}', 'success');
@@ -763,8 +768,8 @@ function initImageUpload() {
         statutMap('{% trans "Détection GPS..." %}', 'info');
         navigator.geolocation.getCurrentPosition(
             function(p) {
-                var pos = [p.coords.latitude, p.coords.longitude];
-                _map.setView(pos, 17);
+                var pos = [p.coords.longitude, p.coords.latitude];
+                _map.easeTo({ center: pos, zoom: 17 });
                 poseMarqueur(pos);
             },
             function() { statutMap('{% trans "GPS refusé. Cliquez manuellement." %}', 'warning'); },
@@ -806,14 +811,14 @@ function initImageUpload() {
 
         // Init Map à l'étape 2
         if (n === 2) {
-            if (!_map) window.initLeafletFormMap();
-            else setTimeout(() => { _map.invalidateSize(true); }, 300);
+            if (!_map) window.initMapLibreFormMap();
+            else setTimeout(() => { _map.resize(); }, 300);
         }
     }
 
     // ─── POINT D'ENTRÉE PRINCIPAL ─────────────────────────
     function initAll() {
-        try { initLeafletFormMap(); } catch(e) { console.error(e); }
+        try { window.initMapLibreFormMap(); } catch(e) { console.error(e); }
         try { applyDynamicFormLogic(); } catch(e) { console.error(e); }
         try { initPriceCalculation(); } catch(e) { console.error(e); }
         try { initImageUpload(); } catch(e) { console.error(e); }

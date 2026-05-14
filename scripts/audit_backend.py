@@ -3,7 +3,7 @@ import sys
 import django
 
 # Configuration de l'environnement Django
-sys.path.append('d:\\HDIGITAL\\ANDROID_ANTIGRAVITY\\LOGERTOGO')
+sys.path.append('/app')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'logertogo.settings')
 django.setup()
 

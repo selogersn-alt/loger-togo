@@ -460,39 +460,84 @@ function initImageUpload() {
     let isSubmitting = false;
     form.addEventListener('submit', async (e) => {
         if (isSubmitting) { e.preventDefault(); return; }
+        
+        // Validation basique avant compression
+        if (selectedFiles.length === 0 && !form.dataset.isEdit) {
+            // Optionnel: on peut laisser Django gérer l'erreur "required" si on veut
+        }
+
+        e.preventDefault();
+        isSubmitting = true;
+
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> {% trans "Traitement en cours..." %}`;
+            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> {% trans "Traitement..." %}`;
         }
-        isSubmitting = true;
-        if (overlay) { overlay.style.display = 'flex'; overlay.classList.add('animate__fadeIn'); }
-        if (selectedFiles.length === 0) return; // Soumettre normalement sans images
-        e.preventDefault();
 
-        const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1600, useWebWorker: true, fileType: 'image/webp', initialQuality: 0.8 };
+        if (overlay) { overlay.style.display = 'flex'; overlay.classList.add('animate__fadeIn'); }
+
+        const options = { maxSizeMB: 0.9, maxWidthOrHeight: 1800, useWebWorker: true, fileType: 'image/webp', initialQuality: 0.8 };
+        
         try {
-            if (statusText) statusText.innerText = `{% trans "Optimisation des images en cours..." %}`;
-            const compressed = await Promise.all(selectedFiles.map(async (file, idx) => {
-                try {
-                    const c = await imageCompression(file, options);
-                    if (progressBar) progressBar.style.width = `${Math.round(((idx + 1) / selectedFiles.length) * 100)}%`;
-                    const pct = document.getElementById('progress-percentage');
-                    if (pct) pct.innerText = `${Math.round(((idx + 1) / selectedFiles.length) * 100)}%`;
-                    return new File([c], file.name.split('.')[0] + '.webp', { type: 'image/webp' });
-                } catch { return file; }
-            }));
-            if (progressBar) progressBar.style.width = '100%';
-            if (statusText) statusText.innerText = `{% trans "Envoi final vers Loger Togo..." %}`;
-            const dt = new DataTransfer();
-            compressed.forEach(f => dt.items.add(f));
-            const actualFileInput = form.querySelector('input[type="file"][name="images"]');
-            if (actualFileInput) actualFileInput.files = dt.files;
-            setTimeout(() => form.submit(), 500);
+            const formData = new FormData(form);
+            
+            // Supprimer le champ images vide par défaut de Django pour le remplacer
+            formData.delete('images');
+
+            if (selectedFiles.length > 0) {
+                if (statusText) statusText.innerText = `{% trans "Optimisation des images..." %}`;
+                
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    try {
+                        const compressed = await imageCompression(file, options);
+                        formData.append('images', compressed, file.name.split('.')[0] + '.webp');
+                        
+                        const pct = Math.round(((i + 1) / selectedFiles.length) * 100);
+                        if (progressBar) progressBar.style.width = `${pct}%`;
+                        if (document.getElementById('progress-percentage')) {
+                            document.getElementById('progress-percentage').innerText = `${pct}%`;
+                        }
+                    } catch (err) {
+                        console.error('Compression failed for', file.name, err);
+                        formData.append('images', file); // Fallback image brute
+                    }
+                }
+            }
+
+            if (statusText) statusText.innerText = `{% trans "Envoi des données..." %}`;
+            
+            // Envoi via Fetch pour un contrôle total
+            const response = await fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (response.ok) {
+                const result = await response.url;
+                window.location.href = result || '/dashboard/';
+            } else {
+                // Si erreur 400 (validation Django), on recharge la page normalement pour afficher les erreurs
+                if (response.status === 400) {
+                    const html = await response.text();
+                    document.documentElement.innerHTML = html;
+                    // Il faut ré-initialiser les scripts après avoir injecté le HTML
+                    initAll();
+                } else {
+                    throw new Error('Server error: ' + response.status);
+                }
+            }
         } catch (err) {
-            console.error(err);
+            console.error('Upload error:', err);
+            isSubmitting = false;
             if (overlay) overlay.style.display = 'none';
-            alert('{% trans "Erreur d\'optimisation. Vos images sont peut-être corrompues." %}');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> {% trans "Réessayer la publication" %}`;
+            }
+            alert('{% trans "Erreur de connexion ou d\'envoi. Veuillez vérifier votre connexion internet." %}');
         }
     });
 }
@@ -508,21 +553,32 @@ function initImageUpload() {
         var el = document.getElementById('form-map');
         if (!el) return;
 
+        // Fix Leaflet icons path
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        });
+
         var lome = [6.1375, 1.2123];
         _map = L.map('form-map', {
             center: lome,
             zoom: 13,
             zoomControl: false,
+            fadeAnimation: false,
             zoomAnimation: false
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a>',
+            attribution: '&copy; OpenStreetMap',
             maxZoom: 19
         }).addTo(_map);
 
-        // Force correct sizing when map is hidden on load
-        setTimeout(function() { _map.invalidateSize(); }, 400);
+        // Force correct sizing multiple times to handle visibility delays
+        setTimeout(function() { _map.invalidateSize(); }, 200);
+        setTimeout(function() { _map.invalidateSize(); }, 1000);
+        window.addEventListener('resize', function() { _map.invalidateSize(); });
 
         L.control.zoom({ position: 'bottomright' }).addTo(_map);
 
@@ -594,22 +650,33 @@ function initImageUpload() {
     function geocodeAddr() {
         var city = document.getElementById('id_city');
         var hood = document.getElementById('id_neighborhood');
-        var q = (hood ? hood.value.trim() : '') + ', ' + (city && city.selectedIndex >= 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
+        var q = (hood ? hood.value.trim() : '') + ' ' + (city && city.selectedIndex >= 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
         
+        if (q.trim().length < 5) {
+            statutMap('{% trans "Veuillez saisir un quartier." %}', 'warning');
+            return;
+        }
+
         statutMap('{% trans "Recherche en cours..." %}', 'info');
 
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=tg`)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=tg`, {
+            headers: { 'Accept-Language': 'fr' }
+        })
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
                     var pos = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
                     _map.setView(pos, 16);
                     poseMarqueur(pos);
+                    statutMap('{% trans "Adresse trouvée !" %}', 'success');
                 } else {
-                    statutMap('{% trans "Adresse introuvable. Cliquez sur la carte." %}', 'warning');
+                    statutMap('{% trans "Adresse introuvable. Veuillez cliquer manuellement sur la carte." %}', 'warning');
                 }
             })
-            .catch(() => statutMap('{% trans "Erreur de recherche." %}', 'danger'));
+            .catch(err => {
+                console.error('Geocoding error:', err);
+                statutMap('{% trans "Erreur de recherche (Serveur indisponible)." %}', 'danger');
+            });
     }
 
     function useGPS() {

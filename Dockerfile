@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libjpeg-dev \
     zlib1g-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer les dépendances Python

@@ -418,7 +418,7 @@ class MarketingCampaign(models.Model):
         VERIFIED = 'VERIFIED', _('Professionnels Vérifiés uniquement')
 
     subject = models.CharField(max_length=255, verbose_name=_("Objet de l'e-mail"))
-    content = models.TextField(verbose_name=_("Contenu (HTML supporté)"), help_message=_("Utilisez [PRENOM] ou [NOM] pour personnaliser."))
+    content = models.TextField(verbose_name=_("Contenu (HTML supporté)"), help_text=_("Utilisez [PRENOM] ou [NOM] pour personnaliser."))
     recipient_group = models.CharField(
         max_length=20, 
         choices=RecipientGroup.choices, 

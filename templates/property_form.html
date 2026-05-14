@@ -154,6 +154,22 @@
             <label class="form-label">{{ form.visit_fee.label }}</label>
             <div class="input-group">{{ form.visit_fee }}<span class="input-group-text" style="background:#0b4629;color:white;border:none;border-radius:0 12px 12px 0;">CFA</span></div>
           </div>
+          <div class="col-md-6" id="price-container">
+            <label class="form-label" id="price-label">{% trans "Prix / Loyer" %}</label>
+            <div class="input-group">
+              {{ form.price }}
+              <select class="form-select w-auto" id="price-unit-selector" style="flex:0 0 100px; border-top-left-radius:0; border-bottom-left-radius:0; background-color:#f8f9fa;">
+                  <option value="month">/ {% trans "mois" %}</option>
+                  <option value="night">/ {% trans "nuit" %}</option>
+                  <option value="total">{% trans "Total" %}</option>
+              </select>
+            </div>
+            <div class="d-none">{{ form.price_per_night }}</div>
+          </div>
+          <div class="col-md-6" id="document-type-container">
+            <label class="form-label">{% trans "Type de document" %}</label>
+            {{ form.document_type }}
+          </div>
           <div class="col-12">
             <label class="form-label">{{ form.description.label }}</label>
             {{ form.description }}
@@ -353,23 +369,53 @@ function applyDynamicFormLogic() {
         const isSale      = val === 'SALE';
         const isFurnished = val === 'FURNISHED';
         const isRent      = val === 'RENT';
-        const isTerrain   = propType === 'TERRAIN' || propType.includes('PARCELLE') || propType.includes('TERRAIN');
+        const isTerrain   = propType === 'TERRAIN' || propType.includes('PARCELLE');
 
         // Type de document → seulement pour VENTE
         isSale ? show(documentTypeContainer) : hide(documentTypeContainer);
 
-        // Prix par nuitée → seulement pour MEUBLÉ
-        isFurnished ? show(pricePerNightContainer) : hide(pricePerNightContainer);
+        // Sélecteur d'unité de prix
+        const unitSelector = document.getElementById('price-unit-selector');
+        const priceInput = document.getElementById('id_price');
+        const pricePerNightInput = document.getElementById('id_price_per_night');
 
-        // Conditions de bail → LOCATION ou MEUBLÉ
-        (isRent || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
+        // Réinitialiser les options du sélecteur
+        Array.from(unitSelector.options).forEach(opt => opt.style.display = 'none');
 
-        // Libellé du prix principal
-        if (priceLabel) {
-            if (isSale)           priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
-            else if (isFurnished) priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
-            else                  priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
+        if (isFurnished) {
+            show(unitSelector);
+            unitSelector.querySelector('option[value="month"]').style.display = 'block';
+            unitSelector.querySelector('option[value="night"]').style.display = 'block';
+            // Default to night for furnished if empty?
+            if (!unitSelector.value || unitSelector.value === 'total') unitSelector.value = 'night';
+        } else if (isSale) {
+            show(unitSelector);
+            unitSelector.querySelector('option[value="total"]').style.display = 'block';
+            unitSelector.value = 'total';
+        } else {
+            show(unitSelector);
+            unitSelector.querySelector('option[value="month"]').style.display = 'block';
+            unitSelector.value = 'month';
         }
+
+        // Synchronisation des prix lors de la saisie ou du changement d'unité
+        const syncPrices = () => {
+            const val = priceInput.value;
+            if (isFurnished) {
+                if (unitSelector.value === 'night') {
+                    pricePerNightInput.value = val;
+                    // On garde price pour le loyer mensuel si jamais ils remplissent les deux plus tard,
+                    // mais ici le sélecteur impose un choix exclusif.
+                } else {
+                    pricePerNightInput.value = '';
+                }
+            } else {
+                pricePerNightInput.value = '';
+            }
+        };
+
+        if (unitSelector) unitSelector.addEventListener('change', syncPrices);
+        if (priceInput) priceInput.addEventListener('input', syncPrices);
         ['bedrooms', 'toilets', 'salons', 'kitchens', 'total_rooms', 'households', 'floor_level'].forEach(f => {
             const el = document.getElementById('id_' + f);
             const col = el ? el.closest('[class*="col-"]') : null;

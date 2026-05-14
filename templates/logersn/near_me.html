@@ -36,6 +36,56 @@
 .route-info-box .label { font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; font-weight: 700; }
 .route-info-box .value { font-size: 1.1rem; font-weight: 800; color: var(--color-gold); }
 
+/* Marqueurs Premium MapLibre */
+.premium-marker {
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+}
+.premium-marker:hover {
+    transform: scale(1.2) translateY(-5px);
+    z-index: 1000;
+}
+
+.price-bubble {
+    background: white;
+    color: var(--color-dark-green);
+    font-weight: 900;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 50px;
+    border: 2px solid var(--color-dark-green);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+}
+.price-bubble.sale {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+.price-bubble.furnished {
+    border-color: var(--color-gold);
+    color: var(--color-dark-green);
+    background: var(--color-gold);
+}
+
+.user-location-marker {
+    width: 24px;
+    height: 24px;
+    background: var(--color-accent);
+    border: 4px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    animation: pulseGps 2s infinite;
+}
+@keyframes pulseGps {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
 /* Panneau latéral */
 .side-panel {
     width: 380px; min-width: 380px; height: 100%;
@@ -208,7 +258,13 @@
             el.id = `marker-${p.id}`;
             
             const price = p.price_night > 0 ? p.price_night : p.price_month;
-            el.innerText = (price / 1000).toFixed(0) + 'k';
+            if (price >= 1000000) {
+                el.innerText = (price / 1000000).toFixed(1) + 'M';
+            } else if (price >= 1000) {
+                el.innerText = (price / 1000).toFixed(0) + 'k';
+            } else {
+                el.innerText = price;
+            }
             
             const popup = new maplibregl.Popup({ offset: 25 }).setHTML(`
                 <div style="width:240px; font-family: 'Outfit', sans-serif;">

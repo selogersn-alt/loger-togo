@@ -287,7 +287,7 @@
         </div>
         {% endif %}
         <div class="upload-zone" id="drop-zone" onclick="document.getElementById('image-input').click()">
-          <input type="file" id="image-input" multiple accept="image/*" class="d-none">
+          <input type="file" id="image-input" name="images" multiple accept="image/*" class="d-none">
           <i class="fa-solid fa-cloud-arrow-up fa-3x text-success mb-3"></i>
           <h5 class="fw-bold">{% trans "Glissez vos photos ici" %}</h5>
           <p class="text-muted small">{% trans "JPG, PNG, WEBP — Compression automatique activée" %}</p>
@@ -564,17 +564,20 @@ function initImageUpload() {
         try {
             const formData = new FormData(form);
             
-            // Supprimer le champ images vide par défaut de Django pour le remplacer
+            // On nettoie les entrées "images" pour ne garder que celles gérées par notre script
             formData.delete('images');
 
             if (selectedFiles.length > 0) {
                 if (statusText) statusText.innerText = `{% trans "Optimisation des images..." %}`;
+                console.log("[Upload] Debut compression de", selectedFiles.length, "fichiers");
                 
                 for (let i = 0; i < selectedFiles.length; i++) {
                     const file = selectedFiles[i];
                     try {
                         const compressed = await imageCompression(file, options);
-                        formData.append('images', compressed, file.name.split('.')[0] + '.webp');
+                        const fileName = (file.name || 'image').split('.')[0] + '.webp';
+                        formData.append('images', compressed, fileName);
+                        console.log("[Upload] Image compresse:", fileName);
                         
                         const pct = Math.round(((i + 1) / selectedFiles.length) * 100);
                         if (progressBar) progressBar.style.width = `${pct}%`;
@@ -583,7 +586,7 @@ function initImageUpload() {
                         }
                     } catch (err) {
                         console.error('Compression failed for', file.name, err);
-                        formData.append('images', file); // Fallback image brute
+                        formData.append('images', file); // Fallback
                     }
                 }
             }

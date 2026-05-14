@@ -221,19 +221,33 @@ def create_property_view(request):
         form = PropertyForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                # Évite les doubles soumissions par clic rapide (basique)
+                # Évite les doubles soumissions par clic rapide
                 p = form.save(commit=False)
                 p.owner = request.user
                 p.save()
                 
-                # Gestion des images
+                # Gestion robuste des images (Support AJAX & Multi-part)
+                # On récupère les images soit du formulaire nettoyé, soit directement des FILES
                 images = request.FILES.getlist('images')
+                
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Sauvegarde de {len(images)} images pour le bien {p.id}")
+
                 for i, img in enumerate(images):
                     PropertyImage.objects.create(property=p, image_url=img, is_primary=(i == 0))
                 
+                # Si c'est une requête AJAX, on répond en JSON
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/annonces/{p.id}/'})
+
                 messages.success(request, _("Votre annonce a été créée avec succès !"))
                 return redirect('initiate_payment', property_id=p.id, payment_type='PUBLICATION')
             except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Erreur création property: {e}")
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
                 messages.error(request, _("Erreur lors de la création : %s") % str(e))
     else: 
         form = PropertyForm()
@@ -252,12 +266,17 @@ def edit_property_view(request, property_id):
         if form.is_valid():
             p = form.save()
             
-            # On n'ajoute des images que si l'utilisateur en a sélectionné de nouvelles
+            # Gestion robuste des images en édition
             new_images = request.FILES.getlist('images')
             if new_images:
+                import logging
+                logging.getLogger(__name__).info(f"Ajout de {len(new_images)} nouvelles images pour {p.id}")
                 for img in new_images:
                     PropertyImage.objects.create(property=p, image_url=img)
             
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/annonces/{p.id}/'})
+
             messages.success(request, _("Annonce mise à jour avec succès !"))
             return redirect('/mon-compte/?section=ads')
     else:

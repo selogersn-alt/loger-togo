@@ -58,7 +58,7 @@ from users.views import (
 from logersn.views import (
     create_property_view, properties_list_view, property_detail_view,
     edit_property_view, delete_property_view, submit_review_view, toggle_favorite_view,
-    apply_to_property_view, request_reservation_view, request_visit_view,
+    apply_to_property_view, request_reservation_view, request_visit_view, visit_success_view,
     duplicate_property_view, subscribe_alert_view, unsubscribe_alert_view,
     near_me_view, nearby_api_view, seo_search_view, delete_image_view,
     get_campaign_template_view, admin_select_email_template
@@ -109,6 +109,7 @@ urlpatterns = [
     path('annonces/<uuid:property_id>/candidater/', apply_to_property_view, name='apply_to_property'),
     path('annonces/<uuid:property_id>/reserver/', request_reservation_view, name='request_reservation'),
     path('annonces/<uuid:property_id>/visiter/', request_visit_view, name='request_visit'),
+    path('annonces/visite/succes/<uuid:visit_id>/', visit_success_view, name='visit_success'),
     
     # --- SEO Landing Pages ---
     path('louer/appartement/lome/', seo_search_view, {'listing_category': 'RENT', 'property_type': 'APPARTEMENT', 'city': 'LOME'}, name='seo_rent_apt_lome'),

@@ -86,17 +86,26 @@ def dashboard_view(request):
     """Hub central affichant les statistiques et les accès rapides (Senior UI Logic)."""
     try:
         user_properties = request.user.properties.all().prefetch_related('images').order_by('-created_at')
-        total_views = user_properties.aggregate(Sum('views_count'))['views_count__sum'] or 0
+        
+        # Statistiques pour les propriétaires
+        stats_aggregation = user_properties.aggregate(total_views=Sum('views_count'))
+        total_views = stats_aggregation.get('total_views') or 0
         
         # Statistiques avancées pour le tableau de bord Pro
         pending_reservations = Reservation.objects.filter(property__owner=request.user, status='PENDING').count()
         total_reservations = Reservation.objects.filter(property__owner=request.user).count()
         pending_visits = VisitRequest.objects.filter(property__owner=request.user, status='PENDING').count()
         pending_messages = request.user.conversations.filter(status='PENDING').count()
+        
     except Exception as e:
+        # En cas d'erreur de base de données ou autre, on initialise des valeurs par défaut pour éviter le crash 500
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Dashboard View Error: {str(e)}")
+        
         user_properties = request.user.properties.all().prefetch_related('images').order_by('-created_at')
         total_views, pending_reservations, total_reservations, pending_visits, pending_messages = 0, 0, 0, 0, 0
-    
+
     return render(request, 'dashboard.html', {
         'user_properties': user_properties,
         'total_views': total_views,

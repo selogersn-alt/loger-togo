@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseRedirect
 from django.db.models import Q, Avg
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -403,20 +405,58 @@ def request_reservation_view(request, property_id):
 @login_required
 def request_visit_view(request, property_id):
     """Gère la planification d'une visite pour location/vente."""
+    from logertogo.emails import send_visit_request_email
+    import logging
+    logger = logging.getLogger('django')
+    
     p = get_object_or_404(Property, id=property_id)
     if request.method == 'POST':
-        visit_date = request.POST.get('visit_date')
-        if visit_date:
-            VisitRequest.objects.create(
-                property=p,
-                user=request.user,
-                proposed_date=visit_date
-            )
-            messages.success(request, _("Votre demande de visite a été transmise !"))
+        visit_date_str = request.POST.get('visit_date')
+        if visit_date_str:
+            try:
+                # Parsing robuste de la date (format datetime-local)
+                proposed_date = parse_datetime(visit_date_str)
+                if not proposed_date:
+                    # Fallback si format inattendu
+                    from django.utils.dateparse import parse_date
+                    proposed_date = parse_datetime(visit_date_str.replace('T', ' '))
+                
+                if proposed_date:
+                    # Vérifier si la date est dans le futur
+                    if proposed_date < timezone.now():
+                        messages.error(request, _("La date de visite doit être dans le futur."))
+                        return redirect(p.get_absolute_url())
+
+                    visit = VisitRequest.objects.create(
+                        property=p,
+                        user=request.user,
+                        proposed_date=proposed_date
+                    )
+                    
+                    # Notification email au propriétaire
+                    if p.owner.email:
+                        try:
+                            send_visit_request_email(p.owner, request.user, p, proposed_date)
+                        except Exception as e:
+                            logger.error(f"Failed to send visit request email: {e}")
+
+                    messages.success(request, _("Votre demande de visite a été transmise !"))
+                    return redirect('visit_success', visit_id=visit.id)
+                else:
+                    messages.error(request, _("Format de date invalide."))
+            except Exception as e:
+                logger.error(f"Error creating VisitRequest: {e}")
+                messages.error(request, _("Une erreur est survenue lors de l'enregistrement de votre demande."))
         else:
             messages.error(request, _("Veuillez choisir une date."))
             
     return redirect(p.get_absolute_url())
+
+@login_required
+def visit_success_view(request, visit_id):
+    """Page de confirmation de succès pour une demande de visite."""
+    visit = get_object_or_404(VisitRequest, id=visit_id, user=request.user)
+    return render(request, 'logersn/visit_success.html', {'visit': visit})
 
 @login_required
 def duplicate_property_view(request, property_id):

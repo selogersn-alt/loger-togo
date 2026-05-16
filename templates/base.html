@@ -595,6 +595,30 @@
         {% endfor %}
     {% endif %}
 
+    <!-- Global Feedback (Toasts) -->
+    <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="toast-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="toast show animate__animated animate__fadeInRight mb-2 border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 15px; background: white; min-width: 300px;">
+                        <div class="toast-header border-0 {% if message.tags == 'error' %}bg-danger{% elif message.tags == 'success' %}bg-success{% else %}bg-primary{% endif %} text-white" style="border-radius: 15px 15px 0 0;">
+                            <i class="fas {% if message.tags == 'error' %}fa-circle-xmark{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %} me-2"></i>
+                            <strong class="me-auto">
+                                {% if message.tags == 'error' %}{% trans "Erreur" %}
+                                {% elif message.tags == 'success' %}{% trans "Succès" %}
+                                {% else %}{% trans "Notification" %}{% endif %}
+                            </strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body fw-medium py-3">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Alerte Fraude Dynamique DigitalH -->
     {% if critical_fraud_alerts %}
     <div class="fraud-marquee container-fluid bg-danger text-white py-2" style="font-size: 0.9rem; overflow: hidden; white-space: nowrap; position: relative; z-index: 1060;">
@@ -642,7 +666,7 @@
                         <a class="nav-link" href="{% url 'properties_list' %}">{% trans "Annonces" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'professionals_list' %}">{% trans "Annuaire" %}</a>
+                        <a class="nav-link" href="{% url 'professionals_list' %}">{% trans "Agences & Pros" %}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:post_list' %}">{% trans "Blog" %}</a>

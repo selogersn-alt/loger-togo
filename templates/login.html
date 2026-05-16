@@ -66,8 +66,10 @@
                     </form>
 
                     <div class="text-center mt-4 pt-3 border-top" style="border-color: var(--border-color) !important;">
-                        <p class="mb-2" style="color: var(--text-muted);">{% trans "Vous n'avez pas encore de compte ?" %}</p>
-                        <a href="{% url 'register' %}" class="btn btn-outline-success w-100 py-2" style="border-radius: 12px; font-weight: 600;">{% trans "Créer un compte" %}</a>
+                        <p class="mb-3" style="color: var(--text-muted);">{% trans "Nouveau sur Loger Togo ?" %}</p>
+                        <a href="{% url 'register' %}" class="btn btn-outline-success w-100 py-3" style="border-radius: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-user-plus me-2"></i>{% trans "Créer un compte gratuitement" %}
+                        </a>
                     </div>
                 </div>
             </div>

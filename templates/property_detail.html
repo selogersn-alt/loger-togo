@@ -453,9 +453,14 @@
                     <div class="map-ctrl-detail">
                         <button type="button" class="btn-map-ctrl" onclick="toggleDetailFullscreen()"><i class="fas fa-expand"></i></button>
                     </div>
-                    <div class="route-info-detail" id="routeInfoDetail">
+                    <div class="route-info-detail" id="routeInfoDetail" style="display: none;">
                         <div class="small fw-bold"><span id="detailDist">--</span> km (<span id="detailTime">--</span> min)</div>
-                        <button type="button" class="btn btn-sm btn-link text-white p-0" onclick="hideDetailRoute()">×</button>
+                        <div class="mt-1">
+                            <a id="externalNavBtn" href="#" target="_blank" class="text-white small text-decoration-underline">
+                                <i class="fas fa-external-link-alt me-1"></i>{% trans "Ouvrir GPS" %}
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-white p-0 position-absolute top-0 end-0 me-2" onclick="hideDetailRoute()">×</button>
                     </div>
                 </div>
                 {% if not property.latitude %}
@@ -888,12 +893,61 @@
                 alert('{% trans "Veuillez autoriser la géolocalisation." %}');
                 return;
             }
-            _map.fitBounds([_userPos, propertyPos], { padding: 50 });
+
+            // Affichage info route
+            document.getElementById('routeInfoDetail').style.display = 'block';
+            
+            // Lien vers Google Maps externe
+            document.getElementById('externalNavBtn').href = `https://www.google.com/maps/dir/?api=1&origin=${_userPos[1]},${_userPos[0]}&destination=${propertyPos[1]},${propertyPos[0]}&travelmode=driving`;
+
+            // Appel API OSRM (Public) pour itinéraire réel
+            fetch(`https://router.project-osrm.org/route/v1/driving/${_userPos[0]},${_userPos[1]};${propertyPos[0]},${propertyPos[1]}?overview=full&geometries=geojson`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.routes && data.routes.length > 0) {
+                        const route = data.routes[0];
+                        const distKm = (route.distance / 1000).toFixed(1);
+                        const timeMin = Math.round(route.duration / 60);
+                        
+                        document.getElementById('detailDist').innerText = distKm;
+                        document.getElementById('detailTime').innerText = timeMin;
+
+                        // Dessiner la ligne sur la carte
+                        if (_map.getLayer('route')) _map.removeLayer('route');
+                        if (_map.getSource('route')) _map.removeSource('route');
+
+                        _map.addSource('route', {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'Feature',
+                                'properties': {},
+                                'geometry': route.geometry
+                            }
+                        });
+
+                        _map.addLayer({
+                            'id': 'route',
+                            'type': 'line',
+                            'source': 'route',
+                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                            'paint': { 'line-color': '#198754', 'line-width': 5, 'line-opacity': 0.8 }
+                        });
+                    }
+                    // Ajuster la vue avec padding et maxZoom pour éviter le "grand zoom"
+                    _map.fitBounds([_userPos, propertyPos], { padding: 100, maxZoom: 15 });
+                })
+                .catch(err => {
+                    console.error("OSRM Error:", err);
+                    // Fallback ligne droite si OSRM échoue
+                    _map.fitBounds([_userPos, propertyPos], { padding: 100, maxZoom: 15 });
+                });
         };
 
         window.hideDetailRoute = function() {
             document.getElementById('routeInfoDetail').style.display = 'none';
-            _map.setView(propertyPos, 16);
+            if (_map.getLayer('route')) _map.removeLayer('route');
+            if (_map.getSource('route')) _map.removeSource('route');
+            _map.flyTo({ center: propertyPos, zoom: 16 });
         };
 
         window.toggleDetailFullscreen = function() {

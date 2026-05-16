@@ -12,7 +12,11 @@ from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from rest_framework import viewsets
-from .models import Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, PropertyApplication, MarketingCampaignTemplate, MarketingCampaign
+from .models import (
+    Property, PropertyImage, Favorite, PropertyReview, PropertyAlert, 
+    PropertyApplication, MarketingCampaignTemplate, MarketingCampaign,
+    VisitRequest, Reservation
+)
 from .forms import PropertyForm
 from .constants import PROPERTY_TYPE_CHOICES, CITY_CHOICES
 from .serializers import PropertySerializer, PropertyImageSerializer

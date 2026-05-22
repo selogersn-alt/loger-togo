@@ -220,7 +220,45 @@
 
     function hideRoute() {
         document.getElementById('routeInfo').style.display = 'none';
-        // En MapLibre on pourrait enlever un layer de line, mais ici on simplifie
+        if (_map) {
+            if (_map.getLayer('route-line')) _map.removeLayer('route-line');
+            if (_map.getSource('route')) _map.removeSource('route');
+        }
+    }
+
+    function drawFallbackLine(start, end) {
+        if (_map.getLayer('route-line')) _map.removeLayer('route-line');
+        if (_map.getSource('route')) _map.removeSource('route');
+
+        const geojson = {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': {
+                'type': 'LineString',
+                'coordinates': [start, end]
+            }
+        };
+
+        _map.addSource('route', {
+            'type': 'geojson',
+            'data': geojson
+        });
+
+        _map.addLayer({
+            'id': 'route-line',
+            'type': 'line',
+            'source': 'route',
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            'paint': {
+                'line-color': '#3b82f6',
+                'line-width': 6,
+                'line-opacity': 0.85,
+                'line-dasharray': [2, 2]
+            }
+        });
     }
 
     window.showRoute = function(targetLat, targetLng) {
@@ -242,6 +280,58 @@
         document.getElementById('routeDist').textContent = dist.toFixed(1) + ' km';
         document.getElementById('routeTime').textContent = Math.round(dist * 2.5) + ' min';
         document.getElementById('routeInfo').style.display = 'flex';
+
+        // Supprimer la ligne existante avant le nouvel appel
+        if (_map.getLayer('route-line')) _map.removeLayer('route-line');
+        if (_map.getSource('route')) _map.removeSource('route');
+
+        // Appel API OSRM
+        const url = `https://router.project-osrm.org/route/v1/driving/${_userPos[0]},${_userPos[1]};${targetLng},${targetLat}?overview=full&geometries=geojson`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    const distanceKm = route.distance / 1000;
+                    const durationMin = route.duration / 60;
+                    
+                    document.getElementById('routeDist').textContent = distanceKm.toFixed(1) + ' km';
+                    document.getElementById('routeTime').textContent = Math.round(durationMin) + ' min';
+
+                    const geojson = {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': route.geometry
+                    };
+
+                    _map.addSource('route', {
+                        'type': 'geojson',
+                        'data': geojson
+                    });
+
+                    _map.addLayer({
+                        'id': 'route-line',
+                        'type': 'line',
+                        'source': 'route',
+                        'layout': {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        'paint': {
+                            'line-color': '#3b82f6',
+                            'line-width': 6,
+                            'line-opacity': 0.85
+                        }
+                    });
+                } else {
+                    drawFallbackLine(_userPos, [targetLng, targetLat]);
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching OSRM route:', err);
+                drawFallbackLine(_userPos, [targetLng, targetLat]);
+            });
 
         _map.fitBounds([_userPos, [targetLng, targetLat]], { padding: 100 });
     }

@@ -426,6 +426,10 @@ def request_visit_view(request, property_id):
                     proposed_date = parse_datetime(visit_date_str.replace('T', ' '))
                 
                 if proposed_date:
+                    # Rendre la date aware si elle est naive pour éviter l'erreur 500 (comparison offset-naive vs offset-aware)
+                    if timezone.is_naive(proposed_date):
+                        proposed_date = timezone.make_aware(proposed_date)
+
                     # Vérifier si la date est dans le futur
                     if proposed_date < timezone.now():
                         messages.error(request, _("La date de visite doit être dans le futur."))

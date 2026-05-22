@@ -234,6 +234,103 @@
         background-color: white;
     }
 
+    /* Floating Contact Bar CSS */
+    .floating-contact-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+        z-index: 1050;
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+        animation: slideUpFloat 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpFloat {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    .floating-contact-bar .price-value {
+        font-size: 1.15rem;
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: -0.5px;
+    }
+
+    .floating-contact-bar .btn-phone {
+        background-color: var(--color-dark-green, #0b4629);
+        color: white;
+        font-weight: 700;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        transition: all 0.25s ease;
+        border-radius: 50px;
+        text-decoration: none;
+    }
+
+    .floating-contact-bar .btn-phone:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(11, 70, 41, 0.25);
+        background-color: #08331e;
+        color: white;
+    }
+
+    .floating-contact-bar .btn-whatsapp {
+        background-color: #25D366;
+        color: white;
+        font-weight: 700;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        transition: all 0.25s ease;
+        border-radius: 50px;
+        text-decoration: none;
+    }
+
+    .floating-contact-bar .btn-whatsapp:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+        background-color: #20ba59;
+        color: white;
+    }
+
+    @media (max-width: 991.98px) {
+        body {
+            padding-bottom: 75px !important;
+        }
+    }
+
+    /* On very small devices, hide the button text to prevent overflow */
+    @media (max-width: 375px) {
+        .floating-contact-bar .btn-phone span,
+        .floating-contact-bar .btn-whatsapp span {
+            display: none;
+        }
+        .floating-contact-bar .btn-phone,
+        .floating-contact-bar .btn-whatsapp {
+            padding: 12px;
+            border-radius: 50% !important;
+            width: 44px;
+            height: 44px;
+            justify-content: center;
+        }
+    }
+
 </style>
 {% endblock %}
 
@@ -783,6 +880,36 @@
     </div>
   </div>
 </div>
+
+<!-- Floating Contact Bar for Mobile/Tablet -->
+<div class="floating-contact-bar d-lg-none">
+    <div class="container d-flex align-items-center justify-content-between py-2 px-3">
+        <div class="price-info">
+            <span class="price-value fw-bold text-success">
+                {% if property.listing_category == 'FURNISHED' %}
+                    {{ property.price_per_night|format_price }} FCFA <span class="small opacity-75" style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/ nuit</span>
+                {% else %}
+                    {% if property.discount_price and property.discount_price < property.price %}
+                        {{ property.discount_price|format_price }} FCFA
+                    {% else %}
+                        {{ property.price|format_price }} FCFA
+                    {% endif %}
+                    <span class="small opacity-75" style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">{% if property.listing_category == 'SALE' %}{% else %}/ mois{% endif %}</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="contact-actions d-flex gap-2">
+            {% if property.owner.phone_number %}
+            <a href="tel:{{ property.owner.phone_number }}" class="btn btn-phone" aria-label="{% trans "Appeler" %}">
+                <i class="fa-solid fa-phone"></i> <span>{% trans "Appeler" %}</span>
+            </a>
+            <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce sur Loger Togo :" %} {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-whatsapp" aria-label="WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i> <span>WhatsApp</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -900,11 +1027,41 @@
             // Lien vers Google Maps externe
             document.getElementById('externalNavBtn').href = `https://www.google.com/maps/dir/?api=1&origin=${_userPos[1]},${_userPos[0]}&destination=${propertyPos[1]},${propertyPos[0]}&travelmode=driving`;
 
+            function drawDetailFallbackLine(start, end) {
+                if (_map.getLayer('route')) _map.removeLayer('route');
+                if (_map.getSource('route')) _map.removeSource('route');
+
+                _map.addSource('route', {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': [start, end]
+                        }
+                    }
+                });
+
+                _map.addLayer({
+                    'id': 'route',
+                    'type': 'line',
+                    'source': 'route',
+                    'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                    'paint': { 
+                        'line-color': '#198754', 
+                        'line-width': 5, 
+                        'line-opacity': 0.8,
+                        'line-dasharray': [2, 2]
+                    }
+                });
+            }
+
             // Appel API OSRM (Public) pour itinéraire réel
             fetch(`https://router.project-osrm.org/route/v1/driving/${_userPos[0]},${_userPos[1]};${propertyPos[0]},${propertyPos[1]}?overview=full&geometries=geojson`)
                 .then(r => r.json())
                 .then(data => {
-                    if (data.routes && data.routes.length > 0) {
+                    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
                         const route = data.routes[0];
                         const distKm = (route.distance / 1000).toFixed(1);
                         const timeMin = Math.round(route.duration / 60);
@@ -932,6 +1089,8 @@
                             'layout': { 'line-join': 'round', 'line-cap': 'round' },
                             'paint': { 'line-color': '#198754', 'line-width': 5, 'line-opacity': 0.8 }
                         });
+                    } else {
+                        drawDetailFallbackLine(_userPos, propertyPos);
                     }
                     // Ajuster la vue avec padding et maxZoom pour éviter le "grand zoom"
                     _map.fitBounds([_userPos, propertyPos], { padding: 100, maxZoom: 15 });
@@ -939,6 +1098,7 @@
                 .catch(err => {
                     console.error("OSRM Error:", err);
                     // Fallback ligne droite si OSRM échoue
+                    drawDetailFallbackLine(_userPos, propertyPos);
                     _map.fitBounds([_userPos, propertyPos], { padding: 100, maxZoom: 15 });
                 });
         };

@@ -43,7 +43,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.05);
             width: 100%;
             max-width: 800px;
-            padding: 3rem;
+            padding: 3.5rem;
             border: 1px solid var(--border-color);
             position: relative;
         }
@@ -52,21 +52,29 @@
         .receipt-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 2rem;
             margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
         }
 
         .logo-block {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
+        }
+
+        .logo-block img {
+            max-height: 75px;
+            max-width: 180px;
+            object-fit: contain;
         }
 
         .logo-block i {
             color: var(--primary);
-            font-size: 2.5rem;
+            font-size: 2.75rem;
         }
 
         .logo-block h1 {
@@ -74,6 +82,7 @@
             font-size: 1.75rem;
             font-weight: 800;
             color: var(--primary);
+            line-height: 1.2;
         }
 
         .receipt-title {
@@ -82,7 +91,7 @@
 
         .receipt-title h2 {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: var(--primary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -92,6 +101,7 @@
         .receipt-title span {
             font-size: 0.85rem;
             color: var(--text-muted);
+            display: block;
         }
 
         /* Details Grid */
@@ -115,7 +125,7 @@
 
         .details-col p {
             font-size: 0.9rem;
-            line-height: 1.5;
+            line-height: 1.6;
             color: var(--text-muted);
         }
 
@@ -155,7 +165,22 @@
         .total-row td {
             border-bottom: 2px solid var(--primary);
             color: var(--primary);
-            font-size: 1.1rem;
+            font-size: 1.15rem;
+        }
+
+        /* Badge payment method */
+        .payment-method-badge {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--primary-light);
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 1rem;
         }
 
         /* Stamp & Signature block */
@@ -253,17 +278,23 @@
         <!-- Header -->
         <div class="receipt-header">
             <div class="logo-block">
-                <i class="fa-solid fa-hotel"></i>
-                <div>
-                    <h1>Loger Togo</h1>
-                    <span style="font-size: 0.75rem; color: var(--primary-light); font-weight: 700; text-transform: uppercase;">Quittance Immobilière</span>
-                </div>
+                {% if payment.receipt_logo %}
+                    <img src="{{ payment.receipt_logo.url }}" alt="Logo Agence">
+                {% elif agency.profile_picture %}
+                    <img src="{{ agency.profile_picture.url }}" alt="Logo Agence">
+                {% else %}
+                    <i class="fa-solid fa-hotel"></i>
+                    <div>
+                        <h1>Loger Togo</h1>
+                        <span style="font-size: 0.75rem; color: var(--primary-light); font-weight: 700; text-transform: uppercase;">Quittance Immobilière</span>
+                    </div>
+                {% endif %}
             </div>
             
             <div class="receipt-title">
-                <h2>Quittance</h2>
-                <span>Réf: QLT-{{ payment.id|stringformat:".8s"|upper }}</span><br>
-                <span>Date: {{ today|date:"d F Y" }}</span>
+                <h2>Quittance de Loyer</h2>
+                <span>Réf: QLT-{{ payment.id|stringformat:".8s"|upper }}</span>
+                <span>Date d'émission: {{ today|date:"d F Y" }}</span>
             </div>
         </div>
 
@@ -272,8 +303,8 @@
             <div class="details-col">
                 <h3>Émetteur / Bailleur</h3>
                 <p>
-                    <strong>{{ payment.lease.custom_header_text|default:agency.company_name|default:"Agence Partenaire Loger Togo" }}</strong><br>
-                    Propriétaire: {{ agency.get_full_name }}<br>
+                    <strong>{{ payment.receipt_header|default:payment.lease.custom_header_text|default:agency.company_name|default:"Agence Partenaire Loger Togo" }}</strong><br>
+                    Propriétaire/Gérant: {{ agency.get_full_name }}<br>
                     Tél: {{ agency.phone_number }}<br>
                     Email: {{ agency.email|default:"contact@logertogo.com" }}
                 </p>
@@ -303,7 +334,7 @@
                 <tr>
                     <td>
                         <strong>Loyer Périodique</strong><br>
-                        Période du {{ payment.period_start|date:"d/m/Y" }} au {{ payment.period_start|date:"t/m/Y" }}
+                        Période du {{ payment.period_start|date:"d/m/Y" }} au {{ payment.period_end|date:"d/m/Y" }}
                     </td>
                     <td>
                         {{ payment.lease.property.title }}<br>
@@ -329,8 +360,6 @@
                     <td colspan="3">Total Encaissé</td>
                     <td style="text-align: right;">
                         {% if payment.lease.deposit_amount > 0 and payment.period_start == payment.lease.start_date %}
-                            <!-- sum both rent and deposit -->
-                            <!-- simple sum calculated cleanly -->
                             {{ payment.amount_paid|add:payment.lease.deposit_amount|intcomma }} CFA
                         {% else %}
                             {{ payment.amount_paid|intcomma }} CFA
@@ -340,20 +369,44 @@
             </tbody>
         </table>
 
-        <!-- Summary note -->
-        <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 2rem;">
-            Cette quittance donne décharge au locataire pour le versement de la somme ci-dessus indiquée, sous réserve de tous droits et d'encaissement définitif de tout chèque ou virement bancaire.
-        </p>
+        <!-- Summary & Method note -->
+        <div style="margin-bottom: 2rem;">
+            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1rem;">
+                Cette quittance donne décharge au locataire pour le versement de la somme ci-dessus indiquée, sous réserve de tous droits et d'encaissement définitif de tout chèque ou transfert de fonds mobile.
+            </p>
+            
+            <div class="payment-method-badge">
+                <i class="fa-solid fa-credit-card"></i>
+                <span>Mode de Paiement :
+                    {% if payment.payment_method == 'ESPECES' %}Espèces
+                    {% elif payment.payment_method == 'VIREMENT' %}Virement Bancaire
+                    {% elif payment.payment_method == 'T-MONEY' %}T-Money (Mobile Money)
+                    {% elif payment.payment_method == 'FLOOZ' %}Flooz (Mobile Money)
+                    {% elif payment.payment_method == 'CHEQUE' %}Chèque
+                    {% else %}{{ payment.payment_method|default:"Espèces" }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Custom Footer receipt_footer terms -->
+        {% if payment.receipt_footer %}
+            <div style="border-top: 1px dashed var(--border-color); padding-top: 1.25rem; margin-top: 2rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; text-align: center;">
+                {{ payment.receipt_footer }}
+            </div>
+        {% endif %}
 
         <!-- Signatures -->
         <div class="signature-section">
             <div>
-                <p style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">Généré numériquement via Loger Togo CRM.</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Document officiel généré numériquement via Loger Togo CRM.</p>
             </div>
             
             <div class="signature-box">
-                <strong>Signature & Cachet</strong>
-                <div style="height: 80px;"></div> <!-- placeholder space for stamp -->
+                <strong>Signature & Cachet de l'Agence</strong>
+                <div style="height: 90px; display: flex; align-items: center; justify-content: center; opacity: 0.15; font-size: 2rem;">
+                    <i class="fa-solid fa-stamp"></i>
+                </div>
             </div>
         </div>
     </div>

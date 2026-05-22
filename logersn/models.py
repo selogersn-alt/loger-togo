@@ -69,6 +69,8 @@ class Property(models.Model):
     has_garden = models.BooleanField(default=False, blank=True, verbose_name=_("Jardin"))
     
     is_published = models.BooleanField(default=False, db_index=True)
+    is_authorized_by_admin = models.BooleanField(default=False, verbose_name="Autorisé par l'administrateur")
+    publication_requested = models.BooleanField(default=False, verbose_name="Demande de publication")
     
     # Équipements et caractéristiques (Amenities)
     wifi = models.BooleanField(default=False, verbose_name=_("WiFi"))

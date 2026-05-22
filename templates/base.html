@@ -672,6 +672,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:post_list' %}">{% trans "Blog" %}</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-success fw-semibold" href="http://agence.logertogo.com/" target="_blank"><i class="fa-solid fa-hotel me-1"></i>{% trans "Espace Agence" %}</a>
+                    </li>
 
                     
                     <li class="nav-item dropdown">
@@ -715,6 +718,7 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" style="border-radius: 15px;">
                                 <li><a class="dropdown-item rounded py-2" href="{% url 'dashboard' %}"><i class="fa-solid fa-chart-line me-2"></i> {% trans "Tableau de bord" %}</a></li>
+                                <li><a class="dropdown-item rounded py-2 text-success fw-semibold" href="http://agence.logertogo.com/" target="_blank"><i class="fa-solid fa-hotel me-2"></i> {% trans "Espace Agence CRM" %}</a></li>
                                 <li><a class="dropdown-item rounded py-2" href="{% url 'public_profile' user.id %}"><i class="fa-solid fa-id-card me-2"></i> {% trans "Mon Profil Public" %}</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger rounded py-2" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> {% trans "Déconnexion" %}</a></li>

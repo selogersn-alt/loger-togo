@@ -16,8 +16,8 @@
 
     .properties-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.75rem;
     }
 
     .property-card {
@@ -27,7 +27,7 @@
         border: 1px solid var(--border-glass);
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
         display: flex;
         flex-direction: column;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -36,19 +36,15 @@
     .property-card:hover {
         transform: translateY(-5px);
         border-color: rgba(16, 185, 129, 0.25);
-        box-shadow: 0 12px 35px rgba(16, 185, 129, 0.08);
+        box-shadow: 0 12px 35px rgba(16, 185, 129, 0.1);
     }
 
-    .property-image-placeholder {
-        height: 180px;
-        background: linear-gradient(135deg, rgba(16, 26, 21, 0.8), rgba(10, 15, 12, 0.9));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255, 255, 255, 0.15);
-        font-size: 3rem;
-        border-bottom: 1px solid var(--border-glass);
+    .property-image {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
         position: relative;
+        border-bottom: 1px solid var(--border-glass);
     }
 
     .property-tag {
@@ -60,10 +56,10 @@
         font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
-        background: var(--primary-light);
         color: white;
     }
 
+    .property-tag-rent { background: var(--primary-light); }
     .property-tag-sale { background: #3b82f6; }
     .property-tag-furnished { background: #a855f7; }
 
@@ -76,7 +72,7 @@
     }
 
     .property-price {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
         font-weight: 800;
         color: var(--accent);
         font-family: 'Outfit', sans-serif;
@@ -84,9 +80,10 @@
 
     .property-title {
         font-family: 'Outfit', sans-serif;
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         font-weight: 700;
         color: var(--text-main);
+        line-height: 1.4;
     }
 
     .property-loc {
@@ -115,18 +112,26 @@
 
     .property-actions {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr 1fr;
         gap: 0.5rem;
         border-top: 1px solid var(--border-glass);
         padding: 1rem;
         background: rgba(0, 0, 0, 0.15);
     }
 
-    .property-actions .btn {
-        padding: 0.5rem;
-        font-size: 0.75rem;
+    .badge {
+        padding: 0.25rem 0.6rem;
         border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
     }
+
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-secondary { background: rgba(255, 255, 255, 0.08); color: #e5e7eb; border: 1px solid rgba(255,255,255,0.1); }
 </style>
 {% endblock %}
 
@@ -134,9 +139,9 @@
 <div class="properties-header">
     <div>
         <h2 style="font-size: 2rem;">Mon Portefeuille de Biens</h2>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Catalogue complet de vos annonces et biens immobiliers associés</p>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Catalogue complet de vos actifs immobiliers (privés CRM & annonces publiques)</p>
     </div>
-    <a href="https://logertogo.com/annonces/nouvelle/" target="_blank" class="btn btn-primary">
+    <a href="{% url 'agency_property_create' %}" class="btn btn-primary">
         <i class="fa-solid fa-plus-circle"></i> Ajouter un Bien
     </a>
 </div>
@@ -145,12 +150,22 @@
 <div class="properties-grid">
     {% for prop in properties %}
         <div class="property-card">
-            <div class="property-image-placeholder">
-                <i class="fa-regular fa-image"></i>
-                
-                <span class="property-tag {% if prop.listing_category == 'SALE' %}property-tag-sale{% elif prop.listing_category == 'FURNISHED' %}property-tag-furnished{% endif %}">
+            <!-- Property Image & Status Badges -->
+            <div class="property-image" style="background-image: url('{{ prop.get_main_image }}');">
+                <span class="property-tag {% if prop.listing_category == 'SALE' %}property-tag-sale{% elif prop.listing_category == 'FURNISHED' %}property-tag-furnished{% else %}property-tag-rent{% endif %}">
                     {{ prop.get_listing_category_display }}
                 </span>
+                
+                <!-- Rentila-inspired visual publication state -->
+                <div style="position: absolute; top: 1rem; right: 1rem;">
+                    {% if prop.is_published %}
+                        <span class="badge badge-success"><i class="fa-solid fa-globe"></i> Publié</span>
+                    {% elif prop.publication_requested %}
+                        <span class="badge badge-warning" title="En attente de validation par l'administrateur"><i class="fa-solid fa-hourglass-half"></i> En attente</span>
+                    {% else %}
+                        <span class="badge badge-secondary"><i class="fa-solid fa-lock"></i> Privé CRM</span>
+                    {% endif %}
+                </div>
             </div>
             
             <div class="property-body">
@@ -158,11 +173,11 @@
                     {% if prop.listing_category == 'FURNISHED' and prop.price_per_night %}
                         {{ prop.price_per_night|intcomma }} CFA <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">/ nuit</span>
                     {% else %}
-                        {{ prop.price|intcomma }} CFA
+                        {{ prop.price|intcomma }} CFA {% if prop.listing_category != 'SALE' %}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">/ mois</span>{% endif %}
                     {% endif %}
                 </div>
                 
-                <h3 class="property-title">{{ prop.title }}</h3>
+                <h3 class="property-title" title="{{ prop.title }}">{{ prop.title|truncatechars:45 }}</h3>
                 
                 <div class="property-loc">
                     <i class="fa-solid fa-location-dot" style="color: var(--primary-light);"></i>
@@ -176,16 +191,22 @@
                 </div>
             </div>
             
+            <!-- Quick Subdomain Edit and Public Toggle actions -->
             <div class="property-actions">
-                <a href="https://logertogo.com/annonces/{{ prop.id }}/" target="_blank" class="btn btn-secondary">
-                    <i class="fa-solid fa-eye"></i> Voir
-                </a>
-                <a href="https://logertogo.com/annonces/{{ prop.id }}/modifier/" target="_blank" class="btn btn-secondary">
+                <a href="{% url 'agency_property_edit' prop.id %}" class="btn btn-secondary" style="padding: 0.5rem; font-size: 0.75rem; border-radius: 8px;">
                     <i class="fa-solid fa-edit"></i> Modifier
                 </a>
-                <a href="https://logertogo.com/annonces/{{ prop.id }}/dupliquer/" target="_blank" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.05); color: var(--primary-light); border-color: rgba(16, 185, 129, 0.15);">
-                    <i class="fa-solid fa-copy"></i> Dupliquer
-                </a>
+                
+                <form method="POST" action="{% url 'agency_property_toggle_publication' prop.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn {% if prop.is_published %}btn-secondary{% else %}btn-primary{% endif %}" style="padding: 0.5rem; font-size: 0.75rem; border-radius: 8px; width: 100%; {% if prop.is_published %}background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;{% endif %}">
+                        {% if prop.is_published %}
+                            <i class="fa-solid fa-eye-slash"></i> Retirer
+                        {% else %}
+                            <i class="fa-solid fa-share-nodes"></i> Rendre Public
+                        {% endif %}
+                    </button>
+                </form>
             </div>
         </div>
     {% empty %}
@@ -193,7 +214,7 @@
             <i class="fa-solid fa-building-circle-xmark" style="font-size: 3rem; display: block; margin-bottom: 1.5rem; color: rgba(255,255,255,0.05);"></i>
             Vous n'avez aucun bien immobilier répertorié dans votre portefeuille pour le moment.
             <div style="margin-top: 1.5rem;">
-                <a href="https://logertogo.com/annonces/nouvelle/" target="_blank" class="btn btn-primary">Créer votre premier bien</a>
+                <a href="{% url 'agency_property_create' %}" class="btn btn-primary">Créer votre premier bien</a>
             </div>
         </div>
     {% endfor %}

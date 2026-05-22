@@ -145,13 +145,24 @@ def agency_promo(request):
     """
     if request.user.is_authenticated and request.user.is_saas_active:
         return redirect('agency_dashboard')
+        
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.info(request, "Veuillez vous connecter ou créer un compte pour lancer votre essai gratuit de 15 jours.")
+            return redirect(f"{reverse('agency_login')}?next={reverse('agency_promo')}")
+            
+        request.user.is_saas_active = True
+        request.user.save()
+        messages.success(request, "Félicitations ! Votre essai de 15 jours a été activé avec succès. Bienvenue dans votre Espace Agence CRM !")
+        return redirect('agency_dashboard')
+        
     return render(request, 'agency/agency_promo.html')
 
 
 @agency_saas_required
 def agency_dashboard(request):
     """
-    Main SaaS Dashboard for the agency.
+    Main SaaS Dashboard for the agency with Advanced Statistics.
     """
     agency = request.user
     
@@ -164,6 +175,12 @@ def agency_dashboard(request):
     total_leases = my_leases.count()
     active_leases_count = my_leases.filter(status=Lease.StatusEnum.ACTIVE).count()
     
+    # Occupancy Rate (taux d'occupation)
+    occupancy_rate = 0
+    if total_properties > 0:
+        occupied_properties_count = my_leases.filter(status=Lease.StatusEnum.ACTIVE).values('property').distinct().count()
+        occupancy_rate = round((occupied_properties_count / total_properties) * 100, 1)
+        
     # Collected rent revenue (Total payments where status is PAID or PARTIAL)
     payments = RentPayment.objects.filter(lease__landlord=agency)
     total_revenue = payments.filter(status=RentPayment.StatusEnum.PAID).aggregate(total=Sum('amount_paid'))['total'] or 0
@@ -186,19 +203,27 @@ def agency_dashboard(request):
         if stage in pipeline_counts:
             pipeline_counts[stage] = stat['count']
             
-    # Monthly collected revenues (mock data or actual if payments exist)
-    # We populate the Chart.js dataset
-    months_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    # Monthly collected revenues (actual if payments exist)
+    months_labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
     monthly_data = [0] * 12
     for p in payments.filter(status=RentPayment.StatusEnum.PAID, date_paid__isnull=False):
         month_idx = p.date_paid.month - 1
         monthly_data[month_idx] += float(p.amount_paid)
+
+    # Property category breakdown for advanced visual analysis
+    categories_stats = Property.objects.filter(owner=agency).values('listing_category').annotate(count=Count('id'))
+    categories_data = {'RENT': 0, 'SALE': 0, 'FURNISHED': 0}
+    for item in categories_stats:
+        cat = item['listing_category']
+        if cat in categories_data:
+            categories_data[cat] = item['count']
 
     context = {
         'total_clients': total_clients,
         'total_properties': total_properties,
         'total_leases': total_leases,
         'active_leases_count': active_leases_count,
+        'occupancy_rate': occupancy_rate,
         'total_revenue': total_revenue,
         'total_unpaid': total_unpaid,
         'recent_clients': recent_clients,
@@ -206,6 +231,7 @@ def agency_dashboard(request):
         'pipeline_counts': pipeline_counts,
         'months_labels': months_labels,
         'monthly_data': monthly_data,
+        'categories_data': categories_data,
     }
     return render(request, 'agency/agency_dashboard.html', context)
 
@@ -382,19 +408,50 @@ def agency_leases(request):
 @agency_saas_required
 def agency_payments(request):
     """
-    Rent payments ledger & payment collection helper.
+    Rent payments ledger & payment collection helper with Advanced Accounting.
     """
     agency = request.user
-    payments = RentPayment.objects.filter(lease__landlord=agency).order_by('-period_start')
+    
+    # Advanced Filtering
+    status_filter = request.GET.get('status', '')
+    property_filter = request.GET.get('property', '')
+    tenant_filter = request.GET.get('tenant', '')
+    
+    payments_qs = RentPayment.objects.filter(lease__landlord=agency)
+    
+    if status_filter:
+        payments_qs = payments_qs.filter(status=status_filter)
+    if property_filter:
+        payments_qs = payments_qs.filter(lease__property_id=property_filter)
+    if tenant_filter:
+        payments_qs = payments_qs.filter(lease__tenant_id=tenant_filter)
+        
+    payments = payments_qs.order_by('-period_start')
+    
+    # Advanced Accounting Totals
+    totals = payments.aggregate(
+        due=Sum('amount_due'),
+        paid=Sum('amount_paid')
+    )
+    total_due = totals['due'] or 0
+    total_paid = totals['paid'] or 0
+    total_outstanding = total_due - total_paid
     
     # Active leases list for recording payments
     active_leases = Lease.objects.filter(landlord=agency, status=Lease.StatusEnum.ACTIVE)
     
+    # Distinct properties and tenants for filters
+    filter_properties = Property.objects.filter(leases__landlord=agency).distinct()
+    filter_tenants = User.objects.filter(tenant_leases__landlord=agency).distinct()
+    
     if request.method == 'POST':
-        # Logging/Collecting a payment
         payment_id = request.POST.get('payment_id')
         amount_paid = request.POST.get('amount_paid')
         date_paid = request.POST.get('date_paid')
+        payment_method = request.POST.get('payment_method', 'ESPECES')
+        receipt_header = request.POST.get('receipt_header', '')
+        receipt_footer = request.POST.get('receipt_footer', '')
+        receipt_logo = request.FILES.get('receipt_logo')
         
         payment = get_object_or_404(RentPayment, id=payment_id, lease__landlord=agency)
         
@@ -402,7 +459,12 @@ def agency_payments(request):
             amt = float(amount_paid)
             payment.amount_paid = amt
             payment.date_paid = date_paid if date_paid else timezone.now().date()
-            
+            payment.payment_method = payment_method
+            payment.receipt_header = receipt_header
+            payment.receipt_footer = receipt_footer
+            if receipt_logo:
+                payment.receipt_logo = receipt_logo
+                
             if amt >= float(payment.amount_due):
                 payment.status = RentPayment.StatusEnum.PAID
             elif amt > 0:
@@ -418,6 +480,14 @@ def agency_payments(request):
         'payments': payments,
         'active_leases': active_leases,
         'statuses': RentPayment.StatusEnum.choices,
+        'filter_properties': filter_properties,
+        'filter_tenants': filter_tenants,
+        'status_filter': status_filter,
+        'property_filter': property_filter,
+        'tenant_filter': tenant_filter,
+        'total_due': total_due,
+        'total_paid': total_paid,
+        'total_outstanding': total_outstanding,
     }
     return render(request, 'agency/agency_payments.html', context)
 
@@ -451,3 +521,156 @@ def agency_properties(request):
         'properties': properties,
     }
     return render(request, 'agency/agency_properties.html', context)
+
+
+@agency_saas_required
+def agency_property_create(request):
+    """
+    SaaS Property Creation directly from agence.logertogo.com dashboard.
+    No need to return to the main site.
+    """
+    from logersn.forms import PropertyForm
+    from logersn.constants import TOGO_NEIGHBORHOODS
+    from logersn.models import PropertyImage
+
+    agency = request.user
+    if request.method == 'POST':
+        form = PropertyForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                p = form.save(commit=False)
+                p.owner = agency
+                
+                # Check publication toggle
+                make_public = request.POST.get('make_public') == 'on'
+                if make_public:
+                    p.publication_requested = True
+                    p.is_published = False  # requires authorization
+                else:
+                    p.publication_requested = False
+                    p.is_published = False
+                
+                p.save()
+                
+                # Multi-image upload
+                images = request.FILES.getlist('images')
+                for i, img in enumerate(images):
+                    PropertyImage.objects.create(property=p, image_url=img, is_primary=(i == 0))
+                
+                if make_public:
+                    messages.success(request, f"Le bien '{p.title}' a été créé. La demande de publication sur le site d'annonces est en attente d'autorisation.")
+                else:
+                    messages.success(request, f"Le bien '{p.title}' a été créé avec succès pour votre agence.")
+                
+                return redirect('agency_properties')
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la création du bien : {str(e)}")
+        else:
+            messages.error(request, "Veuillez corriger les erreurs dans le formulaire.")
+    else:
+        form = PropertyForm()
+
+    context = {
+        'form': form,
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS,
+    }
+    return render(request, 'agency/agency_property_form.html', context)
+
+
+@agency_saas_required
+def agency_property_edit(request, property_id):
+    """
+    SaaS Property Editing directly from agence.logertogo.com dashboard.
+    """
+    from logersn.forms import PropertyForm
+    from logersn.constants import TOGO_NEIGHBORHOODS
+    from logersn.models import PropertyImage
+
+    agency = request.user
+    p = get_object_or_404(Property, id=property_id, owner=agency)
+    
+    if request.method == 'POST':
+        form = PropertyForm(request.POST, request.FILES, instance=p)
+        if form.is_valid():
+            try:
+                p = form.save(commit=False)
+                
+                make_public = request.POST.get('make_public') == 'on'
+                if make_public:
+                    if not p.is_authorized_by_admin:
+                        p.publication_requested = True
+                        p.is_published = False
+                else:
+                    p.is_published = False
+                    p.publication_requested = False
+                
+                p.save()
+                
+                # Multi-image upload in edit
+                images = request.FILES.getlist('images')
+                if images:
+                    for img in images:
+                        PropertyImage.objects.create(property=p, image_url=img)
+                
+                messages.success(request, f"Le bien '{p.title}' a été mis à jour avec succès.")
+                return redirect('agency_properties')
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la modification : {str(e)}")
+        else:
+            messages.error(request, "Veuillez corriger les erreurs dans le formulaire.")
+    else:
+        form = PropertyForm(instance=p)
+
+    context = {
+        'form': form,
+        'property': p,
+        'is_edit': True,
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS,
+    }
+    return render(request, 'agency/agency_property_form.html', context)
+
+
+@agency_saas_required
+def agency_property_toggle_publication(request, property_id):
+    """
+    Quick publication request/toggle endpoint.
+    """
+    agency = request.user
+    p = get_object_or_404(Property, id=property_id, owner=agency)
+    
+    if p.is_published:
+        # Easy withdraw
+        p.is_published = False
+        p.publication_requested = False
+        p.save()
+        messages.success(request, f"Le bien '{p.title}' a été retiré de la publication publique.")
+    else:
+        # Request publication
+        if p.is_authorized_by_admin:
+            # Already authorized previously, immediately go public
+            p.is_published = True
+            p.publication_requested = True
+            p.save()
+            messages.success(request, f"Le bien '{p.title}' est maintenant publié publiquement.")
+        else:
+            p.publication_requested = True
+            p.is_published = False
+            p.save()
+            messages.success(request, f"La demande de publication publique pour le bien '{p.title}' a été envoyée. En attente de validation.")
+            
+    return redirect('agency_properties')
+
+
+def agency_404_handler(request, exception=None):
+    """
+    Subdomain custom 404 Page Not Found view.
+    """
+    return render(request, 'agency/404.html', status=404)
+
+
+def agency_500_handler(request):
+    """
+    Subdomain custom 500 Server Error view.
+    """
+    return render(request, 'agency/500.html', status=500)
+

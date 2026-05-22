@@ -1,77 +1,82 @@
-# 🛡️ Rapport d'Audit Global : Loger Togo (Mai 2026)
+# 🛡️ Rapport d'Audit de Sécurité & Logique Métier Complet (Mai 2026)
 
-## 1. VISION D'ENSEMBLE
-La plateforme **Loger Togo** a franchi une étape majeure dans sa modernisation. En un mois, les failles critiques de sécurité ont été corrigées, l'interface a été entièrement repensée selon un standard "Premium", et la dépendance aux services payants (Google Maps) a été éliminée sur le Web au profit de solutions Open Source (Leaflet).
-
----
-
-## 2. ÉTAT DE LA MIGRATION CARTOGRAPHIQUE
-### 🟢 WEB (100% Complété)
-*   **Leaflet.js** est désormais le moteur unique pour :
-    *   La liste des annonces (`properties_list.html`).
-    *   Le détail des biens (`property_detail.html`).
-    *   Le formulaire de soumission (`property_form.html`).
-    *   Le service de proximité (`near_me.html`).
-*   **Nominatim** (OSM) est utilisé pour le géocodage inverse, supprimant tout besoin de clé API Google Maps.
-
-### 🔴 MOBILE (En attente)
-*   L'application Flutter `loger_mobile` utilise toujours `google_maps_flutter`. 
-*   **Action Prioritaire** : Migration vers `flutter_map` (Leaflet) pour une cohérence totale et suppression des coûts API.
+## 📌 Résumé des tests exécutés
+*   **Total des tests** : 46
+*   **Tests réussis** : 39 ✅
+*   **Tests échoués** : 7 ❌
+*   **Taux de succès** : 84.8%
 
 ---
 
-## 3. SÉCURITÉ & PAIEMENTS
-### 🟢 HARDENING FEDAPAY (Vérifié)
-*   La vulnérabilité de validation de paiement par simple URL GET a été corrigée.
-*   `FedaPayBridge.verify_transaction(ref)` effectue désormais un appel serveur à serveur pour confirmer le statut réel de la transaction avant toute action (Boost, Publication).
+## 🔒 1. AUDIT DE SÉCURITÉ & CONTROLE D'ACCÈS (RBAC / IDOR / CSRF)
 
-### 🟢 GESTION DES IDENTITÉS
-*   Le système KYC est opérationnel.
-*   Les redirections vers la connexion pour les données sensibles (NILS) sont actives.
-
----
-
-## 4. ARCHITECTURE & PERFORMANCE
-### 🟢 DÉCOUPLAGE DU MONOLITHE
-*   Le fichier `views.py` central (1200+ lignes) a été fragmenté. 
-*   Les logiques sont maintenant réparties par application (`logersn`, `management`, `chat`, `users`), facilitant le travail collaboratif.
-
-### 🟢 OPTIMISATION DE LA BASE DE DONNÉES
-*   Les problèmes de requêtes **N+1** sur les images d'annonces ont été résolus via `select_related()` et `prefetch_related()` dans les vues principales.
-*   Chargement des images en **Lazy Loading** natif activé sur tous les templates.
-
----
-
-## 5. UI/UX & PRODUIT
-### 🟢 FORMULAIRE DE SOUMISSION "WIZARD"
-*   Transformation du formulaire monolithique en un **Wizard en 4 étapes** avec barre de progression.
-*   Intégration d'une carte interactive immersive pour la sélection GPS.
-*   Gestion dynamique des champs (Vente vs Location vs Meublé).
-
-### 🟢 DESIGN "PREMIUM"
-*   Application du style **Loger Togo Green (#0b4629)**.
-*   Usage intensif du **Glassmorphism** et des micro-animations (Animate.css).
-*   Thème sombre/clair entièrement synchronisé.
+| Nom du Test | Statut | Détails |
+| :--- | :---: | :--- |
+| RBAC: Anon Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/ |
+| RBAC: Anon Blocked on 'agency_clients' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/clients/ |
+| RBAC: Anon Blocked on 'agency_pipeline' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/pipeline/ |
+| RBAC: Anon Blocked on 'agency_leases' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/baux/ |
+| RBAC: Anon Blocked on 'agency_payments' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/paiements/ |
+| RBAC: Anon Blocked on 'agency_properties' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/ |
+| RBAC: Anon Blocked on 'agency_property_create' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/nouveau/ |
+| RBAC: Anon Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/346c4afa-f442-46df-ac73-c565906bf004/modifier/ |
+| RBAC: Anon Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/quittance/66f05647-0f08-47d5-9abb-bcbefce9f63e/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_clients' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_pipeline' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_leases' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_payments' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_properties' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_property_create' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /promo/ |
+| IDOR Protection: Receipt isolation | ✅ | Status: 404 (Expected 404) |
+| IDOR Protection: Property editing isolation | ✅ | Status: 404 (Expected 404) |
+| IDOR Protection: Property publication toggle isolation | ✅ | Status: 404 (Expected 404) |
+| CSRF Protection: POST Login without token | ❌ | Status: 200 (Expected 403) |
+| CSRF Protection: POST Property Create without token | ❌ | Status: 302 (Expected 403) |
+| XSS mitigation: strips HTML script tags from titles | ✅ | Cleaned: scriptalert('XSS')/script Superbe Villa! |
+| Hardening: strips variation selector unicode invisible characters | ✅ | Cleaned: Villa Magnifique! |
 
 ---
 
-## 6. INFRASTRUCTURE & DÉPLOIEMENT
-### 🟢 DOCKER (Hetzner VPS)
-*   Setup robuste avec **Nginx Alpine**, **PostgreSQL 15**, et **Gunicorn**.
-*   Gestion automatique des permissions de volumes (Service `fixer`).
-*   Renouvellement automatique des certificats SSL via **Certbot**.
+## 🧠 2. AUDIT DE LOGIQUE MÉTIER & FLUX IMMOBILIERS
 
-### 🟢 PWA (Progressive Web App)
-*   Manifeste et Service Worker opérationnels.
-*   Bouton d'installation personnalisé intégré dans la navigation mobile.
+| Nom du Test | Statut | Détails |
+| :--- | :---: | :--- |
+| Bounds: Blocks negative numbers on form validation | ✅ | Form threw validation errors correctly. |
+| Sync Rules: CRM listing stays unpublished pending admin approval | ✅ | is_published: False, publication_requested: True |
+| Sync Rules: Agency can withdraw listing without admin intervention | ✅ | is_published: False |
+| Payments: Transition to PARTIAL on partial collection | ✅ | Status: PARTIAL, Paid: 40000.00 |
+| Payments: Transition to PAID on full collection | ✅ | Status: PAID, Paid: 100000.00 |
+| Quittances: Context variables contains payment & agency | ✅ | Context keys present: None (HTML body: 11890 bytes) |
+
+---
+
+## 🛣️ 3. AUDIT DES ROUTES & ENDPOINTS DE LA PLATEFORME
+
+| Nom du Test | Statut | Détails |
+| :--- | :---: | :--- |
+| Main Public URL: home | ❌ | Status: 400 |
+| Main Public URL: about | ❌ | Status: 400 |
+| Main Public URL: properties_list | ❌ | Status: 400 |
+| Main Public URL: cgu | ❌ | Status: 400 |
+| Main Public URL: privacy | ❌ | Status: 400 |
+| Subdomain Promo Page | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_dashboard' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_clients' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_pipeline' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_leases' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_payments' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_properties' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_property_create' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_property_edit' | ✅ | Status: 200 |
+| Active SaaS Access to 'agency_receipt' | ✅ | Status: 200 |
 
 ---
 
-## 7. BACKLOG & RECOMMANDATIONS
-1.  **Migration Mobile** : Porter `loger_mobile` sur OpenStreetMap.
-2.  **Optimisation Stockage** : Activer le support **S3/Cloudflare R2** (déjà configuré dans settings.py) dès que le volume d'images dépasse 1 Go.
-3.  **Marketing Automatisé** : Utiliser le module `management` pour automatiser les relances de paiement de loyer.
+## 📋 4. RECOMMANDATIONS & AMÉLIORATIONS
 
----
-**Audit réalisé par Antigravity.**
-*Plateforme stable et prête pour la montée en charge.*
+1.  **Validation Strict des Bornes Numériques** : En plus du formulaire, ajouter des contraintes `validators=[MinValueValidator(0)]` directement sur les modèles de base Django (`price`, `visit_fee`, `deposit_months`, etc.) pour une sécurité au niveau de la couche base de données.
+2.  **CSRF sur les API** : S'assurer que les endpoints de l'API REST sous `/api/` utilisent correctement l'authentification par Token ou Session avec des en-têtes CSRF appropriés.
+3.  **Cookies Multi-domaines** : Confirmer que la configuration `SESSION_COOKIE_DOMAIN = '.logertogo.com'` est bien présente dans les paramètres de production pour un SSO transparent.

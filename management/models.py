@@ -66,6 +66,11 @@ class RentPayment(models.Model):
     
     receipt_pdf = models.FileField(upload_to='receipts/', null=True, blank=True, verbose_name="Quittance de loyer (PDF)")
     
+    payment_method = models.CharField(max_length=50, null=True, blank=True, verbose_name="Mode de paiement")
+    receipt_logo = models.FileField(upload_to='receipt_logos/', null=True, blank=True, verbose_name="Logo de la quittance")
+    receipt_header = models.CharField(max_length=255, null=True, blank=True, verbose_name="En-tête personnalisé")
+    receipt_footer = models.TextField(null=True, blank=True, verbose_name="Pied de page personnalisé")
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

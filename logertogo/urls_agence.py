@@ -16,9 +16,16 @@ urlpatterns = [
     path('paiements/', views_agency.agency_payments, name='agency_payments'),
     path('quittance/<uuid:payment_id>/', views_agency.agency_receipt, name='agency_receipt'),
     path('biens/', views_agency.agency_properties, name='agency_properties'),
+    path('biens/nouveau/', views_agency.agency_property_create, name='agency_property_create'),
+    path('biens/<uuid:property_id>/modifier/', views_agency.agency_property_edit, name='agency_property_edit'),
+    path('biens/<uuid:property_id>/publication/', views_agency.agency_property_toggle_publication, name='agency_property_toggle_publication'),
 ]
 
 # Ensure static & media urls work under the subdomain as well
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+handler404 = 'management.views_agency.agency_404_handler'
+handler500 = 'management.views_agency.agency_500_handler'
+

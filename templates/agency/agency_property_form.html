@@ -1,0 +1,696 @@
+{% extends 'agency/base_agency.html' %}
+{% load i18n %}
+
+{% block title %}{% if is_edit %}Modifier le bien : {{ property.title }}{% else %}Ajouter un nouveau bien - Loger Togo CRM{% endif %}{% endblock %}
+
+
+{% block extra_head %}
+<style>
+    .wizard-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Rentila-inspired Step Indicators */
+    .steps-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        background: var(--panel-bg);
+        padding: 1.5rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-glass);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.9rem;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .step-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid var(--border-glass);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        color: var(--text-muted);
+    }
+
+    .step-item.active {
+        color: var(--text-main);
+    }
+
+    .step-item.active .step-badge {
+        background: var(--primary-light);
+        border-color: var(--primary-light);
+        color: white;
+        box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .step-item.completed {
+        color: var(--primary-light);
+    }
+
+    .step-item.completed .step-badge {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: var(--primary-light);
+        color: var(--primary-light);
+    }
+
+    /* Form Content Box */
+    .wizard-panel {
+        display: none;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .wizard-panel.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Input Styling */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-group-full {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .form-control-input, .form-select-input, .form-textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-glass);
+        border-radius: 12px;
+        padding: 0.85rem 1.25rem;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .form-control-input:focus, .form-select-input:focus, .form-textarea:focus {
+        border-color: var(--primary-light);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .form-textarea {
+        height: 120px;
+        resize: vertical;
+    }
+
+    /* Checkbox list grid */
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .checkbox-card {
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid var(--border-glass);
+        padding: 0.85rem 1.25rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .checkbox-card:hover {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(16, 185, 129, 0.15);
+    }
+
+    .checkbox-card input[type="checkbox"] {
+        accent-color: var(--primary-light);
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    /* Custom File Input Upload Card */
+    .file-upload-card {
+        border: 2px dashed var(--border-glass);
+        padding: 2.5rem;
+        border-radius: 20px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.01);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 0.5rem;
+    }
+
+    .file-upload-card:hover {
+        border-color: var(--primary-light);
+        background: rgba(16, 185, 129, 0.02);
+    }
+
+    .file-upload-card i {
+        font-size: 3rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+
+    .file-upload-card:hover i {
+        transform: translateY(-5px);
+        color: var(--primary-light);
+    }
+
+    /* Buttons block */
+    .wizard-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        border-top: 1px solid var(--border-glass);
+        padding-top: 1.5rem;
+    }
+
+    /* Premium Warning Alert */
+    .warning-panel {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        padding: 1rem 1.5rem;
+        border-radius: 16px;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+    }
+
+    .warning-panel i {
+        font-size: 1.25rem;
+        margin-top: 0.1rem;
+    }
+
+    /* Togo flag details */
+    .badge-togo {
+        background: linear-gradient(135deg, #006a4e, #ffd100, #d21034);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.65rem;
+        border-radius: 4px;
+        font-weight: 700;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+    <div style="margin-bottom: 2.5rem;">
+        <h2 style="font-size: 2.25rem; display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fa-solid fa-hotel" style="color: var(--primary-light);"></i>
+            {% if is_edit %}Modifier le Bien{% else %}Ajouter un Bien{% endif %}
+        </h2>
+        <p style="color: var(--text-muted); font-size: 1rem;">
+            {% if is_edit %}Mettez à jour les caractéristiques de votre propriété interne ou publique.{% else %}Formulaire unifié de création de propriété pour votre agence.{% endif %}
+        </p>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="steps-indicator">
+        <div class="step-item active" id="indicator-1" onclick="goToStep(1)">
+            <div class="step-badge">1</div>
+            <span>Type & Généralités</span>
+        </div>
+        <div class="step-item" id="indicator-2" onclick="goToStep(2)">
+            <div class="step-badge">2</div>
+            <span>Tarification</span>
+        </div>
+        <div class="step-item" id="indicator-3" onclick="goToStep(3)">
+            <div class="step-badge">3</div>
+            <span>Adresse & Specs</span>
+        </div>
+        <div class="step-item" id="indicator-4" onclick="goToStep(4)">
+            <div class="step-badge">4</div>
+            <span>Médias & Visibilité</span>
+        </div>
+    </div>
+
+    <!-- Wizard Form -->
+    <form method="POST" enctype="multipart/form-data" class="glass-panel" style="padding: 2.5rem;" id="propertyForm">
+        {% csrf_token %}
+        
+        <!-- STEP 1: Type & Generalities -->
+        <div class="wizard-panel active" id="step-1">
+            <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem; color: var(--primary-light);">
+                <i class="fa-solid fa-circle-info" style="margin-right: 0.5rem;"></i> Étape 1 : Type de bien & Renseignements
+            </h3>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="id_listing_category">Catégorie de Transaction <span style="color: red;">*</span></label>
+                    <select name="listing_category" id="id_listing_category" class="form-select-input" onchange="adjustPricingFields()">
+                        <option value="RENT" {% if form.listing_category.value == 'RENT' %}selected{% endif %}>{% trans "A Louer (Classique)" %}</option>
+                        <option value="SALE" {% if form.listing_category.value == 'SALE' %}selected{% endif %}>{% trans "A Vendre" %}</option>
+                        <option value="FURNISHED" {% if form.listing_category.value == 'FURNISHED' %}selected{% endif %}>{% trans "A Louer (Meublé)" %}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_property_type">Type de Propriété <span style="color: red;">*</span></label>
+                    <select name="property_type" id="id_property_type" class="form-select-input">
+                        {% for value, label in form.fields.property_type.choices %}
+                            <option value="{{ value }}" {% if form.property_type.value == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="id_title">Titre de l'annonce <span style="color: red;">*</span></label>
+                    <input type="text" name="title" id="id_title" class="form-control-input" required placeholder="Ex: Splendide Appartement F4 avec vue sur mer à Agoè" value="{{ form.title.value|default:'' }}">
+                </div>
+
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="id_description">Description complète <span style="color: red;">*</span></label>
+                    <textarea name="description" id="id_description" class="form-textarea" required placeholder="Décrivez les atouts de votre bien (proximité, calme, sécurité, etc.)...">{{ form.description.value|default:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: Tarification -->
+        <div class="wizard-panel" id="step-2">
+            <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem; color: var(--primary-light);">
+                <i class="fa-solid fa-wallet" style="margin-right: 0.5rem;"></i> Étape 2 : Modalités Financières & Tarifs
+            </h3>
+            
+            <div class="form-grid">
+                <!-- Standard Price -->
+                <div class="form-group" id="group_price">
+                    <label class="form-label" id="label_price" for="id_price">Prix / Loyer Mensuel (FCFA) <span style="color: red;">*</span></label>
+                    <input type="number" name="price" id="id_price" class="form-control-input" placeholder="Ex: 150000" value="{{ form.price.value|default:'' }}">
+                </div>
+
+                <!-- Price per night (for furnished properties) -->
+                <div class="form-group" id="group_price_per_night">
+                    <label class="form-label" for="id_price_per_night">Prix par Nuitée (FCFA) <span style="color: red;">*</span></label>
+                    <input type="number" name="price_per_night" id="id_price_per_night" class="form-control-input" placeholder="Ex: 35000" value="{{ form.price_per_night.value|default:'' }}">
+                </div>
+
+                <!-- Deposit Months (Caution) -->
+                <div class="form-group" id="group_deposit">
+                    <label class="form-label" for="id_deposit_months">Caution (Nombre de mois)</label>
+                    <input type="number" name="deposit_months" id="id_deposit_months" class="form-control-input" placeholder="Ex: 3" value="{{ form.deposit_months.value|default:'0' }}">
+                </div>
+
+                <!-- Advance Months (Avance) -->
+                <div class="form-group" id="group_advance">
+                    <label class="form-label" for="id_advance_months">Avance sur Loyer (Nombre de mois)</label>
+                    <input type="number" name="advance_months" id="id_advance_months" class="form-control-input" placeholder="Ex: 6" value="{{ form.advance_months.value|default:'0' }}">
+                </div>
+
+                <!-- Agency fee -->
+                <div class="form-group" id="group_agency_fee">
+                    <label class="form-label" for="id_agency_fee_months">Commission d'Agence (Nombre de mois)</label>
+                    <input type="number" name="agency_fee_months" id="id_agency_fee_months" class="form-control-input" placeholder="Ex: 1" value="{{ form.agency_fee_months.value|default:'0' }}">
+                </div>
+
+                <!-- Visit fee -->
+                <div class="form-group">
+                    <label class="form-label" for="id_visit_fee">Frais de Visite (FCFA)</label>
+                    <input type="number" name="visit_fee" id="id_visit_fee" class="form-control-input" placeholder="Ex: 5000" value="{{ form.visit_fee.value|default:'0' }}">
+                </div>
+
+                <!-- Document type (for sale) -->
+                <div class="form-group" id="group_document_type">
+                    <label class="form-label" for="id_document_type">Type de Document Administratif</label>
+                    <select name="document_type" id="id_document_type" class="form-select-input">
+                        {% for value, label in form.fields.document_type.choices %}
+                            <option value="{{ value }}" {% if form.document_type.value == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Address & Specs -->
+        <div class="wizard-panel" id="step-3">
+            <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem; color: var(--primary-light);">
+                <i class="fa-solid fa-map-location-dot" style="margin-right: 0.5rem;"></i> Étape 3 : Localisation & Spécifications Physiques
+            </h3>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="id_city">Ville <span style="color: red;">*</span> <span class="badge-togo">TOGO</span></label>
+                    <select name="city" id="id_city" class="form-select-input">
+                        {% for value, label in form.fields.city.choices %}
+                            <option value="{{ value }}" {% if form.city.value == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_neighborhood">Quartier <span style="color: red;">*</span></label>
+                    <input type="text" name="neighborhood" id="id_neighborhood" class="form-control-input" required placeholder="Ex: Agoè-Logopé" list="neighborhoods-datalist" value="{{ form.neighborhood.value|default:'' }}">
+                    <datalist id="neighborhoods-datalist">
+                        {% for n in togo_neighborhoods %}
+                            <option value="{{ n }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_surface">Surface Habitable (m²)</label>
+                    <input type="number" name="surface" id="id_surface" class="form-control-input" placeholder="Ex: 85" value="{{ form.surface.value|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_total_rooms">Nombre total de pièces</label>
+                    <input type="number" name="total_rooms" id="id_total_rooms" class="form-control-input" placeholder="Ex: 4" value="{{ form.total_rooms.value|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_bedrooms">Chambres à coucher</label>
+                    <input type="number" name="bedrooms" id="id_bedrooms" class="form-control-input" placeholder="Ex: 2" value="{{ form.bedrooms.value|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_salons">Salons</label>
+                    <input type="number" name="salons" id="id_salons" class="form-control-input" placeholder="Ex: 1" value="{{ form.salons.value|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_kitchens">Cuisines</label>
+                    <input type="number" name="kitchens" id="id_kitchens" class="form-control-input" placeholder="Ex: 1" value="{{ form.kitchens.value|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_toilets">Toilettes / Salles de Bain</label>
+                    <input type="number" name="toilets" id="id_toilets" class="form-control-input" placeholder="Ex: 2" value="{{ form.toilets.value|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_floor_level">Étage / Niveau</label>
+                    <input type="number" name="floor_level" id="id_floor_level" class="form-control-input" placeholder="Ex: 1 (0 pour RDC)" value="{{ form.floor_level.value|default:'' }}">
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 1.8rem; flex-wrap: wrap;">
+                    <label class="checkbox-card" style="margin: 0;">
+                        <input type="checkbox" name="has_garage" id="id_has_garage" {% if form.has_garage.value %}checked{% endif %}>
+                        <span>Garage / Parking</span>
+                    </label>
+                    <label class="checkbox-card" style="margin: 0;">
+                        <input type="checkbox" name="has_balcony" id="id_has_balcony" {% if form.has_balcony.value %}checked{% endif %}>
+                        <span>Balcon</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Médias & Publication -->
+        <div class="wizard-panel" id="step-4">
+            <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem; color: var(--primary-light);">
+                <i class="fa-solid fa-photo-film" style="margin-right: 0.5rem;"></i> Étape 4 : Équipements, Photos & Mode de Publication
+            </h3>
+
+            <!-- Amenities checkboxes checklist -->
+            <label class="form-label">Équipements inclus</label>
+            <div class="checkbox-grid" style="margin-bottom: 2rem;">
+                <label class="checkbox-card">
+                    <input type="checkbox" name="wifi" id="id_wifi" {% if form.wifi.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-wifi" style="color: var(--primary-light); width: 15px;"></i> WiFi</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="swimming_pool" id="id_swimming_pool" {% if form.swimming_pool.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-water" style="color: var(--primary-light); width: 15px;"></i> Piscine</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="gym" id="id_gym" {% if form.gym.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-dumbbell" style="color: var(--primary-light); width: 15px;"></i> Salle de gym</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="air_conditioning" id="id_air_conditioning" {% if form.air_conditioning.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-snowflake" style="color: var(--primary-light); width: 15px;"></i> Climatisation</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="refrigerator" id="id_refrigerator" {% if form.refrigerator.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-box" style="color: var(--primary-light); width: 15px;"></i> Réfrigérateur</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="washing_machine" id="id_washing_machine" {% if form.washing_machine.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-soap" style="color: var(--primary-light); width: 15px;"></i> Lave-linge</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="generator" id="id_generator" {% if form.generator.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-bolt" style="color: var(--primary-light); width: 15px;"></i> Groupe élec.</span>
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" name="water_tank" id="id_water_tank" {% if form.water_tank.value %}checked{% endif %}>
+                    <span><i class="fa-solid fa-faucet-drip" style="color: var(--primary-light); width: 15px;"></i> Réservoir d'eau</span>
+                </label>
+            </div>
+
+            <!-- Upload input fields -->
+            <div class="form-group form-group-full" style="margin-bottom: 2rem;">
+                <label class="form-label">Photos du bien immobilier <span style="color: red;">*</span></label>
+                <div class="file-upload-card" onclick="document.getElementById('id_images').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <strong style="display: block; font-size: 1.1rem; margin-bottom: 0.25rem;">Glissez vos images ici ou cliquez pour parcourir</strong>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Sélectionnez plusieurs photos. Formats acceptés : JPG, PNG, WEBP.</span>
+                    <input type="file" name="images" id="id_images" multiple accept="image/*" style="display: none;" onchange="showFileNames(this)">
+                </div>
+                <div id="file-list" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem; color: var(--primary-light);"></div>
+            </div>
+
+            <!-- Publication Toggle & Security checks -->
+            <div class="form-group form-group-full" style="border-top: 1px solid var(--border-glass); padding-top: 1.5rem;">
+                <label class="form-label" style="font-size: 0.95rem; color: var(--accent);">Portée de publication & Annonce publique</label>
+                
+                <label class="checkbox-card" style="padding: 1.25rem; margin-top: 0.5rem; background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2);">
+                    <input type="checkbox" name="make_public" id="id_make_public" onchange="toggleWarningPanel()" {% if property.publication_requested or property.is_published %}checked{% endif %}>
+                    <div>
+                        <strong style="display: block; font-size: 1.05rem; margin-bottom: 0.15rem; color: var(--text-main);">Rendre ce bien disponible publiquement</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">L'annonce sera envoyée vers le site principal d'annonces de Loger Togo.</span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Rentila inspired validation approval check -->
+            <div class="warning-panel" id="warning_panel" style="display: none; margin-top: 1.5rem;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.95rem; margin-bottom: 0.25rem;">🔒 Approbation administrative requise</strong>
+                    <span>Conformément aux règles de sécurité de Loger Togo, les annonces d'agence soumises à la publication publique nécessitent une validation rapide de l'équipe d'administration avant de figurer sur le site principal. Le bien restera disponible en privé pour vos baux et contrats de gérance pendant ce temps.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wizard buttons -->
+        <div class="wizard-footer">
+            <button type="button" class="btn btn-secondary" id="btn-prev" onclick="prevStep()" style="visibility: hidden;">
+                <i class="fa-solid fa-arrow-left"></i> Précédent
+            </button>
+            
+            <button type="button" class="btn btn-primary" id="btn-next" onclick="nextStep()">
+                Suivant <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            
+            <button type="submit" class="btn btn-primary" id="btn-submit" style="display: none; background: linear-gradient(135deg, var(--accent), #d97706); color: #000; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);">
+                <i class="fa-solid fa-floppy-disk"></i> Enregistrer le bien
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        adjustPricingFields();
+        toggleWarningPanel();
+    });
+
+    function showFileNames(input) {
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = '';
+        if (input.files.length > 0) {
+            const heading = document.createElement('strong');
+            heading.innerText = `${input.files.length} image(s) sélectionnée(s) :`;
+            fileList.appendChild(heading);
+            for (let i = 0; i < input.files.length; i++) {
+                const item = document.createElement('div');
+                item.innerHTML = `<i class="fa-regular fa-image" style="margin-right: 0.5rem;"></i>${input.files[i].name} (${(input.files[i].size / 1024 / 1024).toFixed(2)} MB)`;
+                fileList.appendChild(item);
+            }
+        }
+    }
+
+    function adjustPricingFields() {
+        const category = document.getElementById('id_listing_category').value;
+        
+        const gPrice = document.getElementById('group_price');
+        const lPrice = document.getElementById('label_price');
+        const gPricePerNight = document.getElementById('group_price_per_night');
+        const gDeposit = document.getElementById('group_deposit');
+        const gAdvance = document.getElementById('group_advance');
+        const gAgencyFee = document.getElementById('group_agency_fee');
+        const gDocType = document.getElementById('group_document_type');
+
+        if (category === 'RENT') {
+            gPrice.style.display = 'block';
+            lPrice.innerHTML = 'Loyer Mensuel (FCFA) <span style="color: red;">*</span>';
+            gPricePerNight.style.display = 'none';
+            gDeposit.style.display = 'block';
+            gAdvance.style.display = 'block';
+            gAgencyFee.style.display = 'block';
+            gDocType.style.display = 'none';
+        } else if (category === 'SALE') {
+            gPrice.style.display = 'block';
+            lPrice.innerHTML = 'Prix de Vente Net (FCFA) <span style="color: red;">*</span>';
+            gPricePerNight.style.display = 'none';
+            gDeposit.style.display = 'none';
+            gAdvance.style.display = 'none';
+            gAgencyFee.style.display = 'none';
+            gDocType.style.display = 'block';
+        } else if (category === 'FURNISHED') {
+            gPrice.style.display = 'block';
+            lPrice.innerHTML = 'Loyer Mensuel de référence (FCFA)';
+            gPricePerNight.style.display = 'block';
+            gDeposit.style.display = 'block';
+            gAdvance.style.display = 'block';
+            gAgencyFee.style.display = 'block';
+            gDocType.style.display = 'none';
+        }
+    }
+
+    function toggleWarningPanel() {
+        const toggle = document.getElementById('id_make_public');
+        const panel = document.getElementById('warning_panel');
+        if (toggle && toggle.checked) {
+            panel.style.display = 'flex';
+        } else if (panel) {
+            panel.style.display = 'none';
+        }
+    }
+
+    function goToStep(step) {
+        if (step === currentStep) return;
+        
+        // Basic validation before going forward
+        if (step > currentStep) {
+            if (!validateCurrentStep()) return;
+        }
+
+        // Deactivate current
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById(`indicator-${currentStep}`).classList.remove('active');
+        if (currentStep < step) {
+            document.getElementById(`indicator-${currentStep}`).classList.add('completed');
+        }
+
+        // Activate new
+        currentStep = step;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        document.getElementById(`indicator-${currentStep}`).classList.add('active');
+        document.getElementById(`indicator-${currentStep}`).classList.remove('completed');
+
+        // Manage button visibility
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnSubmit = document.getElementById('btn-submit');
+
+        if (currentStep === 1) {
+            btnPrev.style.visibility = 'hidden';
+            btnNext.style.display = 'inline-flex';
+            btnSubmit.style.display = 'none';
+        } else if (currentStep === totalSteps) {
+            btnPrev.style.visibility = 'visible';
+            btnNext.style.display = 'none';
+            btnSubmit.style.display = 'inline-flex';
+        } else {
+            btnPrev.style.visibility = 'visible';
+            btnNext.style.display = 'inline-flex';
+            btnSubmit.style.display = 'none';
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < totalSteps) {
+            goToStep(currentStep + 1);
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 1) {
+            goToStep(currentStep - 1);
+        }
+    }
+
+    function validateCurrentStep() {
+        if (currentStep === 1) {
+            const title = document.getElementById('id_title').value.trim();
+            const desc = document.getElementById('id_description').value.trim();
+            if (!title || !desc) {
+                alert("Veuillez remplir le titre et la description avant de continuer.");
+                return false;
+            }
+        } else if (currentStep === 2) {
+            const category = document.getElementById('id_listing_category').value;
+            const price = document.getElementById('id_price').value;
+            const pricePerNight = document.getElementById('id_price_per_night').value;
+
+            if (category === 'RENT' && !price) {
+                alert("Veuillez renseigner le loyer mensuel.");
+                return false;
+            } else if (category === 'SALE' && !price) {
+                alert("Veuillez renseigner le prix de vente.");
+                return false;
+            } else if (category === 'FURNISHED' && !pricePerNight) {
+                alert("Veuillez renseigner le tarif par nuitée.");
+                return false;
+            }
+        } else if (currentStep === 3) {
+            const neighbor = document.getElementById('id_neighborhood').value.trim();
+            if (!neighbor) {
+                alert("Veuillez indiquer le quartier.");
+                return false;
+            }
+        }
+        return true;
+    }
+</script>
+{% endblock %}

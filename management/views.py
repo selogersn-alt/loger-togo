@@ -12,63 +12,9 @@ import datetime
 def landlord_dashboard_view(request):
     """
     Tableau de bord Premium pour les propriétaires/bailleurs et agences.
+    Redirigé vers le sous-domaine agence.
     """
-    if request.user.role == 'TENANT':
-        return redirect('management:tenant_dashboard')
-    
-    section = request.GET.get('section', 'home')
-    my_leases = Lease.objects.filter(landlord=request.user).select_related('property', 'tenant')
-    my_properties = Property.objects.filter(owner=request.user).order_by('-created_at')
-    
-    # Statistiques spécifiques aux annonces
-    active_ads_count = my_properties.filter(is_published=True).count()
-    pending_ads_count = my_properties.filter(is_published=False).count()
-    
-    # Statistiques de gestion
-    active_leases_count = my_leases.filter(status='ACTIVE').count()
-    unpaid_rents = RentPayment.objects.filter(lease__landlord=request.user, status='UNPAID').count()
-    open_incidents = MaintenanceRequest.objects.filter(lease__landlord=request.user, status='OPEN').count()
-    
-    # Candidatures
-    from logersn.models import PropertyApplication
-    my_applications = PropertyApplication.objects.filter(property__owner=request.user).order_by('-created_at')
-    
-    # Messagerie
-    from chat.models import Conversation
-    my_conversations = request.user.conversations.all().prefetch_related('participants', 'messages')
-    
-    # Données pour le graphique (6 derniers mois)
-    from django.db.models.functions import TruncMonth
-    from django.db.models import Sum
-    
-    six_months_ago = timezone.now().date() - datetime.timedelta(days=180)
-    revenue_data = RentPayment.objects.filter(
-        lease__landlord=request.user, 
-        status='PAID',
-        date_paid__gte=six_months_ago
-    ).annotate(month=TruncMonth('date_paid')).values('month').annotate(total=Sum('amount_paid')).order_by('month')
-    
-    chart_labels = [d['month'].strftime('%b %Y') for d in revenue_data]
-    chart_totals = [float(d['total']) for d in revenue_data]
-    
-    context = {
-        'section': section,
-        'leases': my_leases,
-        'properties': my_properties,
-        'applications': my_applications,
-        'conversations': my_conversations,
-        'stats': {
-            'active_leases': active_leases_count,
-            'unpaid_rents': unpaid_rents,
-            'open_incidents': open_incidents,
-            'active_ads': active_ads_count,
-            'pending_ads': pending_ads_count,
-            'total_ads': my_properties.count(),
-        },
-        'chart_labels': chart_labels,
-        'chart_totals': chart_totals,
-    }
-    return render(request, 'management/landlord_dashboard.html', context)
+    return redirect('http://agence.logertogo.com/')
 
 @login_required
 def tenant_dashboard_view(request):
@@ -106,38 +52,9 @@ def tenant_dashboard_view(request):
 def create_lease_view(request, property_id=None):
     """
     Créer un nouveau bail pour une propriété.
+    Redirigé vers le sous-domaine agence.
     """
-    if request.user.role == 'TENANT':
-        messages.error(request, _("Seuls les bailleurs peuvent créer des baux."))
-        return redirect('dashboard')
-        
-    if request.method == 'POST':
-        property_obj = get_object_or_404(Property, id=request.POST.get('property_id'), owner=request.user)
-        tenant_phone = request.POST.get('tenant_phone')
-        tenant = User.objects.filter(phone_number=tenant_phone, role='TENANT').first()
-        
-        if not tenant:
-            messages.error(request, _("Locataire introuvable avec ce numéro de téléphone."))
-            return render(request, 'management/create_lease.html', {'properties': Property.objects.filter(owner=request.user)})
-
-        lease = Lease.objects.create(
-            property=property_obj,
-            tenant=tenant,
-            landlord=request.user,
-            start_date=request.POST.get('start_date'),
-            end_date=request.POST.get('end_date') or None,
-            rent_amount=request.POST.get('rent_amount') or property_obj.price,
-            deposit_amount=request.POST.get('deposit_amount', 0),
-            custom_contract_terms=request.POST.get('custom_contract_terms'),
-            custom_header_text=request.POST.get('custom_header_text'),
-            status='ACTIVE'
-        )
-        
-        messages.success(request, _("Bail créé avec succès pour %(name)s !") % {'name': tenant.get_full_name()})
-        return redirect('landlord_dashboard')
-        
-    properties = Property.objects.filter(owner=request.user)
-    return render(request, 'management/create_lease.html', {'properties': properties, 'selected_property_id': property_id})
+    return redirect('http://agence.logertogo.com/')
 
 from .utils import render_to_pdf
 
@@ -317,40 +234,17 @@ def tenant_dossier_view(request):
 def tenant_dossier_view_for_landlord(request, tenant_id):
     """
     Permet au bailleur de voir le dossier d'un de ses locataires.
+    Redirigé vers le sous-domaine agence.
     """
-    # Sécurité : vérifier que le demandeur est bien le bailleur de ce locataire
-    has_lease = Lease.objects.filter(landlord=request.user, tenant_id=tenant_id).exists()
-    if not has_lease:
-        messages.error(request, _("Accès refusé. Ce locataire n'est pas lié à vos baux."))
-        return redirect('landlord_dashboard')
-    
-    tenant = get_object_or_404(User, id=tenant_id)
-    documents = TenantDocument.objects.filter(user=tenant)
-    return render(request, 'management/landlord_view_dossier.html', {
-        'tenant': tenant,
-        'documents': documents
-    })
+    return redirect('http://agence.logertogo.com/')
 
 @login_required
 def send_payment_reminders_view(request):
     """
     Déclenche l'envoi de rappels pour tous les loyers impayés du bailleur.
+    Redirigé vers le sous-domaine agence.
     """
-    unpaid_payments = RentPayment.objects.filter(
-        lease__landlord=request.user, 
-        status='UNPAID'
-    ).select_related('lease__tenant')
-    
-    count = 0
-    from logertogo.emails import send_payment_reminder_email
-    
-    for payment in unpaid_payments:
-        # Envoyer email (logic à définir dans emails.py)
-        send_payment_reminder_email(payment)
-        count += 1
-        
-    messages.success(request, _("%(count)s rappel(s) envoyé(s) avec succès aux locataires.") % {'count': count})
-    return redirect('landlord_dashboard')
+    return redirect('http://agence.logertogo.com/')
 
 import csv
 from django.http import HttpResponse
@@ -359,58 +253,17 @@ from django.http import HttpResponse
 def export_accounting_csv_view(request):
     """
     Exporte l'historique financier du bailleur au format CSV.
+    Redirigé vers le sous-domaine agence.
     """
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="comptabilite_{request.user.last_name}.csv"'
-    
-    writer = csv.writer(response)
-    writer.writerow(['Date Paiement', 'Bien', 'Locataire', 'Période', 'Montant Dû', 'Montant Payé', 'Statut'])
-    
-    payments = RentPayment.objects.filter(lease__landlord=request.user).order_by('-period_start')
-    
-    for p in payments:
-        writer.writerow([
-            p.date_paid or 'Non payé',
-            p.lease.property.title,
-            p.lease.tenant.get_full_name(),
-            f"{p.period_start} au {p.period_end}",
-            p.amount_due,
-            p.amount_paid,
-            p.get_status_display()
-        ])
-        
-    return response
+    return redirect('http://agence.logertogo.com/')
 
 @login_required
 def record_payment_view(request, lease_id):
     """
     Enregistrer un paiement de loyer.
+    Redirigé vers le sous-domaine agence.
     """
-    lease = get_object_or_404(Lease, id=lease_id, landlord=request.user)
-    
-    if request.method == 'POST':
-        amount = request.POST.get('amount')
-        period_start = request.POST.get('period_start')
-        # Calcul auto de la fin du mois
-        start_dt = datetime.datetime.strptime(period_start, '%Y-%m-%d')
-        period_end = (start_dt + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1)
-        
-        payment = RentPayment.objects.create(
-            lease=lease,
-            period_start=period_start,
-            period_end=period_end,
-            amount_due=lease.rent_amount,
-            amount_paid=amount,
-            status='PAID' if float(amount) >= float(lease.rent_amount) else 'PARTIAL',
-            date_paid=timezone.now().date()
-        )
-        # Notification Email (Locataire + Bailleur)
-        send_rent_paid_email(payment)
-        
-        messages.success(request, _("Paiement enregistré !"))
-        return redirect('landlord_dashboard')
-        
-    return render(request, 'management/record_payment.html', {'lease': lease})
+    return redirect('http://agence.logertogo.com/')
 
 @login_required
 def update_application_status(request, app_id):

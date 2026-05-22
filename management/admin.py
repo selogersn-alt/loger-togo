@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Lease, RentPayment, MaintenanceRequest, TenantDocument
+from .models import Lease, RentPayment, MaintenanceRequest, TenantDocument, AgencyClient
+
+@admin.register(AgencyClient)
+class AgencyClientAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'phone', 'email', 'agency', 'client_type', 'status', 'pipeline_stage', 'created_at')
+    list_filter = ('client_type', 'status', 'pipeline_stage')
+    search_fields = ('full_name', 'phone', 'email', 'agency__phone_number', 'agency__email')
+
 
 @admin.register(Lease)
 class LeaseAdmin(admin.ModelAdmin):

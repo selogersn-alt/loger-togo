@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loger Togo Agence CRM - La Suite Immobilière Premium</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0b4629;
+            --primary-glow: rgba(11, 70, 41, 0.45);
+            --primary-light: #10b981;
+            --accent: #ffd700;
+            --bg-dark: #070a08;
+            --panel-bg: rgba(16, 26, 21, 0.6);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(11, 70, 41, 0.25) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-glass);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(7, 10, 8, 0.8);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #ffffff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero {
+            padding: 6rem 4rem 4rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            box-shadow: 0 8px 30px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .glass-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .feature-badge {
+            background: var(--primary-glow);
+            color: var(--primary-light);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .features-grid {
+            padding: 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-item {
+            background: rgba(16, 26, 21, 0.4);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(16, 26, 21, 0.7);
+            border-color: rgba(16, 185, 129, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--primary-glow);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-item h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-item p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Call To Action Form inside Card */
+        .activation-form h3 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .activation-form p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .benefit-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .benefit-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .benefit-list li i {
+            color: var(--accent);
+        }
+
+        footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-glass);
+            background: rgba(7, 10, 8, 0.5);
+        }
+
+        @media (max-width: 968px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 3rem 2rem;
+                gap: 2rem;
+            }
+            .hero-text h2 {
+                font-size: 2.5rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+                padding: 2rem;
+            }
+            header {
+                padding: 1.5rem 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2.2rem;"></i>
+            <h1>Loger Togo</h1>
+        </div>
+        <div>
+            {% if request.user.is_authenticated %}
+                <span style="color: var(--text-muted); margin-right: 1.5rem; font-size: 0.95rem;">
+                    Connecté en tant que <strong>{{ request.user.get_full_name|default:request.user.phone_number }}</strong>
+                </span>
+                <a href="https://logertogo.com/deconnexion/" class="btn btn-secondary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Déconnexion</a>
+            {% else %}
+                <a href="https://logertogo.com/connexion/" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Se Connecter</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-text">
+            <span class="feature-badge"><i class="fa-solid fa-gem"></i> Accès Premium SaaS</span>
+            <h2>Simplifiez et Boostez la gestion de votre Agence</h2>
+            <p>
+                Découvrez le CRM immobilier le plus puissant et complet du Togo. Centralisez vos prospects, automatisez la génération et signature de vos contrats de baux, gérez l'état de vos loyers et générez des quittances en un clic. Le tout, synchronisé avec votre base de données Loger Togo.
+            </p>
+            <div class="hero-cta">
+                <a href="https://wa.me/22890000000?text=Bonjour,%20je%20souhaite%20activer%20mon%20espace%20CRM%20SaaS%20sur%20Loger%20Togo" target="_blank" class="btn btn-primary">
+                    <i class="fa-brands fa-whatsapp"></i> Activer Mon Espace
+                </a>
+                <a href="#features" class="btn btn-secondary">Découvrir les Fonctionnalités</a>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div class="activation-form">
+                <h3>Workspace Agence</h3>
+                <p>Pour débloquer la suite CRM et obtenir un accès exclusif sur <strong>agence.logertogo.com</strong>, contactez notre équipe commerciale.</p>
+                
+                <ul class="benefit-list">
+                    <li><i class="fa-solid fa-circle-check"></i> Multi-utilisateurs & Collaborateurs</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Tableau de bord financier & rapports Chart.js</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Pipeline Kanban interactif & Drag and Drop</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Éditeur intelligent de Baux et quittances PDF</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Support prioritaire par nos experts digitaux</li>
+                </ul>
+
+                <div style="background: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.2); padding: 1.25rem; border-radius: 16px; margin-top: 1.5rem; text-align: center;">
+                    <span style="font-size: 0.9rem; color: var(--primary-light); font-weight: 500; display: block; margin-bottom: 0.5rem;">
+                        <i class="fa-solid fa-lock"></i> Contacter l'administrateur
+                    </span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">
+                        Email: <strong>partenaire@logertogo.com</strong><br>
+                        Tél / WhatsApp: <strong>+228 90 22 22 22 / +228 99 11 11 11</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-grid" id="features">
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fa-solid fa-user-tag"></i>
+            </div>
+            <h3>CRM Prospects Avançé</h3>
+            <p>Enregistrez vos prospects, qualifiez leurs besoins (bailleur, locataire) et conservez des notes historiques de chaque échange.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fa-solid fa-chart-gantt"></i>
+            </div>
+            <h3>Kanban des Transactions</h3>
+            <p>Suivez vos transactions de la prospection jusqu'à la signature finale grâce à des colonnes visuelles interactives et intuitives.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <h3>Baux & Quittances Pro</h3>
+            <p>Créez des contrats de baux personnalisés avec clauses spécifiques. Encaissez les loyers et envoyez de superbes quittances de loyer.</p>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2026 Loger Togo. Tous droits réservés. Developpé avec prestige par DigitalH.</p>
+    </footer>
+
+</body>
+</html>

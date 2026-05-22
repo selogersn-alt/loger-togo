@@ -1,0 +1,317 @@
+{% extends 'agency/base_agency.html' %}
+{% load humanize %}
+
+{% block title %}Gestion des Baux - Loger Togo CRM{% endblock %}
+
+{% block extra_head %}
+<style>
+    .leases-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    th {
+        padding: 1rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-glass);
+    }
+
+    td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid var(--border-glass);
+        font-size: 0.95rem;
+    }
+
+    tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+
+    .property-title {
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .tenant-info {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Modal Form Styling */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: rgba(15, 23, 19, 0.95);
+        border: 1px solid var(--border-glass);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 650px;
+        padding: 2.5rem;
+        box-shadow: var(--card-glow);
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-close:hover {
+        color: var(--text-main);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-glass);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        color: var(--text-main);
+        font-family: inherit;
+        outline: none;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        height: 100px;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .badge-secondary { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-glass); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leases-header">
+    <div>
+        <h2 style="font-size: 2rem;">Baux & Contrats de Location</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Rédigez et suivez vos baux immobiliers officiels</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">
+        <i class="fa-solid fa-file-signature"></i> Nouveau Bail
+    </button>
+</div>
+
+<!-- Leases Panel -->
+<div class="glass-panel">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bien Immobilier / Locataire</th>
+                    <th>Date début</th>
+                    <th>Date fin</th>
+                    <th>Loyer (Mensuel)</th>
+                    <th>Caution</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lease in leases %}
+                    <tr>
+                        <td>
+                            <div class="property-title">{{ lease.property.title }}</div>
+                            <div class="tenant-info">
+                                <i class="fa-solid fa-user-circle"></i>
+                                <span>{{ lease.tenant.get_full_name|default:lease.tenant.phone_number }}</span>
+                            </div>
+                        </td>
+                        <td style="font-weight: 500;">{{ lease.start_date|date:"d M Y" }}</td>
+                        <td style="color: var(--text-muted);">
+                            {% if lease.end_date %}
+                                {{ lease.end_date|date:"d M Y" }}
+                            {% else %}
+                                <span style="font-style: italic;">Indéterminée</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 700; color: var(--primary-light);">{{ lease.rent_amount|intcomma }} CFA</td>
+                        <td style="font-weight: 600; color: var(--text-muted);">{{ lease.deposit_amount|intcomma }} CFA</td>
+                        <td>
+                            <span class="badge {% if lease.status == 'ACTIVE' %}badge-success{% elif lease.status == 'PENDING' %}badge-warning{% else %}badge-danger{% endif %}">
+                                {{ lease.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if lease.contract_pdf %}
+                                <a href="{{ lease.contract_pdf.url }}" target="_blank" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px;">
+                                    <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> Contrat
+                                </a>
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Pas de PDF</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 4rem 0;">
+                            <i class="fa-solid fa-file-contract" style="font-size: 2.5rem; display: block; margin-bottom: 1rem; color: rgba(255,255,255,0.05);"></i>
+                            Aucun contrat de bail enregistré pour le moment.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal" id="leaseModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem;">
+            <i class="fa-solid fa-file-signature" style="color: var(--primary-light);"></i> Nouveau Contrat de Bail
+        </h3>
+        
+        <form method="POST" action="{% url 'agency_leases' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_property">Bien Immobilier <span style="color: red;">*</span></label>
+                <select name="property" id="id_property" required>
+                    <option value="">Sélectionnez un bien de votre catalogue...</option>
+                    {% for prop in properties %}
+                        <option value="{{ prop.id }}">{{ prop.title }} ({{ prop.neighborhood }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_tenant">Locataire <span style="color: red;">*</span></label>
+                <select name="tenant" id="id_tenant" required>
+                    <option value="">Sélectionnez un locataire...</option>
+                    {% for tenant in tenants %}
+                        <option value="{{ tenant.id }}">{{ tenant.get_full_name|default:tenant.phone_number }} ({{ tenant.role|default:"Utilisateur" }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="id_start_date">Date de Début <span style="color: red;">*</span></label>
+                    <input type="date" name="start_date" id="id_start_date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_end_date">Date de Fin (Optionnelle)</label>
+                    <input type="date" name="end_date" id="id_end_date">
+                </div>
+            </div>
+            
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="id_rent_amount">Loyer Mensuel (FCFA) <span style="color: red;">*</span></label>
+                    <input type="number" name="rent_amount" id="id_rent_amount" required placeholder="Ex: 150000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_deposit_amount">Dépôt de Garantie / Caution (FCFA)</label>
+                    <input type="number" name="deposit_amount" id="id_deposit_amount" value="0" placeholder="Ex: 300000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_custom_header">En-tête de Contrat Personnalisé</label>
+                <input type="text" name="custom_header" id="id_custom_header" placeholder="Ex: Agence Digitale de Gestion Koffi & Associés">
+            </div>
+            
+            <div class="form-group">
+                <label for="id_custom_terms">Clauses Particulières / Conditions Spécifiques</label>
+                <textarea name="custom_terms" id="id_custom_terms" placeholder="Ex: Interdiction de sous-louer, entretien de la cour à la charge du locataire, etc..."></textarea>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Créer le Contrat</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal() {
+        document.getElementById('leaseModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('leaseModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('leaseModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}

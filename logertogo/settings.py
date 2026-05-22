@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-de
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['157.180.127.70', 'logertogo.com', 'www.logertogo.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['157.180.127.70', 'logertogo.com', 'www.logertogo.com', 'agence.logertogo.com', 'localhost', 'agence.localhost', '127.0.0.1']
 SITE_URL = 'https://logertogo.com'
 
 # Security & SSL Configuration (Senior Production Setup)
@@ -38,6 +38,9 @@ CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     'https://logertogo.com',
     'https://www.logertogo.com',
+    'https://agence.logertogo.com',
+    'http://agence.localhost:8000',
+    'http://localhost:8000',
 ]
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -114,6 +117,7 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'logertogo.middleware.SubdomainURLRoutingMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -432,3 +436,12 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+
+# --- SUBDOMAIN SESSION SHARING ---
+if DEBUG:
+    SESSION_COOKIE_DOMAIN = '.localhost'
+else:
+    SESSION_COOKIE_DOMAIN = '.logertogo.com'
+# Ensure session cookie is readable by both main site and agence subdomain
+SESSION_COOKIE_NAME = 'logertogo_sessionid'
+

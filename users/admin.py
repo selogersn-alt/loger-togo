@@ -14,9 +14,9 @@ class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     model = User
     
-    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'is_verified_pro', 'is_active', 'is_staff')
+    list_display = ('phone_number', 'first_name', 'last_name', 'role', 'is_verified_pro', 'is_saas_active', 'is_active', 'is_staff')
     search_fields = ('email', 'phone_number', 'company_name', 'first_name', 'last_name', 'phone_otp')
-    list_filter = ('role', 'is_verified_pro', 'is_active', 'is_staff', 'is_phone_verified')
+    list_filter = ('role', 'is_verified_pro', 'is_saas_active', 'is_active', 'is_staff', 'is_phone_verified')
     actions = [
         'verify_professionals', 'revoke_professionals', 'generate_recovery_code', 
         'send_otp_whatsapp', 'send_otp_email', 'generate_frontend_reset_link', 
@@ -30,7 +30,7 @@ class UserAdmin(BaseUserAdmin):
         ('Informations de Connexion', {'fields': ('phone_number', 'email', 'password')}),
         ('Vérification & Sécurité', {'fields': ('phone_otp', 'is_phone_verified')}),
         ('Identité', {'fields': ('first_name', 'last_name', 'cni_number', 'profile_picture')}),
-        ('Statut Professionnel', {'fields': ('role', 'is_verified_pro', 'company_name', 'coverage_area')}),
+        ('Statut Professionnel', {'fields': ('role', 'is_verified_pro', 'is_saas_active', 'company_name', 'coverage_area')}),
         ('Permissions Admin', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'), 'classes': ('collapse',)}),
     )
     add_fieldsets = (

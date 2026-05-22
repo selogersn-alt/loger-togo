@@ -140,3 +140,35 @@ class TenantDocument(models.Model):
 
     def __str__(self):
         return f"{self.get_document_type_display()} - {self.user.get_full_name()}"
+
+class AgencyClient(models.Model):
+    class ClientStatus(models.TextChoices):
+        PROSPECT = 'PROSPECT', 'Prospect'
+        ACTIVE = 'ACTIVE', 'Actif'
+        INACTIVE = 'INACTIVE', 'Inactif'
+    
+    class ClientType(models.TextChoices):
+        TENANT = 'TENANT', 'Locataire'
+        LANDLORD = 'LANDLORD', 'Bailleur'
+        PARTNER = 'PARTNER', 'Partenaire'
+        OTHER = 'OTHER', 'Autre'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agency = models.ForeignKey(User, on_delete=models.CASCADE, related_name='agency_clients')
+    full_name = models.CharField(max_length=255, verbose_name="Nom complet")
+    email = models.EmailField(null=True, blank=True, verbose_name="Email")
+    phone = models.CharField(max_length=20, verbose_name="Téléphone")
+    client_type = models.CharField(max_length=20, choices=ClientType.choices, default=ClientType.TENANT)
+    status = models.CharField(max_length=20, choices=ClientStatus.choices, default=ClientStatus.PROSPECT)
+    pipeline_stage = models.IntegerField(default=1, verbose_name="Étape de Pipeline (1-5)") # Kanban stage (e.g. 1: Prospecting, 2: Contacted, 3: Visit, 4: Negotiation, 5: Signed)
+    notes = models.TextField(null=True, blank=True, verbose_name="Notes / Détails")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Client d'Agence"
+        verbose_name_plural = "Clients d'Agence"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.full_name} ({self.get_client_type_display()})"

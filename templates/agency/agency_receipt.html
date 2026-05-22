@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quittance de Loyer - {{ payment.lease.tenant.get_full_name }} - {{ payment.period_start|date:"F Y" }}</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0b4629;
+            --primary-light: #10b981;
+            --text-dark: #1f2937;
+            --text-muted: #4b5563;
+            --bg-light: #f9fafb;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background: #f3f4f6;
+            padding: 3rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Invoice Container */
+        .receipt-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 800px;
+            padding: 3rem;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* Branding Header */
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-block {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-block i {
+            color: var(--primary);
+            font-size: 2.5rem;
+        }
+
+        .logo-block h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .receipt-title {
+            text-align: right;
+        }
+
+        .receipt-title h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .receipt-title span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Details Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .details-col h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.25rem;
+        }
+
+        .details-col p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .details-col strong {
+            color: var(--text-dark);
+        }
+
+        /* Ledger Table */
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 3rem;
+        }
+
+        .receipt-table th {
+            background: var(--bg-light);
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border-color);
+            text-align: left;
+        }
+
+        .receipt-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .total-row {
+            background: var(--bg-light);
+            font-weight: 700;
+        }
+
+        .total-row td {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        /* Stamp & Signature block */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 4rem;
+        }
+
+        .signature-box {
+            border-top: 1px dashed var(--text-muted);
+            width: 220px;
+            text-align: center;
+            padding-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Print button floating toolbar */
+        .toolbar {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-print {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-print:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-back {
+            background: #ffffff;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-back:hover {
+            background: var(--bg-light);
+        }
+
+        /* Print Media queries */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-card {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .toolbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <a href="{% url 'agency_payments' %}" class="btn btn-back">
+            <i class="fa-solid fa-arrow-left"></i> Retour au Suivi
+        </a>
+        <button class="btn btn-print" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Imprimer / Enregistrer PDF
+        </button>
+    </div>
+
+    <!-- Receipt -->
+    <div class="receipt-card">
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="logo-block">
+                <i class="fa-solid fa-hotel"></i>
+                <div>
+                    <h1>Loger Togo</h1>
+                    <span style="font-size: 0.75rem; color: var(--primary-light); font-weight: 700; text-transform: uppercase;">Quittance Immobilière</span>
+                </div>
+            </div>
+            
+            <div class="receipt-title">
+                <h2>Quittance</h2>
+                <span>Réf: QLT-{{ payment.id|stringformat:".8s"|upper }}</span><br>
+                <span>Date: {{ today|date:"d F Y" }}</span>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="details-grid">
+            <div class="details-col">
+                <h3>Émetteur / Bailleur</h3>
+                <p>
+                    <strong>{{ payment.lease.custom_header_text|default:agency.company_name|default:"Agence Partenaire Loger Togo" }}</strong><br>
+                    Propriétaire: {{ agency.get_full_name }}<br>
+                    Tél: {{ agency.phone_number }}<br>
+                    Email: {{ agency.email|default:"contact@logertogo.com" }}
+                </p>
+            </div>
+
+            <div class="details-col">
+                <h3>Locataire / Client</h3>
+                <p>
+                    <strong>{{ payment.lease.tenant.get_full_name }}</strong><br>
+                    Tél: {{ payment.lease.tenant.phone_number }}<br>
+                    Email: {{ payment.lease.tenant.email|default:"Non fourni" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Ledger Table -->
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Désignation / Période</th>
+                    <th>Bien Immobilier</th>
+                    <th>Montant Attendu</th>
+                    <th style="text-align: right;">Montant Reçu</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Loyer Périodique</strong><br>
+                        Période du {{ payment.period_start|date:"d/m/Y" }} au {{ payment.period_start|date:"t/m/Y" }}
+                    </td>
+                    <td>
+                        {{ payment.lease.property.title }}<br>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">{{ payment.lease.property.neighborhood }}, {{ payment.lease.property.get_city_display }}</span>
+                    </td>
+                    <td>{{ payment.amount_due|intcomma }} CFA</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary-light);">{{ payment.amount_paid|intcomma }} CFA</td>
+                </tr>
+                
+                {% if payment.lease.deposit_amount > 0 and payment.period_start == payment.lease.start_date %}
+                <tr>
+                    <td>
+                        <strong>Dépôt de Garantie (Caution)</strong><br>
+                        Caution d'entrée
+                    </td>
+                    <td>{{ payment.lease.property.title }}</td>
+                    <td>{{ payment.lease.deposit_amount|intcomma }} CFA</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary-light);">{{ payment.lease.deposit_amount|intcomma }} CFA</td>
+                </tr>
+                {% endif %}
+
+                <tr class="total-row">
+                    <td colspan="3">Total Encaissé</td>
+                    <td style="text-align: right;">
+                        {% if payment.lease.deposit_amount > 0 and payment.period_start == payment.lease.start_date %}
+                            <!-- sum both rent and deposit -->
+                            <!-- simple sum calculated cleanly -->
+                            {{ payment.amount_paid|add:payment.lease.deposit_amount|intcomma }} CFA
+                        {% else %}
+                            {{ payment.amount_paid|intcomma }} CFA
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Summary note -->
+        <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 2rem;">
+            Cette quittance donne décharge au locataire pour le versement de la somme ci-dessus indiquée, sous réserve de tous droits et d'encaissement définitif de tout chèque ou virement bancaire.
+        </p>
+
+        <!-- Signatures -->
+        <div class="signature-section">
+            <div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">Généré numériquement via Loger Togo CRM.</p>
+            </div>
+            
+            <div class="signature-box">
+                <strong>Signature & Cachet</strong>
+                <div style="height: 80px;"></div> <!-- placeholder space for stamp -->
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

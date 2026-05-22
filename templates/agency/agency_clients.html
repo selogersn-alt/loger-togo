@@ -1,0 +1,347 @@
+{% extends 'agency/base_agency.html' %}
+
+{% block title %}Gestion des Clients - Loger Togo CRM{% endblock %}
+
+{% block extra_head %}
+<style>
+    .clients-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-glass);
+        color: var(--text-main);
+        padding: 0.65rem 1rem;
+        border-radius: 10px;
+        font-family: inherit;
+        min-width: 250px;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .filter-select {
+        background: rgba(16, 26, 21, 0.9);
+        border: 1px solid var(--border-glass);
+        color: var(--text-main);
+        padding: 0.65rem 1rem;
+        border-radius: 10px;
+        font-family: inherit;
+        outline: none;
+    }
+
+    /* Clients Table */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    th {
+        padding: 1rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-glass);
+    }
+
+    td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid var(--border-glass);
+        font-size: 0.95rem;
+    }
+
+    tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+
+    .client-name {
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .client-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    /* Modal Form Styling */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: rgba(15, 23, 19, 0.95);
+        border: 1px solid var(--border-glass);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 550px;
+        padding: 2.5rem;
+        box-shadow: var(--card-glow);
+        position: relative;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-close:hover {
+        color: var(--text-main);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-glass);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        color: var(--text-main);
+        font-family: inherit;
+        outline: none;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        height: 100px;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="clients-header">
+    <div>
+        <h2 style="font-size: 2rem;">Prospects & Clients</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Gestionnaire de contacts et lead nurturing</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">
+        <i class="fa-solid fa-user-plus"></i> Nouveau Contact
+    </button>
+</div>
+
+<!-- Filters -->
+<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+    <form method="GET" class="filter-bar">
+        <input type="text" name="q" value="{{ query }}" placeholder="Rechercher nom, téléphone, email..." class="search-input">
+        
+        <select name="type" onchange="this.form.submit()" class="filter-select">
+            <option value="">Tous les types</option>
+            {% for key, val in types %}
+                <option value="{{ key }}" {% if client_type == key %}selected{% endif %}>{{ val }}</option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit" class="btn btn-secondary" style="padding: 0.65rem 1.25rem;">Filtrer</button>
+        {% if query or client_type %}
+            <a href="{% url 'agency_clients' %}" class="btn btn-secondary" style="padding: 0.65rem 1.25rem; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Réinitialiser</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Contact List Panel -->
+<div class="glass-panel">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Contact</th>
+                    <th>Téléphone</th>
+                    <th>Email</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Créé le</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                    <tr>
+                        <td>
+                            <div class="client-name">{{ client.full_name }}</div>
+                            {% if client.notes %}
+                                <div class="client-meta"><i class="fa-solid fa-comment-dots" style="margin-right: 0.25rem;"></i>{{ client.notes|truncatechars:50 }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="tel:{{ client.phone }}" style="color: var(--text-main); text-decoration: none; font-weight: 500;">
+                                <i class="fa-solid fa-phone" style="color: var(--primary-light); margin-right: 0.5rem;"></i>{{ client.phone }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if client.email %}
+                                <a href="mailto:{{ client.email }}" style="color: var(--text-muted); text-decoration: none;">{{ client.email }}</a>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-style: italic;">Non renseigné</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border-glass);">
+                                {{ client.get_client_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if client.status == 'ACTIVE' %}badge-success{% elif client.status == 'PROSPECT' %}badge-warning{% else %}badge-danger{% endif %}">
+                                {{ client.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{ client.created_at|date:"d M Y à H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 4rem 0;">
+                            <i class="fa-solid fa-users-slash" style="font-size: 2.5rem; display: block; margin-bottom: 1rem; color: rgba(255,255,255,0.05);"></i>
+                            Aucun contact trouvé correspondant à vos critères.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal" id="contactModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem;">
+            <i class="fa-solid fa-user-plus" style="color: var(--primary-light);"></i> Nouveau Contact
+        </h3>
+        
+        <form method="POST" action="{% url 'agency_clients' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_full_name">Nom Complet <span style="color: red;">*</span></label>
+                <input type="text" name="full_name" id="id_full_name" required placeholder="Ex: Koffi Mensah">
+            </div>
+            
+            <div class="form-group">
+                <label for="id_phone">Téléphone (WhatsApp de préf.) <span style="color: red;">*</span></label>
+                <input type="text" name="phone" id="id_phone" required placeholder="Ex: +228 90 00 00 00">
+            </div>
+            
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                <input type="email" name="email" id="id_email" placeholder="Ex: client@domain.com">
+            </div>
+            
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="id_client_type">Type de Client</label>
+                    <select name="client_type" id="id_client_type">
+                        {% for key, val in types %}
+                            <option value="{{ key }}">{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_status">Statut Initial</label>
+                    <select name="status" id="id_status">
+                        {% for key, val in statuses %}
+                            <option value="{{ key }}">{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_notes">Notes / Observations</label>
+                <textarea name="notes" id="id_notes" placeholder="Ex: Recherche un appartement meublé de 3 pièces à Baguida..."></textarea>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal() {
+        document.getElementById('contactModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('contactModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('contactModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}

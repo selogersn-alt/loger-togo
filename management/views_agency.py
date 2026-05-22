@@ -1,0 +1,357 @@
+import uuid
+from django.shortcuts import render, redirect, get_object_or_400
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from functools import wraps
+from django.urls import reverse
+from django.conf import settings
+from django.db.models import Sum, Count
+from django.utils import timezone
+from datetime import datetime
+
+from django.contrib.auth import get_user_model
+from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest
+from logersn.models import Property
+
+User = get_user_model()
+
+def agency_saas_required(view_func):
+    """
+    Decorator to ensure user is logged in and has active SaaS subscription.
+    Otherwise redirects to the landing/pricing promo page.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            # Build SSO login redirection URL
+            if settings.DEBUG:
+                login_url = "http://localhost:8000/login/"
+            else:
+                login_url = "https://logertogo.com/login/"
+            next_url = request.build_absolute_uri()
+            return redirect(f"{login_url}?next={next_url}")
+            
+        if not request.user.is_saas_active:
+            # Redirect to agency landing/promo page
+            return redirect('agency_promo')
+            
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+def agency_promo(request):
+    """
+    Premium Landing/Marketing page for non-subscribed users or prospects.
+    """
+    if request.user.is_authenticated and request.user.is_saas_active:
+        return redirect('agency_dashboard')
+    return render(request, 'agency/agency_promo.html')
+
+
+@agency_saas_required
+def agency_dashboard(request):
+    """
+    Main SaaS Dashboard for the agency.
+    """
+    agency = request.user
+    
+    # 1. Calculations & Metrics
+    total_clients = AgencyClient.objects.filter(agency=agency).count()
+    total_properties = Property.objects.filter(owner=agency).count()
+    
+    # Leases where agency is landlord
+    my_leases = Lease.objects.filter(landlord=agency)
+    total_leases = my_leases.count()
+    active_leases_count = my_leases.filter(status=Lease.StatusEnum.ACTIVE).count()
+    
+    # Collected rent revenue (Total payments where status is PAID or PARTIAL)
+    payments = RentPayment.objects.filter(lease__landlord=agency)
+    total_revenue = payments.filter(status=RentPayment.StatusEnum.PAID).aggregate(total=Sum('amount_paid'))['total'] or 0
+    
+    # Outstanding/Unpaid rents
+    unpaid_payments = payments.filter(status=RentPayment.StatusEnum.UNPAID)
+    total_unpaid = unpaid_payments.aggregate(total=Sum('amount_due'))['total'] or 0
+    
+    # Recent clients
+    recent_clients = AgencyClient.objects.filter(agency=agency).order_by('-created_at')[:5]
+    
+    # Recent payments
+    recent_payments = payments.order_by('-period_start')[:5]
+    
+    # Pipeline clients count for pipeline mini-summary
+    pipeline_stats = AgencyClient.objects.filter(agency=agency).values('pipeline_stage').annotate(count=Count('id'))
+    pipeline_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+    for stat in pipeline_stats:
+        stage = stat['pipeline_stage']
+        if stage in pipeline_counts:
+            pipeline_counts[stage] = stat['count']
+            
+    # Monthly collected revenues (mock data or actual if payments exist)
+    # We populate the Chart.js dataset
+    months_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    monthly_data = [0] * 12
+    for p in payments.filter(status=RentPayment.StatusEnum.PAID, date_paid__isnull=False):
+        month_idx = p.date_paid.month - 1
+        monthly_data[month_idx] += float(p.amount_paid)
+
+    context = {
+        'total_clients': total_clients,
+        'total_properties': total_properties,
+        'total_leases': total_leases,
+        'active_leases_count': active_leases_count,
+        'total_revenue': total_revenue,
+        'total_unpaid': total_unpaid,
+        'recent_clients': recent_clients,
+        'recent_payments': recent_payments,
+        'pipeline_counts': pipeline_counts,
+        'months_labels': months_labels,
+        'monthly_data': monthly_data,
+    }
+    return render(request, 'agency/agency_dashboard.html', context)
+
+
+@agency_saas_required
+def agency_clients(request):
+    """
+    Client CRM sheet manager. List and create clients.
+    """
+    agency = request.user
+    query = request.GET.get('q', '')
+    client_type = request.GET.get('type', '')
+    
+    clients_qs = AgencyClient.objects.filter(agency=agency)
+    
+    if query:
+        clients_qs = clients_qs.filter(full_name__icontains=query) | clients_qs.filter(phone__icontains=query) | clients_qs.filter(email__icontains=query)
+    
+    if client_type:
+        clients_qs = clients_qs.filter(client_type=client_type)
+        
+    clients = clients_qs.order_by('-created_at')
+    
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        c_type = request.POST.get('client_type', AgencyClient.ClientType.TENANT)
+        status = request.POST.get('status', AgencyClient.ClientStatus.PROSPECT)
+        notes = request.POST.get('notes', '')
+        
+        if full_name and phone:
+            client = AgencyClient.objects.create(
+                agency=agency,
+                full_name=full_name,
+                email=email if email else None,
+                phone=phone,
+                client_type=c_type,
+                status=status,
+                notes=notes
+            )
+            messages.success(request, f"Client {client.full_name} créé avec succès.")
+            return redirect('agency_clients')
+        else:
+            messages.error(request, "Veuillez remplir au moins le nom complet et le numéro de téléphone.")
+            
+    context = {
+        'clients': clients,
+        'query': query,
+        'client_type': client_type,
+        'types': AgencyClient.ClientType.choices,
+        'statuses': AgencyClient.ClientStatus.choices,
+    }
+    return render(request, 'agency/agency_clients.html', context)
+
+
+@agency_saas_required
+def agency_pipeline(request):
+    """
+    Visual Kanban Deal stage manager.
+    Stages: 
+    1: Prospecting (Prospect)
+    2: Contacted (Prise de contact)
+    3: Visit Scheduled (Visite planifiée)
+    4: Negotiation (Négociation)
+    5: Signed (Contrat signé)
+    """
+    agency = request.user
+    clients = AgencyClient.objects.filter(agency=agency)
+    
+    stages = {
+        1: {'name': 'Prospection', 'clients': clients.filter(pipeline_stage=1)},
+        2: {'name': 'Prise de contact', 'clients': clients.filter(pipeline_stage=2)},
+        3: {'name': 'Visites', 'clients': clients.filter(pipeline_stage=3)},
+        4: {'name': 'Négociation', 'clients': clients.filter(pipeline_stage=4)},
+        5: {'name': 'Signé / Conclu', 'clients': clients.filter(pipeline_stage=5)},
+    }
+    
+    context = {
+        'stages': stages,
+    }
+    return render(request, 'agency/agency_pipeline.html', context)
+
+
+@agency_saas_required
+@require_POST
+def agency_update_pipeline_stage(request):
+    """
+    AJAX endpoint to update client stage on Kanban drag/drop.
+    """
+    agency = request.user
+    client_id = request.POST.get('client_id')
+    new_stage = request.POST.get('stage')
+    
+    try:
+        client = get_object_or_400(AgencyClient, id=client_id, agency=agency)
+        client.pipeline_stage = int(new_stage)
+        # Automatically update status based on pipeline stage
+        if client.pipeline_stage == 5:
+            client.status = AgencyClient.ClientStatus.ACTIVE
+        client.save()
+        return JsonResponse({'status': 'success', 'client': client.full_name, 'new_stage': client.pipeline_stage})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@agency_saas_required
+def agency_leases(request):
+    """
+    Lease contract view & creator wizard.
+    """
+    agency = request.user
+    leases = Lease.objects.filter(landlord=agency)
+    
+    # Properties belonging to this agency
+    properties = Property.objects.filter(owner=agency)
+    
+    # We can fetch potential tenants (registered users or our own CRM clients!)
+    # Let's list all standard tenants or users
+    tenants = User.objects.filter(role='TENANT') | User.objects.all()[:100]  # limit list size
+    
+    if request.method == 'POST':
+        property_id = request.POST.get('property')
+        tenant_id = request.POST.get('tenant')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        rent_amount = request.POST.get('rent_amount')
+        deposit_amount = request.POST.get('deposit_amount', 0)
+        custom_terms = request.POST.get('custom_terms', '')
+        custom_header = request.POST.get('custom_header', '')
+        
+        prop = get_object_or_400(Property, id=property_id, owner=agency)
+        tenant_user = get_object_or_400(User, id=tenant_id)
+        
+        if prop and tenant_user and start_date and rent_amount:
+            lease = Lease.objects.create(
+                property=prop,
+                tenant=tenant_user,
+                landlord=agency,
+                start_date=start_date,
+                end_date=end_date if end_date else None,
+                rent_amount=rent_amount,
+                deposit_amount=deposit_amount if deposit_amount else 0,
+                custom_contract_terms=custom_terms,
+                custom_header_text=custom_header,
+                status=Lease.StatusEnum.ACTIVE
+            )
+            
+            # Generate the first unpaid RentPayment for this new lease
+            # For the current month
+            today = timezone.now().date()
+            RentPayment.objects.create(
+                lease=lease,
+                period_start=today.replace(day=1),
+                period_end=today, # or end of month
+                amount_due=lease.rent_amount,
+                status=RentPayment.StatusEnum.UNPAID
+            )
+            
+            messages.success(request, f"Contrat de bail créé pour {tenant_user.get_full_name()} avec succès.")
+            return redirect('agency_leases')
+        else:
+            messages.error(request, "Veuillez remplir tous les champs obligatoires.")
+            
+    context = {
+        'leases': leases,
+        'properties': properties,
+        'tenants': tenants,
+        'statuses': Lease.StatusEnum.choices,
+    }
+    return render(request, 'agency/agency_leases.html', context)
+
+
+@agency_saas_required
+def agency_payments(request):
+    """
+    Rent payments ledger & payment collection helper.
+    """
+    agency = request.user
+    payments = RentPayment.objects.filter(lease__landlord=agency).order_by('-period_start')
+    
+    # Active leases list for recording payments
+    active_leases = Lease.objects.filter(landlord=agency, status=Lease.StatusEnum.ACTIVE)
+    
+    if request.method == 'POST':
+        # Logging/Collecting a payment
+        payment_id = request.POST.get('payment_id')
+        amount_paid = request.POST.get('amount_paid')
+        date_paid = request.POST.get('date_paid')
+        
+        payment = get_object_or_400(RentPayment, id=payment_id, lease__landlord=agency)
+        
+        if payment and amount_paid:
+            amt = float(amount_paid)
+            payment.amount_paid = amt
+            payment.date_paid = date_paid if date_paid else timezone.now().date()
+            
+            if amt >= float(payment.amount_due):
+                payment.status = RentPayment.StatusEnum.PAID
+            elif amt > 0:
+                payment.status = RentPayment.StatusEnum.PARTIAL
+            else:
+                payment.status = RentPayment.StatusEnum.UNPAID
+                
+            payment.save()
+            messages.success(request, f"Paiement de {amt} FCFA enregistré avec succès pour {payment.lease.tenant.get_full_name()}.")
+            return redirect('agency_payments')
+            
+    context = {
+        'payments': payments,
+        'active_leases': active_leases,
+        'statuses': RentPayment.StatusEnum.choices,
+    }
+    return render(request, 'agency/agency_payments.html', context)
+
+
+@agency_saas_required
+def agency_receipt(request, payment_id):
+    """
+    Render a high-end, responsive glassmorphic print page representing the rent receipt.
+    Allows easy print to PDF via browser.
+    """
+    agency = request.user
+    payment = get_object_or_400(RentPayment, id=payment_id, lease__landlord=agency)
+    
+    context = {
+        'payment': payment,
+        'agency': agency,
+        'today': timezone.now().date(),
+    }
+    return render(request, 'agency/agency_receipt.html', context)
+
+
+@agency_saas_required
+def agency_properties(request):
+    """
+    Manage list of properties currently linked to the agency.
+    """
+    agency = request.user
+    properties = Property.objects.filter(owner=agency).order_by('-created_at')
+    
+    context = {
+        'properties': properties,
+    }
+    return render(request, 'agency/agency_properties.html', context)

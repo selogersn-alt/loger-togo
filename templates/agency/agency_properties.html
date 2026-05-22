@@ -1,0 +1,201 @@
+{% extends 'agency/base_agency.html' %}
+{% load humanize %}
+
+{% block title %}Mon Portefeuille - Loger Togo CRM{% endblock %}
+
+{% block extra_head %}
+<style>
+    .properties-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .properties-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .property-card {
+        background: var(--panel-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-glass);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .property-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(16, 185, 129, 0.25);
+        box-shadow: 0 12px 35px rgba(16, 185, 129, 0.08);
+    }
+
+    .property-image-placeholder {
+        height: 180px;
+        background: linear-gradient(135deg, rgba(16, 26, 21, 0.8), rgba(10, 15, 12, 0.9));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.15);
+        font-size: 3rem;
+        border-bottom: 1px solid var(--border-glass);
+        position: relative;
+    }
+
+    .property-tag {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: var(--primary-light);
+        color: white;
+    }
+
+    .property-tag-sale { background: #3b82f6; }
+    .property-tag-furnished { background: #a855f7; }
+
+    .property-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex-grow: 1;
+    }
+
+    .property-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--accent);
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .property-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .property-loc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .property-specs {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        border-top: 1px solid var(--border-glass);
+        padding-top: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .property-specs span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .property-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        border-top: 1px solid var(--border-glass);
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.15);
+    }
+
+    .property-actions .btn {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="properties-header">
+    <div>
+        <h2 style="font-size: 2rem;">Mon Portefeuille de Biens</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Catalogue complet de vos annonces et biens immobiliers associés</p>
+    </div>
+    <a href="https://logertogo.com/annonces/nouvelle/" target="_blank" class="btn btn-primary">
+        <i class="fa-solid fa-plus-circle"></i> Ajouter un Bien
+    </a>
+</div>
+
+<!-- Portfolio Grid -->
+<div class="properties-grid">
+    {% for prop in properties %}
+        <div class="property-card">
+            <div class="property-image-placeholder">
+                <i class="fa-regular fa-image"></i>
+                
+                <span class="property-tag {% if prop.listing_category == 'SALE' %}property-tag-sale{% elif prop.listing_category == 'FURNISHED' %}property-tag-furnished{% endif %}">
+                    {{ prop.get_listing_category_display }}
+                </span>
+            </div>
+            
+            <div class="property-body">
+                <div class="property-price">
+                    {% if prop.listing_category == 'FURNISHED' and prop.price_per_night %}
+                        {{ prop.price_per_night|intcomma }} CFA <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">/ nuit</span>
+                    {% else %}
+                        {{ prop.price|intcomma }} CFA
+                    {% endif %}
+                </div>
+                
+                <h3 class="property-title">{{ prop.title }}</h3>
+                
+                <div class="property-loc">
+                    <i class="fa-solid fa-location-dot" style="color: var(--primary-light);"></i>
+                    <span>{{ prop.neighborhood }}, {{ prop.get_city_display }}</span>
+                </div>
+                
+                <div class="property-specs">
+                    <span><i class="fa-solid fa-bed"></i> {{ prop.bedrooms }} Ch.</span>
+                    <span><i class="fa-solid fa-bath"></i> {{ prop.toilets }} T.</span>
+                    <span><i class="fa-solid fa-maximize"></i> {{ prop.surface }} m²</span>
+                </div>
+            </div>
+            
+            <div class="property-actions">
+                <a href="https://logertogo.com/annonces/{{ prop.id }}/" target="_blank" class="btn btn-secondary">
+                    <i class="fa-solid fa-eye"></i> Voir
+                </a>
+                <a href="https://logertogo.com/annonces/{{ prop.id }}/modifier/" target="_blank" class="btn btn-secondary">
+                    <i class="fa-solid fa-edit"></i> Modifier
+                </a>
+                <a href="https://logertogo.com/annonces/{{ prop.id }}/dupliquer/" target="_blank" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.05); color: var(--primary-light); border-color: rgba(16, 185, 129, 0.15);">
+                    <i class="fa-solid fa-copy"></i> Dupliquer
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 5rem 0;" class="glass-panel">
+            <i class="fa-solid fa-building-circle-xmark" style="font-size: 3rem; display: block; margin-bottom: 1.5rem; color: rgba(255,255,255,0.05);"></i>
+            Vous n'avez aucun bien immobilier répertorié dans votre portefeuille pour le moment.
+            <div style="margin-top: 1.5rem;">
+                <a href="https://logertogo.com/annonces/nouvelle/" target="_blank" class="btn btn-primary">Créer votre premier bien</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

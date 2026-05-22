@@ -1,0 +1,288 @@
+{% extends 'agency/base_agency.html' %}
+{% load humanize %}
+
+{% block title %}Suivi des Loyers - Loger Togo CRM{% endblock %}
+
+{% block extra_head %}
+<style>
+    .payments-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    th {
+        padding: 1rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-glass);
+    }
+
+    td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid var(--border-glass);
+        font-size: 0.95rem;
+    }
+
+    tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+
+    .tenant-name {
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .property-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    /* Modal Form Styling */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: rgba(15, 23, 19, 0.95);
+        border: 1px solid var(--border-glass);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 500px;
+        padding: 2.5rem;
+        box-shadow: var(--card-glow);
+        position: relative;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-close:hover {
+        color: var(--text-main);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input, .form-group select {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-glass);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        color: var(--text-main);
+        font-family: inherit;
+        outline: none;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payments-header">
+    <div>
+        <h2 style="font-size: 2rem;">Suivi des Loyers & Encaissements</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Livre des recettes locatives et génération des quittances</p>
+    </div>
+</div>
+
+<!-- Rent Payment Ledger Panel -->
+<div class="glass-panel">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Locataire & Bien</th>
+                    <th>Période</th>
+                    <th>Montant Dû</th>
+                    <th>Montant Payé</th>
+                    <th>Statut</th>
+                    <th>Date Paiement</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in payments %}
+                    <tr>
+                        <td>
+                            <div class="tenant-name">{{ p.lease.tenant.get_full_name|default:p.lease.tenant.phone_number }}</div>
+                            <div class="property-meta"><i class="fa-solid fa-house" style="font-size: 0.75rem; margin-right: 0.25rem; color: var(--primary-light);"></i>{{ p.lease.property.title }}</div>
+                        </td>
+                        <td style="font-weight: 600;">
+                            {{ p.period_start|date:"F Y" }}
+                        </td>
+                        <td style="font-weight: 600; color: var(--text-main);">
+                            {{ p.amount_due|intcomma }} CFA
+                        </td>
+                        <td style="font-weight: 700; color: var(--primary-light);">
+                            {{ p.amount_paid|intcomma }} CFA
+                        </td>
+                        <td>
+                            <span class="badge {% if p.status == 'PAID' %}badge-success{% elif p.status == 'PARTIAL' %}badge-warning{% else %}badge-danger{% endif %}">
+                                {{ p.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">
+                            {% if p.date_paid %}
+                                {{ p.date_paid|date:"d M Y" }}
+                            {% else %}
+                                <span style="font-style: italic;">Non payé</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                {% if p.status != 'PAID' %}
+                                    <button class="btn btn-primary" onclick="openPaymentModal('{{ p.id }}', '{{ p.lease.tenant.get_full_name }}', '{{ p.amount_due }}')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px;">
+                                        <i class="fa-solid fa-cash-register"></i> Collecter
+                                    </button>
+                                {% endif %}
+                                
+                                {% if p.status == 'PAID' or p.status == 'PARTIAL' %}
+                                    <a href="{% url 'agency_receipt' p.id %}" target="_blank" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px;">
+                                        <i class="fa-solid fa-receipt" style="color: var(--accent);"></i> Quittance
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 4rem 0;">
+                            <i class="fa-solid fa-money-bill-transfer" style="font-size: 2.5rem; display: block; margin-bottom: 1rem; color: rgba(255,255,255,0.05);"></i>
+                            Aucune ligne de loyer disponible. Rédigez un contrat de bail actif pour générer le suivi de loyer.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal" id="paymentModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+        <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem;">
+            <i class="fa-solid fa-cash-register" style="color: var(--primary-light);"></i> Enregistrer Encaissement
+        </h3>
+        
+        <form method="POST" action="{% url 'agency_payments' %}">
+            {% csrf_token %}
+            <input type="hidden" name="payment_id" id="modal_payment_id">
+            
+            <div class="form-group">
+                <label>Locataire</label>
+                <input type="text" id="modal_tenant_name" readonly style="background: rgba(255,255,255,0.01); color: var(--text-muted); border-style: dashed;">
+            </div>
+            
+            <div class="form-group">
+                <label for="modal_amount_paid">Montant Encaissé (FCFA) <span style="color: red;">*</span></label>
+                <input type="number" name="amount_paid" id="modal_amount_paid" required placeholder="Ex: 150000">
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;" id="modal_due_hint"></span>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_date_paid">Date de l'encaissement</label>
+                <input type="date" name="date_paid" id="id_date_paid">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Valider Encaissement</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openPaymentModal(paymentId, tenantName, amountDue) {
+        document.getElementById('modal_payment_id').value = paymentId;
+        document.getElementById('modal_tenant_name').value = tenantName;
+        
+        const amountField = document.getElementById('modal_amount_paid');
+        amountField.value = amountDue;
+        amountField.max = amountDue;
+        
+        document.getElementById('modal_due_hint').innerText = `Montant attendu pour cette période: ${parseFloat(amountDue).toLocaleString()} CFA`;
+        
+        // Auto populate today's date in local time
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('id_date_paid').value = today;
+
+        document.getElementById('paymentModal').style.display = 'flex';
+    }
+    
+    function closePaymentModal() {
+        document.getElementById('paymentModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('paymentModal');
+        if (event.target == modal) {
+            closePaymentModal();
+        }
+    }
+</script>
+{% endblock %}

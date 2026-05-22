@@ -1,5 +1,5 @@
 import uuid
-from django.shortcuts import render, redirect, get_object_or_400
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
@@ -301,7 +301,7 @@ def agency_update_pipeline_stage(request):
     new_stage = request.POST.get('stage')
     
     try:
-        client = get_object_or_400(AgencyClient, id=client_id, agency=agency)
+        client = get_object_or_404(AgencyClient, id=client_id, agency=agency)
         client.pipeline_stage = int(new_stage)
         # Automatically update status based on pipeline stage
         if client.pipeline_stage == 5:
@@ -337,8 +337,8 @@ def agency_leases(request):
         custom_terms = request.POST.get('custom_terms', '')
         custom_header = request.POST.get('custom_header', '')
         
-        prop = get_object_or_400(Property, id=property_id, owner=agency)
-        tenant_user = get_object_or_400(User, id=tenant_id)
+        prop = get_object_or_404(Property, id=property_id, owner=agency)
+        tenant_user = get_object_or_404(User, id=tenant_id)
         
         if prop and tenant_user and start_date and rent_amount:
             lease = Lease.objects.create(
@@ -396,7 +396,7 @@ def agency_payments(request):
         amount_paid = request.POST.get('amount_paid')
         date_paid = request.POST.get('date_paid')
         
-        payment = get_object_or_400(RentPayment, id=payment_id, lease__landlord=agency)
+        payment = get_object_or_404(RentPayment, id=payment_id, lease__landlord=agency)
         
         if payment and amount_paid:
             amt = float(amount_paid)
@@ -429,7 +429,7 @@ def agency_receipt(request, payment_id):
     Allows easy print to PDF via browser.
     """
     agency = request.user
-    payment = get_object_or_400(RentPayment, id=payment_id, lease__landlord=agency)
+    payment = get_object_or_404(RentPayment, id=payment_id, lease__landlord=agency)
     
     context = {
         'payment': payment,

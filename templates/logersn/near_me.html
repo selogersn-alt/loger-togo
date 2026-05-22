@@ -114,8 +114,15 @@
 
 /* Filter Bar */
 .filter-bar {
-    position: absolute; top: 20px; left: 20px; z-index: 1000;
+    position: absolute; top: 20px; left: 20px; right: 80px; z-index: 1000;
     display: flex; gap: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+}
+.filter-bar::-webkit-scrollbar {
+    display: none;
 }
 .filter-chip {
     background: white; border: none; padding: 8px 18px; border-radius: 50px;
@@ -164,6 +171,10 @@
 
     <div class="filter-bar">
         <button class="filter-chip active" onclick="filterType('ALL')">{% trans "Tout" %}</button>
+        <button class="filter-chip" onclick="filterType('APPARTEMENT')">{% trans "Appartements" %}</button>
+        <button class="filter-chip" onclick="filterType('STUDIO')">{% trans "Studios" %}</button>
+        <button class="filter-chip" onclick="filterType('VILLA')">{% trans "Villas" %}</button>
+        <button class="filter-chip" onclick="filterType('CHAMBRE_SALON')">{% trans "Chambre-Salon" %}</button>
         <button class="filter-chip" onclick="filterType('AUBERGE')">{% trans "Auberges" %}</button>
         <button class="filter-chip" onclick="filterType('FURNISHED')">{% trans "Meublés" %}</button>
     </div>
@@ -207,7 +218,15 @@
 
         _map.on('load', function() {
             placeMarkers();
-            startWatch();
+            
+            const focusId = "{{ focus_id|default:'' }}";
+            if (focusId && _propMarkers[focusId]) {
+                setTimeout(() => {
+                    focusProp(focusId);
+                }, 500);
+            } else {
+                startWatch();
+            }
             renderList(null, null);
         });
     }
@@ -333,7 +352,13 @@
                 drawFallbackLine(_userPos, [targetLng, targetLat]);
             });
 
-        _map.fitBounds([_userPos, [targetLng, targetLat]], { padding: 100 });
+        _map.fitBounds([_userPos, [targetLng, targetLat]], { padding: 100, maxZoom: 15 });
+        setTimeout(() => {
+            if (_map.getZoom() < 12) {
+                _map.setZoom(12);
+                _map.setCenter([targetLng, targetLat]);
+            }
+        }, 400);
     }
 
     function placeMarkers() {

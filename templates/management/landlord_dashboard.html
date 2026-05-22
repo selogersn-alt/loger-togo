@@ -34,7 +34,7 @@
                     <a class="nav-link {% if section == 'ads' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=ads">
                         <i class="fas fa-house-user me-3"></i>{% trans "Mes Annonces" %}
                     </a>
-                    <a class="nav-link {% if section == 'messages' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=messages">
+                    <a class="nav-link {% if section == 'messages' %}active{% endif %} mb-2 rounded-3 p-3" href="{% url 'messagerie' %}">
                         <i class="fas fa-comment-dots me-3"></i>{% trans "Messagerie" %}
                         {% if unread_count %}<span class="badge bg-danger rounded-pill float-end">{{ unread_count }}</span>{% endif %}
                     </a>
@@ -62,7 +62,7 @@
                         <li><a class="dropdown-item rounded" href="?section=home">{% trans "Stats" %}</a></li>
                         <li><a class="dropdown-item rounded" href="?section=leases">{% trans "Contrats" %}</a></li>
                         <li><a class="dropdown-item rounded" href="?section=ads">{% trans "Annonces" %}</a></li>
-                        <li><a class="dropdown-item rounded" href="?section=messages">{% trans "Messages" %}</a></li>
+                        <li><a class="dropdown-item rounded" href="{% url 'messagerie' %}">{% trans "Messages" %}</a></li>
                         <li><a class="dropdown-item rounded" href="{% url 'logout' %}">{% trans "Déconnexion" %}</a></li>
                     </ul>
                  </div>

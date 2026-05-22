@@ -883,27 +883,13 @@
 
 <!-- Floating Contact Bar for Mobile/Tablet -->
 <div class="floating-contact-bar d-lg-none">
-    <div class="container d-flex align-items-center justify-content-between py-2 px-3">
-        <div class="price-info">
-            <span class="price-value fw-bold text-success">
-                {% if property.listing_category == 'FURNISHED' %}
-                    {{ property.price_per_night|format_price }} FCFA <span class="small opacity-75" style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/ nuit</span>
-                {% else %}
-                    {% if property.discount_price and property.discount_price < property.price %}
-                        {{ property.discount_price|format_price }} FCFA
-                    {% else %}
-                        {{ property.price|format_price }} FCFA
-                    {% endif %}
-                    <span class="small opacity-75" style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">{% if property.listing_category == 'SALE' %}{% else %}/ mois{% endif %}</span>
-                {% endif %}
-            </span>
-        </div>
-        <div class="contact-actions d-flex gap-2">
+    <div class="container py-2 px-3">
+        <div class="contact-actions d-flex gap-2 w-100">
             {% if property.owner.phone_number %}
-            <a href="tel:{{ property.owner.phone_number }}" class="btn btn-phone" aria-label="{% trans "Appeler" %}">
+            <a href="tel:{{ property.owner.phone_number }}" class="btn btn-phone flex-grow-1 justify-content-center py-3" aria-label="{% trans "Appeler" %}">
                 <i class="fa-solid fa-phone"></i> <span>{% trans "Appeler" %}</span>
             </a>
-            <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce sur Loger Togo :" %} {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-whatsapp" aria-label="WhatsApp">
+            <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce sur Loger Togo :" %} {{ property.title }} ({{ request.scheme }}://{{ request.get_host }}{{ property.get_absolute_url }})" target="_blank" class="btn btn-whatsapp flex-grow-1 justify-content-center py-3" aria-label="WhatsApp">
                 <i class="fa-brands fa-whatsapp"></i> <span>WhatsApp</span>
             </a>
             {% endif %}
@@ -1094,12 +1080,24 @@
                     }
                     // Ajuster la vue avec padding et maxZoom pour éviter le "grand zoom"
                     _map.fitBounds([_userPos, propertyPos], { padding: 100, maxZoom: 15 });
+                    setTimeout(() => {
+                        if (_map.getZoom() < 12) {
+                            _map.setZoom(12);
+                            _map.setCenter(propertyPos);
+                        }
+                    }, 400);
                 })
                 .catch(err => {
                     console.error("OSRM Error:", err);
                     // Fallback ligne droite si OSRM échoue
                     drawDetailFallbackLine(_userPos, propertyPos);
                     _map.fitBounds([_userPos, propertyPos], { padding: 100, maxZoom: 15 });
+                    setTimeout(() => {
+                        if (_map.getZoom() < 12) {
+                            _map.setZoom(12);
+                            _map.setCenter(propertyPos);
+                        }
+                    }, 400);
                 });
         };
 

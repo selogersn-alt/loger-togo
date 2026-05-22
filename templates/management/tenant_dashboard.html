@@ -23,7 +23,7 @@
                     <a class="nav-link {% if section == 'dossier' %}active{% endif %} mb-2 rounded-3 p-3" href="{% url 'management:tenant_dossier' %}">
                         <i class="fas fa-file-invoice me-3"></i>{% trans "Mon Dossier" %}
                     </a>
-                    <a class="nav-link {% if section == 'messages' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=messages">
+                    <a class="nav-link {% if section == 'messages' %}active{% endif %} mb-2 rounded-3 p-3" href="{% url 'messagerie' %}">
                         <i class="fas fa-comment-dots me-3"></i>{% trans "Messagerie" %}
                     </a>
                     <a class="nav-link {% if section == 'applications' %}active{% endif %} mb-2 rounded-3 p-3" href="?section=applications">

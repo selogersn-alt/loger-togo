@@ -478,6 +478,7 @@ def duplicate_property_view(request, property_id):
     # On réinitialise la clé primaire pour créer un nouvel enregistrement
     new_p.pk = None
     new_p.id = uuid.uuid4()
+    new_p.slug = None
     new_p.title = f"{p.title} ({_('Copie')})"
     new_p.is_published = False
     new_p.created_at = timezone.now()
@@ -503,7 +504,6 @@ def near_me_view(request):
     
     # Récupérer tous les biens géolocalisés avec coordonnées
     properties = Property.objects.filter(
-        Q(property_type='AUBERGE') | Q(listing_category='FURNISHED'),
         is_published=True
     ).select_related('owner').prefetch_related('images').exclude(
         latitude__isnull=True

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Partenaire - Loger Togo Agence CRM</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0b4629;
+            --primary-glow: rgba(11, 70, 41, 0.45);
+            --primary-light: #10b981;
+            --accent: #ffd700;
+            --bg-dark: #070a08;
+            --panel-bg: rgba(16, 26, 21, 0.65);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 2rem 1rem;
+        }
+
+        /* Immersive animated background gradient orbs */
+        .bg-glow-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .bg-glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.15;
+            animation: floatGlow 20s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary-light);
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 30%;
+            left: 70%;
+            opacity: 0.05;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(80px, 50px) scale(1.1); }
+        }
+
+        /* Glassmorphic Auth Card */
+        .auth-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .auth-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            padding: 3rem 3.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Logo and Header Styling */
+        .brand-header {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #ffffff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-header p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Grid Layout */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group-full {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 600px) {
+            .form-group-full {
+                grid-column: span 1;
+            }
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 1.25rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .form-control, .form-select {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3.25rem;
+            background: rgba(10, 18, 14, 0.6);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-select {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            padding-right: 2.5rem;
+        }
+
+        /* Select Arrow */
+        .select-arrow {
+            position: absolute;
+            right: 1.25rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(243, 244, 246, 0.25);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-light);
+            background: rgba(10, 18, 14, 0.85);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .form-control:focus + i, .form-select:focus + i {
+            color: var(--primary-light);
+        }
+
+        /* Select options styles */
+        .form-select option {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        /* Buttons and CTAs */
+        .btn {
+            width: 100%;
+            padding: 1.1rem;
+            border-radius: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: #ffffff;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Toggle links */
+        .toggle-link {
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .toggle-link a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-link a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* Alerts Styling */
+        .alert-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.9rem 1.25rem;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .back-home {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .back-home a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-home a:hover {
+            color: var(--text-main);
+            transform: translateX(-3px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Blurry Animated Background Orbs -->
+    <div class="bg-glow-container">
+        <div class="bg-glow-orb orb-1"></div>
+        <div class="bg-glow-orb orb-2"></div>
+        <div class="bg-glow-orb orb-3"></div>
+    </div>
+
+    <!-- Auth Container -->
+    <div class="auth-container">
+        <div class="auth-card">
+            
+            <!-- Header Logo -->
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-hotel" style="color: #ffffff; font-size: 1.8rem;"></i>
+                </div>
+                <h1>Devenir Partenaire</h1>
+                <p>Créez votre compte professionnel et gérez vos biens & baux</p>
+            </div>
+
+            <!-- Django Alert Messages -->
+            {% if messages %}
+            <div class="alert-container">
+                {% for message in messages %}
+                <div class="alert">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Register Form -->
+            <form method="POST" action="{% url 'agency_register' %}">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    
+                    <div class="form-group">
+                        <label for="first_name">Prénom</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Ex: Jean" required>
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last_name">Nom</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Ex: Mensah" required>
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="company_name">Nom de l'Agence</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="company_name" name="company_name" class="form-control" placeholder="Ex: Mensah Immo Sarl" required>
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Votre Statut</label>
+                        <div class="input-wrapper">
+                            <select id="role" name="role" class="form-select" required>
+                                <option value="AGENCY" selected>Agence Immobilière</option>
+                                <option value="LANDLORD">Bailleur Particulier</option>
+                                <option value="BROKER">Courtier Mandataire</option>
+                                <option value="AGENT">Agent Immobilier Indépendant</option>
+                            </select>
+                            <i class="fa-solid fa-briefcase"></i>
+                            <i class="fa-solid fa-chevron-down select-arrow"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone_number">Téléphone (Identifiant)</label>
+                        <div class="input-wrapper">
+                            <input type="tel" id="phone_number" name="phone_number" class="form-control" placeholder="Ex: +228 90 00 00 00" required>
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Adresse E-mail</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Ex: contact@agence.com" required>
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label for="coverage_area">Zone de couverture</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="coverage_area" name="coverage_area" class="form-control" placeholder="Ex: Lomé, Kpalimé, Kara (Togo)" required>
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Mot de passe</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Min. 8 caractères" required>
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password_confirm">Confirmer</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="password_confirm" name="password_confirm" class="form-control" placeholder="Répéter le mot de passe" required>
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <span>Créer mon compte partenaire</span>
+                    <i class="fa-solid fa-user-plus"></i>
+                </button>
+            </form>
+
+            <!-- Toggle links -->
+            <div class="toggle-link">
+                Déjà partenaire ? <a href="{% url 'agency_login' %}">Se connecter</a>
+            </div>
+
+            <div class="back-home">
+                <a href="https://logertogo.com/">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Retour au site principal</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -357,7 +357,7 @@
                     <span>{{ request.user.company_name|default:"Agence Partenaire" }}</span>
                 </div>
             </div>
-            <a href="https://logertogo.com/deconnexion/" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <a href="{% url 'agency_logout' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                 <i class="fa-solid fa-sign-out-alt"></i> Déconnexion
             </a>
         </div>

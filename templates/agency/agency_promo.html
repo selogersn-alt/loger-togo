@@ -293,9 +293,9 @@
                 <span style="color: var(--text-muted); margin-right: 1.5rem; font-size: 0.95rem;">
                     Connecté en tant que <strong>{{ request.user.get_full_name|default:request.user.phone_number }}</strong>
                 </span>
-                <a href="https://logertogo.com/deconnexion/" class="btn btn-secondary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Déconnexion</a>
+                <a href="{% url 'agency_logout' %}" class="btn btn-secondary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Déconnexion</a>
             {% else %}
-                <a href="https://logertogo.com/connexion/" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Se Connecter</a>
+                <a href="{% url 'agency_login' %}" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Se Connecter</a>
             {% endif %}
         </div>
     </header>

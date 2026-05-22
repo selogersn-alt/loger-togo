@@ -13,7 +13,7 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login, logout
 from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest
 from logersn.models import Property
 
@@ -22,18 +22,13 @@ User = get_user_model()
 def agency_saas_required(view_func):
     """
     Decorator to ensure user is logged in and has active SaaS subscription.
-    Otherwise redirects to the landing/pricing promo page.
+    Otherwise redirects to the agency login page.
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            # Build SSO login redirection URL
-            if settings.DEBUG:
-                login_url = "http://localhost:8000/login/"
-            else:
-                login_url = "https://logertogo.com/login/"
             next_url = request.build_absolute_uri()
-            return redirect(f"{login_url}?next={next_url}")
+            return redirect(f"{reverse('agency_login')}?next={next_url}")
             
         if not request.user.is_saas_active:
             # Redirect to agency landing/promo page
@@ -41,6 +36,107 @@ def agency_saas_required(view_func):
             
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def agency_login(request):
+    """
+    Premium login view for the agency subdomain.
+    """
+    if request.user.is_authenticated:
+        if request.user.is_saas_active:
+            return redirect('agency_dashboard')
+        return redirect('agency_promo')
+        
+    next_url = request.GET.get('next', '')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if not username or not password:
+            messages.error(request, "Veuillez remplir tous les champs.")
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user, backend='users.backends.PhoneOrEmailBackend')
+                messages.success(request, f"Ravi de vous revoir, {user.get_full_name()} !")
+                
+                if next_url:
+                    return redirect(next_url)
+                if user.is_saas_active:
+                    return redirect('agency_dashboard')
+                return redirect('agency_promo')
+            else:
+                messages.error(request, "Identifiants incorrects ou compte inexistant.")
+                
+    return render(request, 'agency/login.html', {'next': next_url})
+
+
+def agency_register(request):
+    """
+    Premium registration view for the agency subdomain.
+    """
+    if request.user.is_authenticated:
+        if request.user.is_saas_active:
+            return redirect('agency_dashboard')
+        return redirect('agency_promo')
+        
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+        email = request.POST.get('email')
+        role = request.POST.get('role', User.RoleEnum.AGENCY)
+        company_name = request.POST.get('company_name', '')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        coverage_area = request.POST.get('coverage_area', '')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        
+        if not phone_number and not email:
+            messages.error(request, "Vous devez fournir au moins un numéro de téléphone ou un e-mail.")
+        elif not password or not password_confirm:
+            messages.error(request, "Veuillez saisir votre mot de passe et sa confirmation.")
+        elif password != password_confirm:
+            messages.error(request, "Les mots de passe ne correspondent pas.")
+        else:
+            phone_exists = phone_number and User.objects.filter(phone_number=phone_number).exists()
+            email_exists = email and User.objects.filter(email=email).exists()
+            
+            if phone_exists:
+                messages.error(request, "Ce numéro de téléphone est déjà associé à un compte.")
+            elif email_exists:
+                messages.error(request, "Cette adresse e-mail est déjà associée à un compte.")
+            else:
+                try:
+                    user = User.objects.create_user(
+                        phone_number=phone_number or None,
+                        password=password,
+                        email=email or None,
+                        role=role,
+                        company_name=company_name,
+                        first_name=first_name,
+                        last_name=last_name,
+                        coverage_area=coverage_area
+                    )
+                    login(request, user, backend='users.backends.PhoneOrEmailBackend')
+                    messages.success(request, "Votre compte agence a été créé avec succès !")
+                    return redirect('agency_promo')
+                except Exception as e:
+                    messages.error(request, f"Erreur lors de l'inscription : {str(e)}")
+                    
+    context = {
+        'roles': User.RoleEnum.choices,
+    }
+    return render(request, 'agency/register.html', context)
+
+
+def agency_logout(request):
+    """
+    Logout view for the agency subdomain.
+    """
+    logout(request)
+    messages.success(request, "Vous avez été déconnecté avec succès.")
+    return redirect('agency_promo')
 
 
 def agency_promo(request):

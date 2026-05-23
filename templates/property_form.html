@@ -128,10 +128,10 @@
                 {% trans "mensuel" %}
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:none; padding:8px; z-index: 1050;">
-                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="month" onclick="window.selectPriceUnit('month', event)">{% trans "mensuel" %}</a></li>
-                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="night" onclick="window.selectPriceUnit('night', event)">{% trans "nuitée" %}</a></li>
-                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="hour" onclick="window.selectPriceUnit('hour', event)">{% trans "heure" %}</a></li>
-                <li><a class="dropdown-item rounded-3" href="#" data-unit="total" onclick="window.selectPriceUnit('total', event)">{% trans "Prix Total" %}</a></li>
+                <li><button class="dropdown-item rounded-3 mb-1" type="button" data-unit="month" onclick="window.selectPriceUnit('month', event)">{% trans "mensuel" %}</button></li>
+                <li><button class="dropdown-item rounded-3 mb-1" type="button" data-unit="night" onclick="window.selectPriceUnit('night', event)">{% trans "nuitée" %}</button></li>
+                <li><button class="dropdown-item rounded-3 mb-1" type="button" data-unit="hour" onclick="window.selectPriceUnit('hour', event)">{% trans "heure" %}</button></li>
+                <li><button class="dropdown-item rounded-3" type="button" data-unit="total" onclick="window.selectPriceUnit('total', event)">{% trans "Prix Total" %}</button></li>
               </ul>
               {{ form.price_unit }}
             </div>

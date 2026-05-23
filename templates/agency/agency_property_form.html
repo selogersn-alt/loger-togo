@@ -618,6 +618,42 @@
         });
     }
 
+    window.selectPriceUnit = function(chosenUnit, e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        const categorySelect = document.getElementById('id_listing_category');
+        if (!categorySelect) return;
+
+        if (chosenUnit === 'night') {
+            if (categorySelect.value !== 'FURNISHED') {
+                categorySelect.value = 'FURNISHED';
+                adjustPricingFields();
+            }
+            setUnit('night');
+        } else if (chosenUnit === 'hour') {
+            if (categorySelect.value !== 'FURNISHED') {
+                categorySelect.value = 'FURNISHED';
+                adjustPricingFields();
+            }
+            setUnit('hour');
+        } else if (chosenUnit === 'month') {
+            if (categorySelect.value === 'SALE') {
+                categorySelect.value = 'RENT';
+                adjustPricingFields();
+            }
+            setUnit('month');
+        } else if (chosenUnit === 'total') {
+            if (categorySelect.value !== 'SALE') {
+                categorySelect.value = 'SALE';
+                adjustPricingFields();
+            }
+            setUnit('total');
+        }
+    };
+
     function initPriceSelector() {
         const categorySelect = document.getElementById('id_listing_category');
         const unitSelector = document.getElementById('price-unit-selector');
@@ -631,39 +667,6 @@
                 priceInput.value = pricePerNightInput.value;
             }
         }
-
-        window.selectPriceUnit = function(chosenUnit, e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
-            if (chosenUnit === 'night') {
-                if (categorySelect.value !== 'FURNISHED') {
-                    categorySelect.value = 'FURNISHED';
-                    adjustPricingFields();
-                }
-                setUnit('night');
-            } else if (chosenUnit === 'hour') {
-                if (categorySelect.value !== 'FURNISHED') {
-                    categorySelect.value = 'FURNISHED';
-                    adjustPricingFields();
-                }
-                setUnit('hour');
-            } else if (chosenUnit === 'month') {
-                if (categorySelect.value === 'SALE') {
-                    categorySelect.value = 'RENT';
-                    adjustPricingFields();
-                }
-                setUnit('month');
-            } else if (chosenUnit === 'total') {
-                if (categorySelect.value !== 'SALE') {
-                    categorySelect.value = 'SALE';
-                    adjustPricingFields();
-                }
-                setUnit('total');
-            }
-        };
 
         // Attach click handlers to data-unit elements
         document.querySelectorAll('[data-unit]').forEach(item => {

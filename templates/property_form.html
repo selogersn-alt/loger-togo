@@ -343,6 +343,79 @@
 
 <script>
 
+    function setUnit(u) {
+        const unitSelector = document.getElementById('price-unit-selector');
+        const unitBtn = document.getElementById('price-unit-btn');
+        const priceLabel = document.getElementById('price_label');
+
+        if (!unitSelector) return;
+        unitSelector.value = u;
+        let text = '';
+        if (u === 'month') {
+            text = '{% trans "mensuel" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
+        } else if (u === 'night') {
+            text = '{% trans "nuitée" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Prix par nuitée (FCFA)" %}';
+        } else if (u === 'hour') {
+            text = '{% trans "heure" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Prix par heure (FCFA)" %}';
+        } else {
+            text = '{% trans "Prix Total" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
+        }
+        if (unitBtn) unitBtn.innerHTML = text;
+
+        // Toggle active class on dropdown options for premium visual feedback
+        document.querySelectorAll('[data-unit]').forEach(item => {
+            if (item.dataset.unit === u) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    window.selectPriceUnit = function(chosenUnit, e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        const categorySelect = document.getElementById('id_listing_category');
+        if (!categorySelect) return;
+
+        if (chosenUnit === 'night') {
+            // Pour la nuitée, la catégorie DOIT être FURNISHED (A Louer Meublé)
+            if (categorySelect.value !== 'FURNISHED') {
+                categorySelect.value = 'FURNISHED';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('night');
+        } else if (chosenUnit === 'hour') {
+            // Pour la tarification horaire, la catégorie DOIT être FURNISHED (A Louer Meublé)
+            if (categorySelect.value !== 'FURNISHED') {
+                categorySelect.value = 'FURNISHED';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('hour');
+        } else if (chosenUnit === 'month') {
+            // Pour le mensuel, si c'était SALE, on bascule vers RENT (Location classique)
+            if (categorySelect.value === 'SALE') {
+                categorySelect.value = 'RENT';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('month');
+        } else if (chosenUnit === 'total') {
+            // Pour le prix total (vente), la catégorie DOIT être SALE (A Vendre)
+            if (categorySelect.value !== 'SALE') {
+                categorySelect.value = 'SALE';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('total');
+        }
+    };
+
 // ─── 4. LOGIQUE DYNAMIQUE DU FORMULAIRE ───────────────
 // Répond aux valeurs EXACTES du modèle Django : 'RENT', 'SALE', 'FURNISHED'
 function applyDynamicFormLogic() {
@@ -376,35 +449,6 @@ function applyDynamicFormLogic() {
                 }
             });
         }
-    }
-
-    function setUnit(u) {
-        if (!unitSelector) return;
-        unitSelector.value = u;
-        let text = '';
-        if (u === 'month') {
-            text = '{% trans "mensuel" %}';
-            if (priceLabel) priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
-        } else if (u === 'night') {
-            text = '{% trans "nuitée" %}';
-            if (priceLabel) priceLabel.innerText = '{% trans "Prix par nuitée (FCFA)" %}';
-        } else if (u === 'hour') {
-            text = '{% trans "heure" %}';
-            if (priceLabel) priceLabel.innerText = '{% trans "Prix par heure (FCFA)" %}';
-        } else {
-            text = '{% trans "Prix Total" %}';
-            if (priceLabel) priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
-        }
-        if (unitBtn) unitBtn.innerHTML = text;
-
-        // Toggle active class on dropdown options for premium visual feedback
-        document.querySelectorAll('[data-unit]').forEach(item => {
-            if (item.dataset.unit === u) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
     }
 
     function updateFields() {
@@ -447,43 +491,6 @@ function applyDynamicFormLogic() {
     // Event Listeners
     categorySelect.addEventListener('change', updateFields);
     if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
-
-    window.selectPriceUnit = function(chosenUnit, e) {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        if (chosenUnit === 'night') {
-            // Pour la nuitée, la catégorie DOIT être FURNISHED (A Louer Meublé)
-            if (categorySelect.value !== 'FURNISHED') {
-                categorySelect.value = 'FURNISHED';
-                categorySelect.dispatchEvent(new Event('change'));
-            }
-            setUnit('night');
-        } else if (chosenUnit === 'hour') {
-            // Pour la tarification horaire, la catégorie DOIT être FURNISHED (A Louer Meublé)
-            if (categorySelect.value !== 'FURNISHED') {
-                categorySelect.value = 'FURNISHED';
-                categorySelect.dispatchEvent(new Event('change'));
-            }
-            setUnit('hour');
-        } else if (chosenUnit === 'month') {
-            // Pour le mensuel, si c'était SALE, on bascule vers RENT (Location classique)
-            if (categorySelect.value === 'SALE') {
-                categorySelect.value = 'RENT';
-                categorySelect.dispatchEvent(new Event('change'));
-            }
-            setUnit('month');
-        } else if (chosenUnit === 'total') {
-            // Pour le prix total (vente), la catégorie DOIT être SALE (A Vendre)
-            if (categorySelect.value !== 'SALE') {
-                categorySelect.value = 'SALE';
-                categorySelect.dispatchEvent(new Event('change'));
-            }
-            setUnit('total');
-        }
-    };
 
     document.querySelectorAll('[data-unit]').forEach(item => {
         item.addEventListener('click', (e) => {

@@ -396,6 +396,15 @@ function applyDynamicFormLogic() {
             if (priceLabel) priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
         }
         if (unitBtn) unitBtn.innerHTML = text;
+
+        // Toggle active class on dropdown options for premium visual feedback
+        document.querySelectorAll('[data-unit]').forEach(item => {
+            if (item.dataset.unit === u) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
     }
 
     function updateFields() {
@@ -503,6 +512,10 @@ function applyDynamicFormLogic() {
         });
     }
 
+    // Sync initial state from unit selector value (handles edits and initial defaults properly)
+    if (unitSelector && unitSelector.value) {
+        setUnit(unitSelector.value);
+    }
     updateFields();
 }
 

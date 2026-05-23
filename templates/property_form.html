@@ -409,15 +409,17 @@ function applyDynamicFormLogic() {
         // Configuration de l'unité
         if (isSale) {
             setUnit('total');
-            if (unitBtn) unitBtn.classList.add('disabled');
         } else if (isFurnished) {
-            if (unitBtn) unitBtn.classList.remove('disabled');
             if (unitSelector && unitSelector.value === 'total') {
                 setUnit('night');
             }
         } else {
             setUnit('month');
-            if (unitBtn) unitBtn.classList.add('disabled');
+        }
+
+        // Garder le bouton toujours actif pour une expérience utilisateur fluide
+        if (unitBtn) {
+            unitBtn.classList.remove('disabled');
         }
 
         // Champs spécifiques selon le type de bien
@@ -435,9 +437,29 @@ function applyDynamicFormLogic() {
     document.querySelectorAll('[data-unit]').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            const val = (categorySelect.value || '').trim().toUpperCase();
-            if (val === 'FURNISHED') {
-                setUnit(item.dataset.unit);
+            const chosenUnit = item.dataset.unit;
+            
+            if (chosenUnit === 'night') {
+                // Pour la nuitée, la catégorie DOIT être FURNISHED (A Louer Meublé)
+                if (categorySelect.value !== 'FURNISHED') {
+                    categorySelect.value = 'FURNISHED';
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+                setUnit('night');
+            } else if (chosenUnit === 'month') {
+                // Pour le mensuel, si c'était SALE, on bascule vers RENT (Location classique)
+                if (categorySelect.value === 'SALE') {
+                    categorySelect.value = 'RENT';
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+                setUnit('month');
+            } else if (chosenUnit === 'total') {
+                // Pour le prix total (vente), la catégorie DOIT être SALE (A Vendre)
+                if (categorySelect.value !== 'SALE') {
+                    categorySelect.value = 'SALE';
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+                setUnit('total');
             }
         });
     });

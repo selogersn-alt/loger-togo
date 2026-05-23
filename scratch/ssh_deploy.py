@@ -6,9 +6,27 @@ def main():
     port = 22
     username = "root"
     import os
+    
+    # 1. Try to read from environment variable
     password = os.environ.get("VPS_PASSWORD")
+    
+    # 2. Try to read from local .env file (which is in .gitignore)
     if not password:
-        print("Error: VPS_PASSWORD environment variable is not set.")
+        try:
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            env_path = os.path.join(project_root, ".env")
+            if os.path.exists(env_path):
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("VPS_PASSWORD="):
+                            password = line.split("VPS_PASSWORD=", 1)[1].strip().strip('"').strip("'")
+                            break
+        except Exception:
+            pass
+
+    if not password:
+        print("Error: VPS_PASSWORD is not set in environment or local .env file.")
         sys.exit(1)
 
     print(f"Connecting to {host}:{port} as {username}...")

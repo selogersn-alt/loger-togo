@@ -377,9 +377,9 @@
     }
 
     window.selectPriceUnit = function(chosenUnit, e) {
+        console.log("[Pricing Selector] Selected price unit:", chosenUnit);
         if (e) {
             e.preventDefault();
-            e.stopPropagation();
         }
         
         const categorySelect = document.getElementById('id_listing_category');
@@ -491,13 +491,6 @@ function applyDynamicFormLogic() {
     // Event Listeners
     categorySelect.addEventListener('change', updateFields);
     if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
-
-    document.querySelectorAll('[data-unit]').forEach(item => {
-        item.addEventListener('click', (e) => {
-            const chosenUnit = item.dataset.unit;
-            window.selectPriceUnit(chosenUnit, e);
-        });
-    });
 
     // Hook Form Submission to synchronize values
     const formElement = document.querySelector('form');

@@ -72,15 +72,29 @@ class PropertyForm(forms.ModelForm):
         # Logique de cohérence par catégorie (Conflits de logique)
         listing_category = cleaned_data.get('listing_category')
         
-        # 1. Pour les meublés, on gère les deux types de prix
-        if listing_category == 'FURNISHED':
-            price = cleaned_data.get('price')
-            price_per_night = cleaned_data.get('price_per_night')
+        # 1. Gestion des deux types de prix basée sur l'unité (price_unit) ou la catégorie meublée (FURNISHED)
+        price_unit = cleaned_data.get('price_unit', 'month')
+        price = cleaned_data.get('price')
+        price_per_night = cleaned_data.get('price_per_night')
+
+        if price_unit in ['night', 'hour']:
+            # L'utilisateur a choisi un tarif à la nuitée ou à l'heure.
+            # Le prix principal 'price' représente le prix mensuel de référence (pour le tri/filtres),
+            # et 'price_per_night' représente le prix réel à la nuit/heure.
+            if price_per_night and (not price or price == 0):
+                cleaned_data['price'] = price_per_night * 30
+            elif price and (not price_per_night or price_per_night == 0):
+                # Si seul 'price' est fourni (ex: via admin ou API simple), c'est le tarif nuitée/heure
+                cleaned_data['price_per_night'] = price
+                cleaned_data['price'] = price * 30
+        elif listing_category == 'FURNISHED':
+            # Meublé mensuel classique
             if price_per_night and (not price or price == 0):
                 cleaned_data['price'] = price_per_night * 30
             elif price and (not price_per_night or price_per_night == 0):
                 cleaned_data['price_per_night'] = round(price / 30, 2)
-        elif listing_category != 'FURNISHED':
+        else:
+            # Autres catégories (location classique, vente)
             cleaned_data['price_per_night'] = None
 
         # 2. Conditions de location (Applicable si location classique OU meublé)

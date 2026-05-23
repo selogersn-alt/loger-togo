@@ -32,14 +32,14 @@ class PropertyEquipmentInline(admin.TabularInline):
 
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ('get_thumbnail', 'title', 'owner', 'listing_category', 'price', 'is_published', 'publication_requested', 'is_authorized_by_admin')
+    list_display = ('get_thumbnail', 'title', 'owner', 'listing_category', 'price', 'price_unit', 'price_per_night', 'is_published', 'publication_requested', 'is_authorized_by_admin')
     list_filter = ('listing_category', 'property_type', 'is_published', 'publication_requested', 'is_authorized_by_admin', 'is_paid', 'is_boosted', 'is_featured_popup', 'city', 'created_at')
     search_fields = ('title', 'description', 'city', 'neighborhood')
     inlines = [PropertyImageInline, PropertyEquipmentInline]
     readonly_fields = ('discount_price',)
     fieldsets = (
         (_('Informations de base'), {'fields': ('title', 'owner', 'listing_category', 'property_type', 'city', 'neighborhood', 'description')}),
-        (_('Tarification & Remises'), {'fields': ('price', 'discount_percentage', 'discount_price', 'price_per_night')}),
+        (_('Tarification & Remises'), {'fields': ('price', 'price_unit', 'price_per_night', 'discount_percentage', 'discount_price')}),
         (_('Statut & Visibilité'), {'fields': ('is_published', 'publication_requested', 'is_authorized_by_admin', 'is_paid', 'is_boosted', 'boost_until', 'is_featured_popup', 'popup_until')}),
     )
     actions = ['publish_properties', 'unpublish_properties', 'approve_publication', 'mark_as_paid', 'boost_selected']

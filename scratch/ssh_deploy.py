@@ -5,7 +5,11 @@ def main():
     host = "157.180.127.70"
     port = 22
     username = "root"
-    password = "AkueMax@2022"
+    import os
+    password = os.environ.get("VPS_PASSWORD")
+    if not password:
+        print("Error: VPS_PASSWORD environment variable is not set.")
+        sys.exit(1)
 
     print(f"Connecting to {host}:{port} as {username}...")
     ssh = paramiko.SSHClient()

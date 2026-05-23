@@ -320,6 +320,7 @@
                 <div class="form-group" id="group_price">
                     <label class="form-label" id="label_price" for="id_price">Prix / Loyer Mensuel (FCFA) <span style="color: red;">*</span></label>
                     <input type="number" name="price" id="id_price" class="form-control-input" placeholder="Ex: 150000" value="{{ form.price.value|default:'' }}">
+                    {{ form.price_unit }}
                 </div>
 
                 <!-- Price per night (for furnished properties) -->
@@ -561,6 +562,7 @@
 
     function adjustPricingFields() {
         const category = document.getElementById('id_listing_category').value;
+        const unitSelector = document.getElementById('price-unit-selector');
         
         const gPrice = document.getElementById('group_price');
         const lPrice = document.getElementById('label_price');
@@ -578,6 +580,7 @@
             gAdvance.style.display = 'block';
             gAgencyFee.style.display = 'block';
             gDocType.style.display = 'none';
+            if (unitSelector) unitSelector.value = 'month';
         } else if (category === 'SALE') {
             gPrice.style.display = 'block';
             lPrice.innerHTML = 'Prix de Vente Net (FCFA) <span style="color: red;">*</span>';
@@ -586,6 +589,7 @@
             gAdvance.style.display = 'none';
             gAgencyFee.style.display = 'none';
             gDocType.style.display = 'block';
+            if (unitSelector) unitSelector.value = 'total';
         } else if (category === 'FURNISHED') {
             gPrice.style.display = 'block';
             lPrice.innerHTML = 'Loyer Mensuel de référence (FCFA)';
@@ -594,6 +598,9 @@
             gAdvance.style.display = 'block';
             gAgencyFee.style.display = 'block';
             gDocType.style.display = 'none';
+            if (unitSelector && unitSelector.value !== 'night' && unitSelector.value !== 'hour' && unitSelector.value !== 'month') {
+                unitSelector.value = 'night';
+            }
         }
     }
 

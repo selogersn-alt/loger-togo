@@ -393,17 +393,27 @@
             <!-- Priority Price for Mobile -->
             <div class="details-card d-lg-none mb-3">
                     {% if property.listing_category == 'FURNISHED' %}
-                        <span class="text-success">{{ property.price_per_night|format_price }} FCFA</span>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-top: 5px;">
-                            <i class="fas fa-calendar-alt me-1"></i> {% trans "ou" %} 
-                            {% if property.discount_price %}
-                                <span class="text-decoration-line-through opacity-50">{{ property.price|format_price }}</span>
-                                <span class="text-success fw-bold">{{ property.discount_price|format_price }}</span>
-                            {% else %}
-                                {{ property.price|format_price }}
-                            {% endif %}
-                            FCFA / {% trans "mois" %}
-                        </div>
+                        {% if property.price_unit == 'month' %}
+                            <span class="text-success">{{ property.price|format_price }} FCFA</span>
+                            <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">
+                                /{% trans "mois" %}
+                            </span>
+                        {% else %}
+                            <span class="text-success">{{ property.price_per_night|format_price }} FCFA</span>
+                            <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">
+                                {% if property.price_unit == 'hour' %}/{% trans "heure" %}{% else %}/{% trans "nuitée" %}{% endif %}
+                            </span>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-top: 5px;">
+                                <i class="fas fa-calendar-alt me-1"></i> {% trans "ou" %} 
+                                {% if property.discount_price %}
+                                    <span class="text-decoration-line-through opacity-50">{{ property.price|format_price }}</span>
+                                    <span class="text-success fw-bold">{{ property.discount_price|format_price }}</span>
+                                {% else %}
+                                    {{ property.price|format_price }}
+                                {% endif %}
+                                FCFA / {% trans "mois" %}
+                            </div>
+                        {% endif %}
                     {% else %}
                         {% if property.discount_price and property.discount_price < property.price %}
                             <div class="text-white opacity-50 text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>
@@ -604,23 +614,35 @@
                 
                 <div class="price-tag">
                     {% if property.listing_category == 'FURNISHED' %}
-                        {# Prix par nuitée principal #}
-                        <span class="text-success">{{ property.price_per_night|format_price }} FCFA</span>
-                        <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400; margin-top: 5px;">
-                            <i class="fas fa-moon me-1"></i> {% trans "par nuitée" %}
-                        </div>
-                        
-                        {# Prix mensuel secondaire #}
-                        <div class="mt-3 p-2 rounded-3" style="background: rgba(0,0,0,0.03); border: 1px dashed var(--border-color);">
-                            <div class="small text-muted mb-1">{% trans "Tarif mensuel" %} :</div>
-                            {% if property.discount_price and property.discount_percentage > 0 %}
-                                <span class="text-muted text-decoration-line-through small">{{ property.price|format_price }}</span>
-                                <span class="text-success fw-bold d-block">{{ property.discount_price|format_price }} FCFA</span>
-                                <span class="badge bg-danger x-small">PROMO -{{ property.discount_percentage }}%</span>
-                            {% else %}
-                                <span class="text-success fw-bold">{{ property.price|format_price }} FCFA</span>
-                            {% endif %}
-                        </div>
+                        {% if property.price_unit == 'month' %}
+                            {# Si l'unité est mensuelle #}
+                            <span class="text-success">{{ property.price|format_price }} FCFA</span>
+                            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400; margin-top: 5px;">
+                                <i class="fas fa-calendar-alt me-1"></i> {% trans "par mois" %}
+                            </div>
+                        {% else %}
+                            {# Tarif horaire ou journalier principal #}
+                            <span class="text-success">{{ property.price_per_night|format_price }} FCFA</span>
+                            <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 400; margin-top: 5px;">
+                                {% if property.price_unit == 'hour' %}
+                                    <i class="fas fa-clock me-1"></i> {% trans "par heure" %}
+                                {% else %}
+                                    <i class="fas fa-moon me-1"></i> {% trans "par nuitée" %}
+                                {% endif %}
+                            </div>
+                            
+                            {# Prix mensuel secondaire #}
+                            <div class="mt-3 p-2 rounded-3" style="background: rgba(0,0,0,0.03); border: 1px dashed var(--border-color);">
+                                <div class="small text-muted mb-1">{% trans "Tarif mensuel" %} :</div>
+                                {% if property.discount_price and property.discount_percentage > 0 %}
+                                    <span class="text-muted text-decoration-line-through small">{{ property.price|format_price }}</span>
+                                    <span class="text-success fw-bold d-block">{{ property.discount_price|format_price }} FCFA</span>
+                                    <span class="badge bg-danger x-small">PROMO -{{ property.discount_percentage }}%</span>
+                                {% else %}
+                                    <span class="text-success fw-bold">{{ property.price|format_price }} FCFA</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     {% else %}
                         {% if property.discount_price and property.discount_percentage > 0 and property.discount_price < property.price %}
                             <div class="text-muted text-decoration-line-through fs-6 mb-1">{{ property.price|format_price }} FCFA</div>

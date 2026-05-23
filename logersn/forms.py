@@ -102,7 +102,7 @@ class PropertyForm(forms.ModelForm):
         model = Property
         fields = [
             'title', 'listing_category', 'property_type', 'document_type', 'city', 'neighborhood', 'price', 
-            'price_per_night', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens', 'households', 'floor_level',
+            'price_per_night', 'price_unit', 'surface', 'bedrooms', 'toilets', 'total_rooms', 'salons', 'kitchens', 'households', 'floor_level',
             'has_garage', 'has_balcony', 'has_terrace', 'has_courtyard', 'has_garden',
             'description', 'wifi', 'swimming_pool', 'gym', 'air_conditioning',
             'refrigerator', 'washing_machine', 'microwave', 'tv_cable',
@@ -112,6 +112,7 @@ class PropertyForm(forms.ModelForm):
             'deposit_months', 'advance_months', 'agency_fee_months', 'visit_fee',
         ]
         widgets = {
+            'price_unit': forms.HiddenInput(attrs={'id': 'price-unit-selector'}),
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ex: Superbe appartement F4 vue mer...')}),
             'listing_category': forms.Select(attrs={'class': 'form-select'}),
             'property_type': forms.Select(attrs={'class': 'form-select'}),

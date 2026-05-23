@@ -130,9 +130,10 @@
               <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:none; padding:8px; z-index: 1050;">
                 <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="month">{% trans "mensuel" %}</a></li>
                 <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="night">{% trans "nuitée" %}</a></li>
+                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="hour">{% trans "heure" %}</a></li>
                 <li><a class="dropdown-item rounded-3" href="#" data-unit="total">{% trans "Prix Total" %}</a></li>
               </ul>
-              <input type="hidden" id="price-unit-selector" value="month">
+              {{ form.price_unit }}
             </div>
             <div class="d-none">{{ form.price_per_night }}</div>
           </div>
@@ -387,6 +388,9 @@ function applyDynamicFormLogic() {
         } else if (u === 'night') {
             text = '{% trans "nuitée" %}';
             if (priceLabel) priceLabel.innerText = '{% trans "Prix par nuitée (FCFA)" %}';
+        } else if (u === 'hour') {
+            text = '{% trans "heure" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Prix par heure (FCFA)" %}';
         } else {
             text = '{% trans "Prix Total" %}';
             if (priceLabel) priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
@@ -410,7 +414,8 @@ function applyDynamicFormLogic() {
         if (isSale) {
             setUnit('total');
         } else if (isFurnished) {
-            if (unitSelector && unitSelector.value === 'total') {
+            // Pour les meublés, on accepte nuitée (night), heure (hour) ou mensuel (month)
+            if (unitSelector && unitSelector.value !== 'night' && unitSelector.value !== 'hour' && unitSelector.value !== 'month') {
                 setUnit('night');
             }
         } else {
@@ -446,6 +451,13 @@ function applyDynamicFormLogic() {
                     categorySelect.dispatchEvent(new Event('change'));
                 }
                 setUnit('night');
+            } else if (chosenUnit === 'hour') {
+                // Pour la tarification horaire, la catégorie DOIT être FURNISHED (A Louer Meublé)
+                if (categorySelect.value !== 'FURNISHED') {
+                    categorySelect.value = 'FURNISHED';
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+                setUnit('hour');
             } else if (chosenUnit === 'month') {
                 // Pour le mensuel, si c'était SALE, on bascule vers RENT (Location classique)
                 if (categorySelect.value === 'SALE') {
@@ -472,8 +484,9 @@ function applyDynamicFormLogic() {
             const enteredVal = parseFloat(priceInput.value) || 0;
             if (enteredVal > 0) {
                 if (val === 'FURNISHED') {
-                    if (unitSelector && unitSelector.value === 'night') {
+                    if (unitSelector && (unitSelector.value === 'night' || unitSelector.value === 'hour')) {
                         pricePerNightInput.value = enteredVal;
+                        // Définir un prix mensuel théorique cohérent
                         priceInput.value = Math.round(enteredVal * 30);
                     } else {
                         priceInput.value = enteredVal;

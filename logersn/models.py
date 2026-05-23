@@ -46,6 +46,13 @@ class Property(models.Model):
     # Pour les meublés uniquement
     price_per_night = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Prix par nuitée (Meublé)"), validators=[MinValueValidator(0)])
     
+    price_unit = models.CharField(
+        max_length=20, 
+        default='month', 
+        choices=[('month', 'mensuel'), ('night', 'nuitée'), ('hour', 'heure'), ('total', 'Prix Total')],
+        verbose_name=_("Unité de tarification")
+    )
+    
     # Conditions de location (Location)
     deposit_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de caution"), validators=[MinValueValidator(0)])
     advance_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois d'avance"), validators=[MinValueValidator(0)])

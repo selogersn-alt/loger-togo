@@ -463,7 +463,34 @@
             main {
                 margin-left: 0;
                 width: 100%;
-                padding: 1.5rem;
+                padding: 1.25rem;
+            }
+        }
+
+        /* Mobile plein bord (< 640px) */
+        @media (max-width: 640px) {
+            main {
+                padding: 1rem 0.85rem;
+            }
+            .mobile-header {
+                padding: 0.75rem 1rem;
+            }
+            /* Les cartes et tableaux s’étirent jusqu’aux bords */
+            .card, .table-card, .dash-card {
+                border-radius: 14px !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            .table-responsive {
+                margin: 0 -0.85rem;
+                border-radius: 0;
+            }
+        }
+
+        /* Très petit (< 380px) */
+        @media (max-width: 380px) {
+            main {
+                padding: 0.75rem;
             }
         }
     </style>

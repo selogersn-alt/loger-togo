@@ -229,14 +229,41 @@
 
         @media (max-width: 768px) {
             header {
-                padding: 1.25rem 2rem;
+                padding: 1rem 1.25rem;
             }
             .title-section h2 {
                 font-size: 2.2rem;
             }
             .privacy-card {
-                padding: 2rem;
+                padding: 2rem 1.5rem;
             }
+            .container {
+                padding: 0 1.25rem;
+                margin: 2.5rem auto;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 0.85rem 1rem;
+            }
+            .container {
+                padding: 0 1rem;
+                margin: 2rem auto;
+            }
+            .privacy-card {
+                padding: 1.5rem 1.25rem;
+                border-radius: 16px;
+            }
+            .title-section {
+                margin-bottom: 2rem;
+            }
+            .title-section h2 { font-size: 1.8rem; }
+        }
+
+        @media (max-width: 380px) {
+            .container { padding: 0 0.75rem; }
+            .privacy-card { padding: 1.25rem 1rem; }
         }
     </style>
 </head>

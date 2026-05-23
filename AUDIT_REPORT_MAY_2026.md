@@ -19,8 +19,8 @@
 | RBAC: Anon Blocked on 'agency_payments' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/paiements/ |
 | RBAC: Anon Blocked on 'agency_properties' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/ |
 | RBAC: Anon Blocked on 'agency_property_create' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/nouveau/ |
-| RBAC: Anon Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/cc5dcaa7-cdf5-4b2f-a799-2565d2d330da/modifier/ |
-| RBAC: Anon Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/quittance/2ca544c7-631c-41f6-89b5-834c11c3df35/ |
+| RBAC: Anon Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/393e0095-7237-4fb8-8ce3-806dc2e3f160/modifier/ |
+| RBAC: Anon Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/quittance/b3cb23cc-6474-4dae-909e-274ae46444f9/ |
 | RBAC: Non-SaaS Active Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: / |
 | RBAC: Non-SaaS Active Blocked on 'agency_clients' | ✅ | Status: 302, Redirect: / |
 | RBAC: Non-SaaS Active Blocked on 'agency_pipeline' | ✅ | Status: 302, Redirect: / |

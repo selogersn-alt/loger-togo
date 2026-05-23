@@ -17,6 +17,10 @@ __pycache__/
 .vscode/
 .DS_Store
 
+# --- SCRIPTS DEBUG & TESTS TEMPORAIRES ---
+scratch/debug_*.py
+scratch/test_*.py
+
 # --- FLUTTER ---
 **/build/
 **/.dart_tool/

@@ -262,6 +262,18 @@
     .badge-success { background: rgba(16, 185, 129, 0.08); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.15); }
     .badge-warning { background: rgba(245, 158, 11, 0.08); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.15); }
     .badge-danger { background: rgba(239, 68, 68, 0.08); color: #991b1b; border: 1px solid rgba(239, 68, 68, 0.15); }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+    .badge-overdue-alert {
+        background: rgba(239, 68, 68, 0.18) !important;
+        color: #b91c1c !important;
+        border: 1.5px solid rgba(239, 68, 68, 0.45) !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        animation: blink 1.2s infinite ease-in-out;
+    }
 </style>
 {% endblock %}
 
@@ -379,8 +391,8 @@
                             {{ p.amount_paid|intcomma }} CFA
                         </td>
                         <td>
-                            <span class="badge {% if p.status == 'PAID' %}badge-success{% elif p.status == 'PARTIAL' %}badge-warning{% else %}badge-danger{% endif %}">
-                                {{ p.get_status_display }}
+                            <span class="badge {% if p.is_overdue %}badge-overdue-alert{% elif p.status == 'PAID' %}badge-success{% elif p.status == 'PARTIAL' %}badge-warning{% else %}badge-danger{% endif %}">
+                                {% if p.is_overdue %}<i class="fa-solid fa-triangle-exclamation"></i> En Retard{% else %}{{ p.get_status_display }}{% endif %}
                             </span>
                         </td>
                         <td style="color: var(--text-muted);">

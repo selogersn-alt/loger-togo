@@ -34,6 +34,22 @@ class Lease(models.Model):
     custom_contract_terms = models.TextField(null=True, blank=True, verbose_name="Clauses particulières (Personnalisation)")
     custom_header_text = models.CharField(max_length=255, null=True, blank=True, verbose_name="En-tête personnalisé (ex: Agence Digitale)")
     
+    payment_due_day = models.IntegerField(
+        default=5, 
+        verbose_name="Jour d'échéance de paiement", 
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        help_text="Jour limite de paiement dans le mois (ex: 5 pour payer avant le 5 du mois)"
+    )
+    
+    template = models.ForeignKey(
+        'ContractTemplate', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='leases', 
+        verbose_name="Modèle de contrat"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -179,3 +195,27 @@ class AgencyClient(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.get_client_type_display()})"
+
+
+class ContractTemplate(models.Model):
+    """
+    Modèle de contrat de bail personnalisable par chaque agence.
+    Contient le texte type du bail avec des variables de substitution.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agency = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contract_templates')
+    title = models.CharField(max_length=255, verbose_name="Titre du modèle")
+    content = models.TextField(
+        verbose_name="Contenu du contrat", 
+        help_text="Utilisez les balises de substitution : [LOCATAIRE], [PROPRIETAIRE], [BIEN], [LOYER], [CAUTION], [DATE_DEBUT], [DATE_FIN]"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Modèle de contrat"
+        verbose_name_plural = "Modèles de contrats"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.agency.get_full_name()}"

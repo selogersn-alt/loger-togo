@@ -26,6 +26,7 @@ urlpatterns = [
     path('baux/', views_agency.agency_leases, name='agency_leases'),
     path('baux/export/', views_agency.export_leases_csv, name='export_leases_csv'),
     path('baux/<uuid:lease_id>/contrat/', views_agency.agency_lease_agreement, name='agency_lease_agreement'),
+    path('modeles-contrats/', views_agency.agency_templates, name='agency_templates'),
     path('paiements/', views_agency.agency_payments, name='agency_payments'),
     path('paiements/export/', views_agency.export_payments_csv, name='export_payments_csv'),
     path('quittance/<uuid:payment_id>/', views_agency.agency_receipt, name='agency_receipt'),

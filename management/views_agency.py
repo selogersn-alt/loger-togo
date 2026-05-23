@@ -14,7 +14,7 @@ from django.utils import timezone
 from datetime import datetime
 
 from django.contrib.auth import get_user_model, authenticate, login, logout
-from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest
+from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest, ContractTemplate
 from logersn.models import Property
 
 User = get_user_model()
@@ -207,7 +207,15 @@ def agency_dashboard(request):
     recent_clients = AgencyClient.objects.filter(agency=agency).order_by('-created_at')[:5]
     
     # Recent payments
-    recent_payments = payments.order_by('-period_start')[:5]
+    recent_payments = list(payments.order_by('-period_start')[:5])
+    today = timezone.now().date()
+    for p in recent_payments:
+        due_day = p.lease.payment_due_day
+        try:
+            due_date = p.period_start.replace(day=due_day)
+        except ValueError:
+            due_date = p.period_start.replace(day=28)
+        p.is_overdue = (p.status != RentPayment.StatusEnum.PAID) and (today > due_date)
     
     # Pipeline clients count for pipeline mini-summary
     pipeline_stats = AgencyClient.objects.filter(agency=agency).values('pipeline_stage').annotate(count=Count('id'))
@@ -364,8 +372,10 @@ def agency_leases(request):
     properties = Property.objects.filter(owner=agency)
     
     # We can fetch potential tenants (registered users or our own CRM clients!)
-    # Let's list all standard tenants or users
     tenants = User.objects.filter(role='TENANT') | User.objects.all()[:100]  # limit list size
+    
+    # Contract templates belonging to this agency
+    contract_templates = ContractTemplate.objects.filter(agency=agency)
     
     if request.method == 'POST':
         property_id = request.POST.get('property')
@@ -376,9 +386,16 @@ def agency_leases(request):
         deposit_amount = request.POST.get('deposit_amount', 0)
         custom_terms = request.POST.get('custom_terms', '')
         custom_header = request.POST.get('custom_header', '')
+        payment_due_day = request.POST.get('payment_due_day', 5)
+        template_id = request.POST.get('template')
         
         prop = get_object_or_404(Property, id=property_id, owner=agency)
         tenant_user = get_object_or_404(User, id=tenant_id)
+        
+        # Load template if selected
+        selected_template = None
+        if template_id:
+            selected_template = get_object_or_404(ContractTemplate, id=template_id, agency=agency)
         
         if prop and tenant_user and start_date and rent_amount:
             lease = Lease.objects.create(
@@ -391,6 +408,8 @@ def agency_leases(request):
                 deposit_amount=deposit_amount if deposit_amount else 0,
                 custom_contract_terms=custom_terms,
                 custom_header_text=custom_header,
+                payment_due_day=int(payment_due_day) if payment_due_day else 5,
+                template=selected_template,
                 status=Lease.StatusEnum.ACTIVE
             )
             
@@ -414,9 +433,56 @@ def agency_leases(request):
         'leases': leases,
         'properties': properties,
         'tenants': tenants,
+        'contract_templates': contract_templates,
         'statuses': Lease.StatusEnum.choices,
     }
     return render(request, 'agency/agency_leases.html', context)
+@agency_saas_required
+def agency_templates(request):
+    """
+    Gestion des modèles de contrats de bail personnalisables pour l'agence.
+    """
+    agency = request.user
+    templates = ContractTemplate.objects.filter(agency=agency)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create':
+            title = request.POST.get('title')
+            content = request.POST.get('content')
+            if title and content:
+                ContractTemplate.objects.create(
+                    agency=agency,
+                    title=title,
+                    content=content
+                )
+                messages.success(request, "Modèle de contrat créé avec succès.")
+            else:
+                messages.error(request, "Veuillez remplir tous les champs.")
+                
+        elif action == 'edit':
+            template_id = request.POST.get('template_id')
+            title = request.POST.get('title')
+            content = request.POST.get('content')
+            template = get_object_or_404(ContractTemplate, id=template_id, agency=agency)
+            if title and content:
+                template.title = title
+                template.content = content
+                template.save()
+                messages.success(request, "Modèle de contrat mis à jour.")
+            else:
+                messages.error(request, "Veuillez remplir tous les champs.")
+                
+        elif action == 'delete':
+            template_id = request.POST.get('template_id')
+            template = get_object_or_404(ContractTemplate, id=template_id, agency=agency)
+            template.delete()
+            messages.success(request, "Modèle de contrat supprimé.")
+            
+        return redirect('agency_templates')
+        
+    return render(request, 'agency/agency_templates.html', {'templates': templates})
 
 
 @agency_saas_required
@@ -440,10 +506,18 @@ def agency_payments(request):
     if tenant_filter:
         payments_qs = payments_qs.filter(lease__tenant_id=tenant_filter)
         
-    payments = payments_qs.order_by('-period_start')
+    payments = list(payments_qs.order_by('-period_start'))
+    today = timezone.now().date()
+    for p in payments:
+        due_day = p.lease.payment_due_day
+        try:
+            due_date = p.period_start.replace(day=due_day)
+        except ValueError:
+            due_date = p.period_start.replace(day=28)
+        p.is_overdue = (p.status != RentPayment.StatusEnum.PAID) and (today > due_date)
     
     # Advanced Accounting Totals
-    totals = payments.aggregate(
+    totals = payments_qs.aggregate(
         due=Sum('amount_due'),
         paid=Sum('amount_paid')
     )
@@ -697,6 +771,48 @@ def agency_lease_agreement(request, lease_id):
     agency = request.user
     lease = get_object_or_404(Lease, id=lease_id, landlord=agency)
     
+    compiled_content = None
+    if lease.template:
+        content = lease.template.content
+        # Remplacement dynamique
+        content = content.replace('[LOCATAIRE]', lease.tenant.get_full_name() or lease.tenant.phone_number)
+        content = content.replace('[PROPRIETAIRE]', lease.landlord.get_full_name() or lease.landlord.phone_number)
+        
+        company_name = getattr(lease.landlord, 'company_name', '')
+        if not company_name:
+            company_name = lease.landlord.get_full_name() or lease.landlord.phone_number
+        content = content.replace('[AGENCE]', company_name)
+        
+        from django.contrib.humanize.templatetags.humanize import intcomma
+        try:
+            rent_formatted = f"{intcomma(int(lease.rent_amount))} FCFA"
+        except Exception:
+            rent_formatted = f"{lease.rent_amount} FCFA"
+            
+        try:
+            deposit_formatted = f"{intcomma(int(lease.deposit_amount))} FCFA"
+        except Exception:
+            deposit_formatted = f"{lease.deposit_amount} FCFA"
+            
+        content = content.replace('[LOYER]', rent_formatted)
+        content = content.replace('[CAUTION]', deposit_formatted)
+        
+        # Safe fetch for city display
+        city_display = lease.property.city
+        if hasattr(lease.property, 'get_city_display'):
+            city_display = lease.property.get_city_display()
+            
+        prop_desc = f"{lease.property.title} sis à {lease.property.neighborhood} ({city_display})"
+        content = content.replace('[BIEN]', prop_desc)
+        content = content.replace('[DATE_DEBUT]', lease.start_date.strftime('%d/%m/%Y') if hasattr(lease.start_date, 'strftime') else str(lease.start_date))
+        
+        end_date_str = "Indéterminée"
+        if lease.end_date:
+            end_date_str = lease.end_date.strftime('%d/%m/%Y') if hasattr(lease.end_date, 'strftime') else str(lease.end_date)
+        content = content.replace('[DATE_FIN]', end_date_str)
+        
+        compiled_content = content
+        
     context = {
         'filiation': {
             'landlord': lease.landlord,
@@ -707,6 +823,7 @@ def agency_lease_agreement(request, lease_id):
             'end_date': lease.end_date,
             'id': lease.id,
         },
+        'compiled_content': compiled_content,
         'today': timezone.now().date(),
     }
     return render(request, 'lease_agreement_pdf.html', context)

@@ -1,0 +1,258 @@
+{% extends 'agency/base_agency.html' %}
+
+{% block title %}Modèles de Contrats — Loger Togo Pro{% endblock %}
+
+{% block extra_head %}
+<style>
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .panel-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .badge-guide {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        background: rgba(245,158,11,0.08);
+        color: #92400e;
+        border: 1px solid rgba(245,158,11,0.15);
+        font-weight: 600;
+    }
+    .editor-card {
+        background: #ffffff;
+        border-radius: 20px;
+        border: 1px solid var(--border-glass);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+    }
+    .grid-templates {
+        display: grid;
+        grid-template-columns: 1.25fr 1fr;
+        gap: 1.5rem;
+    }
+    .variable-tag {
+        display: inline-block;
+        font-family: monospace;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        background: rgba(16,185,129,0.08);
+        border: 1px solid rgba(16,185,129,0.15);
+        color: var(--primary);
+        border-radius: 6px;
+        margin-bottom: 0.4rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .variable-tag:hover {
+        background: var(--primary);
+        color: #fff;
+    }
+    .template-item {
+        background: #fafafa;
+        border: 1px solid rgba(0,0,0,0.04);
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+    .template-item:hover {
+        background: rgba(11,89,52,0.01);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .template-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .guide-box {
+        background: linear-gradient(135deg, rgba(16,185,129,0.03) 0%, rgba(11,89,52,0.01) 100%);
+        border: 1px solid var(--border-glass);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+    @media (max-width: 900px) {
+        .grid-templates {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-header animate__animated animate__fadeIn">
+    <div>
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 800;">Modèles de Contrats de Bail</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Créez et personnalisez vos contrats types avec fusion de variables automatiques.</p>
+    </div>
+</div>
+
+<div class="grid-templates animate__animated animate__fadeInUp">
+
+    <!-- Column 1: Editor and Creator -->
+    <div>
+        <div class="editor-card">
+            <h3 class="panel-title mb-3" id="editorTitle">
+                <i class="fa-solid fa-file-pen" style="color: var(--primary-light);"></i>
+                Créer un nouveau modèle
+            </h3>
+            
+            <form id="templateForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="formAction" value="create">
+                <input type="hidden" name="template_id" id="templateId" value="">
+                
+                <div class="mb-3">
+                    <label for="id_title" class="form-label fw-bold small text-uppercase" style="color:var(--text-main);">Titre du modèle</label>
+                    <input type="text" name="title" id="id_title" class="form-control" placeholder="Ex: Contrat de Bail d'Habitation Standard" required style="border-radius:12px; border:1.5px solid var(--border-glass); padding: 0.75rem;">
+                </div>
+                
+                <div class="mb-3">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                        <label for="id_content" class="form-label fw-bold small text-uppercase" style="color:var(--text-main); margin-bottom:0;">Texte du Contrat</label>
+                        <span class="badge-guide"><i class="fa-solid fa-code"></i> Substitution Automatique</span>
+                    </div>
+                    <textarea name="content" id="id_content" rows="12" class="form-control" placeholder="Rédigez ou collez votre contrat ici. Utilisez les balises dynamiques à droite..." required style="border-radius:16px; border:1.5px solid var(--border-glass); font-family:'Outfit', sans-serif; line-height:1.6; padding:1rem;"></textarea>
+                </div>
+                
+                <div style="display:flex; gap:0.75rem;">
+                    <button type="submit" class="btn btn-primary" style="padding:0.75rem 1.75rem; border-radius:12px; font-weight:700;">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Enregistrer le modèle
+                    </button>
+                    <button type="button" id="btnCancelEdit" class="btn btn-secondary d-none" style="padding:0.75rem 1.25rem; border-radius:12px;" onclick="cancelEdit()">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Existing templates list -->
+        <div class="editor-card">
+            <h3 class="panel-title mb-3">
+                <i class="fa-solid fa-folder-open" style="color: var(--primary-light);"></i>
+                Vos modèles enregistrés ({{ templates.count }})
+            </h3>
+            
+            {% for t in templates %}
+                <div class="template-item">
+                    <h4 style="font-weight:700; color:#0f172a; font-family:'Outfit', sans-serif;">{{ t.title }}</h4>
+                    <small style="color:var(--text-muted);">Créé le {{ t.created_at|date:"d F Y à H:i" }}</small>
+                    <div style="display:none;" id="raw-content-{{ t.id }}">{{ t.content }}</div>
+                    
+                    <div class="template-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding:0.4rem 0.8rem; font-size:0.78rem; border-radius:8px;" onclick="editTemplate('{{ t.id }}', '{{ t.title|escapejs }}')">
+                            <i class="fa-solid fa-edit me-1"></i> Modifier
+                        </button>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce modèle de contrat ?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="template_id" value="{{ t.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm" style="padding:0.4rem 0.8rem; font-size:0.78rem; border-radius:8px; background-color:#ef4444; color:#fff; border:none;">
+                                <i class="fa-solid fa-trash me-1"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem 0;">Aucun modèle personnalisé créé pour le moment. Utilisez le formulaire ci-dessus pour rédiger votre premier contrat type.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Column 2: Guide Box and tags helper -->
+    <div>
+        <div class="guide-box">
+            <h3 class="panel-title mb-3" style="font-size:1.05rem;">
+                <i class="fa-solid fa-circle-info" style="color: #f59e0b;"></i>
+                Guide de Personnalisation
+            </h3>
+            <p style="font-size: 0.85rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Copiez-collez les balises ci-dessous dans le texte de votre contrat. Lors de la génération finale, notre moteur de fusion remplacera dynamiquement ces balises par les informations réelles du locataire, du loyer ou du bien.
+            </p>
+            
+            <h4 style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#0f172a; margin-bottom:0.75rem;">Balises du Locataire</h4>
+            <div style="margin-bottom:1.25rem;">
+                <span class="variable-tag" onclick="insertTag('[LOCATAIRE]')">[LOCATAIRE]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Nom complet du locataire</span>
+            </div>
+            
+            <h4 style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#0f172a; margin-bottom:0.75rem;">Balises du Bailleur / Agence</h4>
+            <div style="margin-bottom:1.25rem;">
+                <span class="variable-tag" onclick="insertTag('[PROPRIETAIRE]')">[PROPRIETAIRE]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Nom complet du bailleur / agence</span><br>
+                <span class="variable-tag" onclick="insertTag('[AGENCE]')">[AGENCE]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Nom ou raison sociale de votre agence</span>
+            </div>
+            
+            <h4 style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#0f172a; margin-bottom:0.75rem;">Balises Financières</h4>
+            <div style="margin-bottom:1.25rem;">
+                <span class="variable-tag" onclick="insertTag('[LOYER]')">[LOYER]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Loyer mensuel formaté (ex: 150 000 FCFA)</span><br>
+                <span class="variable-tag" onclick="insertTag('[CAUTION]')">[CAUTION]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Dépôt de garantie / Caution formaté</span>
+            </div>
+            
+            <h4 style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#0f172a; margin-bottom:0.75rem;">Balises du Logement & Dates</h4>
+            <div style="margin-bottom:1rem;">
+                <span class="variable-tag" onclick="insertTag('[BIEN]')">[BIEN]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Description & adresse complète du bien</span><br>
+                <span class="variable-tag" onclick="insertTag('[DATE_DEBUT]')">[DATE_DEBUT]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Date d'effet du bail (ex: 01/06/2026)</span><br>
+                <span class="variable-tag" onclick="insertTag('[DATE_FIN]')">[DATE_FIN]</span> <span style="font-size:0.78rem; color:var(--text-muted);">— Date de fin de bail (ou Mention Indéterminée)</span>
+            </div>
+            
+            <div style="background:#fff; border:1px solid rgba(16,185,129,0.15); border-radius:12px; padding: 1rem; margin-top:1.5rem; font-size:0.8rem; line-height:1.5; color: var(--primary);">
+                <i class="fa-solid fa-circle-check"></i> <strong>Astuce :</strong> Cliquez sur une balise verte pour l'insérer directement à la fin de votre texte !
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function insertTag(tag) {
+        const textarea = document.getElementById('id_content');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const before = text.substring(0, start);
+        const after  = text.substring(end, text.length);
+        textarea.value = before + tag + after;
+        textarea.focus();
+        textarea.selectionStart = start + tag.length;
+        textarea.selectionEnd = start + tag.length;
+    }
+    
+    function editTemplate(id, title) {
+        document.getElementById('formAction').value = 'edit';
+        document.getElementById('templateId').value = id;
+        document.getElementById('id_title').value = title;
+        
+        // Fetch original content from hidden block
+        const rawContent = document.getElementById('raw-content-' + id).textContent;
+        document.getElementById('id_content').value = rawContent;
+        
+        document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-file-pen" style="color: var(--primary-light);"></i> Modifier le modèle';
+        document.getElementById('btnCancelEdit').classList.remove('d-none');
+        
+        // Scroll to editor
+        document.getElementById('templateForm').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function cancelEdit() {
+        document.getElementById('formAction').value = 'create';
+        document.getElementById('templateId').value = '';
+        document.getElementById('id_title').value = '';
+        document.getElementById('id_content').value = '';
+        
+        document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-file-pen" style="color: var(--primary-light);"></i> Créer un nouveau modèle';
+        document.getElementById('btnCancelEdit').classList.add('d-none');
+    }
+</script>
+{% endblock %}

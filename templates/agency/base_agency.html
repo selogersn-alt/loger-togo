@@ -565,6 +565,12 @@
                         <span>Baux & Contrats</span>
                     </a>
                 </li>
+                <li class="{% if request.resolver_match.url_name == 'agency_templates' %}active{% endif %}">
+                    <a href="{% url 'agency_templates' %}">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span>Modèles Contrats</span>
+                    </a>
+                </li>
                 <li class="{% if request.resolver_match.url_name == 'agency_properties' %}active{% endif %}">
                     <a href="{% url 'agency_properties' %}">
                         <i class="fa-solid fa-city"></i>
@@ -634,6 +640,9 @@
                 {% elif request.resolver_match.url_name == 'agency_payments' %}
                     <span class="separator">/</span>
                     <span class="active">Suivi Loyers & Quittances</span>
+                {% elif request.resolver_match.url_name == 'agency_templates' %}
+                    <span class="separator">/</span>
+                    <span class="active">Modèles Contrats</span>
                 {% elif request.resolver_match.url_name == 'explications' %}
                     <span class="separator">/</span>
                     <span class="active">Explication des Fonctionnalités</span>

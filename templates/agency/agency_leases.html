@@ -190,6 +190,10 @@
                                 <i class="fa-solid fa-user-circle"></i>
                                 <span>{{ lease.tenant.get_full_name|default:lease.tenant.phone_number }}</span>
                             </div>
+                            <div class="tenant-info" style="margin-top: 0.15rem; color: #a16207; font-weight: 500;">
+                                <i class="fa-solid fa-calendar-day"></i>
+                                <span>Échéance : le {{ lease.payment_due_day }} du mois</span>
+                            </div>
                         </td>
                         <td style="font-weight: 500;">{{ lease.start_date|date:"d M Y" }}</td>
                         <td style="color: var(--text-muted);">
@@ -284,6 +288,22 @@
                 <div class="form-group">
                     <label for="id_deposit_amount">Dépôt de Garantie / Caution (FCFA)</label>
                     <input type="number" name="deposit_amount" id="id_deposit_amount" value="0" placeholder="Ex: 300000">
+                </div>
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="id_template">Modèle de contrat à associer</label>
+                    <select name="template" id="id_template">
+                        <option value="">Sélectionnez un modèle de contrat...</option>
+                        {% for t in contract_templates %}
+                            <option value="{{ t.id }}">{{ t.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_payment_due_day">Jour d'échéance de paiement mensuel</label>
+                    <input type="number" name="payment_due_day" id="id_payment_due_day" value="5" min="1" max="28" required>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">Jour limite de paiement (ex: avant le 5 du mois).</small>
                 </div>
             </div>
 

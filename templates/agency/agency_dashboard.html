@@ -346,6 +346,18 @@
     .pill-yellow { background: rgba(245,158,11,0.1);  color: #92400e; border: 1px solid rgba(245,158,11,0.2); }
     .pill-red    { background: rgba(239,68,68,0.1);   color: #991b1b; border: 1px solid rgba(239,68,68,0.2); }
     .pill-gold   { background: rgba(212,175,55,0.1);  color: #7a5c00; border: 1px solid rgba(212,175,55,0.2); }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+    .pill-overdue-alert {
+        background: rgba(239, 68, 68, 0.2) !important;
+        color: #b91c1c !important;
+        border: 1.5px solid rgba(239, 68, 68, 0.5) !important;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+        animation: blink 1.2s infinite ease-in-out;
+    }
 
     .amount-block { text-align: right; }
     .amount-block strong {
@@ -591,8 +603,8 @@
             </div>
             <div class="amount-block">
                 <strong>{{ p.amount_paid|intcomma }} <span style="font-size:0.65rem; font-weight:500; color:var(--text-muted);">CFA</span></strong>
-                <span class="pill {% if p.status == 'PAID' %}pill-green{% elif p.status == 'PARTIAL' %}pill-yellow{% else %}pill-red{% endif %}">
-                    {{ p.get_status_display }}
+                <span class="pill {% if p.is_overdue %}pill-overdue-alert{% elif p.status == 'PAID' %}pill-green{% elif p.status == 'PARTIAL' %}pill-yellow{% else %}pill-red{% endif %}">
+                    {% if p.is_overdue %}<i class="fa-solid fa-triangle-exclamation"></i> En Retard{% else %}{{ p.get_status_display }}{% endif %}
                 </span>
             </div>
         </div>

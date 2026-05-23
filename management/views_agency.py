@@ -13,6 +13,7 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest, ContractTemplate, PropertyInventory
 from logersn.models import Property
 
@@ -911,7 +912,7 @@ def export_payments_csv(request):
     return response
 
 
-@agency_saas_required
+@login_required
 def agency_lease_sign(request, lease_id):
     """
     Interface de signature électronique de bail.
@@ -957,7 +958,7 @@ def agency_lease_sign(request, lease_id):
     return render(request, 'agency/signer.html', context)
 
 
-@agency_saas_required
+@login_required
 def agency_lease_otp(request, lease_id):
     """
     Génération et simulation d'envoi d'OTP de signature par SMS.

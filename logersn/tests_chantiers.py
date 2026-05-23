@@ -9,6 +9,11 @@ import json
 User = get_user_model()
 
 class ChantiersIntegrationTest(TestCase):
+    urls = 'logertogo.urls_agence'
+
+    def agency_reverse(self, name, *args, **kwargs):
+        return reverse(name, *args, **kwargs, urlconf='logertogo.urls_agence')
+
     def setUp(self):
         # 1. Création des comptes d'utilisateurs (avec is_saas_active = True pour l'agence)
         self.landlord = User.objects.create_user(
@@ -69,7 +74,7 @@ class ChantiersIntegrationTest(TestCase):
         self.client.login(phone_number="79055970", password="Systernadjak@2026")
         
         # 1. Demande d'OTP pour le bailleur
-        response = self.client.get(reverse('agency_otp', args=[self.lease.id]))
+        response = self.client.get(self.agency_reverse('agency_lease_otp', args=[self.lease.id]), HTTP_HOST='agence.logertogo.com')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertTrue(data['success'])
@@ -80,7 +85,7 @@ class ChantiersIntegrationTest(TestCase):
         self.assertIsNotNone(landlord_otp)
         
         # 2. Validation d'OTP pour le bailleur
-        post_response = self.client.post(reverse('agency_lease_sign', args=[self.lease.id]), {'otp_code': landlord_otp})
+        post_response = self.client.post(self.agency_reverse('agency_lease_sign', args=[self.lease.id]), {'otp_code': landlord_otp}, HTTP_HOST='agence.logertogo.com')
         self.assertEqual(post_response.status_code, 302) # Redirection après signature
         self.lease.refresh_from_db()
         self.assertTrue(self.lease.is_signed_by_landlord)
@@ -90,7 +95,7 @@ class ChantiersIntegrationTest(TestCase):
         self.client.login(phone_number="90980053", password="AkueMax@2022")
         
         # 3. Demande d'OTP pour le locataire
-        response = self.client.get(reverse('agency_otp', args=[self.lease.id]))
+        response = self.client.get(self.agency_reverse('agency_lease_otp', args=[self.lease.id]), HTTP_HOST='agence.logertogo.com')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         
@@ -100,7 +105,7 @@ class ChantiersIntegrationTest(TestCase):
         self.assertIsNotNone(tenant_otp)
         
         # 4. Validation d'OTP pour le locataire
-        post_response = self.client.post(reverse('agency_lease_sign', args=[self.lease.id]), {'otp_code': tenant_otp})
+        post_response = self.client.post(self.agency_reverse('agency_lease_sign', args=[self.lease.id]), {'otp_code': tenant_otp}, HTTP_HOST='agence.logertogo.com')
         self.assertEqual(post_response.status_code, 302)
         
         # 5. Vérification du passage du bail à l'état ACTIF
@@ -114,7 +119,7 @@ class ChantiersIntegrationTest(TestCase):
         """Vérifie la génération des indicateurs d'analyses financières de l'agence."""
         self.client.login(phone_number="79055970", password="Systernadjak@2026")
         
-        response = self.client.get(reverse('agency_financial_analysis'))
+        response = self.client.get(self.agency_reverse('agency_financial_analysis'), HTTP_HOST='agence.logertogo.com')
         self.assertEqual(response.status_code, 200)
         
         # Vérification de la présence des variables d'analyses dans le contexte
@@ -140,7 +145,7 @@ class ChantiersIntegrationTest(TestCase):
             'signature_agent': 'data:image/png;base64,agent_signature_sample_data',
             'signature_tenant': 'data:image/png;base64,tenant_signature_sample_data'
         }
-        response = self.client.post(reverse('agency_inventory_create', args=[self.lease.id]), inv_data)
+        response = self.client.post(self.agency_reverse('agency_inventory_create', args=[self.lease.id]), inv_data, HTTP_HOST='agence.logertogo.com')
         self.assertEqual(response.status_code, 302) # Redirection après succès
         
         # 2. Vérification en base de données
@@ -151,7 +156,7 @@ class ChantiersIntegrationTest(TestCase):
         self.assertEqual(inv.signature_agent, 'data:image/png;base64,agent_signature_sample_data')
         
         # 3. Accès au rapport d'état des lieux imprimable A4
-        detail_response = self.client.get(reverse('agency_inventory_detail', args=[inv.id]))
+        detail_response = self.client.get(self.agency_reverse('agency_inventory_detail', args=[inv.id]), HTTP_HOST='agence.logertogo.com')
         self.assertEqual(detail_response.status_code, 200)
         self.assertContains(detail_response, "Salon")
         self.assertContains(detail_response, "Signature du Locataire")

@@ -37,10 +37,12 @@ def main():
         ssh.connect(host, port=port, username=username, password=password, timeout=30)
         print("Successfully connected!")
         
-        # Pull changes and rebuild docker web service
+        # Pull changes and rebuild docker web service and run migrations
         commands = [
             "cd /app && git reset --hard && git pull origin main",
-            "cd /app && docker compose up -d --build web nginx"
+            "cd /app && docker compose up -d --build web nginx",
+            "cd /app && docker compose exec -T web python manage.py makemigrations",
+            "cd /app && docker compose exec -T web python manage.py migrate"
         ]
         
         for cmd in commands:

@@ -6,6 +6,10 @@ import json
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "logertogo.settings")
 django.setup()
 
+# Force ALLOWED_HOSTS in settings to contain testserver and localhost
+from django.conf import settings
+settings.ALLOWED_HOSTS = ['*']
+
 from logersn.views import near_me_view
 from users.models import User
 
@@ -14,10 +18,10 @@ user, _ = User.objects.get_or_create(phone_number='1234567890', role='TENANT')
 
 rf = RequestFactory()
 
-# Test cases
+# Test cases without None (RequestFactory doesn't accept None values in query parameters)
 cases = [
     {'lat': '6.1311', 'lng': '1.2228'},
-    {'lat': None, 'lng': None},
+    {'lat': '', 'lng': ''},
     {'lat': 'abc', 'lng': 'def'},
     {},
 ]

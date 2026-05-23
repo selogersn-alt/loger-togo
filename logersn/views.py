@@ -502,9 +502,10 @@ def near_me_view(request):
     """
     from logersn.constants import PROPERTY_TYPE_CHOICES
     
-    # Récupérer tous les biens géolocalisés avec coordonnées
+    # Récupérer uniquement les hôtels et auberges géolocalisés avec coordonnées
     properties = Property.objects.filter(
-        is_published=True
+        is_published=True,
+        property_type__in=['HOTEL', 'AUBERGE']
     ).select_related('owner').prefetch_related('images').exclude(
         latitude__isnull=True
     ).exclude(longitude__isnull=True)

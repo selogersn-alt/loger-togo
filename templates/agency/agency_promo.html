@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Gérance Pro - CRM de Gestion Locative Premium | Loger Togo</title>
+    <title>Espace Gérance Pro | Loger Togo</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +13,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Animate CSS for premium micro-interactions -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/icon-192x192.png' %}">
     
     <style>
         :root {
@@ -628,12 +632,28 @@
             .cta-card { padding: 1.5rem 1rem; }
         }
     </style>
-    <!-- SEO & Geo-targeting tags -->
+    <!-- SEO & Open Graph -->
+    <meta name="description" content="Loger Togo Pro — Gérez vos biens, vos locataires et vos baux depuis un seul espace sécurisé, conçu pour les professionnels de l'immobilier.">
     <meta name="geo.region" content="TG" />
     <meta name="geo.placename" content="Lomé" />
     <meta name="geo.position" content="6.13748;1.21227" />
     <meta name="ICBM" content="6.13748, 1.21227" />
-    <meta name="description" content="Découvrez l'Espace Gérance Pro de Loger Togo. 50 000 FCFA/an pour gérer vos baux, stocker vos contrats et exporter vos dossiers.">
+    <!-- Open Graph (WhatsApp, Telegram, Facebook, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://agence.logertogo.com/">
+    <meta property="og:site_name" content="Loger Togo">
+    <meta property="og:title" content="Espace Gérance Pro | Loger Togo">
+    <meta property="og:description" content="Gérez vos biens, vos locataires et vos baux depuis un seul espace sécurisé, conçu pour les professionnels de l'immobilier au Togo.">
+    <meta property="og:image" content="https://agence.logertogo.com/static/img/og_banner.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Loger Togo Pro — Espace Gérance Immobilière">
+    <meta property="og:locale" content="fr_TG">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Espace Gérance Pro | Loger Togo">
+    <meta name="twitter:description" content="Gérez vos biens, vos locataires et vos baux depuis un seul espace sécurisé.">
+    <meta name="twitter:image" content="https://agence.logertogo.com/static/img/og_banner.png">
 </head>
 <body>
 

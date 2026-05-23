@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -12,7 +13,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon.png' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'img/icon-192x192.png' %}">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://agence.logertogo.com/confidentialite/">
+    <meta property="og:site_name" content="Loger Togo">
+    <meta property="og:title" content="Charte de Confidentialité | Loger Togo">
+    <meta property="og:description" content="Consultez notre charte de confidentialité RGPD. Loger Togo s'engage à protéger vos données personnelles conformément aux normes internationales.">
+    <meta property="og:image" content="https://agence.logertogo.com/static/img/og_banner.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="fr_TG">
     <style>
         :root {
             --primary: #0b5934; /* Vert Émeraude */

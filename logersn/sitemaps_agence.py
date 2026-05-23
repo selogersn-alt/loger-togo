@@ -12,13 +12,15 @@ class AgenceStaticSitemap(Sitemap):
             'agency_promo',
             'agency_login',
             'agency_register',
-            'explications'
+            'explications',
+            'agency_privacy'
         ]
 
     def priority(self, item):
         return {
             'agency_promo': 1.0,
             'explications': 0.9,
+            'agency_privacy': 0.8,
             'agency_login': 0.6,
             'agency_register': 0.6
         }.get(item, 0.5)

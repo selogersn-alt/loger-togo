@@ -11,9 +11,10 @@ sitemaps = {
 }
 
 urlpatterns = [
-    path('', views_agency.agency_dashboard, name='agency_dashboard'),
-    path('promo/', views_agency.agency_promo, name='agency_promo'),
+    path('', views_agency.agency_promo, name='agency_promo'),
+    path('dashboard/', views_agency.agency_dashboard, name='agency_dashboard'),
     path('explications/', views_agency.explications_view, name='explications'),
+    path('confidentialite/', views_agency.agency_privacy_view, name='agency_privacy'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('connexion/', views_agency.agency_login, name='agency_login'),
     path('inscription/', views_agency.agency_register, name='agency_register'),

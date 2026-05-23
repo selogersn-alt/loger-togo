@@ -166,6 +166,13 @@ def explications_view(request):
     return render(request, 'agency/explications.html')
 
 
+def agency_privacy_view(request):
+    """
+    Page de politique de confidentialité pour les professionnels (RGPD & normes internationales).
+    """
+    return render(request, 'agency/confidentialite.html')
+
+
 @agency_saas_required
 def agency_dashboard(request):
     """

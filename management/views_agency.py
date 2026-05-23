@@ -688,3 +688,110 @@ def agency_500_handler(request):
     """
     return render(request, 'agency/500.html', status=500)
 
+
+@agency_saas_required
+def agency_lease_agreement(request, lease_id):
+    """
+    Renders the official lease agreement template for printing.
+    """
+    agency = request.user
+    lease = get_object_or_404(Lease, id=lease_id, landlord=agency)
+    
+    context = {
+        'filiation': {
+            'landlord': lease.landlord,
+            'tenant': lease.tenant,
+            'property': lease.property,
+            'monthly_rent': lease.rent_amount,
+            'start_date': lease.start_date,
+            'end_date': lease.end_date,
+            'id': lease.id,
+        },
+        'today': timezone.now().date(),
+    }
+    return render(request, 'lease_agreement_pdf.html', context)
+
+
+@agency_saas_required
+def export_clients_csv(request):
+    """
+    Export clients and prospects database to CSV.
+    """
+    import csv
+    agency = request.user
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = f'attachment; filename="export_clients_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Nom complet', 'Email', 'Téléphone', 'Type', 'Statut', 'Notes', 'Créé le'])
+    
+    clients = AgencyClient.objects.filter(agency=agency).order_by('-created_at')
+    for c in clients:
+        writer.writerow([
+            c.full_name,
+            c.email or '',
+            c.phone,
+            c.get_client_type_display(),
+            c.get_status_display(),
+            c.notes or '',
+            c.created_at.strftime('%Y-%m-%d %H:%M')
+        ])
+    return response
+
+
+@agency_saas_required
+def export_leases_csv(request):
+    """
+    Export all active and inactive lease contracts to CSV.
+    """
+    import csv
+    agency = request.user
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = f'attachment; filename="export_baux_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Bien', 'Locataire', 'Date début', 'Date fin', 'Loyer mensuel (FCFA)', 'Caution (FCFA)', 'Statut'])
+    
+    leases = Lease.objects.filter(landlord=agency).order_by('-created_at')
+    for l in leases:
+        writer.writerow([
+            l.property.title,
+            l.tenant.get_full_name() or l.tenant.phone_number,
+            l.start_date.strftime('%Y-%m-%d'),
+            l.end_date.strftime('%Y-%m-%d') if l.end_date else 'Indéterminée',
+            float(l.rent_amount),
+            float(l.deposit_amount),
+            l.get_status_display()
+        ])
+    return response
+
+
+@agency_saas_required
+def export_payments_csv(request):
+    """
+    Export all period rents payments and accounts records to CSV.
+    """
+    import csv
+    agency = request.user
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = f'attachment; filename="export_comptabilite_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Bien', 'Locataire', 'Période du', 'Période au', 'Montant Dû (FCFA)', 'Montant Payé (FCFA)', 'Statut', 'Date de Paiement', 'Mode de Paiement'])
+    
+    payments = RentPayment.objects.filter(lease__landlord=agency).order_by('-period_start')
+    for p in payments:
+        writer.writerow([
+            p.lease.property.title,
+            p.lease.tenant.get_full_name() or p.lease.tenant.phone_number,
+            p.period_start.strftime('%Y-%m-%d'),
+            p.period_end.strftime('%Y-%m-%d'),
+            float(p.amount_due),
+            float(p.amount_paid),
+            p.get_status_display(),
+            p.date_paid.strftime('%Y-%m-%d') if p.date_paid else '',
+            p.payment_method or ''
+        ])
+    return response
+
+

@@ -24,30 +24,29 @@
 
     .metric-card {
         background: var(--panel-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--border-glass);
         padding: 1.5rem;
         border-radius: 20px;
         display: flex;
         align-items: center;
         gap: 1.25rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--card-glow);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .metric-card:hover {
         transform: translateY(-4px);
         border-color: rgba(16, 185, 129, 0.25);
+        box-shadow: 0 8px 30px rgba(11, 89, 52, 0.04);
     }
 
     .metric-icon {
         width: 50px;
         height: 50px;
         border-radius: 12px;
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(16, 185, 129, 0.08);
         border: 1px solid rgba(16, 185, 129, 0.15);
-        color: var(--primary-light);
+        color: var(--primary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -61,15 +60,15 @@
     }
 
     .metric-card.paid .metric-icon {
-        color: var(--primary-light);
+        color: #10b981;
         background: rgba(16, 185, 129, 0.08);
         border-color: rgba(16, 185, 129, 0.15);
     }
 
     .metric-card.outstanding .metric-icon {
-        color: #f59e0b;
-        background: rgba(245, 158, 11, 0.08);
-        border-color: rgba(245, 158, 11, 0.15);
+        color: #d4af37;
+        background: rgba(212, 175, 55, 0.08);
+        border-color: rgba(212, 175, 55, 0.15);
     }
 
     .metric-info span {
@@ -85,17 +84,17 @@
         font-weight: 800;
         margin-top: 0.25rem;
         font-family: 'Outfit', sans-serif;
+        color: #0f172a;
     }
 
     /* Glassmorphic Accounting Filter Bar */
     .filter-bar {
-        background: rgba(15, 23, 19, 0.4);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: #ffffff;
         border: 1px solid var(--border-glass);
         border-radius: 16px;
         padding: 1.25rem;
         margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.01);
     }
 
     .filter-form {
@@ -120,7 +119,7 @@
     }
 
     .filter-control {
-        background: rgba(255, 255, 255, 0.02);
+        background: #ffffff;
         border: 1px solid var(--border-glass);
         border-radius: 10px;
         padding: 0.6rem 0.85rem;
@@ -128,6 +127,7 @@
         outline: none;
         font-family: inherit;
         font-size: 0.9rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.01);
     }
 
     .filter-control:focus {
@@ -161,12 +161,13 @@
     }
 
     tr:hover td {
-        background: rgba(255, 255, 255, 0.01);
+        background: rgba(11, 89, 52, 0.02);
     }
 
     .tenant-name {
         font-weight: 600;
         font-family: 'Outfit', sans-serif;
+        color: #0f172a;
     }
 
     .property-meta {
@@ -183,7 +184,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.65);
+        background: rgba(15, 23, 19, 0.4);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         z-index: 1000;
@@ -194,13 +195,13 @@
     }
 
     .modal-content {
-        background: rgba(10, 18, 14, 0.98);
+        background: #ffffff;
         border: 1px solid var(--border-glass);
         border-radius: 24px;
         width: 100%;
         max-width: 600px;
         padding: 2.5rem;
-        box-shadow: var(--card-glow);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
         position: relative;
         margin: auto;
     }
@@ -236,7 +237,7 @@
 
     .form-group input, .form-group select, .form-group textarea {
         width: 100%;
-        background: rgba(255, 255, 255, 0.03);
+        background: #ffffff;
         border: 1px solid var(--border-glass);
         border-radius: 10px;
         padding: 0.75rem 1rem;
@@ -258,9 +259,9 @@
         display: inline-block;
     }
 
-    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
-    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
-    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .badge-success { background: rgba(16, 185, 129, 0.08); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.15); }
+    .badge-warning { background: rgba(245, 158, 11, 0.08); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.15); }
+    .badge-danger { background: rgba(239, 68, 68, 0.08); color: #991b1b; border: 1px solid rgba(239, 68, 68, 0.15); }
 </style>
 {% endblock %}
 
@@ -269,6 +270,11 @@
     <div>
         <h2 style="font-size: 2rem;">Suivi des Loyers & Comptabilité</h2>
         <p style="color: var(--text-muted); font-size: 0.95rem;">Livre des encaissements comptables, filtres d'analyse et génération de quittances personnalisées</p>
+    </div>
+    <div>
+        <a href="{% url 'export_payments_csv' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-file-export"></i> Exporter CSV
+        </a>
     </div>
 </div>
 

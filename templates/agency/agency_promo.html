@@ -15,15 +15,15 @@
     
     <style>
         :root {
-            --primary: #0b4629;
-            --primary-glow: rgba(16, 185, 129, 0.35);
+            --primary: #0b5934; /* Vert Émeraude */
+            --primary-glow: rgba(11, 89, 52, 0.08);
             --primary-light: #10b981;
-            --accent: #ffd700;
-            --bg-dark: #070a08;
-            --panel-bg: rgba(16, 26, 21, 0.65);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --accent: #d4af37; /* Or Royal */
+            --bg-dark: #f8fafc; /* Fond Clair Satin */
+            --panel-bg: #ffffff; /* Cartes Blanches */
+            --border-glass: rgba(11, 89, 52, 0.08);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
         }
 
         * {
@@ -36,8 +36,8 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(11, 70, 41, 0.3) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(11, 89, 52, 0.06) 0px, transparent 50%);
             background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
@@ -63,7 +63,7 @@
             position: absolute;
             border-radius: 50%;
             filter: blur(150px);
-            opacity: 0.18;
+            opacity: 0.12;
             animation: floatGlow 25s infinite alternate ease-in-out;
         }
 
@@ -82,7 +82,7 @@
             top: 30%;
             right: -100px;
             animation-delay: -8s;
-            opacity: 0.08;
+            opacity: 0.06;
         }
 
         @keyframes floatGlow {
@@ -96,12 +96,11 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(7, 10, 8, 0.85);
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.015);
         }
 
         .logo {
@@ -115,7 +114,7 @@
             font-family: 'Outfit', sans-serif;
             font-weight: 900;
             font-size: 1.6rem;
-            background: linear-gradient(135deg, #ffffff 30%, var(--primary-light));
+            background: linear-gradient(135deg, var(--primary) 30%, var(--primary-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -139,7 +138,7 @@
             line-height: 1.15;
             margin-bottom: 1.5rem;
             letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #ffffff 40%, var(--primary-light), var(--accent));
+            background: linear-gradient(135deg, var(--primary) 40%, var(--primary-light), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -175,42 +174,41 @@
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-light), var(--primary));
             color: white;
-            box-shadow: 0 8px 30px var(--primary-glow);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.2);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.6);
+            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.35);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.04);
+            background: #ffffff;
             border: 1px solid var(--border-glass);
             color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.015);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(11, 89, 52, 0.03);
             transform: translateY(-3px);
         }
 
         /* Feature presentation panel */
         .preview-showcase {
             background: var(--panel-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border-glass);
             border-radius: 32px;
             padding: 2.5rem;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.03);
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
 
         .preview-badge {
-            background: rgba(255, 215, 0, 0.12);
-            color: var(--accent);
+            background: rgba(255, 215, 0, 0.08);
+            color: var(--primary);
             border: 1px solid rgba(255, 215, 0, 0.2);
             padding: 0.4rem 1rem;
             border-radius: 50px;
@@ -243,9 +241,9 @@
         }
 
         .feature-badge {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--primary-light);
-            border: 1px solid rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.15);
             padding: 0.5rem 1.2rem;
             border-radius: 50px;
             font-size: 0.85rem;
@@ -278,7 +276,7 @@
             font-size: 2.2rem;
             font-weight: 800;
             margin-bottom: 1rem;
-            color: white;
+            color: #0f172a;
         }
 
         .section-title p {
@@ -295,17 +293,19 @@
         }
 
         .timeline-step {
-            background: rgba(16, 26, 21, 0.4);
+            background: #ffffff;
             border: 1px solid var(--border-glass);
             border-radius: 24px;
             padding: 2.5rem;
             position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.015);
             transition: all 0.3s ease;
         }
 
         .timeline-step:hover {
             transform: translateY(-5px);
             border-color: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
         }
 
         .step-number {
@@ -323,7 +323,7 @@
             font-weight: 900;
             font-size: 1.4rem;
             color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
         }
 
         .timeline-step h4 {
@@ -331,7 +331,7 @@
             font-size: 1.35rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
-            color: white;
+            color: #0f172a;
             margin-top: 0.5rem;
         }
 
@@ -354,12 +354,11 @@
         }
 
         .feature-item {
-            background: rgba(10, 18, 14, 0.45);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: #ffffff;
             border: 1px solid var(--border-glass);
             border-radius: 24px;
             padding: 2.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.015);
             transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
@@ -372,16 +371,16 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 100%);
             opacity: 0;
             transition: all 0.4s ease;
         }
 
         .feature-item:hover {
             transform: translateY(-8px);
-            background: rgba(16, 26, 21, 0.75);
+            background: #ffffff;
             border-color: rgba(16, 185, 129, 0.35);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
         }
 
         .feature-item:hover::before {
@@ -392,9 +391,9 @@
             width: 56px;
             height: 56px;
             border-radius: 16px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            color: var(--primary-light);
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -404,10 +403,10 @@
         }
 
         .feature-item:hover .feature-icon {
-            background: var(--primary-light);
-            color: var(--bg-dark);
+            background: var(--primary);
+            color: white;
             transform: scale(1.05) rotate(5deg);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.25);
         }
 
         .feature-item h4 {
@@ -415,7 +414,7 @@
             font-size: 1.35rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
-            color: white;
+            color: #0f172a;
         }
 
         .feature-item p {
@@ -427,7 +426,7 @@
         /* Premium Call to Action & Sub at the Bottom */
         .cta-bottom-section {
             padding: 6rem 4rem;
-            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
             position: relative;
             z-index: 10;
             display: flex;
@@ -435,16 +434,14 @@
         }
 
         .cta-card {
-            background: var(--panel-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            background: #ffffff;
             border: 1px solid var(--border-glass);
             border-radius: 36px;
             padding: 4rem;
             max-width: 800px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.025);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -452,9 +449,9 @@
         }
 
         .pricing-badge {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 215, 0, 0.03));
             border: 1px solid rgba(255, 215, 0, 0.25);
-            color: var(--accent);
+            color: var(--primary);
             padding: 0.5rem 1.25rem;
             border-radius: 50px;
             font-size: 0.9rem;
@@ -469,7 +466,7 @@
             font-family: 'Outfit', sans-serif;
             font-size: 3rem;
             font-weight: 900;
-            color: white;
+            color: var(--primary);
         }
 
         .price-text span {
@@ -497,21 +494,21 @@
         }
 
         .alert-success {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: #34d399;
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.15);
+            color: #065f46;
         }
 
         .alert-error, .alert-danger {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #f87171;
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.15);
+            color: #991b1b;
         }
 
         .alert-info {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: rgba(59, 130, 246, 0.3);
-            color: #60a5fa;
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.15);
+            color: #1e3a8a;
         }
 
         footer {
@@ -520,12 +517,12 @@
             font-size: 0.9rem;
             color: var(--text-muted);
             border-top: 1px solid var(--border-glass);
-            background: rgba(7, 10, 8, 0.6);
-            backdrop-filter: blur(10px);
+            background: #ffffff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.01);
         }
 
         footer strong {
-            color: var(--primary-light);
+            color: var(--primary);
         }
 
         @media (max-width: 968px) {
@@ -559,6 +556,12 @@
             }
         }
     </style>
+    <!-- SEO & Geo-targeting tags -->
+    <meta name="geo.region" content="TG" />
+    <meta name="geo.placename" content="Lomé" />
+    <meta name="geo.position" content="6.13748;1.21227" />
+    <meta name="ICBM" content="6.13748, 1.21227" />
+    <meta name="description" content="Découvrez l'Espace Gérance Pro de Loger Togo. 50 000 FCFA/an pour gérer vos baux, stocker vos contrats et exporter vos dossiers.">
 </head>
 <body>
 
@@ -628,22 +631,22 @@
                 <li>
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
-                        <strong>Locataires & Biens illimités</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Aucune restriction sur le nombre de lots gérés.</p>
+                        <strong>Génération de Baux & Contrats</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Modèles officiels et stockage sécurisé des documents de contrat.</p>
                     </div>
                 </li>
                 <li>
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
                         <strong>Quittances PDF en 1 clic</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Générées proprement avec en-tête et signatures.</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Générées proprement avec en-tête et signatures d'agence.</p>
                     </div>
                 </li>
                 <li>
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
-                        <strong>Suivi des Loyers Intuitif</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Comptabilité claire : Encaissé, Dû, Reste à Recouvrer.</p>
+                        <strong>Exportation de Dossiers</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Téléchargement complet de vos prospects et comptabilité en CSV.</p>
                     </div>
                 </li>
             </ul>
@@ -695,24 +698,24 @@
             <div class="feature-icon">
                 <i class="fa-solid fa-file-signature"></i>
             </div>
-            <h4>Signature de Baux & Modèles</h4>
-            <p>Rédigez et stockez vos contrats de baux directement sur la plateforme avec clauses spécifiques personnalisées, indexées sur la législation togolaise.</p>
+            <h4>Génération & Stockage de Contrats</h4>
+            <p>Rédigez et stockez en toute sécurité vos contrats de baux directement sur la plateforme. Générez instantanément vos documents de bail officiels et baux d'habitation personnalisés, conformes aux lois en vigueur au Togo.</p>
         </div>
 
         <div class="feature-item">
             <div class="feature-icon">
                 <i class="fa-solid fa-receipt"></i>
             </div>
-            <h4>Quittances de Loyer Auto</h4>
-            <p>Générez des quittances d'une élégance absolue. Intégrez le logo de votre agence, des signatures numérisées et téléchargez-les instantanément au format PDF.</p>
+            <h4>Quittances de Loyer en 1 Clic</h4>
+            <p>Générez des quittances d'une élégance absolue. Intégrez le logo de votre agence, des signatures numérisées et téléchargez ou imprimez-les instantanément au format PDF pour vos locataires.</p>
         </div>
 
         <div class="feature-item">
             <div class="feature-icon">
-                <i class="fa-solid fa-book-bookmark"></i>
+                <i class="fa-solid fa-file-export"></i>
             </div>
-            <h4>Comptabilité Ledger</h4>
-            <p>Suivez chaque entrée et sortie financière. Filtrez vos historiques par bien ou par locataire et exportez vos états comptables d'agence en un clic.</p>
+            <h4>Exportation Complète de Dossiers</h4>
+            <p>Exportez en un clic l'intégralité de vos dossiers de gérance, fiches de prospects/clients, baux actifs et registres comptables financiers au format CSV pour votre comptabilité.</p>
         </div>
 
         <div class="feature-item">

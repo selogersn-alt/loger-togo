@@ -22,31 +22,29 @@
 
     .stat-card {
         background: var(--panel-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--border-glass);
         padding: 1.5rem;
         border-radius: 20px;
         display: flex;
         align-items: center;
         gap: 1.25rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--card-glow);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .stat-card:hover {
         transform: translateY(-4px);
         border-color: rgba(16, 185, 129, 0.25);
-        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.1);
+        box-shadow: 0 8px 30px rgba(11, 89, 52, 0.04);
     }
 
     .stat-icon {
         width: 54px;
         height: 54px;
         border-radius: 14px;
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(16, 185, 129, 0.08);
         border: 1px solid rgba(16, 185, 129, 0.15);
-        color: var(--primary-light);
+        color: var(--primary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -54,11 +52,11 @@
     }
 
     /* Colors mapping for high-end feel */
-    .stat-card.clients .stat-icon { color: var(--primary-light); background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.15); }
+    .stat-card.clients .stat-icon { color: #10b981; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.15); }
     .stat-card.properties .stat-icon { color: #3b82f6; background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.15); }
     .stat-card.leases .stat-icon { color: #a855f7; background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.15); }
     .stat-card.occupancy .stat-icon { color: #06b6d4; background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.15); }
-    .stat-card.revenue .stat-icon { color: var(--accent); background: rgba(255, 215, 0, 0.08); border-color: rgba(255, 215, 0, 0.15); }
+    .stat-card.revenue .stat-icon { color: #b58900; background: rgba(212, 175, 55, 0.08); border-color: rgba(212, 175, 55, 0.15); }
     .stat-card.unpaid .stat-icon { color: #ef4444; background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.15); }
 
     .stat-info h3 {
@@ -66,6 +64,7 @@
         font-weight: 700;
         margin-top: 0.25rem;
         font-family: 'Outfit', sans-serif;
+        color: #0f172a;
     }
 
     .stat-info span {
@@ -105,6 +104,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        color: #0f172a;
     }
 
     .recent-item {
@@ -113,14 +113,14 @@
         align-items: center;
         padding: 0.85rem;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.02);
+        background: rgba(11, 89, 52, 0.02);
         border: 1px solid var(--border-glass);
         margin-bottom: 0.75rem;
         font-size: 0.9rem;
     }
 
     .recent-item:hover {
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(11, 89, 52, 0.04);
     }
 
     .badge {
@@ -131,21 +131,21 @@
     }
 
     .badge-success {
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.2);
+        background: rgba(16, 185, 129, 0.08);
+        color: #065f46;
+        border: 1px solid rgba(16, 185, 129, 0.15);
     }
 
     .badge-warning {
-        background: rgba(245, 158, 11, 0.15);
-        color: #fbbf24;
-        border: 1px solid rgba(245, 158, 11, 0.2);
+        background: rgba(245, 158, 11, 0.08);
+        color: #92400e;
+        border: 1px solid rgba(245, 158, 11, 0.15);
     }
 
     .badge-danger {
-        background: rgba(239, 68, 68, 0.15);
-        color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.2);
+        background: rgba(239, 68, 68, 0.08);
+        color: #991b1b;
+        border: 1px solid rgba(239, 68, 68, 0.15);
     }
 
     /* Pipeline stage block */
@@ -161,7 +161,7 @@
         justify-content: space-between;
         padding: 0.6rem 0.85rem;
         border-radius: 10px;
-        background: rgba(255, 255, 255, 0.01);
+        background: rgba(11, 89, 52, 0.01);
         border-left: 4px solid var(--primary-light);
     }
 
@@ -173,10 +173,11 @@
     .pipeline-row span:first-child {
         font-weight: 500;
         font-size: 0.85rem;
+        color: #334155;
     }
 
     .pipeline-count {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(11, 89, 52, 0.04);
         border: 1px solid var(--border-glass);
         width: 24px;
         height: 24px;
@@ -186,6 +187,7 @@
         justify-content: center;
         font-size: 0.75rem;
         font-weight: 600;
+        color: var(--primary);
     }
 
     @media (max-width: 1200px) {
@@ -405,8 +407,8 @@
                     backgroundColor: 'rgba(16, 185, 129, 0.15)',
                     fill: true,
                     tension: 0.4,
-                    pointBackgroundColor: '#ffd700',
-                    pointBorderColor: '#0a0f0d',
+                    pointBackgroundColor: '#d4af37',
+                    pointBorderColor: '#ffffff',
                     pointRadius: 5,
                     pointHoverRadius: 7
                 }]
@@ -419,13 +421,13 @@
                 },
                 scales: {
                     x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.02)' },
-                        ticks: { color: '#9ca3af', font: { family: 'Outfit' } }
+                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
+                        ticks: { color: '#64748b', font: { family: 'Outfit' } }
                     },
                     y: {
-                        grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
                         ticks: {
-                            color: '#9ca3af',
+                            color: '#64748b',
                             font: { family: 'Outfit' },
                             callback: function(value) { return value.toLocaleString() + ' CFA'; }
                         }
@@ -449,7 +451,7 @@
                 datasets: [{
                     data: [rentCount, saleCount, furnishedCount],
                     backgroundColor: ['#10b981', '#3b82f6', '#a855f7'],
-                    borderColor: 'rgba(10, 15, 12, 0.95)',
+                    borderColor: '#ffffff',
                     borderWidth: 2,
                     hoverOffset: 4
                 }]

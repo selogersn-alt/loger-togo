@@ -615,6 +615,41 @@
             }
             header {
                 padding: 0.85rem 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .logo i {
+                font-size: 1.5rem !important;
+            }
+            .logo h1 {
+                font-size: 1.2rem !important;
+            }
+            .logo h1 span {
+                font-size: 0.85rem !important;
+            }
+            .header-actions {
+                display: flex;
+                gap: 0.4rem;
+                align-items: center;
+            }
+            .btn-header-register {
+                display: none !important; /* Masquer sur mobile car redondant avec le gros CTA 'Activer mon essai' juste en dessous */
+            }
+            .btn-header-login, .btn-header-logout {
+                padding: 0.45rem 0.85rem !important;
+                font-size: 0.8rem !important;
+                border-radius: 10px !important;
+                margin-right: 0 !important;
+                box-shadow: none !important;
+                border: 1px solid rgba(16, 185, 129, 0.2) !important;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(11, 89, 52, 0.03)) !important;
+                color: var(--primary) !important;
+                font-weight: 700 !important;
+            }
+            .btn-header-login i, .btn-header-logout i {
+                font-size: 0.75rem !important;
             }
             .system-messages {
                 padding: 0 1rem;
@@ -669,19 +704,19 @@
             <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2rem;"></i>
             <h1>Loger Togo <span style="font-weight: 400; font-size: 1.1rem; opacity: 0.8; color: var(--accent);">PRO</span></h1>
         </a>
-        <div>
+        <div class="header-actions">
             {% if request.user.is_authenticated %}
                 <span style="color: var(--text-muted); margin-right: 1.5rem; font-size: 0.95rem;" class="d-none d-md-inline">
                     <i class="fa-solid fa-circle-user me-1 text-success"></i> <strong>{{ request.user.get_full_name|default:request.user.phone_number }}</strong>
                 </span>
-                <a href="{% url 'agency_logout' %}" class="btn btn-secondary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px;">
+                <a href="{% url 'agency_logout' %}" class="btn btn-secondary btn-header-logout" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px;">
                     <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
                 </a>
             {% else %}
-                <a href="{% url 'agency_login' %}" class="btn btn-secondary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px; margin-right: 0.5rem;">
+                <a href="{% url 'agency_login' %}" class="btn btn-secondary btn-header-login" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px; margin-right: 0.5rem;">
                     <i class="fa-solid fa-user-shield"></i> Se Connecter
                 </a>
-                <a href="{% url 'agency_register' %}" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px;">
+                <a href="{% url 'agency_register' %}" class="btn btn-primary btn-header-register" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px;">
                     Créer un compte
                 </a>
             {% endif %}

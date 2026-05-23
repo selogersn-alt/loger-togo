@@ -260,6 +260,46 @@
         @media (max-width: 640px) {
             header {
                 padding: 0.85rem 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .logo i {
+                font-size: 1.5rem !important;
+            }
+            .logo h1 {
+                font-size: 1.2rem !important;
+            }
+            .logo h1 span {
+                font-size: 0.85rem !important;
+            }
+            .header-actions {
+                display: flex;
+                gap: 0.4rem;
+                align-items: center;
+            }
+            .btn-header-register {
+                display: none !important;
+            }
+            .btn-header-login {
+                padding: 0.45rem 0.85rem !important;
+                font-size: 0.8rem !important;
+                border-radius: 10px !important;
+                margin-right: 0 !important;
+                box-shadow: none !important;
+                border: 1px solid rgba(16, 185, 129, 0.2) !important;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(11, 89, 52, 0.03)) !important;
+                color: var(--primary) !important;
+                font-weight: 700 !important;
+                text-decoration: none;
+            }
+            .btn-header-dashboard {
+                padding: 0.45rem 0.85rem !important;
+                font-size: 0.8rem !important;
+                border-radius: 10px !important;
+                box-shadow: none !important;
+                text-decoration: none;
             }
             .container {
                 padding: 0 1rem;
@@ -289,14 +329,14 @@
             <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2rem;"></i>
             <h1>Loger Togo <span style="font-weight: 400; font-size: 1.1rem; opacity: 0.8; color: var(--accent);">PRO</span></h1>
         </a>
-        <div>
+        <div class="header-actions">
             {% if request.user.is_authenticated %}
-                <a href="{% url 'agency_dashboard' %}" class="btn btn-primary">
+                <a href="{% url 'agency_dashboard' %}" class="btn btn-primary btn-header-dashboard">
                     <i class="fa-solid fa-gauge-high"></i> Mon Tableau de bord
                 </a>
             {% else %}
-                <a href="{% url 'agency_login' %}" class="btn btn-secondary" style="margin-right: 0.75rem;">Se Connecter</a>
-                <a href="{% url 'agency_register' %}" class="btn btn-primary">Créer un compte</a>
+                <a href="{% url 'agency_login' %}" class="btn btn-secondary btn-header-login" style="margin-right: 0.75rem;">Se Connecter</a>
+                <a href="{% url 'agency_register' %}" class="btn btn-primary btn-header-register">Créer un compte</a>
             {% endif %}
         </div>
     </header>

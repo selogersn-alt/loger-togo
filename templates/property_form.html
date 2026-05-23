@@ -716,7 +716,7 @@ function initImageUpload() {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> {% trans "Réessayer la publication" %}`;
             }
-            alert('{% trans "Erreur de connexion ou d\'envoi. Veuillez vérifier votre connexion internet." %}');
+            alert("{% trans 'Erreur de connexion ou d\'envoi. Veuillez vérifier votre connexion internet.'|escapejs %}");
         }
     });
 }

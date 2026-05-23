@@ -128,10 +128,10 @@
                 {% trans "mensuel" %}
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:none; padding:8px; z-index: 1050;">
-                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="month">{% trans "mensuel" %}</a></li>
-                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="night">{% trans "nuitée" %}</a></li>
-                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="hour">{% trans "heure" %}</a></li>
-                <li><a class="dropdown-item rounded-3" href="#" data-unit="total">{% trans "Prix Total" %}</a></li>
+                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="month" onclick="window.selectPriceUnit('month', event)">{% trans "mensuel" %}</a></li>
+                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="night" onclick="window.selectPriceUnit('night', event)">{% trans "nuitée" %}</a></li>
+                <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="hour" onclick="window.selectPriceUnit('hour', event)">{% trans "heure" %}</a></li>
+                <li><a class="dropdown-item rounded-3" href="#" data-unit="total" onclick="window.selectPriceUnit('total', event)">{% trans "Prix Total" %}</a></li>
               </ul>
               {{ form.price_unit }}
             </div>
@@ -448,40 +448,47 @@ function applyDynamicFormLogic() {
     categorySelect.addEventListener('change', updateFields);
     if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
 
+    window.selectPriceUnit = function(chosenUnit, e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        if (chosenUnit === 'night') {
+            // Pour la nuitée, la catégorie DOIT être FURNISHED (A Louer Meublé)
+            if (categorySelect.value !== 'FURNISHED') {
+                categorySelect.value = 'FURNISHED';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('night');
+        } else if (chosenUnit === 'hour') {
+            // Pour la tarification horaire, la catégorie DOIT être FURNISHED (A Louer Meublé)
+            if (categorySelect.value !== 'FURNISHED') {
+                categorySelect.value = 'FURNISHED';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('hour');
+        } else if (chosenUnit === 'month') {
+            // Pour le mensuel, si c'était SALE, on bascule vers RENT (Location classique)
+            if (categorySelect.value === 'SALE') {
+                categorySelect.value = 'RENT';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('month');
+        } else if (chosenUnit === 'total') {
+            // Pour le prix total (vente), la catégorie DOIT être SALE (A Vendre)
+            if (categorySelect.value !== 'SALE') {
+                categorySelect.value = 'SALE';
+                categorySelect.dispatchEvent(new Event('change'));
+            }
+            setUnit('total');
+        }
+    };
+
     document.querySelectorAll('[data-unit]').forEach(item => {
         item.addEventListener('click', (e) => {
-            e.preventDefault();
             const chosenUnit = item.dataset.unit;
-            
-            if (chosenUnit === 'night') {
-                // Pour la nuitée, la catégorie DOIT être FURNISHED (A Louer Meublé)
-                if (categorySelect.value !== 'FURNISHED') {
-                    categorySelect.value = 'FURNISHED';
-                    categorySelect.dispatchEvent(new Event('change'));
-                }
-                setUnit('night');
-            } else if (chosenUnit === 'hour') {
-                // Pour la tarification horaire, la catégorie DOIT être FURNISHED (A Louer Meublé)
-                if (categorySelect.value !== 'FURNISHED') {
-                    categorySelect.value = 'FURNISHED';
-                    categorySelect.dispatchEvent(new Event('change'));
-                }
-                setUnit('hour');
-            } else if (chosenUnit === 'month') {
-                // Pour le mensuel, si c'était SALE, on bascule vers RENT (Location classique)
-                if (categorySelect.value === 'SALE') {
-                    categorySelect.value = 'RENT';
-                    categorySelect.dispatchEvent(new Event('change'));
-                }
-                setUnit('month');
-            } else if (chosenUnit === 'total') {
-                // Pour le prix total (vente), la catégorie DOIT être SALE (A Vendre)
-                if (categorySelect.value !== 'SALE') {
-                    categorySelect.value = 'SALE';
-                    categorySelect.dispatchEvent(new Event('change'));
-                }
-                setUnit('total');
-            }
+            window.selectPriceUnit(chosenUnit, e);
         });
     });
 

@@ -339,10 +339,10 @@
                             {% trans "mensuel" %}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:1px solid var(--border-glass); padding:8px; z-index: 1050; background: #141b2d;">
-                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="month">{% trans "mensuel" %}</a></li>
-                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="night">{% trans "nuitée" %}</a></li>
-                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="hour">{% trans "heure" %}</a></li>
-                            <li><a class="dropdown-item rounded-3 text-white" href="#" data-unit="total">{% trans "Prix Total" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="month" onclick="window.selectPriceUnit('month', event)">{% trans "mensuel" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="night" onclick="window.selectPriceUnit('night', event)">{% trans "nuitée" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="hour" onclick="window.selectPriceUnit('hour', event)">{% trans "heure" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 text-white" href="#" data-unit="total" onclick="window.selectPriceUnit('total', event)">{% trans "Prix Total" %}</a></li>
                         </ul>
                     </div>
                     {{ form.price_unit }}
@@ -632,37 +632,44 @@
             }
         }
 
+        window.selectPriceUnit = function(chosenUnit, e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            if (chosenUnit === 'night') {
+                if (categorySelect.value !== 'FURNISHED') {
+                    categorySelect.value = 'FURNISHED';
+                    adjustPricingFields();
+                }
+                setUnit('night');
+            } else if (chosenUnit === 'hour') {
+                if (categorySelect.value !== 'FURNISHED') {
+                    categorySelect.value = 'FURNISHED';
+                    adjustPricingFields();
+                }
+                setUnit('hour');
+            } else if (chosenUnit === 'month') {
+                if (categorySelect.value === 'SALE') {
+                    categorySelect.value = 'RENT';
+                    adjustPricingFields();
+                }
+                setUnit('month');
+            } else if (chosenUnit === 'total') {
+                if (categorySelect.value !== 'SALE') {
+                    categorySelect.value = 'SALE';
+                    adjustPricingFields();
+                }
+                setUnit('total');
+            }
+        };
+
         // Attach click handlers to data-unit elements
         document.querySelectorAll('[data-unit]').forEach(item => {
             item.addEventListener('click', (e) => {
-                e.preventDefault();
                 const chosenUnit = item.dataset.unit;
-                
-                if (chosenUnit === 'night') {
-                    if (categorySelect.value !== 'FURNISHED') {
-                        categorySelect.value = 'FURNISHED';
-                        adjustPricingFields();
-                    }
-                    setUnit('night');
-                } else if (chosenUnit === 'hour') {
-                    if (categorySelect.value !== 'FURNISHED') {
-                        categorySelect.value = 'FURNISHED';
-                        adjustPricingFields();
-                    }
-                    setUnit('hour');
-                } else if (chosenUnit === 'month') {
-                    if (categorySelect.value === 'SALE') {
-                        categorySelect.value = 'RENT';
-                        adjustPricingFields();
-                    }
-                    setUnit('month');
-                } else if (chosenUnit === 'total') {
-                    if (categorySelect.value !== 'SALE') {
-                        categorySelect.value = 'SALE';
-                        adjustPricingFields();
-                    }
-                    setUnit('total');
-                }
+                window.selectPriceUnit(chosenUnit, e);
             });
         });
 

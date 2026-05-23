@@ -231,7 +231,21 @@
         font-size: 0.65rem;
         border-radius: 4px;
         font-weight: 700;
-        margin-left: 0.5rem;
+    }
+
+    /* Overrides pour le dropdown-menu et dropdown-item premium du CRM */
+    .dropdown-menu {
+        border-color: var(--border-glass) !important;
+        background: #141b2d !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    }
+    .dropdown-item {
+        color: var(--text-main) !important;
+        transition: all 0.2s ease !important;
+    }
+    .dropdown-item:hover, .dropdown-item.active {
+        background-color: var(--primary-light) !important;
+        color: white !important;
     }
 </style>
 {% endblock %}
@@ -318,15 +332,25 @@
             <div class="form-grid">
                 <!-- Standard Price -->
                 <div class="form-group" id="group_price">
-                    <label class="form-label" id="label_price" for="id_price">Prix / Loyer Mensuel (FCFA) <span style="color: red;">*</span></label>
-                    <input type="number" name="price" id="id_price" class="form-control-input" placeholder="Ex: 150000" value="{{ form.price.value|default:'' }}">
+                    <label class="form-label" id="label_price" for="id_price">Prix / Loyer <span style="color: red;">*</span></label>
+                    <div class="input-group d-flex" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-glass); background: rgba(255, 255, 255, 0.02);">
+                        <input type="number" name="price" id="id_price" class="form-control-input" placeholder="Ex: 150000" value="{{ form.price.value|default:'' }}" style="flex: 1; border: none; margin-bottom: 0; background: transparent; border-radius: 12px 0 0 12px;">
+                        <button class="btn dropdown-toggle fw-bold" type="button" id="price-unit-btn" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; border-left: 1px solid var(--border-glass); border-radius: 0 12px 12px 0; background: rgba(255, 255, 255, 0.05); color: var(--text-main); padding: 0.85rem 1.25rem; font-size: 1rem; line-height: 1.2;">
+                            {% trans "mensuel" %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:1px solid var(--border-glass); padding:8px; z-index: 1050; background: #141b2d;">
+                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="month">{% trans "mensuel" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="night">{% trans "nuitée" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1 text-white" href="#" data-unit="hour">{% trans "heure" %}</a></li>
+                            <li><a class="dropdown-item rounded-3 text-white" href="#" data-unit="total">{% trans "Prix Total" %}</a></li>
+                        </ul>
+                    </div>
                     {{ form.price_unit }}
                 </div>
 
-                <!-- Price per night (for furnished properties) -->
-                <div class="form-group" id="group_price_per_night">
-                    <label class="form-label" for="id_price_per_night">Prix par Nuitée (FCFA) <span style="color: red;">*</span></label>
-                    <input type="number" name="price_per_night" id="id_price_per_night" class="form-control-input" placeholder="Ex: 35000" value="{{ form.price_per_night.value|default:'' }}">
+                <!-- Price per night (hidden, computed dynamically) -->
+                <div class="d-none" id="group_price_per_night">
+                    <input type="number" name="price_per_night" id="id_price_per_night" value="{{ form.price_per_night.value|default:'' }}">
                 </div>
 
                 <!-- Deposit Months (Caution) -->
@@ -541,6 +565,7 @@
     const totalSteps = 4;
 
     document.addEventListener("DOMContentLoaded", function() {
+        initPriceSelector();
         adjustPricingFields();
         toggleWarningPanel();
     });
@@ -560,13 +585,119 @@
         }
     }
 
+    function setUnit(u) {
+        const unitSelector = document.getElementById('price-unit-selector');
+        const unitBtn = document.getElementById('price-unit-btn');
+        const priceLabel = document.getElementById('label_price');
+
+        if (!unitSelector) return;
+        unitSelector.value = u;
+        let text = '';
+        if (u === 'month') {
+            text = '{% trans "mensuel" %}';
+            if (priceLabel) priceLabel.innerHTML = 'Loyer Mensuel (FCFA) <span style="color: red;">*</span>';
+        } else if (u === 'night') {
+            text = '{% trans "nuitée" %}';
+            if (priceLabel) priceLabel.innerHTML = 'Tarif par Nuitée (FCFA) <span style="color: red;">*</span>';
+        } else if (u === 'hour') {
+            text = '{% trans "heure" %}';
+            if (priceLabel) priceLabel.innerHTML = 'Tarif par Heure (FCFA) <span style="color: red;">*</span>';
+        } else {
+            text = '{% trans "Prix Total" %}';
+            if (priceLabel) priceLabel.innerHTML = 'Prix de Vente Net (FCFA) <span style="color: red;">*</span>';
+        }
+        if (unitBtn) unitBtn.innerHTML = text;
+
+        // Toggle active class on dropdown options for premium visual feedback
+        document.querySelectorAll('[data-unit]').forEach(item => {
+            if (item.dataset.unit === u) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    function initPriceSelector() {
+        const categorySelect = document.getElementById('id_listing_category');
+        const unitSelector = document.getElementById('price-unit-selector');
+        const priceInput = document.getElementById('id_price');
+        const pricePerNightInput = document.getElementById('id_price_per_night');
+
+        // Sync initial state from unit selector value (handles edits and initial defaults properly)
+        if (unitSelector && unitSelector.value) {
+            setUnit(unitSelector.value);
+            if ((unitSelector.value === 'night' || unitSelector.value === 'hour') && pricePerNightInput && parseFloat(pricePerNightInput.value) > 0) {
+                priceInput.value = pricePerNightInput.value;
+            }
+        }
+
+        // Attach click handlers to data-unit elements
+        document.querySelectorAll('[data-unit]').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const chosenUnit = item.dataset.unit;
+                
+                if (chosenUnit === 'night') {
+                    if (categorySelect.value !== 'FURNISHED') {
+                        categorySelect.value = 'FURNISHED';
+                        adjustPricingFields();
+                    }
+                    setUnit('night');
+                } else if (chosenUnit === 'hour') {
+                    if (categorySelect.value !== 'FURNISHED') {
+                        categorySelect.value = 'FURNISHED';
+                        adjustPricingFields();
+                    }
+                    setUnit('hour');
+                } else if (chosenUnit === 'month') {
+                    if (categorySelect.value === 'SALE') {
+                        categorySelect.value = 'RENT';
+                        adjustPricingFields();
+                    }
+                    setUnit('month');
+                } else if (chosenUnit === 'total') {
+                    if (categorySelect.value !== 'SALE') {
+                        categorySelect.value = 'SALE';
+                        adjustPricingFields();
+                    }
+                    setUnit('total');
+                }
+            });
+        });
+
+        // Hook Form Submission to synchronize values
+        const formElement = document.getElementById('propertyForm');
+        if (formElement) {
+            formElement.addEventListener('submit', function(e) {
+                const val = (categorySelect.value || '').trim().toUpperCase();
+                const enteredVal = parseFloat(priceInput.value) || 0;
+                if (enteredVal > 0) {
+                    if (val === 'FURNISHED') {
+                        if (unitSelector && (unitSelector.value === 'night' || unitSelector.value === 'hour')) {
+                            pricePerNightInput.value = enteredVal;
+                            priceInput.value = Math.round(enteredVal * 30);
+                        } else {
+                            priceInput.value = enteredVal;
+                            pricePerNightInput.value = Math.round(enteredVal / 30);
+                        }
+                    } else if (val === 'SALE') {
+                        priceInput.value = enteredVal;
+                        pricePerNightInput.value = '';
+                    } else {
+                        priceInput.value = enteredVal;
+                        pricePerNightInput.value = '';
+                    }
+                }
+            });
+        }
+    }
+
     function adjustPricingFields() {
         const category = document.getElementById('id_listing_category').value;
         const unitSelector = document.getElementById('price-unit-selector');
         
         const gPrice = document.getElementById('group_price');
-        const lPrice = document.getElementById('label_price');
-        const gPricePerNight = document.getElementById('group_price_per_night');
         const gDeposit = document.getElementById('group_deposit');
         const gAdvance = document.getElementById('group_advance');
         const gAgencyFee = document.getElementById('group_agency_fee');
@@ -574,32 +705,29 @@
 
         if (category === 'RENT') {
             gPrice.style.display = 'block';
-            lPrice.innerHTML = 'Loyer Mensuel (FCFA) <span style="color: red;">*</span>';
-            gPricePerNight.style.display = 'none';
             gDeposit.style.display = 'block';
             gAdvance.style.display = 'block';
             gAgencyFee.style.display = 'block';
             gDocType.style.display = 'none';
-            if (unitSelector) unitSelector.value = 'month';
+            setUnit('month');
         } else if (category === 'SALE') {
             gPrice.style.display = 'block';
-            lPrice.innerHTML = 'Prix de Vente Net (FCFA) <span style="color: red;">*</span>';
-            gPricePerNight.style.display = 'none';
             gDeposit.style.display = 'none';
             gAdvance.style.display = 'none';
             gAgencyFee.style.display = 'none';
             gDocType.style.display = 'block';
-            if (unitSelector) unitSelector.value = 'total';
+            setUnit('total');
         } else if (category === 'FURNISHED') {
             gPrice.style.display = 'block';
-            lPrice.innerHTML = 'Loyer Mensuel de référence (FCFA)';
-            gPricePerNight.style.display = 'block';
             gDeposit.style.display = 'block';
             gAdvance.style.display = 'block';
             gAgencyFee.style.display = 'block';
             gDocType.style.display = 'none';
+            // Pour les meublés, on accepte nuitée (night), heure (hour) ou mensuel (month)
             if (unitSelector && unitSelector.value !== 'night' && unitSelector.value !== 'hour' && unitSelector.value !== 'month') {
-                unitSelector.value = 'night';
+                setUnit('night');
+            } else if (unitSelector) {
+                setUnit(unitSelector.value);
             }
         }
     }
@@ -678,16 +806,15 @@
         } else if (currentStep === 2) {
             const category = document.getElementById('id_listing_category').value;
             const price = document.getElementById('id_price').value;
-            const pricePerNight = document.getElementById('id_price_per_night').value;
 
             if (category === 'RENT' && !price) {
-                alert("Veuillez renseigner le loyer mensuel.");
+                alert("Veuillez renseigner le loyer.");
                 return false;
             } else if (category === 'SALE' && !price) {
                 alert("Veuillez renseigner le prix de vente.");
                 return false;
-            } else if (category === 'FURNISHED' && !pricePerNight) {
-                alert("Veuillez renseigner le tarif par nuitée.");
+            } else if (category === 'FURNISHED' && !price) {
+                alert("Veuillez renseigner le tarif.");
                 return false;
             }
         } else if (currentStep === 3) {

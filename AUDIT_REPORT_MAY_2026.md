@@ -2,9 +2,9 @@
 
 ## 📌 Résumé des tests exécutés
 *   **Total des tests** : 46
-*   **Tests réussis** : 39 ✅
-*   **Tests échoués** : 7 ❌
-*   **Taux de succès** : 84.8%
+*   **Tests réussis** : 46 ✅
+*   **Tests échoués** : 0 ❌
+*   **Taux de succès** : 100.0%
 
 ---
 
@@ -12,29 +12,29 @@
 
 | Nom du Test | Statut | Détails |
 | :--- | :---: | :--- |
-| RBAC: Anon Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/ |
+| RBAC: Anon Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/dashboard/ |
 | RBAC: Anon Blocked on 'agency_clients' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/clients/ |
 | RBAC: Anon Blocked on 'agency_pipeline' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/pipeline/ |
 | RBAC: Anon Blocked on 'agency_leases' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/baux/ |
 | RBAC: Anon Blocked on 'agency_payments' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/paiements/ |
 | RBAC: Anon Blocked on 'agency_properties' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/ |
 | RBAC: Anon Blocked on 'agency_property_create' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/nouveau/ |
-| RBAC: Anon Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/346c4afa-f442-46df-ac73-c565906bf004/modifier/ |
-| RBAC: Anon Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/quittance/66f05647-0f08-47d5-9abb-bcbefce9f63e/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_clients' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_pipeline' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_leases' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_payments' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_properties' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_property_create' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /promo/ |
-| RBAC: Non-SaaS Active Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /promo/ |
+| RBAC: Anon Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/biens/350ad82e-ce45-4908-a273-3ac7b71019bc/modifier/ |
+| RBAC: Anon Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: /connexion/?next=http://agence.logertogo.com/quittance/b9e2dfb0-5c43-494c-92e0-5551f2008170/ |
+| RBAC: Non-SaaS Active Blocked on 'agency_dashboard' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_clients' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_pipeline' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_leases' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_payments' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_properties' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_property_create' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_property_edit' | ✅ | Status: 302, Redirect: / |
+| RBAC: Non-SaaS Active Blocked on 'agency_receipt' | ✅ | Status: 302, Redirect: / |
 | IDOR Protection: Receipt isolation | ✅ | Status: 404 (Expected 404) |
 | IDOR Protection: Property editing isolation | ✅ | Status: 404 (Expected 404) |
 | IDOR Protection: Property publication toggle isolation | ✅ | Status: 404 (Expected 404) |
-| CSRF Protection: POST Login without token | ❌ | Status: 200 (Expected 403) |
-| CSRF Protection: POST Property Create without token | ❌ | Status: 302 (Expected 403) |
+| CSRF Protection: POST Login without token | ✅ | Status: 403 (Expected 403) |
+| CSRF Protection: POST Property Create without token | ✅ | Status: 403 (Expected 403) |
 | XSS mitigation: strips HTML script tags from titles | ✅ | Cleaned: scriptalert('XSS')/script Superbe Villa! |
 | Hardening: strips variation selector unicode invisible characters | ✅ | Cleaned: Villa Magnifique! |
 
@@ -57,11 +57,11 @@
 
 | Nom du Test | Statut | Détails |
 | :--- | :---: | :--- |
-| Main Public URL: home | ❌ | Status: 400 |
-| Main Public URL: about | ❌ | Status: 400 |
-| Main Public URL: properties_list | ❌ | Status: 400 |
-| Main Public URL: cgu | ❌ | Status: 400 |
-| Main Public URL: privacy | ❌ | Status: 400 |
+| Main Public URL: home | ✅ | Status: 200 |
+| Main Public URL: about | ✅ | Status: 200 |
+| Main Public URL: properties_list | ✅ | Status: 200 |
+| Main Public URL: cgu | ✅ | Status: 200 |
+| Main Public URL: privacy | ✅ | Status: 200 |
 | Subdomain Promo Page | ✅ | Status: 200 |
 | Active SaaS Access to 'agency_dashboard' | ✅ | Status: 200 |
 | Active SaaS Access to 'agency_clients' | ✅ | Status: 200 |

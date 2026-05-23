@@ -245,7 +245,8 @@ class HardAuditRunner:
             try:
                 url = reverse(name, kwargs=kwargs, urlconf='logertogo.urls_agence')
                 response = self.client.get(url, HTTP_HOST='agence.logertogo.com')
-                passed = response.status_code == 302 and 'promo' in response.url
+                # Since agency_promo is at the root '/', we allow '/' or 'promo'
+                passed = response.status_code == 302 and (response.url == '/' or response.url == 'http://agence.logertogo.com/' or 'promo' in response.url)
                 self.log_result("security", f"RBAC: Non-SaaS Active Blocked on '{name}'", passed, f"Status: {response.status_code}, Redirect: {response.get('location', '')}")
             except Exception as e:
                 self.log_result("security", f"RBAC: Non-SaaS Active Blocked on '{name}'", False, str(e))

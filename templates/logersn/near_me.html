@@ -732,7 +732,7 @@
 
     window.showRoute = function(targetLat, targetLng) {
         if (!_userPos) {
-            alert('{% trans "Position GPS requise pour calculer l\'itinéraire." %}');
+            alert("{% trans 'Position GPS requise pour calculer l\'itinéraire.'|escapejs %}");
             return;
         }
         
@@ -985,7 +985,7 @@
 
     window.startWatch = function() {
         if (!navigator.geolocation) return;
-        document.getElementById('gps-label').textContent = '{% trans "Localisation en cours..." %}';
+        document.getElementById('gps-label').textContent = "{% trans 'Localisation en cours...'|escapejs %}";
         
         navigator.geolocation.getCurrentPosition(function(pos) {
             const lngLat = [pos.coords.longitude, pos.coords.latitude];
@@ -1003,12 +1003,12 @@
             }
 
             document.getElementById('gps-badge').className = 'gps-status-badge gps-active';
-            document.getElementById('gps-label').textContent = '{% trans "GPS activé et synchronisé" %}';
+            document.getElementById('gps-label').textContent = "{% trans 'GPS activé et synchronisé'|escapejs %}";
             _map.easeTo({ center: lngLat, zoom: 13 });
             renderList(lngLat[1], lngLat[0], 'ALL');
         }, function(err) {
             console.warn('GPS Error', err);
-            document.getElementById('gps-label').textContent = '{% trans "GPS non disponible" %}';
+            document.getElementById('gps-label').textContent = "{% trans 'GPS non disponible'|escapejs %}";
         }, { enableHighAccuracy: true });
     }
 

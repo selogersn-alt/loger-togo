@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lease, RentPayment, MaintenanceRequest, TenantDocument, AgencyClient, ContractTemplate
+from .models import Lease, RentPayment, MaintenanceRequest, TenantDocument, AgencyClient, ContractTemplate, PropertyInventory
 
 class PrivateSaaSAdmin(admin.ModelAdmin):
     """
@@ -33,7 +33,7 @@ class AgencyClientAdmin(PrivateSaaSAdmin):
 
 @admin.register(Lease)
 class LeaseAdmin(PrivateSaaSAdmin):
-    list_display = ('id', 'property', 'tenant', 'landlord', 'status', 'start_date')
+    list_display = ('id', 'property', 'tenant', 'landlord', 'status', 'start_date', 'is_signed_by_tenant', 'is_signed_by_landlord')
     list_filter = ('status', 'start_date')
     search_fields = ('tenant__email', 'landlord__email', 'property__title')
 
@@ -69,3 +69,10 @@ class TenantDocumentAdmin(PrivateSaaSAdmin):
 class ContractTemplateAdmin(PrivateSaaSAdmin):
     list_display = ('title', 'agency', 'created_at')
     search_fields = ('title', 'agency__phone_number', 'agency__email')
+
+
+@admin.register(PropertyInventory)
+class PropertyInventoryAdmin(PrivateSaaSAdmin):
+    list_display = ('id', 'lease', 'inventory_type', 'inventory_date', 'general_condition', 'created_at')
+    list_filter = ('inventory_type', 'general_condition')
+    search_fields = ('lease__property__title',)

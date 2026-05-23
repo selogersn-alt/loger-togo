@@ -26,10 +26,19 @@ urlpatterns = [
     path('baux/', views_agency.agency_leases, name='agency_leases'),
     path('baux/export/', views_agency.export_leases_csv, name='export_leases_csv'),
     path('baux/<uuid:lease_id>/contrat/', views_agency.agency_lease_agreement, name='agency_lease_agreement'),
+    path('baux/<uuid:lease_id>/signer/', views_agency.agency_lease_sign, name='agency_lease_sign'),
+    path('baux/<uuid:lease_id>/otp/', views_agency.agency_lease_otp, name='agency_lease_otp'),
     path('modeles-contrats/', views_agency.agency_templates, name='agency_templates'),
     path('paiements/', views_agency.agency_payments, name='agency_payments'),
     path('paiements/export/', views_agency.export_payments_csv, name='export_payments_csv'),
     path('quittance/<uuid:payment_id>/', views_agency.agency_receipt, name='agency_receipt'),
+    path('comptabilite/analyses/', views_agency.agency_financial_analysis, name='agency_financial_analysis'),
+    
+    # États des lieux (Property Inventories)
+    path('inventaires/', views_agency.agency_inventories, name='agency_inventories'),
+    path('baux/<uuid:lease_id>/inventaires/nouveau/', views_agency.agency_inventory_create, name='agency_inventory_create'),
+    path('inventaires/<uuid:inventory_id>/', views_agency.agency_inventory_detail, name='agency_inventory_detail'),
+    
     path('biens/', views_agency.agency_properties, name='agency_properties'),
     path('biens/nouveau/', views_agency.agency_property_create, name='agency_property_create'),
     path('biens/<uuid:property_id>/modifier/', views_agency.agency_property_edit, name='agency_property_edit'),

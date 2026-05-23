@@ -1,0 +1,304 @@
+{% extends 'agency/base_agency.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Créer un État des Lieux" %} | Loger Togo{% endblock %}
+
+{% block extra_css %}
+<style>
+    .room-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: var(--card-glow);
+        border: 1px solid rgba(11, 89, 52, 0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .room-title {
+        color: #0b5934;
+        font-weight: 800;
+        border-bottom: 2px solid rgba(11, 89, 52, 0.06);
+        padding-bottom: 8px;
+        margin-bottom: 1rem;
+    }
+    .signature-pad-container {
+        border: 1px dashed rgba(11, 89, 52, 0.2);
+        border-radius: 12px;
+        background: #fafafa;
+        position: relative;
+        padding: 8px;
+    }
+    canvas.signature-canvas {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        width: 100%;
+        height: 180px;
+        touch-action: none;
+    }
+    .btn-clear {
+        position: absolute;
+        bottom: 16px; right: 16px;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 6px;
+        padding: 4px 10px;
+    }
+    .btn-clear:hover {
+        background: #f1f5f9;
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px; font-family: 'Outfit', sans-serif;">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'agency_inventories' %}" class="btn btn-outline-secondary rounded-pill me-3">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-black text-emerald m-0">{% trans "Nouvel État des Lieux" %}</h2>
+            <p class="text-muted m-0">
+                {% trans "Bail :" %} <strong>{{ lease.property.title }}</strong> ({% trans "Locataire :" %} {{ lease.tenant.get_full_name|default:lease.tenant.phone_number }})
+            </p>
+        </div>
+    </div>
+
+    <form method="post" id="inventoryForm" onsubmit="prepareSubmit(event)">
+        {% csrf_token %}
+        <input type="hidden" name="details_json" id="id_details_json">
+        <input type="hidden" name="signature_tenant" id="id_signature_tenant">
+        <input type="hidden" name="signature_agent" id="id_signature_agent">
+
+        <!-- Informations Générales -->
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
+            <h4 class="fw-bold mb-3" style="color: #0b5934;"><i class="fa-solid fa-circle-info me-2 text-warning"></i> {% trans "Informations Générales" %}</h4>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">{% trans "Type d'état des lieux" %}</label>
+                    <select name="inventory_type" class="form-select rounded-3">
+                        <option value="IN" selected>{% trans "Entrée (Remise des clés)" %}</option>
+                        <option value="OUT">{% trans "Sortie (Restitution des clés)" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">{% trans "Date de constatation" %}</label>
+                    <input type="date" name="inventory_date" class="form-control rounded-3" value="{{ today|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">{% trans "État Général du Bien" %}</label>
+                    <select name="general_condition" class="form-select rounded-3">
+                        <option value="NEW">{% trans "Neuf / Excellent" %}</option>
+                        <option value="GOOD" selected>{% trans "Bon état" %}</option>
+                        <option value="FAIR">{% trans "État d'usage" %}</option>
+                        <option value="BAD">{% trans "Mauvais état" %}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grille Dynamique des Pièces -->
+        <h4 class="fw-bold mb-3 text-emerald"><i class="fa-solid fa-list-check me-2"></i> {% trans "Inspection Pièce par Pièce" %}</h4>
+        <div id="roomsContainer">
+            <!-- Injecté dynamiquement par JavaScript -->
+        </div>
+
+        <!-- Zone de Signatures -->
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
+            <h4 class="fw-bold mb-4" style="color: #0b5934;">
+                <i class="fa-solid fa-signature me-2 text-warning"></i>
+                {% trans "Signatures Électroniques Tactiles" %}
+            </h4>
+            <p class="text-muted small">
+                {% trans "Dessinez vos signatures directement dans les zones ci-dessous avec votre doigt (sur mobile/tablette) ou votre souris." %}
+            </p>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-bold">{% trans "Signature de l'Agent / Mandataire" %}</label>
+                    <div class="signature-pad-container">
+                        <canvas id="canvasAgent" class="signature-canvas"></canvas>
+                        <button type="button" class="btn-clear" onclick="clearCanvas('canvasAgent')">
+                            <i class="fa-solid fa-eraser"></i> Effacer
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-bold">{% trans "Signature du Locataire" %}</label>
+                    <div class="signature-pad-container">
+                        <canvas id="canvasTenant" class="signature-canvas"></canvas>
+                        <button type="button" class="btn-clear" onclick="clearCanvas('canvasTenant')">
+                            <i class="fa-solid fa-eraser"></i> Effacer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="d-flex justify-content-end gap-3 mb-5">
+            <a href="{% url 'agency_inventories' %}" class="btn btn-light rounded-pill px-4 fw-bold">{% trans "Annuler" %}</a>
+            <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold" style="background:#0b5934; border:none;">
+                <i class="fa-solid fa-floppy-disk me-2"></i> {% trans "Enregistrer l'État des Lieux" %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Structure de données de l'état des lieux
+    const rawStructure = '{{ default_structure_json|safe }}';
+    const structure = JSON.parse(rawStructure);
+    
+    // Initialiser les pièces et composants dynamiquement
+    const container = document.getElementById('roomsContainer');
+    
+    structure.forEach((room, roomIdx) => {
+        let roomHtml = `
+            <div class="room-card" data-room-idx="${roomIdx}">
+                <div class="room-title">
+                    <i class="fa-solid fa-house-chimney-window me-2"></i> ${room.room}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle m-0">
+                        <thead>
+                            <tr class="text-muted small fw-bold" style="border-bottom: 1px solid rgba(0,0,0,0.04);">
+                                <th class="pb-2">Élément</th>
+                                <th class="pb-2" style="width: 150px;">État</th>
+                                <th class="pb-2">Observations / Commentaires</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        room.components.forEach((comp, compIdx) => {
+            roomHtml += `
+                <tr class="component-row" data-room="${room.room}" data-comp="${comp.name}">
+                    <td class="py-2 fw-semibold" style="color: #475569;">${comp.name}</td>
+                    <td class="py-2">
+                        <select class="form-select form-select-sm rounded-3 select-condition">
+                            <option value="NEW" ${comp.condition === 'NEW' ? 'selected' : ''}>Neuf</option>
+                            <option value="GOOD" ${comp.condition === 'GOOD' ? 'selected' : ''}>Bon état</option>
+                            <option value="FAIR" ${comp.condition === 'FAIR' ? 'selected' : ''}>Usage</option>
+                            <option value="BAD" ${comp.condition === 'BAD' ? 'selected' : ''}>Mauvais</option>
+                        </select>
+                    </td>
+                    <td class="py-2">
+                        <input type="text" class="form-control form-control-sm rounded-3 input-comment" placeholder="Ex: RAS ou Traces d'usure légères">
+                    </td>
+                </tr>
+            `;
+        });
+        
+        roomHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        container.innerHTML += roomHtml;
+    });
+
+    // --- LOGIQUE CANVAS DE SIGNATURE ---
+    const canvases = {
+        canvasAgent: { element: document.getElementById('canvasAgent'), drawing: false },
+        canvasTenant: { element: document.getElementById('canvasTenant'), drawing: false }
+    };
+
+    function initCanvas(id) {
+        const item = canvases[id];
+        const canvas = item.element;
+        const ctx = canvas.getContext('2d');
+        
+        // Ajuster la résolution physique du canvas au conteneur CSS
+        function resize() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#0b5934';
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Souris
+        canvas.addEventListener('mousedown', (e) => {
+            item.drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (!item.drawing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        });
+        window.addEventListener('mouseup', () => {
+            item.drawing = false;
+        });
+
+        // Toucher (Smartphone / Tablette)
+        canvas.addEventListener('touchstart', (e) => {
+            item.drawing = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            e.preventDefault();
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (!item.drawing) return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            ctx.stroke();
+            e.preventDefault();
+        });
+        canvas.addEventListener('touchend', () => {
+            item.drawing = false;
+        });
+    }
+
+    initCanvas('canvasAgent');
+    initCanvas('canvasTenant');
+
+    function clearCanvas(id) {
+        const canvas = canvases[id].element;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // --- PREPARE DATA FOR SUBMIT ---
+    function prepareSubmit(e) {
+        // 1. Extraire les détails structurés
+        const structuredResults = [];
+        document.querySelectorAll('.room-card').forEach(card => {
+            const roomTitle = card.querySelector('.room-title').innerText.trim();
+            const components = [];
+            
+            card.querySelectorAll('.component-row').forEach(row => {
+                const name = row.getAttribute('data-comp');
+                const condition = row.querySelector('.select-condition').value;
+                const comment = row.querySelector('.input-comment').value;
+                components.push({ name, condition, comment });
+            });
+            
+            structuredResults.push({ room: roomTitle, components });
+        });
+        
+        document.getElementById('id_details_json').value = JSON.stringify(structuredResults);
+        
+        // 2. Extraire les signatures en Base64
+        const dataUrlAgent = canvases.canvasAgent.element.toDataURL('image/png');
+        const dataUrlTenant = canvases.canvasTenant.element.toDataURL('image/png');
+        
+        // Vérification sommaire si dessiné (facultatif)
+        document.getElementById('id_signature_agent').value = dataUrlAgent;
+        document.getElementById('id_signature_tenant').value = dataUrlTenant;
+    }
+</script>
+{% endblock %}

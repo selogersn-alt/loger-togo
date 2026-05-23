@@ -220,6 +220,14 @@
                                 <a href="{% url 'agency_lease_agreement' lease.id %}" target="_blank" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; font-weight: 600;">
                                     <i class="fa-solid fa-print"></i> Générer / Imprimer
                                 </a>
+                                {% if lease.status == 'PENDING' %}
+                                    <a href="{% url 'agency_lease_sign' lease.id %}" class="btn btn-warning" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; font-weight: 700; color: #1e293b;">
+                                        <i class="fa-solid fa-signature"></i> Signer par OTP
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'agency_inventory_create' lease.id %}" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; font-weight: 600; background: #0ea5e9; border: none; color: #ffffff;">
+                                    <i class="fa-solid fa-clipboard-list"></i> État des lieux
+                                </a>
                             </div>
                         </td>
                     </tr>

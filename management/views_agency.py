@@ -13,8 +13,7 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import datetime
 
-from django.contrib.auth import get_user_model, authenticate, login, logout
-from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest, ContractTemplate
+from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest, ContractTemplate, PropertyInventory
 from logersn.models import Property
 
 User = get_user_model()
@@ -910,5 +909,244 @@ def export_payments_csv(request):
             p.payment_method or ''
         ])
     return response
+
+
+@agency_saas_required
+def agency_lease_sign(request, lease_id):
+    """
+    Interface de signature électronique de bail.
+    """
+    from django.http import HttpResponseForbidden
+    lease = get_object_or_404(Lease, id=lease_id)
+    # Protection IDOR : seul le bailleur ou le locataire peut signer
+    if request.user != lease.landlord and request.user != lease.tenant:
+        return HttpResponseForbidden("Vous n'êtes pas autorisé à signer ce bail.")
+        
+    user_role = 'landlord' if request.user == lease.landlord else 'tenant'
+    
+    if request.method == 'POST':
+        otp_entered = request.POST.get('otp_code', '').strip()
+        if user_role == 'landlord':
+            if lease.landlord_otp and otp_entered == lease.landlord_otp:
+                lease.is_signed_by_landlord = True
+                lease.landlord_otp = None
+                messages.success(request, "Bail signé avec succès par l'agence/bailleur !")
+            else:
+                messages.error(request, "Code OTP incorrect.")
+        else:
+            if lease.tenant_otp and otp_entered == lease.tenant_otp:
+                lease.is_signed_by_tenant = True
+                lease.tenant_otp = None
+                messages.success(request, "Bail signé avec succès par le locataire !")
+            else:
+                messages.error(request, "Code OTP incorrect.")
+                
+        # Si les deux ont signé, activer le bail
+        if lease.is_signed_by_tenant and lease.is_signed_by_landlord:
+            lease.status = Lease.StatusEnum.ACTIVE
+            lease.signed_at = timezone.now()
+            messages.success(request, "Félicitations ! Le bail est désormais entièrement signé et ACTIF.")
+            
+        lease.save()
+        return redirect('agency_leases')
+        
+    context = {
+        'lease': lease,
+        'user_role': user_role,
+    }
+    return render(request, 'agency/signer.html', context)
+
+
+@agency_saas_required
+def agency_lease_otp(request, lease_id):
+    """
+    Génération et simulation d'envoi d'OTP de signature par SMS.
+    """
+    import random
+    lease = get_object_or_404(Lease, id=lease_id)
+    if request.user != lease.landlord and request.user != lease.tenant:
+        return JsonResponse({'success': False, 'message': 'Non autorisé.'}, status=403)
+        
+    otp = f"{random.randint(100000, 999999)}"
+    
+    if request.user == lease.landlord:
+        lease.landlord_otp = otp
+        recipient = lease.landlord.get_full_name() or lease.landlord.phone_number
+    else:
+        lease.tenant_otp = otp
+        recipient = lease.tenant.get_full_name() or lease.tenant.phone_number
+        
+    lease.save()
+    
+    # Simulation d'envoi SMS
+    msg = f"[SIMULATION SECURE SIGN LOGER TOGO] OTP envoyé par SMS à {recipient} : {otp}"
+    print(msg)
+    
+    return JsonResponse({
+        'success': True, 
+        'otp': otp, 
+        'message': f"OTP généré avec succès ! Le code est : {otp} (Simulation d'envoi de SMS sur {recipient})"
+    })
+
+
+@agency_saas_required
+def agency_financial_analysis(request):
+    """
+    Dashboard d'Analyse Financière Premium pour l'agence.
+    """
+    agency = request.user
+    payments = RentPayment.objects.filter(lease__landlord=agency)
+    
+    # 1. KPIs avancés
+    total_due = payments.aggregate(total=Sum('amount_due'))['total'] or 0
+    total_paid = payments.aggregate(total=Sum('amount_paid'))['total'] or 0
+    total_outstanding = payments.filter(status=RentPayment.StatusEnum.UNPAID).aggregate(total=Sum('amount_due'))['total'] or 0
+    
+    # Taux de recouvrement
+    recovery_rate = 0
+    if total_due > 0:
+        recovery_rate = round((total_paid / total_due) * 100, 1)
+        
+    # Modes de paiement
+    payment_methods_stats = payments.filter(status=RentPayment.StatusEnum.PAID).values('payment_method').annotate(count=Count('id'), total=Sum('amount_paid'))
+    payment_methods_data = []
+    for stat in payment_methods_stats:
+        payment_methods_data.append({
+            'label': stat['payment_method'] or 'Non spécifié',
+            'total': float(stat['total'] or 0),
+            'count': stat['count']
+        })
+        
+    # Évolution mensuelle
+    months_labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+    monthly_expected = [0] * 12
+    monthly_collected = [0] * 12
+    
+    for p in payments:
+        month_idx = p.period_start.month - 1
+        monthly_expected[month_idx] += float(p.amount_due)
+        if p.status == RentPayment.StatusEnum.PAID:
+            monthly_collected[month_idx] += float(p.amount_paid)
+            
+    # Répartition par catégorie de bien
+    category_revenue = {'RENT': 0, 'FURNISHED': 0}
+    category_payments = payments.filter(status=RentPayment.StatusEnum.PAID)
+    for p in category_payments:
+        cat = p.lease.property.listing_category
+        if cat in category_revenue:
+            category_revenue[cat] += float(p.amount_paid)
+            
+    context = {
+        'total_due': total_due,
+        'total_paid': total_paid,
+        'total_outstanding': total_outstanding,
+        'recovery_rate': recovery_rate,
+        'payment_methods_data': payment_methods_data,
+        'months_labels': months_labels,
+        'monthly_expected': monthly_expected,
+        'monthly_collected': monthly_collected,
+        'category_revenue': category_revenue,
+    }
+    return render(request, 'agency/financial_analysis.html', context)
+
+
+@agency_saas_required
+def agency_inventories(request):
+    """
+    Liste des états des lieux effectués.
+    """
+    agency = request.user
+    inventories = PropertyInventory.objects.filter(lease__landlord=agency).order_by('-inventory_date')
+    return render(request, 'agency/agency_inventories.html', {'inventories': inventories})
+
+
+@agency_saas_required
+def agency_inventory_create(request, lease_id):
+    """
+    Création d'un état des lieux pour un bail donné.
+    """
+    import json
+    lease = get_object_or_404(Lease, id=lease_id, landlord=request.user)
+    
+    if request.method == 'POST':
+        try:
+            inv_type = request.POST.get('inventory_type', 'IN')
+            inv_date = request.POST.get('inventory_date', timezone.now().date())
+            gen_cond = request.POST.get('general_condition', 'GOOD')
+            
+            # Récupérer les détails JSON structurés
+            details = request.POST.get('details_json', '{}')
+            
+            # Récupérer les signatures Base64
+            sig_tenant = request.POST.get('signature_tenant', '')
+            sig_agent = request.POST.get('signature_agent', '')
+            
+            inventory = PropertyInventory.objects.create(
+                lease=lease,
+                inventory_type=inv_type,
+                inventory_date=inv_date,
+                general_condition=gen_cond,
+                details_json=details,
+                signature_tenant=sig_tenant,
+                signature_agent=sig_agent
+            )
+            messages.success(request, f"État des lieux d'élire ({inventory.get_inventory_type_display()}) enregistré avec succès !")
+            return redirect('agency_inventories')
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'enregistrement de l'état des lieux : {e}")
+            
+    # Structure par défaut pour accélérer la saisie
+    default_structure = [
+        {"room": "Salon / Séjour", "components": [
+            {"name": "Sols / Carrelages", "condition": "GOOD", "comment": ""},
+            {"name": "Murs / Peinture", "condition": "GOOD", "comment": ""},
+            {"name": "Plafonds / Éclairage", "condition": "GOOD", "comment": ""},
+            {"name": "Fenêtres / Vitrages", "condition": "GOOD", "comment": ""}
+        ]},
+        {"room": "Cuisine", "components": [
+            {"name": "Évier / Plomberie", "condition": "GOOD", "comment": ""},
+            {"name": "Murs / Peinture", "condition": "GOOD", "comment": ""},
+            {"name": "Prises électriques", "condition": "GOOD", "comment": ""},
+            {"name": "Placards / Rangements", "condition": "GOOD", "comment": ""}
+        ]},
+        {"room": "Chambre Principale", "components": [
+            {"name": "Sols / Carrelages", "condition": "GOOD", "comment": ""},
+            {"name": "Murs / Peinture", "condition": "GOOD", "comment": ""},
+            {"name": "Climatisation / Brasseur", "condition": "GOOD", "comment": ""},
+            {"name": "Portes / Serrures", "condition": "GOOD", "comment": ""}
+        ]},
+        {"room": "Salle de bain / Douche", "components": [
+            {"name": "W.C. / Chasse d'eau", "condition": "GOOD", "comment": ""},
+            {"name": "Douche / Robinetterie", "condition": "GOOD", "comment": ""},
+            {"name": "Carrelage mural", "condition": "GOOD", "comment": ""},
+            {"name": "Miroir / Vasque", "condition": "GOOD", "comment": ""}
+        ]}
+    ]
+    
+    context = {
+        'lease': lease,
+        'default_structure_json': json.dumps(default_structure),
+    }
+    return render(request, 'agency/agency_inventory_form.html', context)
+
+
+@agency_saas_required
+def agency_inventory_detail(request, inventory_id):
+    """
+    Rapport d'état des lieux A4 formaté pour impression.
+    """
+    import json
+    inventory = get_object_or_404(PropertyInventory, id=inventory_id, lease__landlord=request.user)
+    
+    try:
+        details = json.loads(inventory.details_json)
+    except Exception:
+        details = []
+        
+    context = {
+        'inventory': inventory,
+        'details': details,
+    }
+    return render(request, 'agency/agency_inventory_detail.html', context)
 
 

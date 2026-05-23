@@ -1,0 +1,289 @@
+{% extends 'agency/base_agency.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Signature Électronique SecureSign" %} | Loger Togo{% endblock %}
+
+{% block extra_css %}
+<style>
+    .signer-container {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+    .contract-paper {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: var(--card-glow);
+        border: 1px solid rgba(11, 89, 52, 0.08);
+        padding: 3rem;
+        position: relative;
+        font-family: 'Outfit', sans-serif;
+        color: #1e293b;
+        margin-bottom: 2rem;
+    }
+    .contract-paper::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 6px;
+        background: linear-gradient(135deg, #0b5934 0%, #d4af37 100%);
+        border-radius: 16px 16px 0 0;
+    }
+    .stamp-container {
+        border: 2px dashed #0b5934;
+        border-radius: 12px;
+        padding: 1.5rem;
+        background: rgba(11, 89, 52, 0.02);
+        margin-top: 2rem;
+        position: relative;
+    }
+    .signed-badge {
+        position: absolute;
+        top: -12px; right: 20px;
+        background: #0b5934;
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .unsigned-badge {
+        position: absolute;
+        top: -12px; right: 20px;
+        background: #e2e8f0;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .otp-simulation-box {
+        background: #fffbeb;
+        border: 1px dashed #f59e0b;
+        border-radius: 12px;
+        color: #b45309;
+        font-weight: 600;
+        display: none;
+    }
+    .btn-gold {
+        background: #d4af37;
+        color: #ffffff;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s ease;
+    }
+    .btn-gold:hover {
+        background: #c59b27;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+    }
+    .btn-emerald {
+        background: #0b5934;
+        color: #ffffff;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s ease;
+    }
+    .btn-emerald:hover {
+        background: #084327;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(11, 89, 52, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signer-container">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'agency_leases' %}" class="btn btn-outline-secondary rounded-pill me-3">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-black text-emerald m-0">{% trans "Signature SecureSign" %}</h2>
+            <p class="text-muted m-0">{% trans "Validation d'accord légal par vérification d'identité OTP" %}</p>
+        </div>
+    </div>
+
+    <!-- Le Contrat (Feuille A4) -->
+    <div class="contract-paper">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold m-0" style="color: #0b5934; text-transform: uppercase;">{% trans "CONTRAT DE BAIL À USAGE D'HABITATION" %}</h3>
+            <span class="text-muted small">{% trans "Plateforme de Certification de Baux de Loger Togo" %}</span>
+        </div>
+
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3" style="color: #0b5934; border-bottom: 2px solid rgba(11, 89, 52, 0.08); padding-bottom: 6px;">
+                {% trans "1. LES PARTIES" %}
+            </h5>
+            <p><strong>{% trans "BAILLEUR / AGENCE" %} :</strong> {{ lease.landlord.get_full_name|default:lease.landlord.phone_number }}</p>
+            <p><strong>{% trans "LOCATAIRE" %} :</strong> {{ lease.tenant.get_full_name|default:lease.tenant.phone_number }}</p>
+        </div>
+
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3" style="color: #0b5934; border-bottom: 2px solid rgba(11, 89, 52, 0.08); padding-bottom: 6px;">
+                {% trans "2. LE BIEN" %}
+            </h5>
+            <p><strong>{% trans "Désignation" %} :</strong> {{ lease.property.title }}</p>
+            <p><strong>{% trans "Localisation" %} :</strong> {{ lease.property.neighborhood }}, {{ lease.property.get_city_display }} (TOGO)</p>
+        </div>
+
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3" style="color: #0b5934; border-bottom: 2px solid rgba(11, 89, 52, 0.08); padding-bottom: 6px;">
+                {% trans "3. CONDITIONS FINANCIÈRES" %}
+            </h5>
+            <p><strong>{% trans "Loyer Mensuel" %} :</strong> <span class="text-emerald fw-bold">{{ lease.rent_amount|intcomma }} FCFA</span></p>
+            <p><strong>{% trans "Dépôt de Garantie (Caution)" %} :</strong> {{ lease.deposit_amount|intcomma }} FCFA</p>
+            <p><strong>{% trans "Échéance" %} :</strong> {% trans "Avant le" %} {{ lease.payment_due_day }} {% trans "de chaque mois" %}.</p>
+        </div>
+
+        {% if lease.custom_contract_terms %}
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3" style="color: #0b5934; border-bottom: 2px solid rgba(11, 89, 52, 0.08); padding-bottom: 6px;">
+                {% trans "4. CLAUSES PARTICULIÈRES" %}
+            </h5>
+            <p class="text-muted" style="white-space: pre-wrap; font-style: italic; font-size: 0.95rem;">{{ lease.custom_contract_terms }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Blocs de Signatures -->
+        <div class="row mt-5">
+            <div class="col-md-6 mb-3">
+                <div class="stamp-container">
+                    {% if lease.is_signed_by_landlord %}
+                        <span class="signed-badge"><i class="fa-solid fa-circle-check me-1"></i> {% trans "Signé" %}</span>
+                        <div class="text-center py-2">
+                            <i class="fa-solid fa-signature fa-3x text-success mb-2"></i>
+                            <p class="m-0 fw-bold text-success">{% trans "BAILLEUR SIGNÉ" %}</p>
+                            <small class="text-muted">OTP Verified</small>
+                        </div>
+                    {% else %}
+                        <span class="unsigned-badge">{% trans "En attente" %}</span>
+                        <div class="text-center py-2 text-muted">
+                            <i class="fa-solid fa-signature fa-3x mb-2 opacity-25"></i>
+                            <p class="m-0">{% trans "Bailleur non signé" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="stamp-container">
+                    {% if lease.is_signed_by_tenant %}
+                        <span class="signed-badge"><i class="fa-solid fa-circle-check me-1"></i> {% trans "Signé" %}</span>
+                        <div class="text-center py-2">
+                            <i class="fa-solid fa-signature fa-3x text-success mb-2"></i>
+                            <p class="m-0 fw-bold text-success">{% trans "LOCATAIRE SIGNÉ" %}</p>
+                            <small class="text-muted">OTP Verified</small>
+                        </div>
+                    {% else %}
+                        <span class="unsigned-badge">{% trans "En attente" %}</span>
+                        <div class="text-center py-2 text-muted">
+                            <i class="fa-solid fa-signature fa-3x mb-2 opacity-25"></i>
+                            <p class="m-0">{% trans "Locataire non signé" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boîte d'action de signature -->
+    <div class="card border-0 rounded-4 shadow-sm p-4 mb-5">
+        <h4 class="fw-bold mb-3" style="color: #0b5934;">
+            <i class="fa-solid fa-key me-2 text-warning"></i>
+            {% if user_role == 'landlord' %}
+                {% trans "Espace Signature - Agence / Bailleur" %}
+            {% else %}
+                {% trans "Espace Signature - Locataire" %}
+            {% endif %}
+        </h4>
+
+        {% if user_role == 'landlord' and lease.is_signed_by_landlord or user_role == 'tenant' and lease.is_signed_by_tenant %}
+            <div class="alert alert-success border-0 rounded-3 m-0">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                {% trans "Vous avez déjà signé électroniquement ce document." %}
+            </div>
+        {% else %}
+            <p class="text-muted">
+                {% trans "Cliquez ci-dessous pour recevoir votre code OTP de signature unique par SMS." %}
+            </p>
+
+            <div class="otp-simulation-box p-3 mb-3" id="otpBox">
+                <i class="fa-solid fa-circle-info me-2 text-warning"></i>
+                <span id="otpMessage"></span>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-gold px-4" id="btnRequestOtp" onclick="requestOtp()">
+                    <i class="fa-solid fa-paper-plane me-2"></i>
+                    {% trans "Générer & Recevoir l'OTP" %}
+                </button>
+            </div>
+
+            <!-- Formulaire de validation OTP -->
+            <form method="post" class="mt-4" id="signForm" style="display: none;">
+                {% csrf_data %}
+                {% csrf_token %}
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">{% trans "Saisissez le code OTP reçu :" %}</label>
+                        <input type="text" name="otp_code" class="form-control form-control-lg rounded-3 fw-bold text-center letter-spacing-lg" placeholder="123456" maxlength="6" required>
+                    </div>
+                    <div class="col-md-6 mb-3 pt-md-4">
+                        <button type="submit" class="btn btn-emerald btn-lg w-100 rounded-3">
+                            <i class="fa-solid fa-signature me-2"></i>
+                            {% trans "Signer Électriquement" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function requestOtp() {
+        const btn = document.getElementById('btnRequestOtp');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Génération...';
+        
+        fetch("{% url 'agency_otp' lease.id %}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const otpBox = document.getElementById('otpBox');
+                    const otpMessage = document.getElementById('otpMessage');
+                    
+                    otpMessage.innerText = data.message;
+                    otpBox.style.display = 'block';
+                    
+                    // Show the form
+                    document.getElementById('signForm').style.display = 'block';
+                    
+                    // Style the button
+                    btn.disabled = false;
+                    btn.className = "btn btn-outline-warning px-4";
+                    btn.innerHTML = '<i class="fa-solid fa-arrows-rotate me-2"></i> Renvoyer le code';
+                } else {
+                    alert('Erreur: ' + data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Générer & Recevoir l\'OTP';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Erreur de connexion.');
+                btn.disabled = false;
+                btn.innerHTML = 'Générer & Recevoir l\'OTP';
+            });
+    }
+</script>
+{% endblock %}

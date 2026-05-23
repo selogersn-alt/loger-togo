@@ -577,10 +577,22 @@
                         <span>Mon Portefeuille</span>
                     </a>
                 </li>
+                <li class="{% if request.resolver_match.url_name == 'agency_inventories' %}active{% endif %}">
+                    <a href="{% url 'agency_inventories' %}">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>États des Lieux</span>
+                    </a>
+                </li>
                 <li class="{% if request.resolver_match.url_name == 'agency_payments' %}active{% endif %}">
                     <a href="{% url 'agency_payments' %}">
                         <i class="fa-solid fa-wallet"></i>
                         <span>Suivi Loyers / Quittances</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'agency_financial_analysis' %}active{% endif %}">
+                    <a href="{% url 'agency_financial_analysis' %}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Analyses Financières</span>
                     </a>
                 </li>
                 <li style="margin-top: auto; border-top: 1px solid var(--border-glass); padding-top: 1rem;">

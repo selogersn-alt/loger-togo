@@ -50,6 +50,12 @@ class Lease(models.Model):
         verbose_name="Modèle de contrat"
     )
     
+    is_signed_by_tenant = models.BooleanField(default=False, verbose_name="Signé par le locataire")
+    is_signed_by_landlord = models.BooleanField(default=False, verbose_name="Signé par le bailleur/agence")
+    tenant_otp = models.CharField(max_length=6, blank=True, null=True, verbose_name="Code OTP Locataire")
+    landlord_otp = models.CharField(max_length=6, blank=True, null=True, verbose_name="Code OTP Bailleur")
+    signed_at = models.DateTimeField(null=True, blank=True, verbose_name="Date de signature finale")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -219,3 +225,40 @@ class ContractTemplate(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.agency.get_full_name()}"
+
+
+class PropertyInventory(models.Model):
+    """
+    État des lieux (entrée ou sortie) pour un bail locatif.
+    """
+    class TypeEnum(models.TextChoices):
+        IN = 'IN', 'Entrée'
+        OUT = 'OUT', 'Sortie'
+
+    class ConditionEnum(models.TextChoices):
+        NEW = 'NEW', 'Neuf'
+        GOOD = 'GOOD', 'Bon état'
+        FAIR = 'FAIR', 'État d\'usage'
+        BAD = 'BAD', 'Mauvais état'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lease = models.ForeignKey(Lease, on_delete=models.CASCADE, related_name='inventories', verbose_name="Bail")
+    inventory_type = models.CharField(max_length=5, choices=TypeEnum.choices, default=TypeEnum.IN, verbose_name="Type d'état des lieux")
+    inventory_date = models.DateField(verbose_name="Date de l'état des lieux")
+    general_condition = models.CharField(max_length=10, choices=ConditionEnum.choices, default=ConditionEnum.GOOD, verbose_name="État général")
+    
+    details_json = models.TextField(help_text="Stockage JSON structuré des pièces et composants de l'état des lieux")
+    
+    signature_tenant = models.TextField(null=True, blank=True, help_text="Signature en Base64 du locataire")
+    signature_agent = models.TextField(null=True, blank=True, help_text="Signature en Base64 de l'agent/bailleur")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "État des lieux"
+        verbose_name_plural = "États des lieux"
+        ordering = ['-inventory_date', '-created_at']
+
+    def __str__(self):
+        return f"État des lieux ({self.get_inventory_type_display()}) - {self.lease.property.title}"

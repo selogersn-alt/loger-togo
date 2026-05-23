@@ -515,6 +515,9 @@ function applyDynamicFormLogic() {
     // Sync initial state from unit selector value (handles edits and initial defaults properly)
     if (unitSelector && unitSelector.value) {
         setUnit(unitSelector.value);
+        if ((unitSelector.value === 'night' || unitSelector.value === 'hour') && pricePerNightInput && parseFloat(pricePerNightInput.value) > 0) {
+            priceInput.value = pricePerNightInput.value;
+        }
     }
     updateFields();
 }

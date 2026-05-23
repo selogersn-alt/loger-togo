@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fonctionnalités CRM & Gérance - Loger Togo Pro</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <style>
+        :root {
+            --primary: #0b4629;
+            --primary-glow: rgba(16, 185, 129, 0.25);
+            --primary-light: #10b981;
+            --accent: #ffd700;
+            --bg-dark: #070a08;
+            --panel-bg: rgba(16, 26, 21, 0.65);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(11, 70, 41, 0.3) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(7, 10, 8, 0.85);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #ffffff 30%, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            flex-grow: 1;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .title-section h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 40%, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .title-section p {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .feature-detail-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-detail-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 25px 55px rgba(16, 185, 129, 0.08);
+        }
+
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+        }
+
+        .feature-detail-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .feature-detail-card h3 span {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            background: rgba(255, 215, 0, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .feature-detail-card p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .sub-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1.5rem;
+        }
+
+        .sub-item {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .sub-item i {
+            color: var(--primary-light);
+            font-size: 1.1rem;
+            margin-top: 0.2rem;
+        }
+
+        .sub-item h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .sub-item p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+
+        footer {
+            padding: 2.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-glass);
+            background: rgba(7, 10, 8, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        footer strong {
+            color: var(--primary-light);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1.25rem 2rem;
+            }
+            .title-section h2 {
+                font-size: 2.2rem;
+            }
+            .feature-detail-card {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 2rem;
+            }
+            .icon-box {
+                width: 64px;
+                height: 64px;
+                font-size: 1.8rem;
+            }
+            .sub-features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <a href="{% url 'agency_promo' %}" class="logo">
+            <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2rem;"></i>
+            <h1>Loger Togo <span style="font-weight: 400; font-size: 1.1rem; opacity: 0.8; color: var(--accent);">PRO</span></h1>
+        </a>
+        <div>
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'agency_dashboard' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-gauge-high"></i> Tableau de bord
+                </a>
+            {% else %}
+                <a href="{% url 'agency_login' %}" class="btn btn-secondary" style="margin-right: 0.75rem;">Se Connecter</a>
+                <a href="{% url 'agency_register' %}" class="btn btn-primary">Créer un compte</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        
+        <div class="title-section animate__animated animate__fadeIn">
+            <h2>Fonctionnalités de l'Espace Pro</h2>
+            <p>Découvrez en détail les outils haute performance développés pour simplifier et optimiser la gestion quotidienne de votre agence immobilière.</p>
+        </div>
+
+        <!-- Feature 1: Dynamic Ledger & Receival -->
+        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <div class="icon-box">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div>
+                <h3>Gestion des Loyers & Comptabilité <span>Automatique</span></h3>
+                <p>
+                    Suivez la santé financière de vos mandats de gestion en temps réel. Notre grand livre comptable (Ledger) enregistre automatiquement les loyers dus à chaque début de période de facturation, éliminant ainsi toute saisie manuelle fastidieuse.
+                </p>
+                <div class="sub-features">
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Suivi des Impayés</h5>
+                            <p>Visualisez instantanément le montant total dû, le montant encaissé et le reste à recouvrer par mandat.</p>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Quittances Personnalisées</h5>
+                            <p>Éditez des quittances élégantes au format PDF avec signature numérisée et logo spécifique à votre agence.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 2: Automated Leases -->
+        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <div class="icon-box">
+                <i class="fa-solid fa-file-signature"></i>
+            </div>
+            <div>
+                <h3>Baux & Contrats de Location <span>Légalement Conformes</span></h3>
+                <p>
+                    Rédigez des contrats de bail professionnels en quelques secondes. Les modèles intégrés sont rigoureusement indexés sur la législation et les usages en vigueur au Togo pour assurer la protection juridique de votre agence et des bailleurs.
+                </p>
+                <div class="sub-features">
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Modèles Modulables</h5>
+                            <p>Ajoutez des clauses particulières et des conditions spécifiques à chaque bail en fonction des négociations.</p>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Historisation Complète</h5>
+                            <p>Conservez l'historique complet des baux actifs, échus ou résiliés de chaque locataire pour un suivi sans faille.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 3: Visual Dashboard Prospects -->
+        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+            <div class="icon-box">
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+            <div>
+                <h3>Suivi Visuel & CRM Prospects <span>Interactif</span></h3>
+                <p>
+                    Ne perdez plus aucune opportunité commerciale. Notre tableau de bord visuel interactif vous permet de suivre l'avancement de vos prospects, de la première prise de contact jusqu'à la signature finale du bail ou de l'acte de vente.
+                </p>
+                <div class="sub-features">
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Glisser-Déposer Intuitif</h5>
+                            <p>Mettez à jour instantanément l'étape d'un prospect (Prospection, Visite, Négociation...) en glissant sa fiche d'une colonne à l'autre.</p>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Base Clients Unifiée</h5>
+                            <p>Conservez toutes les coordonnées, numéros de téléphone et observations sur vos clients dans un annuaire sécurisé.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 4: Portfolio Management -->
+        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+            <div class="icon-box">
+                <i class="fa-solid fa-city"></i>
+            </div>
+            <div>
+                <h3>Gestion de Portefeuille & Diffusion <span>Flexible</span></h3>
+                <p>
+                    Gérez et valorisez vos biens immobiliers. Choisissez en un clic de conserver un bien strictement privé pour la gestion interne de votre agence, ou de le publier instantanément sur le portail public d'annonces de Loger Togo pour attirer de nouveaux locataires ou acquéreurs.
+                </p>
+                <div class="sub-features">
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Fiches Biens Ultra-Complètes</h5>
+                            <p>Renseignez les pièces, surfaces, photos haute définition, tarifs mensuels ou prix par nuitée.</p>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <h5>Statut d'Occupation</h5>
+                            <p>Visualisez instantanément quels biens sont vacants, loués ou en cours de maintenance dans votre portefeuille.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2026 <strong>Loger Togo</strong>. Tous droits réservés. Conçu avec prestige.</p>
+    </footer>
+
+</body>
+</html>

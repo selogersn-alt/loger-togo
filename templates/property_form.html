@@ -127,7 +127,7 @@
               <button class="btn btn-outline-success dropdown-toggle fw-bold" type="button" id="price-unit-btn" data-bs-toggle="dropdown" aria-expanded="false" style="border:2px solid #e8e8e8; border-left:none; border-radius:0 12px 12px 0; background:#f8f9fa; color:var(--green-dark);">
                 {% trans "mensuel" %}
               </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:none; padding:8px;">
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px; border:none; padding:8px; z-index: 1050;">
                 <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="month">{% trans "mensuel" %}</a></li>
                 <li><a class="dropdown-item rounded-3 mb-1" href="#" data-unit="night">{% trans "nuitée" %}</a></li>
                 <li><a class="dropdown-item rounded-3" href="#" data-unit="total">{% trans "Prix Total" %}</a></li>
@@ -377,6 +377,23 @@ function applyDynamicFormLogic() {
         }
     }
 
+    function setUnit(u) {
+        if (!unitSelector) return;
+        unitSelector.value = u;
+        let text = '';
+        if (u === 'month') {
+            text = '{% trans "mensuel" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
+        } else if (u === 'night') {
+            text = '{% trans "nuitée" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Prix par nuitée (FCFA)" %}';
+        } else {
+            text = '{% trans "Prix Total" %}';
+            if (priceLabel) priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
+        }
+        if (unitBtn) unitBtn.innerHTML = text;
+    }
+
     function updateFields() {
         const val      = (categorySelect.value || '').trim().toUpperCase();
         const propType = propertyTypeSelect ? (propertyTypeSelect.value || '').trim().toUpperCase() : '';
@@ -389,12 +406,15 @@ function applyDynamicFormLogic() {
         isSale ? show(documentTypeContainer) : hide(documentTypeContainer);
         (val === 'RENT' || isFurnished) ? show(rentalConditionsContainer) : hide(rentalConditionsContainer);
 
-        // Unité de prix
+        // Configuration de l'unité
         if (isSale) {
             setUnit('total');
             if (unitBtn) unitBtn.classList.add('disabled');
         } else if (isFurnished) {
             if (unitBtn) unitBtn.classList.remove('disabled');
+            if (unitSelector && unitSelector.value === 'total') {
+                setUnit('night');
+            }
         } else {
             setUnit('month');
             if (unitBtn) unitBtn.classList.add('disabled');
@@ -406,48 +426,47 @@ function applyDynamicFormLogic() {
             const col = el ? el.closest('[class*="col-"]') : null;
             if (col) isTerrain ? hide(col) : show(col);
         });
-
-        // Libellé du prix
-        if (priceLabel) {
-            if (isSale)           priceLabel.innerText = '{% trans "Prix de vente total (FCFA)" %}';
-            else if (isFurnished) priceLabel.innerText = '{% trans "Loyer mensuel / Nuitée (FCFA)" %}';
-            else                  priceLabel.innerText = '{% trans "Loyer mensuel (FCFA)" %}';
-        }
     }
 
-    function setUnit(u) {
-        if (!unitSelector) return;
-        unitSelector.value = u;
-        let text = '';
-        if (u === 'month') text = '{% trans "mensuel" %}';
-        else if (u === 'night') text = '{% trans "nuitée" %}';
-        else text = '{% trans "Total" %}';
-        if (unitBtn) unitBtn.innerText = text;
-        syncPrices();
-    }
-
-    function syncPrices() {
-        if (!priceInput || !pricePerNightInput || !unitSelector) return;
-        const val = priceInput.value;
-        const isFurnished = categorySelect.value === 'FURNISHED';
-        if (isFurnished && unitSelector.value === 'night') {
-            pricePerNightInput.value = val;
-        } else {
-            pricePerNightInput.value = '';
-        }
-    }
-
-    // Event Listeners (Attachés UNE SEULE FOIS)
+    // Event Listeners
     categorySelect.addEventListener('change', updateFields);
     if (propertyTypeSelect) propertyTypeSelect.addEventListener('change', updateFields);
-    if (priceInput) priceInput.addEventListener('input', syncPrices);
-    
+
     document.querySelectorAll('[data-unit]').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            setUnit(item.dataset.unit);
+            const val = (categorySelect.value || '').trim().toUpperCase();
+            if (val === 'FURNISHED') {
+                setUnit(item.dataset.unit);
+            }
         });
     });
+
+    // Hook Form Submission to synchronize values
+    const formElement = document.querySelector('form');
+    if (formElement) {
+        formElement.addEventListener('submit', function(e) {
+            const val = (categorySelect.value || '').trim().toUpperCase();
+            const enteredVal = parseFloat(priceInput.value) || 0;
+            if (enteredVal > 0) {
+                if (val === 'FURNISHED') {
+                    if (unitSelector && unitSelector.value === 'night') {
+                        pricePerNightInput.value = enteredVal;
+                        priceInput.value = Math.round(enteredVal * 30);
+                    } else {
+                        priceInput.value = enteredVal;
+                        pricePerNightInput.value = Math.round(enteredVal / 30);
+                    }
+                } else if (val === 'SALE') {
+                    priceInput.value = enteredVal;
+                    pricePerNightInput.value = '';
+                } else {
+                    priceInput.value = enteredVal;
+                    pricePerNightInput.value = '';
+                }
+            }
+        });
+    }
 
     updateFields();
 }

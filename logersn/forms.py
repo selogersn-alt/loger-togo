@@ -74,8 +74,12 @@ class PropertyForm(forms.ModelForm):
         
         # 1. Pour les meublés, on gère les deux types de prix
         if listing_category == 'FURNISHED':
-            # On s'assure que si l'un est rempli, l'autre peut l'être aussi
-            pass
+            price = cleaned_data.get('price')
+            price_per_night = cleaned_data.get('price_per_night')
+            if price_per_night and (not price or price == 0):
+                cleaned_data['price'] = price_per_night * 30
+            elif price and (not price_per_night or price_per_night == 0):
+                cleaned_data['price_per_night'] = round(price / 30, 2)
         elif listing_category != 'FURNISHED':
             cleaned_data['price_per_night'] = None
 

@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.text import slugify
 from django.conf import settings
+from django.core.validators import MinValueValidator
 
 User = settings.AUTH_USER_MODEL
 
@@ -40,27 +41,27 @@ class Property(models.Model):
     city = models.CharField(max_length=100, choices=CITY_CHOICES, default='LOME', db_index=True)
     neighborhood = models.CharField(max_length=100, verbose_name=_("Quartier"))
     document_type = models.CharField(max_length=50, choices=DocumentTypeEnum.choices, null=True, blank=True, verbose_name=_("Type de document"))
-    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_("Prix (CFA)"))
+    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_("Prix (CFA)"), validators=[MinValueValidator(0)])
     
     # Pour les meublés uniquement
-    price_per_night = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Prix par nuitée (Meublé)"))
+    price_per_night = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name=_("Prix par nuitée (Meublé)"), validators=[MinValueValidator(0)])
     
     # Conditions de location (Location)
-    deposit_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de caution"))
-    advance_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois d'avance"))
-    agency_fee_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de frais d'agence"))
-    visit_fee = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Frais de visite (CFA)"))
+    deposit_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de caution"), validators=[MinValueValidator(0)])
+    advance_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois d'avance"), validators=[MinValueValidator(0)])
+    agency_fee_months = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Mois de frais d'agence"), validators=[MinValueValidator(0)])
+    visit_fee = models.IntegerField(default=0, blank=True, null=True, verbose_name=_("Frais de visite (CFA)"), validators=[MinValueValidator(0)])
 
-    surface = models.IntegerField(default=0, blank=True, verbose_name=_("Surface (m2)"))
-    bedrooms = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de chambres"))
-    toilets = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de toilettes"))
-    total_rooms = models.IntegerField(default=1, blank=True, verbose_name=_("Nombre total de pièces"))
-    households = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de ménages"))
-    floor_level = models.IntegerField(default=0, blank=True, verbose_name=_("Niveau d'étage"))
+    surface = models.IntegerField(default=0, blank=True, verbose_name=_("Surface (m2)"), validators=[MinValueValidator(0)])
+    bedrooms = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de chambres"), validators=[MinValueValidator(0)])
+    toilets = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de toilettes"), validators=[MinValueValidator(0)])
+    total_rooms = models.IntegerField(default=1, blank=True, verbose_name=_("Nombre total de pièces"), validators=[MinValueValidator(0)])
+    households = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de ménages"), validators=[MinValueValidator(0)])
+    floor_level = models.IntegerField(default=0, blank=True, verbose_name=_("Niveau d'étage"), validators=[MinValueValidator(0)])
     has_garage = models.BooleanField(default=False, blank=True, verbose_name=_("Garage disponible"))
     # Nouvelles pièces
-    salons = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de salons"))
-    kitchens = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de cuisines"))
+    salons = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de salons"), validators=[MinValueValidator(0)])
+    kitchens = models.IntegerField(default=0, blank=True, verbose_name=_("Nombre de cuisines"), validators=[MinValueValidator(0)])
     
     # Nouveaux extérieurs
     has_balcony = models.BooleanField(default=False, blank=True, verbose_name=_("Balcon"))

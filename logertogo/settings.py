@@ -437,11 +437,13 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
-# --- SUBDOMAIN SESSION SHARING ---
+# --- SUBDOMAIN SESSION & CSRF SHARING ---
 if DEBUG:
     SESSION_COOKIE_DOMAIN = '.localhost'
+    CSRF_COOKIE_DOMAIN = '.localhost'
 else:
     SESSION_COOKIE_DOMAIN = '.logertogo.com'
+    CSRF_COOKIE_DOMAIN = '.logertogo.com'
 # Ensure session cookie is readable by both main site and agence subdomain
 SESSION_COOKIE_NAME = 'logertogo_sessionid'
 

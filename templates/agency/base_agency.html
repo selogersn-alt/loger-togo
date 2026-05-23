@@ -3,7 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Loger Togo Agence - CRM SaaS{% endblock %}</title>
+    <title>{% block title %}Loger Togo Agence - CRM Professionnel{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    
+    <!-- Open Graph / Social Share -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://agence.logertogo.com{{ request.path }}">
+    <meta property="og:title" content="Loger Togo Pro - CRM & Gestion Locative Premium">
+    <meta property="og:description" content="La solution d'élite pour la gestion immobilière, baux, quittances automatiques et suivi de prospects au Togo.">
+    <meta property="og:image" content="https://agence.logertogo.com/static/img/og_banner.png">
+
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://agence.logertogo.com{{ request.path }}">
+    <meta name="twitter:title" content="Loger Togo Pro - CRM & Gestion Locative Premium">
+    <meta name="twitter:description" content="La solution d'élite pour la gestion immobilière, baux, quittances automatiques et suivi de prospects au Togo.">
+    <meta name="twitter:image" content="https://agence.logertogo.com/static/img/og_banner.png">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -313,6 +328,52 @@
             overflow: hidden;
         }
 
+        /* Breadcrumbs Styling */
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            background: rgba(16, 26, 21, 0.4);
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-glass);
+            width: fit-content;
+        }
+        .breadcrumbs a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+        .breadcrumbs a:hover {
+            color: var(--primary-light);
+        }
+        .breadcrumbs .separator {
+            color: rgba(255, 255, 255, 0.15);
+        }
+        .breadcrumbs .active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Table Container for Mobile Responsiveness */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-container table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+        }
+
         /* Custom Buttons */
         .btn {
             display: inline-flex;
@@ -429,7 +490,7 @@
                 <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2rem;"></i>
                 <div>
                     <h1>Loger Togo</h1>
-                    <span style="font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Saas Agency CRM</span>
+                    <span style="font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Gérance Pro CRM</span>
                 </div>
                 <button id="sidebarClose" class="sidebar-close-btn" aria-label="Fermer">
                     <i class="fa-solid fa-xmark"></i>
@@ -452,7 +513,7 @@
                 <li class="{% if request.resolver_match.url_name == 'agency_pipeline' %}active{% endif %}">
                     <a href="{% url 'agency_pipeline' %}">
                         <i class="fa-solid fa-sliders"></i>
-                        <span>Pipeline Kanban</span>
+                        <span>Suivi Visuel</span>
                     </a>
                 </li>
                 <li class="{% if request.resolver_match.url_name == 'agency_leases' %}active{% endif %}">
@@ -499,6 +560,43 @@
 
         <!-- Main Section -->
         <main>
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumbs" aria-label="Fil d'Ariane">
+                <a href="{% url 'agency_dashboard' %}"><i class="fa-solid fa-house" style="margin-right: 0.35rem; color: var(--primary-light);"></i> Accueil</a>
+                {% if request.resolver_match.url_name == 'agency_dashboard' %}
+                    <span class="separator">/</span>
+                    <span class="active">Tableau de Bord</span>
+                {% elif request.resolver_match.url_name == 'agency_clients' %}
+                    <span class="separator">/</span>
+                    <span class="active">Prospects & Clients</span>
+                {% elif request.resolver_match.url_name == 'agency_pipeline' %}
+                    <span class="separator">/</span>
+                    <span class="active">Suivi Visuel</span>
+                {% elif request.resolver_match.url_name == 'agency_leases' %}
+                    <span class="separator">/</span>
+                    <span class="active">Baux & Contrats</span>
+                {% elif request.resolver_match.url_name == 'agency_properties' %}
+                    <span class="separator">/</span>
+                    <span class="active">Mon Portefeuille</span>
+                {% elif request.resolver_match.url_name == 'agency_property_create' %}
+                    <span class="separator">/</span>
+                    <a href="{% url 'agency_properties' %}">Mon Portefeuille</a>
+                    <span class="separator">/</span>
+                    <span class="active">Ajouter un Bien</span>
+                {% elif request.resolver_match.url_name == 'agency_property_edit' %}
+                    <span class="separator">/</span>
+                    <a href="{% url 'agency_properties' %}">Mon Portefeuille</a>
+                    <span class="separator">/</span>
+                    <span class="active">Modifier le Bien</span>
+                {% elif request.resolver_match.url_name == 'agency_payments' %}
+                    <span class="separator">/</span>
+                    <span class="active">Suivi Loyers & Quittances</span>
+                {% elif request.resolver_match.url_name == 'explications' %}
+                    <span class="separator">/</span>
+                    <span class="active">Explication des Fonctionnalités</span>
+                {% endif %}
+            </nav>
+
             <!-- Alerts Block -->
             {% if messages %}
             <div class="alert-container">

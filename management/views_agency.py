@@ -159,6 +159,13 @@ def agency_promo(request):
     return render(request, 'agency/agency_promo.html')
 
 
+def explications_view(request):
+    """
+    Page d'explication des fonctionnalités de l'Espace Gérance Pro.
+    """
+    return render(request, 'agency/explications.html')
+
+
 @agency_saas_required
 def agency_dashboard(request):
     """

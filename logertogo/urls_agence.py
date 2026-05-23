@@ -3,9 +3,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from management import views_agency
 
+from django.contrib.sitemaps.views import sitemap
+from logersn.sitemaps_agence import AgenceStaticSitemap
+
+sitemaps = {
+    'agence_static': AgenceStaticSitemap,
+}
+
 urlpatterns = [
     path('', views_agency.agency_dashboard, name='agency_dashboard'),
     path('promo/', views_agency.agency_promo, name='agency_promo'),
+    path('explications/', views_agency.explications_view, name='explications'),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('connexion/', views_agency.agency_login, name='agency_login'),
     path('inscription/', views_agency.agency_register, name='agency_register'),
     path('deconnexion/', views_agency.agency_logout, name='agency_logout'),

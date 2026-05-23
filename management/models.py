@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 from logersn.models import Property
 
@@ -23,8 +24,9 @@ class Lease(models.Model):
     start_date = models.DateField(verbose_name="Date de début")
     end_date = models.DateField(null=True, blank=True, verbose_name="Date de fin (Optionnelle)")
     
-    rent_amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Loyer mensuel (FCFA)")
-    deposit_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Dépôt de garantie (Caution)")
+    rent_amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Loyer mensuel (FCFA)", validators=[MinValueValidator(0)])
+    
+    deposit_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Dépôt de garantie (Caution)", validators=[MinValueValidator(0)])
     
     status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
     contract_pdf = models.FileField(upload_to='contracts/', null=True, blank=True, verbose_name="Contrat signé (PDF)")
@@ -58,8 +60,8 @@ class RentPayment(models.Model):
     period_start = models.DateField(verbose_name="Période du")
     period_end = models.DateField(verbose_name="Période au")
     
-    amount_due = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant dû")
-    amount_paid = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Montant payé")
+    amount_due = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant dû", validators=[MinValueValidator(0)])
+    amount_paid = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Montant payé", validators=[MinValueValidator(0)])
     
     status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.UNPAID)
     date_paid = models.DateField(null=True, blank=True, verbose_name="Date de paiement")
@@ -165,7 +167,7 @@ class AgencyClient(models.Model):
     phone = models.CharField(max_length=20, verbose_name="Téléphone")
     client_type = models.CharField(max_length=20, choices=ClientType.choices, default=ClientType.TENANT)
     status = models.CharField(max_length=20, choices=ClientStatus.choices, default=ClientStatus.PROSPECT)
-    pipeline_stage = models.IntegerField(default=1, verbose_name="Étape de Pipeline (1-5)") # Kanban stage (e.g. 1: Prospecting, 2: Contacted, 3: Visit, 4: Negotiation, 5: Signed)
+    pipeline_stage = models.IntegerField(default=1, verbose_name="Étape de Pipeline (1-5)", validators=[MinValueValidator(1), MaxValueValidator(5)]) # Kanban stage (e.g. 1: Prospecting, 2: Contacted, 3: Visit, 4: Negotiation, 5: Signed)
     notes = models.TextField(null=True, blank=True, verbose_name="Notes / Détails")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

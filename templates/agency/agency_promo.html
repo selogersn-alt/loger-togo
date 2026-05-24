@@ -4,34 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loger Togo Agence - L'Outil Complet de Gérance</title>
+    <title>Loger Togo Agence - Gérance & CRM Pro</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon_agency.png' %}?v=13">
     <link rel="shortcut icon" href="{% static 'img/favicon_agency.png' %}?v=13">
-    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'img/icon_agency-192x192.png' %}?v=13">
-    <!-- Google Fonts -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Animate CSS for premium micro-interactions -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <!-- Favicon & App Icons -->
-    <link rel="icon" type="image/png" href="{% static 'img/favicon_agency.png' %}?v=13">
-    <link rel="apple-touch-icon" href="{% static 'img/icon_agency-192x192.png' %}?v=13">
     
     <style>
         :root {
-            --primary: #0F766E; /* Teal professionnel */
-            --primary-glow: rgba(15, 118, 110, 0.08);
-            --primary-light: #14B8A6;
-            --accent: #0369A1; /* Bleu de confiance pour CTA */
-            --bg-dark: #F0FDFA; /* Mint très clair */
-            --panel-bg: #ffffff; /* Cartes Blanches */
-            --border-glass: rgba(15, 118, 110, 0.08);
-            --text-main: #134E4A;
-            --text-muted: #115E59;
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --secondary: #334155;
+            --accent: #0ea5e9;
+            --accent-hover: #0284c7;
+            --accent-light: #e0f2fe;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --text: #334155;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -41,878 +44,558 @@
         }
 
         body {
-            font-family: 'Josefin Sans', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(11, 89, 52, 0.06) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* Animated Glowing Halos */
-        .glowing-halos {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+        h1, h2, h3, h4, h5 {
+            font-family: 'Outfit', sans-serif;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ----- Header ----- */
+        header {
+            position: fixed;
             top: 0;
             left: 0;
-            z-index: 1;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .halo {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(150px);
-            opacity: 0.12;
-            animation: floatGlow 25s infinite alternate ease-in-out;
-        }
-
-        .halo-emerald {
-            width: 600px;
-            height: 600px;
-            background: var(--primary-light);
-            top: -100px;
-            left: -150px;
-        }
-
-        .halo-gold {
-            width: 450px;
-            height: 450px;
-            background: var(--accent);
-            top: 30%;
-            right: -100px;
-            animation-delay: -8s;
-            opacity: 0.06;
-        }
-
-        @keyframes floatGlow {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(100px, 80px) scale(1.15); }
-        }
-
-        header {
-            padding: 1.5rem 4rem;
+            right: 0;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-glass);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.015);
+            justify-content: space-between;
+            padding: 0 5%;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
         }
-
         .logo {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            text-decoration: none;
         }
-
         .logo h1 {
-            font-family: 'Cinzel', serif;
-            font-weight: 900;
-            font-size: 1.6rem;
-            background: linear-gradient(135deg, var(--primary) 30%, var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero {
-            padding: 6rem 4rem 4rem 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1.25fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            position: relative;
-            z-index: 10;
-        }
-
-        .hero-text h2 {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(3rem, 10vw, 5rem);
-            font-weight: 900;
-            line-height: 1.15;
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--primary) 40%, var(--primary-light), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-text p {
-            font-size: 1.15rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-            margin-bottom: 2.5rem;
-        }
-
-        .hero-cta {
-            display: flex;
-            gap: 1.25rem;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            padding: 1rem 2rem;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1.05rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            border: none;
-            font-family: 'Cinzel', serif;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            color: white;
-            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.35);
-        }
-
-        .btn-secondary {
-            background: #ffffff;
-            border: 1px solid var(--border-glass);
-            color: var(--text-main);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.015);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(11, 89, 52, 0.03);
-            transform: translateY(-3px);
-        }
-
-        /* Feature presentation panel */
-        .preview-showcase {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-glass);
-            border-radius: 32px;
-            padding: 2.5rem;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.03);
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .preview-badge {
-            background: rgba(255, 215, 0, 0.08);
-            color: var(--primary);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            padding: 0.4rem 1rem;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            width: fit-content;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .preview-features-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .preview-features-list li {
-            display: flex;
-            gap: 0.75rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            color: var(--text-main);
-        }
-
-        .preview-features-list li i {
-            color: var(--primary-light);
-            font-size: 1.2rem;
-            margin-top: 0.15rem;
-        }
-
-        .feature-badge {
-            background: rgba(16, 185, 129, 0.08);
-            color: var(--primary);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            padding: 0.5rem 1.2rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            font-family: 'Cinzel', serif;
-        }
-
-        /* 3-Steps Timeline styling */
-        .timeline-section {
-            padding: 6rem 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .section-title h3 {
-            font-family: 'Cinzel', serif;
-            font-size: 2.2rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            margin-bottom: 1rem;
-            color: #0f172a;
+            margin: 0;
         }
-
-        .section-title p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .timeline-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2.5rem;
-        }
-
-        .timeline-step {
-            background: #ffffff;
-            border: 1px solid var(--border-glass);
-            border-radius: 24px;
-            padding: 2.5rem;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.015);
-            transition: all 0.3s ease;
-        }
-
-        .timeline-step:hover {
-            transform: translateY(-5px);
-            border-color: rgba(16, 185, 129, 0.25);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
-        }
-
-        .step-number {
-            position: absolute;
-            top: -20px;
-            left: 25px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            border-radius: 50%;
+        .header-actions {
             display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Cinzel', serif;
-            font-weight: 900;
-            font-size: 1.4rem;
+            gap: 0.5rem;
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--accent);
             color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2);
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(14, 165, 233, 0.3);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--border);
+        }
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background-color: var(--surface);
         }
 
-        .timeline-step h4 {
-            font-family: 'Cinzel', serif;
-            font-size: 1.35rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: #0f172a;
-            margin-top: 0.5rem;
-        }
-
-        .timeline-step p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        /* Features Section */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-            padding: 0 4rem 6rem 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
+        /* ----- Hero Section ----- */
+        .hero {
             position: relative;
-            z-index: 10;
-        }
-
-        .feature-item {
-            background: #ffffff;
-            border: 1px solid var(--border-glass);
-            border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.015);
-            transition: all 0.4s ease;
-            position: relative;
+            padding: 180px 5% 100px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
             overflow: hidden;
+            text-align: center;
         }
-
-        .feature-item::before {
+        .hero-restricted {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+        }
+        .hero::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 100%);
-            opacity: 0;
-            transition: all 0.4s ease;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            opacity: 0.15;
+            z-index: 0;
         }
-
-        .feature-item:hover {
-            transform: translateY(-8px);
-            background: #ffffff;
-            border-color: rgba(16, 185, 129, 0.35);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+        .hero-restricted::before {
+            opacity: 0.05;
         }
-
-        .feature-item:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.4s ease;
-        }
-
-        .feature-item:hover .feature-icon {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.05) rotate(5deg);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.25);
-        }
-
-        .feature-item h4 {
-            font-family: 'Cinzel', serif;
-            font-size: 1.35rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: #0f172a;
-        }
-
-        .feature-item p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        /* Premium Call to Action & Sub at the Bottom */
-        .cta-bottom-section {
-            padding: 6rem 4rem;
-            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
+        .hero-content {
             position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
         }
-
-        .cta-card {
-            background: #ffffff;
-            border: 1px solid var(--border-glass);
-            border-radius: 36px;
-            padding: 4rem;
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.025);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .pricing-badge {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 215, 0, 0.03));
-            border: 1px solid rgba(255, 215, 0, 0.25);
-            color: var(--primary);
-            padding: 0.5rem 1.25rem;
+        .hero-badge {
+            display: inline-block;
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+            padding: 0.5rem 1rem;
             border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .hero h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .price-text {
-            font-family: 'Cinzel', serif;
-            font-size: 3rem;
-            font-weight: 900;
+        /* ----- Feature Sections ----- */
+        .features-wrapper {
+            padding: 100px 5%;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .feature-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+            margin-bottom: 120px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .feature-row.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature-row:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        .feature-text {
+            flex: 1;
+            min-width: 300px;
+        }
+        .feature-image-wrapper {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        .feature-image {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+        .feature-image-wrapper:hover .feature-image {
+            transform: scale(1.02);
+        }
+        .feature-icon-badge {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: 80px;
+            height: 80px;
+            background: var(--accent);
+            color: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+            transform: rotate(-10deg);
+            z-index: 2;
+        }
+        .feature-row:nth-child(even) .feature-icon-badge {
+            left: auto;
+            right: -20px;
+            transform: rotate(10deg);
+        }
+        .feature-tag {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .feature-text h3 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .feature-text p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .feature-points {
+            list-style: none;
+            margin-top: 2rem;
+        }
+        .feature-points li {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 1.2rem;
+            font-size: 1.05rem;
             color: var(--primary);
         }
+        .feature-points li i {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            color: var(--success);
+            font-size: 1.25rem;
+        }
 
+        /* ----- CTA Section / Pricing ----- */
+        .cta-section {
+            background: var(--surface);
+            padding: 80px 5%;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+            padding: 4rem 2rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f59e0b;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+        .cta-container h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+        }
+        .price-text {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 1.5rem 0;
+        }
         .price-text span {
             font-size: 1.2rem;
             color: var(--text-muted);
             font-weight: normal;
         }
-
-        .system-messages {
-            max-width: 1200px;
-            margin: 1.5rem auto 0 auto;
-            padding: 0 4rem;
-        }
-
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 1rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid transparent;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.08);
-            border-color: rgba(16, 185, 129, 0.15);
-            color: #065f46;
-        }
-
-        .alert-error, .alert-danger {
-            background: rgba(239, 68, 68, 0.08);
-            border-color: rgba(239, 68, 68, 0.15);
-            color: #991b1b;
-        }
-
-        .alert-info {
-            background: rgba(59, 130, 246, 0.08);
-            border-color: rgba(59, 130, 246, 0.15);
-            color: #1e3a8a;
-        }
-
-        footer {
-            padding: 2.5rem;
-            text-align: center;
-            font-size: 0.9rem;
+        .cta-container p.desc {
+            font-size: 1.15rem;
             color: var(--text-muted);
-            border-top: 1px solid var(--border-glass);
-            background: #ffffff;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.01);
+            margin-bottom: 2rem;
         }
 
-        footer strong {
-            color: var(--primary);
+        /* ----- Footer ----- */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 2rem 5%;
         }
 
-        /* ── Tablette (< 968px) ── */
-        @media (max-width: 968px) {
-            .hero {
-                grid-template-columns: 1fr;
-                padding: 4rem 1.25rem 2.5rem;
-                gap: 2.5rem;
-            }
-            .hero-text h2 {
-                font-size: 2.4rem;
-            }
-            .timeline-section {
-                padding: 3rem 1.25rem;
-            }
-            .timeline-grid {
-                grid-template-columns: 1fr;
-                gap: 2.5rem;
-            }
-            .features-grid {
-                grid-template-columns: 1fr;
-                padding: 0 1.25rem 3rem;
-                max-width: 100%;
-            }
-            .cta-bottom-section {
-                padding: 3rem 1.25rem;
-            }
-            .cta-card {
-                padding: 2.25rem 1.5rem;
-                border-radius: 24px;
-            }
-            header {
-                padding: 1rem 1.25rem;
-            }
-            .system-messages {
-                padding: 0 1.25rem;
-            }
-            .price-text {
-                font-size: 2.2rem;
-            }
-        }
-
-        /* ── Mobile (< 640px) — plein bord ── */
-        @media (max-width: 640px) {
-            .hero {
-                padding: 4.5rem 1rem 2rem;
-                gap: 2rem;
-            }
-            .hero-text h2 {
-                font-size: 2rem;
-            }
-            .hero-cta {
+        @media (max-width: 992px) {
+            .hero h2 { font-size: 2.5rem; }
+            .feature-row, .feature-row:nth-child(even) {
                 flex-direction: column;
-                gap: 0.75rem;
+                gap: 3rem;
             }
-            .hero-cta .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            .timeline-section {
-                padding: 2.5rem 1rem;
-            }
-            .timeline-step {
-                border-radius: 16px;
-                padding: 2rem 1.25rem 1.5rem;
-                margin-top: 1rem;
-            }
-            .features-grid {
-                padding: 0 1rem 2.5rem;
-                gap: 1rem;
-            }
-            .feature-item {
-                border-radius: 16px;
-                padding: 1.5rem 1.25rem;
-            }
-            .cta-bottom-section {
-                padding: 2.5rem 1rem;
-            }
-            .cta-card {
-                padding: 2rem 1.25rem;
-                border-radius: 20px;
-                gap: 1.5rem;
-            }
-            .price-text {
-                font-size: 1.9rem;
-            }
-            header {
-                padding: 0.85rem 1rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.5rem;
-            }
-            .logo i {
-                font-size: 1.5rem !important;
-            }
-            .logo h1 {
-                font-size: 1.2rem !important;
-            }
-            .logo h1 span {
-                font-size: 0.85rem !important;
-            }
-            .header-actions {
-                display: flex;
-                gap: 0.4rem;
-                align-items: center;
-            }
-            .btn-header-register {
-                display: none !important; /* Masquer sur mobile car redondant avec le gros CTA 'Activer mon essai' juste en dessous */
-            }
-            .btn-header-login, .btn-header-logout {
-                padding: 0.45rem 0.85rem !important;
-                font-size: 0.8rem !important;
-                border-radius: 10px !important;
-                margin-right: 0 !important;
-                box-shadow: none !important;
-                border: 1px solid rgba(16, 185, 129, 0.2) !important;
-                background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(11, 89, 52, 0.03)) !important;
-                color: var(--primary) !important;
-                font-weight: 700 !important;
-            }
-            .btn-header-login i, .btn-header-logout i {
-                font-size: 0.75rem !important;
-            }
-            .system-messages {
-                padding: 0 1rem;
-            }
-            footer {
-                padding: 1.5rem 1rem;
+            .feature-icon-badge {
+                top: -15px;
+                left: -15px;
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
             }
         }
-
-        /* ── Très petit (< 380px) ── */
-        @media (max-width: 380px) {
-            .hero-text h2 { font-size: 1.75rem; }
-            .timeline-step { padding: 1.75rem 1rem 1.25rem; }
-            .feature-item { padding: 1.25rem 1rem; }
-            .cta-card { padding: 1.5rem 1rem; }
+        @media (max-width: 768px) {
+            .header-actions .btn-header-login { display: none; }
+            .feature-text h3 { font-size: 2rem; }
+            .price-text { font-size: 2.5rem; }
         }
     </style>
-    <!-- SEO & Open Graph -->
-    <meta name="description" content="Loger Togo Pro — Gérez vos biens, vos locataires et vos baux depuis un seul espace sécurisé, conçu pour les professionnels de l'immobilier.">
-    <meta name="geo.region" content="TG" />
-    <meta name="geo.placename" content="Lomé" />
-    <meta name="geo.position" content="6.13748;1.21227" />
-    <meta name="ICBM" content="6.13748, 1.21227" />
-    <!-- Open Graph (WhatsApp, Telegram, Facebook, LinkedIn) -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://agence.logertogo.com/">
-    <meta property="og:site_name" content="Loger Togo">
-    <meta property="og:title" content="Espace Gérance Pro | Loger Togo">
-    <meta property="og:description" content="Gérez vos biens, vos locataires et vos baux depuis un seul espace sécurisé, conçu pour les professionnels de l'immobilier au Togo.">
-    <meta property="og:image" content="https://agence.logertogo.com/static/img/og_banner_agency.jpeg?v=13">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Loger Togo Pro — Espace Gérance Immobilière">
-    <meta property="og:locale" content="fr_TG">
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Espace Gérance Pro | Loger Togo">
-    <meta name="twitter:description" content="Gérez vos biens, vos locataires et vos baux depuis un seul espace sécurisé.">
-    <meta name="twitter:image" content="https://agence.logertogo.com/static/img/og_banner_agency.jpeg?v=12">
 </head>
 <body>
 
-    <!-- glowing background halos -->
-    <div class="glowing-halos">
-        <div class="halo halo-emerald"></div>
-        <div class="halo halo-gold"></div>
-    </div>
-
     <!-- Header Section -->
-    <header>
-        <a href="/" class="logo">
-            <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2rem;"></i>
+    <header id="navbar">
+        <a href="{% url 'agency_promo' %}" class="logo">
+            <i class="fa-solid fa-hotel" style="color: var(--primary); font-size: 2rem;"></i>
             <h1>Loger Togo <span style="font-weight: 400; font-size: 1.1rem; opacity: 0.8; color: var(--accent);">PRO</span></h1>
         </a>
         <div class="header-actions">
             {% if request.user.is_authenticated %}
-                <span style="color: var(--text-muted); margin-right: 1.5rem; font-size: 0.95rem;" class="d-none d-md-inline">
-                    <i class="fa-solid fa-circle-user me-1 text-success"></i> <strong>{{ request.user.get_full_name|default:request.user.phone_number }}</strong>
-                </span>
-                <a href="{% url 'agency_logout' %}" class="btn btn-secondary btn-header-logout" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px;">
+                {% if request.user.is_saas_active %}
+                <a href="{% url 'agency_dashboard' %}" class="btn btn-primary btn-header-dashboard">
+                    <i class="fa-solid fa-gauge-high"></i> Mon Dashboard
+                </a>
+                {% else %}
+                <a href="{% url 'agency_logout' %}" class="btn btn-secondary btn-header-logout">
                     <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
                 </a>
+                {% endif %}
             {% else %}
-                <a href="{% url 'agency_login' %}" class="btn btn-secondary btn-header-login" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px; margin-right: 0.5rem;">
-                    <i class="fa-solid fa-user-shield"></i> Se Connecter
-                </a>
-                <a href="{% url 'agency_register' %}" class="btn btn-primary btn-header-register" style="padding: 0.6rem 1.2rem; font-size: 0.9rem; border-radius: 12px;">
-                    Créer un compte
-                </a>
+                <a href="{% url 'agency_login' %}" class="btn btn-secondary btn-header-login">Se Connecter</a>
+                <a href="{% url 'agency_register' %}" class="btn btn-primary btn-header-register">Créer un compte</a>
             {% endif %}
         </div>
     </header>
 
-    <!-- Messages / Notifications -->
-    {% if messages %}
-    <div class="system-messages">
-        {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} animate__animated animate__fadeInDown">
-                <i class="fa-solid {% if message.tags == 'error' %}fa-circle-xmark{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>
-                <div>{{ message }}</div>
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-text animate__animated animate__fadeInLeft">
-            <span class="feature-badge"><i class="fa-solid fa-gem text-warning animate__animated animate__pulse animate__infinite"></i> Espace Gérance & CRM</span>
-            <h2>La solution ultime de gestion locative pour Agences</h2>
+    <!-- SAAS RESTRICTION LOGIC -->
+    {% if request.user.is_authenticated and not request.user.is_saas_active %}
+    <section class="hero hero-restricted">
+        <div class="hero-content">
+            <div class="hero-badge badge-danger"><i class="fa-solid fa-lock"></i> Accès Restreint</div>
+            <h2>Abonnement SaaS Requis</h2>
             <p>
-                Révolutionnez la gestion de votre portefeuille immobilier au Togo. Simplifiez la rédaction des baux, automatisez l'édition de quittances de loyer ultra-élégantes avec votre logo, et pilotez votre comptabilité de gérance en temps réel.
+                Bonjour {{ request.user.first_name|default:request.user.phone_number }}, votre compte est bien connecté, mais la fonctionnalité <strong>Gestion d'Agence</strong> n'est pas active sur votre profil.
+                <br><br>
+                Pour débloquer votre accès exclusif et bénéficier des avantages listés ci-dessous, veuillez contacter notre support technique pour régulariser votre abonnement.
             </p>
-            <div class="hero-cta">
-                {% if request.user.is_authenticated %}
-                    {% if request.user.is_saas_active %}
-                    <a href="{% url 'agency_dashboard' %}" class="btn btn-primary">
-                        <i class="fa-solid fa-gauge-high"></i> Accéder à mon Dashboard
-                    </a>
-                    {% else %}
-                    <a href="#trial-box" class="btn btn-primary">
-                        <i class="fa-solid fa-rocket"></i> Activer mon essai
-                    </a>
-                    {% endif %}
-                {% else %}
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                <a href="mailto:support@logertogo.com" class="btn btn-primary" style="background-color: #10b981;">
+                    <i class="fa-solid fa-headset"></i> Contacter le Support
+                </a>
+                <a href="{% url 'agency_logout' %}" class="btn btn-secondary" style="color: white; border-color: rgba(255,255,255,0.3);">
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <!-- Hero Section Public -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">L'outil ultime pour les agences</div>
+            <h2>Une maîtrise totale de votre gérance immobilière</h2>
+            <p>
+                Découvrez en détail l'arsenal technologique que Loger Togo Pro met à la disposition de votre agence.
+                Automatisez vos tâches chronophages, sécurisez vos actes juridiques et développez votre portefeuille sans limites.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
                 <a href="#trial-box" class="btn btn-primary">
                     <i class="fa-solid fa-rocket"></i> Activer mon essai
                 </a>
-                {% endif %}
-                <a href="#features" class="btn btn-secondary">Découvrir les atouts</a>
-            </div>
-        </div>
-
-        <!-- Right Side Preview (Dynamic Showcase) -->
-        <div class="preview-showcase animate__animated animate__fadeInRight">
-            <span class="preview-badge"><i class="fa-solid fa-eye"></i> Aperçu de l'espace pro</span>
-            <ul class="preview-features-list">
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Génération de Baux & Contrats</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Modèles officiels et stockage sécurisé des documents de contrat.</p>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Quittances PDF en 1 clic</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Générées proprement avec en-tête et signatures d'agence.</p>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Exportation de Dossiers</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">Téléchargement complet de vos prospects et comptabilité en CSV.</p>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </section>
-
-    <!-- 3-Steps How It Works Section -->
-    <section class="timeline-section">
-        <div class="section-title">
-            <h3>Comment ça marche ?</h3>
-            <p>Prenez en main votre Espace Gérance Pro en seulement 3 étapes simples.</p>
-        </div>
-        <div class="timeline-grid">
-            <div class="timeline-step">
-                <div class="step-number">1</div>
-                <h4>Créez votre Profil</h4>
-                <p>Inscrivez votre agence, ajoutez vos informations et personnalisez votre logo d'entreprise pour les documents.</p>
-            </div>
-            <div class="timeline-step">
-                <div class="step-number">2</div>
-                <h4>Ajoutez vos Biens & Locataires</h4>
-                <p>Enregistrez vos appartements, maisons ou bureaux et importez vos fiches locataires sécurisées.</p>
-            </div>
-            <div class="timeline-step">
-                <div class="step-number">3</div>
-                <h4>Rédigez les Baux & Encaissez</h4>
-                <p>Générez vos baux d'un clic. Le système suit alors automatiquement les loyers mensuels et génère les quittances.</p>
             </div>
         </div>
     </section>
+    {% endif %}
 
-    <!-- Section Title -->
-    <div class="section-title" id="features">
-        <h3>Une suite logicielle complète & autonome</h3>
-        <p>Découvrez les outils d'élite conçus spécifiquement pour propulser l'efficacité opérationnelle de votre agence.</p>
-    </div>
+    <!-- Detailed Features Wrapper (Z-Pattern) -->
+    <main class="features-wrapper">
 
-    <!-- Features Section -->
-    <section class="features-grid">
-        <div class="feature-item">
-            <div class="feature-icon">
-                <i class="fa-solid fa-chart-line"></i>
+        <!-- Feature 1: Accounting -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">Comptabilité Automatisée</span>
+                <h3>La gestion financière enfin simplifiée et transparente</h3>
+                <p>
+                    Dites adieu aux fichiers Excel complexes et aux erreurs de calcul. Notre système intègre un grand livre comptable (Ledger) intelligent qui génère automatiquement les appels de loyers à chaque échéance, sans aucune intervention de votre part.
+                </p>
+                <p>
+                    Vous encaissez un paiement ? Renseignez-le en un clic : le système met à jour instantanément le solde du locataire, calcule les arriérés éventuels et génère une quittance PDF numérotée, datée et à l'effigie de votre agence.
+                </p>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Génération Automatique :</strong> Loyers échus facturés automatiquement le jour J.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Quittances en 1 clic :</strong> Impression ou téléchargement de documents PDF élégants et conformes.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Tableau de Bord :</strong> Suivi des impayés et de la balance de chaque propriétaire.</li>
+                </ul>
             </div>
-            <h4>Indicateurs & Statistiques</h4>
-            <p>Visualisez votre taux d'occupation, l'évolution mensuelle de vos loyers encaissés et vos créances en un clin d'œil sur des graphiques haute définition.</p>
-        </div>
-        
-        <div class="feature-item">
-            <div class="feature-icon">
-                <i class="fa-solid fa-file-signature"></i>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <img src="{% static 'img/feature_accounting.png' %}" alt="Comptabilité et finances" class="feature-image">
             </div>
-            <h4>Génération & Stockage de Contrats</h4>
-            <p>Rédigez et stockez en toute sécurité vos contrats de baux directement sur la plateforme. Générez instantanément vos documents de bail officiels et baux d'habitation personnalisés, conformes aux lois en vigueur au Togo.</p>
-        </div>
-
-        <div class="feature-item">
-            <div class="feature-icon">
-                <i class="fa-solid fa-receipt"></i>
-            </div>
-            <h4>Quittances de Loyer en 1 Clic</h4>
-            <p>Générez des quittances d'une élégance absolue. Intégrez le logo de votre agence, des signatures numérisées et téléchargez ou imprimez-les instantanément au format PDF pour vos locataires.</p>
         </div>
 
-        <div class="feature-item">
-            <div class="feature-icon">
-                <i class="fa-solid fa-file-export"></i>
+        <!-- Feature 2: Leases -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">Contrats & Baux Légaux</span>
+                <h3>Générez des contrats juridiquement blindés en 30 secondes</h3>
+                <p>
+                    La rédaction d'un bail ne devrait plus être une corvée ni une source d'erreurs juridiques. Loger Togo Pro vous propose une bibliothèque de modèles de contrats (Classique, Coloré, Minimaliste) directement intégrés.
+                </p>
+                <p>
+                    Sélectionnez un bien, un locataire, définissez le loyer et les clauses particulières. Le système compile toutes les informations et génère un bail au format PDF, parfaitement formaté, contenant les données des parties, du bien et votre logo d'agence.
+                </p>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Modèles Globaux :</strong> Profitez de modèles design et professionnels mis à jour.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Prévisualisation :</strong> Voyez le rendu final exact avant la validation.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Clauses Flexibles :</strong> Ajoutez des conditions spécifiques sans casser la mise en page.</li>
+                </ul>
             </div>
-            <h4>Exportation Complète de Dossiers</h4>
-            <p>Exportez en un clic l'intégralité de vos dossiers de gérance, fiches de prospects/clients, baux actifs et registres comptables financiers au format CSV pour votre comptabilité.</p>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-file-signature"></i></div>
+                <img src="{% static 'img/feature_contract.png' %}" alt="Signature de contrat" class="feature-image">
+            </div>
         </div>
 
-        <div class="feature-item">
-            <div class="feature-icon">
-                <i class="fa-solid fa-users-viewfinder"></i>
+        <!-- Feature 3: CRM Pipeline -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">CRM Prospect Visuel</span>
+                <h3>Un suivi interactif pour convertir chaque opportunité</h3>
+                <p>
+                    Gérer des dizaines de prospects peut vite devenir chaotique. Nous avons conçu un Pipeline Visuel interactif (style Kanban) qui vous permet de suivre chaque client potentiel de la "Prise de contact" jusqu'à la "Signature".
+                </p>
+                <p>
+                    Un simple <strong>Glisser-Déposer (Drag & Drop)</strong> permet de faire avancer un prospect dans les étapes de négociation. Chaque fiche client centralise les coordonnées, les visites effectuées et les commentaires de vos agents.
+                </p>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Vue Kanban :</strong> Colonnes organisées par statut (Nouveau, Visite, Offre, Signé).</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Base Client Centralisée :</strong> Tous vos bailleurs et locataires sécurisés dans votre espace privé.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Historique :</strong> Gardez une trace des échanges et des baux passés.</li>
+                </ul>
             </div>
-            <h4>Suivi des Opportunités</h4>
-            <p>Gérez vos prospects d'acquéreurs, locataires et bailleurs sur notre tableau de bord visuel interactif. Glissez-déposez pour suivre l'évolution des transactions.</p>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-sliders"></i></div>
+                <img src="{% static 'img/feature_crm.png' %}" alt="Équipe gérant le pipeline CRM" class="feature-image">
+            </div>
         </div>
 
-        <div class="feature-item">
-            <div class="feature-icon">
-                <i class="fa-solid fa-house-shield"></i>
+        <!-- Feature 4: Portfolio & Diffusion -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">Gestion du Portefeuille</span>
+                <h3>Diffusez ou gardez vos biens confidentiels en un clic</h3>
+                <p>
+                    Chaque bien que vous ajoutez possède une fiche extrêmement détaillée. Vous avez le contrôle total sur la visibilité de votre portefeuille immobilier.
+                </p>
+                <p>
+                    Vous recherchez un locataire rapidement ? Activez l'option "Publier" et le bien est instantanément propulsé sur le grand portail public Loger Togo. Une fois loué, le système désactive l'annonce automatiquement.
+                </p>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Mode Privé / Public :</strong> Contrôle total sur la visibilité de votre parc.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>États des Lieux :</strong> Création et gestion complète de l'inventaire des biens.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Statut d'Occupation :</strong> Sachez en temps réel quel bien est vacant ou loué.</li>
+                </ul>
             </div>
-            <h4>Privatif ou Public</h4>
-            <p>Créez vos biens depuis l'espace agence. Choisissez de les garder strictement privés pour la gestion de votre agence ou de les diffuser sur le portail public d'annonces.</p>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-city"></i></div>
+                <img src="{% static 'img/feature_portfolio.png' %}" alt="Propriété immobilière luxueuse" class="feature-image">
+            </div>
         </div>
-    </section>
 
-    <!-- Explications Link CTA -->
-    <div style="text-align: center; margin-bottom: 4rem; position: relative; z-index: 10;">
-        <a href="{% url 'explications' %}" class="btn btn-secondary">
-            <i class="fa-solid fa-circle-question"></i> Voir le fonctionnement détaillé de nos outils
-        </a>
-    </div>
+    </main>
 
-    <!-- Call to Action Section with Trial Box -->
-    <section class="cta-bottom-section" id="trial-box">
-        <div class="cta-card">
-            <div class="pricing-badge"><i class="fa-solid fa-tags"></i> Tarif Partenaire Exceptionnel</div>
-            <h3 style="font-family: 'Cinzel', serif; font-size: 2rem; font-weight: 800;">Commencez à optimiser votre agence dès aujourd'hui</h3>
+    <!-- Call to Action Section (Pricing Box) -->
+    <section class="cta-section" id="trial-box">
+        <div class="cta-container scroll-anim">
+            <div class="pricing-badge"><i class="fa-solid fa-star"></i> Offre Exceptionnelle</div>
+            <h2>Propulsez votre agence dès aujourd'hui</h2>
             
             <div class="price-text">50 000 FCFA <span>/ an</span></div>
-            <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 600px; line-height: 1.6;">
+            <p class="desc">
                 Bénéficiez de toutes les fonctionnalités en illimité, sans commission sur vos loyers, avec un support client ultra-réactif basé à Lomé.
             </p>
 
-            <form method="POST" action="" style="width: 100%; max-width: 450px;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; border-radius: 16px; justify-content: center;">
-                    <i class="fa-solid fa-rocket animate__animated animate__pulse animate__infinite"></i> Activer mon essai gratuit de 15 jours
-                </button>
-            </form>
-            
-            <p style="font-size: 0.8rem; color: var(--text-muted);">
-                * Sans engagement ni carte bancaire. Vous décidez après 15 jours si vous souhaitez continuer.
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem; border-radius: 50px;">
+                        <i class="fa-solid fa-rocket"></i> Activer mon essai gratuit de 15 jours
+                    </button>
+                </form>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem;">
+                * Sans engagement ni carte bancaire. Vous décidez après l'essai.
             </p>
         </div>
     </section>
 
-    <!-- Footer Section -->
+    <!-- Footer -->
     <footer>
         <p>&copy; 2026 <strong>Loger Togo</strong>. Tous droits réservés.</p>
     </footer>
 
+    <!-- Scroll Animation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+                    navbar.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+                } else {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                    navbar.style.boxShadow = 'var(--shadow-sm)';
+                }
+            });
+
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.scroll-anim').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
 </body>
 </html>

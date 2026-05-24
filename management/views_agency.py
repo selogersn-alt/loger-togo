@@ -13,7 +13,7 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login, logout
 from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest, ContractTemplate, PropertyInventory
 from logersn.models import Property
 
@@ -143,8 +143,6 @@ def agency_promo(request):
     """
     Premium Landing/Marketing page for non-subscribed users or prospects.
     """
-    if request.user.is_authenticated and request.user.is_saas_active:
-        return redirect('agency_dashboard')
         
     if request.method == 'POST':
         if not request.user.is_authenticated:
@@ -295,6 +293,26 @@ def agency_clients(request):
                 status=status,
                 notes=notes
             )
+            
+            # Create a phantom user so they can be selected for leases
+            if c_type == AgencyClient.ClientType.TENANT:
+                try:
+                    tenant_user, created = User.objects.get_or_create(
+                        phone_number=phone,
+                        defaults={
+                            'first_name': full_name.split()[0] if ' ' in full_name else full_name,
+                            'last_name': ' '.join(full_name.split()[1:]) if ' ' in full_name else '',
+                            'email': email if email else None,
+                            'role': User.RoleEnum.TENANT,
+                            'parent_agency': agency
+                        }
+                    )
+                    if created:
+                        tenant_user.set_password(User.objects.make_random_password())
+                        tenant_user.save()
+                except Exception as e:
+                    pass
+            
             messages.success(request, f"Client {client.full_name} créé avec succès.")
             return redirect('agency_clients')
         else:
@@ -371,8 +389,8 @@ def agency_leases(request):
     # Properties belonging to this agency
     properties = Property.objects.filter(owner=agency)
     
-    # We can fetch potential tenants (registered users or our own CRM clients!)
-    tenants = User.objects.filter(role='TENANT') | User.objects.all()[:100]  # limit list size
+    # Only fetch tenants that belong to this agency
+    tenants = User.objects.filter(parent_agency=agency, role='TENANT')
     
     # Contract templates belonging to this agency
     contract_templates = ContractTemplate.objects.filter(agency=agency)
@@ -633,7 +651,8 @@ def agency_property_create(request):
                 make_public = request.POST.get('make_public') == 'on'
                 if make_public:
                     p.publication_requested = True
-                    p.is_published = False  # requires authorization
+                    p.is_published = True
+                    p.is_authorized_by_admin = True
                 else:
                     p.publication_requested = False
                     p.is_published = False

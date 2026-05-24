@@ -83,6 +83,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     years_of_experience = models.PositiveIntegerField(default=0, verbose_name=_("Années d'expérience"))
     bio = models.TextField(null=True, blank=True, verbose_name=_("Biographie / Description"))
     
+    # Lien enfant-parent pour le SaaS Agence
+    parent_agency = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='agency_tenants', verbose_name=_("Agence parente"))
+
     is_saas_active = models.BooleanField(default=False, verbose_name=_("Abonnement SaaS Agence Actif"))
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

@@ -4,11 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Gérance Pro | Loger Togo</title>
+    <title>Loger Togo Agence - L'Outil Complet de Gérance</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon_agency.png' %}?v=13">
+    <link rel="shortcut icon" href="{% static 'img/favicon_agency.png' %}?v=13">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'img/icon_agency-192x192.png' %}?v=13">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Animate CSS for premium micro-interactions -->
@@ -19,15 +23,15 @@
     
     <style>
         :root {
-            --primary: #0b5934; /* Vert Émeraude */
-            --primary-glow: rgba(11, 89, 52, 0.08);
-            --primary-light: #10b981;
-            --accent: #d4af37; /* Or Royal */
-            --bg-dark: #f8fafc; /* Fond Clair Satin */
+            --primary: #0F766E; /* Teal professionnel */
+            --primary-glow: rgba(15, 118, 110, 0.08);
+            --primary-light: #14B8A6;
+            --accent: #0369A1; /* Bleu de confiance pour CTA */
+            --bg-dark: #F0FDFA; /* Mint très clair */
             --panel-bg: #ffffff; /* Cartes Blanches */
-            --border-glass: rgba(11, 89, 52, 0.08);
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --border-glass: rgba(15, 118, 110, 0.08);
+            --text-main: #134E4A;
+            --text-muted: #115E59;
         }
 
         * {
@@ -37,7 +41,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Josefin Sans', sans-serif;
             background-color: var(--bg-dark);
             background-image: 
                 radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
@@ -115,7 +119,7 @@
         }
 
         .logo h1 {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
             font-weight: 900;
             font-size: 1.6rem;
             background: linear-gradient(135deg, var(--primary) 30%, var(--primary-light));
@@ -136,8 +140,8 @@
         }
 
         .hero-text h2 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 3.5rem;
+            font-family: 'Cinzel', serif;
+            font-size: clamp(3rem, 10vw, 5rem);
             font-weight: 900;
             line-height: 1.15;
             margin-bottom: 1.5rem;
@@ -172,7 +176,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             border: none;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
         }
 
         .btn-primary {
@@ -258,7 +262,7 @@
             align-items: center;
             gap: 0.5rem;
             margin-bottom: 1.5rem;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
         }
 
         /* 3-Steps Timeline styling */
@@ -276,7 +280,7 @@
         }
 
         .section-title h3 {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
             font-size: 2.2rem;
             font-weight: 800;
             margin-bottom: 1rem;
@@ -323,7 +327,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
             font-weight: 900;
             font-size: 1.4rem;
             color: white;
@@ -331,7 +335,7 @@
         }
 
         .timeline-step h4 {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
             font-size: 1.35rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
@@ -414,7 +418,7 @@
         }
 
         .feature-item h4 {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
             font-size: 1.35rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
@@ -463,11 +467,11 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
         }
 
         .price-text {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Cinzel', serif;
             font-size: 3rem;
             font-weight: 900;
             color: var(--primary);
@@ -744,9 +748,15 @@
                 Révolutionnez la gestion de votre portefeuille immobilier au Togo. Simplifiez la rédaction des baux, automatisez l'édition de quittances de loyer ultra-élégantes avec votre logo, et pilotez votre comptabilité de gérance en temps réel.
             </p>
             <div class="hero-cta">
+                {% if request.user.is_authenticated and request.user.is_saas_active %}
+                <a href="{% url 'agency_dashboard' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-gauge-high"></i> Accéder à mon Dashboard
+                </a>
+                {% else %}
                 <a href="#trial-box" class="btn btn-primary">
                     <i class="fa-solid fa-rocket"></i> Activer mon essai
                 </a>
+                {% endif %}
                 <a href="#features" class="btn btn-secondary">Découvrir les atouts</a>
             </div>
         </div>
@@ -873,7 +883,7 @@
     <section class="cta-bottom-section" id="trial-box">
         <div class="cta-card">
             <div class="pricing-badge"><i class="fa-solid fa-tags"></i> Tarif Partenaire Exceptionnel</div>
-            <h3 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800;">Commencez à optimiser votre agence dès aujourd'hui</h3>
+            <h3 style="font-family: 'Cinzel', serif; font-size: 2rem; font-weight: 800;">Commencez à optimiser votre agence dès aujourd'hui</h3>
             
             <div class="price-text">50 000 FCFA <span>/ an</span></div>
             <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 600px; line-height: 1.6;">

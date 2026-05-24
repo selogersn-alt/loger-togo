@@ -122,59 +122,7 @@
                             </td>
                         </tr>
 
-                        <!-- Modal Suppression -->
-                        <div class="modal fade" id="deleteModal{{ property.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ property.id }}" aria-hidden="true" style="z-index: 9999;">
-                            <div class="modal-dialog modal-dialog-centered modal-sm">
-                                <div class="modal-content border-0 rounded-4 shadow-2xl">
-                                    <div class="modal-body p-4 text-center">
-                                        <div class="stat-icon bg-soft-danger mx-auto mb-4 animate__animated animate__headShake animate__infinite" style="width: 70px; height: 70px; font-size: 2rem;">
-                                            <i class="fas fa-trash-can text-danger"></i>
-                                        </div>
-                                        <h5 class="fw-bold mb-2">{% trans "Supprimer ?" %}</h5>
-                                        <p class="text-muted small mb-4">{% trans "Cette action est définitive." %}</p>
-                                        <div class="d-grid gap-2">
-                                            <form action="{% url 'delete_property' property.id %}" method="POST" class="w-100 m-0">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger rounded-pill w-100 fw-bold py-2">
-                                                    {% trans "Oui, supprimer" %}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-light rounded-pill w-100 fw-bold py-2" data-bs-dismiss="modal">
-                                                {% trans "Annuler" %}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Modal Boost -->
-                        <div class="modal fade" id="boostModal{{ property.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
-                                    <div class="modal-header border-0 bg-warning text-dark p-4">
-                                        <h5 class="modal-title fw-bold"><i class="fas fa-rocket me-2"></i>{% trans "Booster mon annonce" %}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body p-4">
-                                        <p class="text-muted">{% trans "Mettez votre annonce en tête de liste et multipliez vos contacts par 10." %}</p>
-                                        <form action="{% url 'initiate_payment' property.id 'BOOST' %}" method="GET">
-                                            <div class="mb-4">
-                                                <label class="form-label fw-bold">{% trans "Durée de la mise en avant" %}</label>
-                                                <select name="days" class="form-select rounded-3 p-3">
-                                                    <option value="7">{% trans "7 Jours - 5.000 CFA" %}</option>
-                                                    <option value="15">{% trans "15 Jours - 10.000 CFA" %}</option>
-                                                    <option value="30">{% trans "30 Jours - 18.000 CFA" %}</option>
-                                                </select>
-                                            </div>
-                                            <button type="submit" class="btn btn-warning w-100 rounded-pill p-3 fw-bold shadow-sm">
-                                                <i class="fas fa-credit-card me-2"></i>{% trans "Payer par Mobile Money" %}
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         {% empty %}
                         <tr>

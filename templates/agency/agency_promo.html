@@ -748,10 +748,16 @@
                 Révolutionnez la gestion de votre portefeuille immobilier au Togo. Simplifiez la rédaction des baux, automatisez l'édition de quittances de loyer ultra-élégantes avec votre logo, et pilotez votre comptabilité de gérance en temps réel.
             </p>
             <div class="hero-cta">
-                {% if request.user.is_authenticated and request.user.is_saas_active %}
-                <a href="{% url 'agency_dashboard' %}" class="btn btn-primary">
-                    <i class="fa-solid fa-gauge-high"></i> Accéder à mon Dashboard
-                </a>
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_saas_active %}
+                    <a href="{% url 'agency_dashboard' %}" class="btn btn-primary">
+                        <i class="fa-solid fa-gauge-high"></i> Accéder à mon Dashboard
+                    </a>
+                    {% else %}
+                    <a href="#trial-box" class="btn btn-primary">
+                        <i class="fa-solid fa-rocket"></i> Activer mon essai
+                    </a>
+                    {% endif %}
                 {% else %}
                 <a href="#trial-box" class="btn btn-primary">
                     <i class="fa-solid fa-rocket"></i> Activer mon essai

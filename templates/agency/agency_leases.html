@@ -303,12 +303,17 @@
             <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
                     <label for="id_template">Modèle de contrat à associer</label>
-                    <select name="template" id="id_template">
-                        <option value="">Sélectionnez un modèle de contrat...</option>
-                        {% for t in contract_templates %}
-                            <option value="{{ t.id }}">{{ t.title }}</option>
-                        {% endfor %}
-                    </select>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select name="template" id="id_template" style="flex: 1;" onchange="updatePreviewButton()">
+                            <option value="">Sélectionnez un modèle de contrat...</option>
+                            {% for t in contract_templates %}
+                                <option value="{{ t.id }}">{{ t.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn btn-secondary" id="previewBtn" onclick="previewTemplate()" style="display: none;" title="Aperçu du modèle">
+                            <i class="fa-solid fa-eye"></i> Aperçu
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -335,6 +340,56 @@
         </form>
     </div>
 </div>
+
+<!-- Modal de Prévisualisation du Contrat -->
+<div id="previewModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; width: 90%;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-eye"></i> Aperçu du Modèle de Contrat</h3>
+            <span class="close" onclick="closePreviewModal()">&times;</span>
+        </div>
+        <div class="modal-body" style="background: #f8fafc; padding: 2rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 1rem;">
+            <div id="previewContent" style="background: white; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); min-height: 400px; color: black;">
+            </div>
+        </div>
+        <div class="form-actions" style="margin-top: 1rem;">
+            <button type="button" class="btn btn-secondary" onclick="closePreviewModal()">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const templateContents = {
+        {% for t in contract_templates %}
+        "{{ t.id }}": `{{ t.content|safe|escapejs }}`,
+        {% endfor %}
+    };
+
+    function updatePreviewButton() {
+        const select = document.getElementById('id_template');
+        const btn = document.getElementById('previewBtn');
+        if (select.value) {
+            btn.style.display = 'inline-flex';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    function previewTemplate() {
+        const select = document.getElementById('id_template');
+        const contentArea = document.getElementById('previewContent');
+        const content = templateContents[select.value];
+        if (content) {
+            contentArea.innerHTML = content;
+            document.getElementById('previewModal').style.display = 'block';
+        }
+    }
+
+    function closePreviewModal() {
+        document.getElementById('previewModal').style.display = 'none';
+    }
+</script>
+
 {% endblock %}
 
 {% block extra_js %}

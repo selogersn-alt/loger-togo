@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from functools import wraps
 from django.urls import reverse
 from django.conf import settings
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import datetime
 
@@ -392,8 +392,8 @@ def agency_leases(request):
     # Only fetch tenants that belong to this agency
     tenants = User.objects.filter(parent_agency=agency, role='TENANT')
     
-    # Contract templates belonging to this agency
-    contract_templates = ContractTemplate.objects.filter(agency=agency)
+    # Contract templates belonging to this agency or global templates
+    contract_templates = ContractTemplate.objects.filter(Q(agency=agency) | Q(agency__isnull=True))
     
     if request.method == 'POST':
         property_id = request.POST.get('property')
@@ -413,7 +413,7 @@ def agency_leases(request):
         # Load template if selected
         selected_template = None
         if template_id:
-            selected_template = get_object_or_404(ContractTemplate, id=template_id, agency=agency)
+            selected_template = get_object_or_404(ContractTemplate, Q(id=template_id) & (Q(agency=agency) | Q(agency__isnull=True)))
         
         if prop and tenant_user and start_date and rent_amount:
             lease = Lease.objects.create(
@@ -461,7 +461,7 @@ def agency_templates(request):
     Gestion des modèles de contrats de bail personnalisables pour l'agence.
     """
     agency = request.user
-    templates = ContractTemplate.objects.filter(agency=agency)
+    templates = ContractTemplate.objects.filter(Q(agency=agency) | Q(agency__isnull=True))
     
     if request.method == 'POST':
         action = request.POST.get('action')

@@ -209,7 +209,7 @@ class ContractTemplate(models.Model):
     Contient le texte type du bail avec des variables de substitution.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    agency = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contract_templates')
+    agency = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contract_templates', null=True, blank=True)
     title = models.CharField(max_length=255, verbose_name="Titre du modèle")
     content = models.TextField(
         verbose_name="Contenu du contrat", 

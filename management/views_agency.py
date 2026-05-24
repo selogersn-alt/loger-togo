@@ -793,42 +793,72 @@ def agency_lease_agreement(request, lease_id):
     compiled_content = None
     if lease.template:
         content = lease.template.content
-        # Remplacement dynamique
-        content = content.replace('[LOCATAIRE]', lease.tenant.get_full_name() or lease.tenant.phone_number)
-        content = content.replace('[PROPRIETAIRE]', lease.landlord.get_full_name() or lease.landlord.phone_number)
+        # Remplacement dynamique (Contexte Togolais)
         
+        # Bailleur
         company_name = getattr(lease.landlord, 'company_name', '')
-        if not company_name:
-            company_name = lease.landlord.get_full_name() or lease.landlord.phone_number
-        content = content.replace('[AGENCE]', company_name)
+        nom_bailleur = company_name if company_name else (lease.landlord.get_full_name() or lease.landlord.phone_number)
+        content = content.replace('[NOM_BAILLEUR]', nom_bailleur)
+        content = content.replace('[PROPRIETAIRE]', nom_bailleur) # Fallback pour compatibilité
+        content = content.replace('[AGENCE]', nom_bailleur) # Fallback
         
+        # Locataire
+        nom_client = lease.tenant.get_full_name() or lease.tenant.phone_number
+        content = content.replace('[NOM_COMPLET_CLIENT]', nom_client)
+        content = content.replace('[LOCATAIRE]', nom_client) # Fallback
+        
+        # Nationalité et CNI (User model)
+        nationalite = lease.tenant.document_country or 'Togo'
+        cni_number = lease.tenant.cni_number or 'Non renseigné'
+        content = content.replace('[NATIONALITE_CLIENT]', nationalite)
+        content = content.replace('[NUMERO_CARTE_CLIENT]', cni_number)
+        
+        # Bien Immobilier
+        type_bien = lease.property.get_property_type_display() if hasattr(lease.property, 'get_property_type_display') else str(lease.property.property_type)
+        content = content.replace('[TYPE_DE_BIEN]', type_bien)
+        
+        type_usage = 'Habitation' # Par défaut
+        content = content.replace('[TYPE_D_USAGE]', type_usage)
+        
+        city_display = lease.property.city
+        if hasattr(lease.property, 'get_city_display'):
+            city_display = lease.property.get_city_display()
+        
+        surface = f", {lease.property.surface} m²" if getattr(lease.property, 'surface', None) else ""
+        bedrooms = f", {lease.property.bedrooms} chambres" if getattr(lease.property, 'bedrooms', None) else ""
+        details_bien = f"{lease.property.title} sis à {lease.property.neighborhood} ({city_display}){bedrooms}{surface}"
+        content = content.replace('[DETAILS_DE_BIEN]', details_bien)
+        content = content.replace('[BIEN]', details_bien) # Fallback
+        
+        # Finances
         from django.contrib.humanize.templatetags.humanize import intcomma
         try:
-            rent_formatted = f"{intcomma(int(lease.rent_amount))} FCFA"
+            prix_bien = f"{intcomma(int(lease.rent_amount))} FCFA"
         except Exception:
-            rent_formatted = f"{lease.rent_amount} FCFA"
+            prix_bien = f"{lease.rent_amount} FCFA"
             
         try:
             deposit_formatted = f"{intcomma(int(lease.deposit_amount))} FCFA"
         except Exception:
             deposit_formatted = f"{lease.deposit_amount} FCFA"
             
-        content = content.replace('[LOYER]', rent_formatted)
+        content = content.replace('[PRIX_DU_BIEN]', prix_bien)
+        content = content.replace('[LOYER]', prix_bien) # Fallback
         content = content.replace('[CAUTION]', deposit_formatted)
         
-        # Safe fetch for city display
-        city_display = lease.property.city
-        if hasattr(lease.property, 'get_city_display'):
-            city_display = lease.property.get_city_display()
-            
-        prop_desc = f"{lease.property.title} sis à {lease.property.neighborhood} ({city_display})"
-        content = content.replace('[BIEN]', prop_desc)
-        content = content.replace('[DATE_DEBUT]', lease.start_date.strftime('%d/%m/%Y') if hasattr(lease.start_date, 'strftime') else str(lease.start_date))
+        # Dates
+        date_debut = lease.start_date.strftime('%d/%m/%Y') if hasattr(lease.start_date, 'strftime') else str(lease.start_date)
+        content = content.replace('[DATE_DEBUT_CONTRAT]', date_debut)
+        content = content.replace('[DATE_DEBUT]', date_debut) # Fallback
         
-        end_date_str = "Indéterminée"
+        date_fin = "Indéterminée"
         if lease.end_date:
-            end_date_str = lease.end_date.strftime('%d/%m/%Y') if hasattr(lease.end_date, 'strftime') else str(lease.end_date)
-        content = content.replace('[DATE_FIN]', end_date_str)
+            date_fin = lease.end_date.strftime('%d/%m/%Y') if hasattr(lease.end_date, 'strftime') else str(lease.end_date)
+        content = content.replace('[DATE_FIN_CONTRAT]', date_fin)
+        content = content.replace('[DATE_FIN]', date_fin) # Fallback
+        
+        date_etablissement = timezone.now().strftime('%d/%m/%Y')
+        content = content.replace('[DATE_D_ETABLISSEMENT]', date_etablissement)
         
         compiled_content = content
         

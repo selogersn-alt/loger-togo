@@ -13,50 +13,126 @@ from management.models import ContractTemplate
 def populate():
     print("Insertion des modèles de contrats par défaut...")
     
-    # Template 1: Classique Officiel
+    # Template 1: Classique Officiel (Togo)
     t1_content = """
-    <div style="font-family: 'Times New Roman', Times, serif; color: #000; padding: 20px; line-height: 1.6;">
+    <div style="font-family: 'Times New Roman', Times, serif; color: #000; padding: 20px; line-height: 1.6; font-size: 14px;">
         <div style="text-align: center; margin-bottom: 30px;">
             <img src="/static/img/logo_dark.png" alt="Logo" style="max-height: 80px;" />
-            <h1 style="font-size: 24px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-top: 20px;">
-                CONTRAT DE BAIL À USAGE D'HABITATION
+            <h1 style="font-size: 22px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-top: 20px;">
+                CONTRAT DE LOCATION à usage d'habitation
             </h1>
-            <p style="font-style: italic; color: #555;">[EN_TETE_PERSONNALISE]</p>
         </div>
         
-        <p><strong>ENTRE LES SOUSSIGNÉS :</strong></p>
-        <p>
-            Le Bailleur / L'Agence : <strong>[PROPRIETAIRE]</strong><br>
-            Désigné ci-après "LE BAILLEUR"
-        </p>
-        <p><strong>ET :</strong></p>
-        <p>
-            Le Preneur : <strong>[LOCATAIRE]</strong><br>
-            Désigné ci-après "LE LOCATAIRE"
-        </p>
+        <p><strong>ENTRE LES SOUSSIGNÉS,</strong><br>
+        <strong>[NOM_BAILLEUR]</strong><br>
+        Ci-après dénommé LE BAILLEUR, d'une part</p>
         
-        <h3 style="text-decoration: underline; margin-top: 20px;">ARTICLE 1 : DÉSIGNATION DU BIEN</h3>
-        <p>Le Bailleur donne en location au Locataire le bien désigné ci-après : <strong>[BIEN]</strong>.</p>
+        <p><strong>ET</strong><br>
+        <strong>[NOM_COMPLET_CLIENT]</strong> , titulaire d'une pièce d'identité [NATIONALITE_CLIENT] Numéro : [NUMERO_CARTE_CLIENT]<br>
+        Ci-après dénommé LE LOCATAIRE, d'autre part</p>
         
-        <h3 style="text-decoration: underline; margin-top: 20px;">ARTICLE 2 : DURÉE DU BAIL</h3>
-        <p>Le présent bail est consenti pour une durée commençant le <strong>[DATE_DEBUT]</strong> au <strong>[DATE_FIN]</strong>.</p>
+        <p><strong>Il a été arrêté et convenu ce qui suit :</strong><br>
+        Le bailleur louant les locaux et équipements ci-après, désignés, au locataire qui les accepte aux conditions suivantes. Le locataire déclare bien connaître les lieux loués pour les avoir visités.</p>
         
-        <h3 style="text-decoration: underline; margin-top: 20px;">ARTICLE 3 : LOYER ET CONDITIONS</h3>
-        <p>Le loyer mensuel est fixé à la somme de <strong>[LOYER] FCFA</strong>. Le dépôt de garantie est de <strong>[CAUTION] FCFA</strong>.</p>
+        <h3 style="text-decoration: underline; font-size: 16px; margin-top: 20px;">DÉSIGNATION</h3>
+        <p><strong>[TYPE_DE_BIEN]</strong><br>
+        Consistance des locaux :<br>
+        [DETAILS_DE_BIEN]</p>
         
-        <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #333; margin-top: 20px;">
-            <h4>CLAUSES PARTICULIÈRES :</h4>
-            <p>[CLAUSES_PARTICULIERES]</p>
-        </div>
+        <h3 style="text-decoration: underline; font-size: 16px; margin-top: 20px;">DESTINATION DES LOCAUX</h3>
+        <p>A usage <strong>[TYPE_D_USAGE]</strong></p>
         
-        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-            <div style="text-align: left;">
-                <p><strong>SIGNATURE DU LOCATAIRE</strong></p>
-                <p style="color: #999; font-style: italic;">[SIGNATURE_LOCATAIRE]</p>
+        <h2 style="font-size: 18px; text-align: center; margin-top: 30px;">CONDITIONS GENERALES</h2>
+        
+        <p><strong>1) DURÉE DU CONTRAT</strong><br>
+        Le bail est consenti pour une durée au moins égale à UN (01) AN avec tacite reconduction.</p>
+        
+        <p><strong>2) CONGÉ</strong><br>
+        Le congé doit être signifié par lettre. II peut être délivré à tout moment par le locataire en respectant un préavis de DEUX (02) MOIS courant à compter de la réception de la lettre ou de l'acte. Le congé délivré par le bailleur ne peut être délivré que pour le terme du contrat initial ou renouvelé en respectant un préavis de SIX (06) MOIS. Le congé du bailleur ne peut être délivré que pour un des trois motifs ci-après, dûment énoncés dans l'acte : Reprise du local au bénéfice du bailleur ; Vente du local ; Motif légitime et sérieux, notamment l'inexécution par le locataire d'une des obligations lui incombant.</p>
+        
+        <p><strong>3) RECONDUCTION DU CONTRAT</strong><br>
+        A défaut de congé régulier du bailleur ou du locataire, le contrat parvenu à son terme est reconduit tacitement pour une durée égale à celle du contrat initial.</p>
+        
+        <p><strong>4) RENOUVELLEMENT DU CONTRAT</strong><br>
+        A défaut de congé et de tacite reconduction, le contrat parvenu à son terme peut également faire l'objet d'une offre de renouvellement de la part du bailleur.</p>
+        
+        <p><strong>5) ABANDON DU DOMICILE</strong><br>
+        Le bail est résilié de plein droit par l'abandon de domicile du locataire.</p>
+        
+        <p><strong>6) OBLIGATIONS DU BAILLEUR</strong><br>
+        Le bailleur est obligé :<br>
+        - De délivrer le logement en bon état d'usage et de réparation ;<br>
+        - De délivrer les éléments d'équipement en bon état de fonctionnement ;<br>
+        - D'assurer au locataire une jouissance paisible et la garantie des vices ou défauts ;<br>
+        - De maintenir les locaux en état de servir à l'usage prévu par le contrat ;<br>
+        - De ne pas s'opposer aux aménagements réalisés par le locataire dès lors qu'ils n'entraînent pas une transformation du local ;<br>
+        - De remettre gratuitement une quittance au locataire qui en fait la demande.</p>
+        
+        <p><strong>7) OBLIGATIONS DU LOCATAIRE</strong><br>
+        Le locataire est obligé :<br>
+        - De payer le loyer ;<br>
+        - D'user paisiblement des locaux loués en respectant leur destination ;<br>
+        - De répondre des dégradations ou des pertes survenues pendant le cours du bail ;<br>
+        - De prendre à sa charge l'entretien courant du logement et des équipements ;<br>
+        - De ne faire aucun changement de distribution ou transformation sans l'accord préalable et écrit du bailleur ;<br>
+        - De ne pouvoir, ni sous-louer ni céder ni prêter les locaux, même temporairement, sauf accord exprès ;<br>
+        - D'informer immédiatement le bailleur de tous désordres, dégradations et sinistres ;<br>
+        - De laisser exécuter sans indemnité tous les travaux nécessaires ;<br>
+        - En cas de vente ou de nouvelle location, de laisser visiter le logement deux heures par jour pendant les jours ouvrables ;<br>
+        - De respecter le règlement de l'immeuble, la circulation dans les parties communes et la quiétude de l'immeuble ;<br>
+        - De renoncer à tout recours contre le bailleur en cas de vol commis dans les lieux loués, interruption du service de l'eau, du gaz, de l'électricité, trouble de voisinage ;<br>
+        - De satisfaire à toutes les charges de ville ou de police.</p>
+        
+        <p><strong>8) MONTANT DU LOYER</strong><br>
+        Le montant mensuel du loyer est fixé à <strong>[PRIX_DU_BIEN]</strong> payable au plus tard le 05 de chaque mois.</p>
+        
+        <p><strong>9) DÉPÔT DE GARANTIE</strong><br>
+        Le montant du dépôt de garantie est indiqué aux CONDITIONS PARTICULIÈRES du présent contrat. Il ne peut excéder un mois du loyer principal et un (1) mois de caution. Il n'est pas productif d'intérêt. Il est destiné à être remboursé au locataire sortant dans les DEUX (02) MOIS de son départ effectif, déduction faite des sommes restant dues au bailleur.</p>
+        
+        <p><strong>10) CLAUSE RÉSOLUTOIRE</strong><br>
+        Il est expressément convenu qu'à défaut de paiement au terme convenu de tout ou partie du loyer, des charges, du dépôt de garantie, et DEUX (02) MOIS après un commandement de payer demeuré infructueux, la présente location sera résiliée de plein droit si bon semble au bailleur, sans aucune formalité judiciaire. L'occupant déchu de ses droits locatifs qui se refusera à restituer les lieux, pourra être expulsé sur simple ordonnance du juge des référés.</p>
+        
+        <p><strong>11) CLAUSE PÉNALE</strong><br>
+        En cas de non paiement du loyer ou de ses accessoires et dès le premier acte d'huissier, le locataire devra payer en sus des frais de recouvrement au bailleur. En cas d'occupation des lieux après la cessation du bail, il sera dû par l'occupant une indemnité égale au double du loyer et des charges contractuels. En cas de résiliation du bail aux torts du locataire, le dépôt de garantie restera acquis au bailleur à titre d'indemnité conventionnelle.</p>
+        
+        <p><strong>12) ÉTAT DES LIEUX</strong><br>
+        A défaut d'état d'entrée ou de sortie des lieux établi volontairement et contradictoirement, la partie la plus diligente est en droit d'en faire dresser un par huissier, à frais partagés.</p>
+        
+        <h2 style="font-size: 18px; text-align: center; margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px;">CONDITIONS PARTICULIÈRES</h2>
+        
+        <p><strong>Durée</strong><br>
+        Le présent contrat est consenti pour une durée d'Un (01) An commençant à courir le <strong>[DATE_DEBUT_CONTRAT]</strong> et se terminant le <strong>[DATE_FIN_CONTRAT]</strong> sous réserve de reconduction tacite ou de renouvellement.</p>
+        
+        <p><strong>Dépôt de garantie</strong><br>
+        Le dépôt de garantie est fixé à la somme de <strong>[CAUTION]</strong> correspondant à :<br>
+        - Un (01) mois de loyer ;<br>
+        - Un (01) mois de caution.<br>
+        Le mois est payable d'avance.</p>
+        
+        <p><strong>Eau et Electricité :</strong><br>
+        Les factures d'eau et d'électricité de l'appartement loué sont à la charge du locataire. La police d'abonnement doit être au nom du locataire, et au moment de rendre l'appartement toutes les factures doivent être payées avec présentation des reçus.</p>
+        
+        <p><strong>Clauses particulières supplémentaires :</strong><br>
+        - Dans le but de respecter scrupuleusement la quiétude des voisins, le nombre de personnes ne peut dépasser six (04) par Studio.<br>
+        - Les bruits sonores sont prohibés.<br>
+        - Aucun animal domestique n'est toléré.<br>
+        - D'autre part, le locataire étant son propre assureur, il lui est conseillé d'assurer ses biens et personnes à sa charge en cas de sinistre pour toute la durée du contrat. Le propriétaire ne peut en aucun cas être responsable ou réparation de tout sinistre qui frappe le preneur sauf en ce qui concerne les dégâts résultant de ses obligations.<br>
+        - Aucune action judiciaire ne peut être enclenchée en son encontre en cas de vol.<br>
+        - Toutefois, le bailleur, à sa charge, met à la disposition de l'immeuble une personne qui s'occupera de l'entretien des parties communes.</p>
+        
+        <p style="text-align: right; margin-top: 30px;">Fait à Dakar le <strong>[DATE_D_ETABLISSEMENT]</strong><br>
+        En deux (02) originaux dont un pour chaque signataire.</p>
+        
+        <p style="font-style: italic; text-align: center;">Signature précédée de la mention « lu et approuvé »</p>
+        
+        <div style="margin-top: 40px; display: flex; justify-content: space-between;">
+            <div style="text-align: left; width: 45%;">
+                <p><strong>Le Bailleur</strong></p>
+                <div style="height: 100px; border-bottom: 1px dotted #000;">[SIGNATURE_BAILLEUR]</div>
             </div>
-            <div style="text-align: right;">
-                <p><strong>SIGNATURE DU BAILLEUR</strong></p>
-                <p style="color: #999; font-style: italic;">[SIGNATURE_BAILLEUR]</p>
+            <div style="text-align: right; width: 45%;">
+                <p><strong>Le Locataire</strong></p>
+                <div style="height: 100px; border-bottom: 1px dotted #000;">[SIGNATURE_LOCATAIRE]</div>
             </div>
         </div>
     </div>

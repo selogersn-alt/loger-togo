@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,27 +8,33 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon_agency.png' %}?v=13">
     <link rel="shortcut icon" href="{% static 'img/favicon_agency.png' %}?v=13">
-    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'img/icon_agency-192x192.png' %}?v=13">
-    <!-- Google Fonts -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <style>
         :root {
-            --primary: #0F766E; /* Teal professionnel */
-            --primary-glow: rgba(15, 118, 110, 0.08);
-            --primary-light: #14B8A6;
-            --accent: #0369A1; /* Bleu de confiance pour CTA */
-            --bg-dark: #F0FDFA; /* Mint très clair */
-            --panel-bg: #ffffff; /* Cartes Blanches */
-            --border-glass: rgba(15, 118, 110, 0.08);
-            --text-main: #134E4A;
-            --text-muted: #115E59;
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --secondary: #334155;
+            --accent: #0ea5e9;
+            --accent-hover: #0284c7;
+            --accent-light: #e0f2fe;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --text: #334155;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -37,455 +44,484 @@
         }
 
         body {
-            font-family: 'Josefin Sans', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(11, 89, 52, 0.06) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
             overflow-x: hidden;
         }
 
-        header {
-            padding: 1.5rem 4rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-glass);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.015);
+        h1, h2, h3, h4, h5 {
+            font-family: 'Outfit', sans-serif;
+            color: var(--primary);
+            line-height: 1.2;
         }
 
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ----- Header ----- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
         .logo {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            text-decoration: none;
         }
-
         .logo h1 {
-            font-family: 'Cinzel', serif;
-            font-weight: 900;
-            font-size: 1.6rem;
-            background: linear-gradient(135deg, var(--primary) 30%, var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
         }
-
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
         .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
+            gap: 0.5rem;
             border: none;
-            font-family: 'Cinzel', serif;
         }
-
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            background-color: var(--accent);
             color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2);
         }
-
         .btn-primary:hover {
+            background-color: var(--accent-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35);
+            box-shadow: 0 6px 12px rgba(14, 165, 233, 0.3);
         }
-
         .btn-secondary {
-            background: #ffffff;
-            border: 1px solid var(--border-glass);
-            color: var(--text-main);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.015);
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--border);
         }
-
         .btn-secondary:hover {
-            background: rgba(11, 89, 52, 0.03);
-            transform: translateY(-2px);
+            border-color: var(--primary);
+            background-color: var(--surface);
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 4rem auto;
-            padding: 0 2rem;
-            flex-grow: 1;
-        }
-
-        .title-section {
+        /* ----- Hero Section ----- */
+        .hero {
+            position: relative;
+            padding: 180px 5% 100px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            overflow: hidden;
             text-align: center;
-            margin-bottom: 4rem;
         }
-
-        .title-section h2 {
-            font-family: 'Cinzel', serif;
-            font-size: 3rem;
-            font-weight: 900;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--primary) 40%, var(--primary-light), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            opacity: 0.15;
+            z-index: 0;
         }
-
-        .title-section p {
-            color: var(--text-muted);
-            font-size: 1.15rem;
-            line-height: 1.6;
-            max-width: 600px;
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
             margin: 0 auto;
         }
-
-        .feature-detail-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-glass);
-            border-radius: 28px;
-            padding: 3rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.025);
-            display: grid;
-            grid-template-columns: 80px 1fr;
-            gap: 2rem;
-            transition: all 0.3s ease;
+        .hero-badge {
+            display: inline-block;
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hero h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .feature-detail-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(16, 185, 129, 0.25);
-            box-shadow: 0 25px 55px rgba(16, 185, 129, 0.04);
+        /* ----- Feature Sections ----- */
+        .features-wrapper {
+            padding: 100px 5%;
+            max-width: 1300px;
+            margin: 0 auto;
         }
-
-        .icon-box {
+        .feature-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+            margin-bottom: 120px;
+            opacity: 0; /* For scroll animation */
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .feature-row.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature-row:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        .feature-text {
+            flex: 1;
+            min-width: 300px;
+        }
+        .feature-image-wrapper {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        .feature-image {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+        .feature-image-wrapper:hover .feature-image {
+            transform: scale(1.02);
+        }
+        .feature-icon-badge {
+            position: absolute;
+            top: -20px;
+            left: -20px;
             width: 80px;
             height: 80px;
+            background: var(--accent);
+            color: white;
             border-radius: 20px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
+            font-size: 2rem;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+            transform: rotate(-10deg);
+            z-index: 2;
         }
-
-        .feature-detail-card h3 {
-            font-family: 'Cinzel', serif;
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .feature-row:nth-child(even) .feature-icon-badge {
+            left: auto;
+            right: -20px;
+            transform: rotate(10deg);
         }
-
-        .feature-detail-card h3 span {
-            font-size: 0.85rem;
+        .feature-tag {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--primary);
-            background: rgba(11, 89, 52, 0.05);
-            padding: 0.25rem 0.75rem;
-            border-radius: 50px;
-            border: 1px solid rgba(11, 89, 52, 0.15);
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            display: block;
         }
-
-        .feature-detail-card p {
-            font-size: 1.05rem;
-            color: var(--text-muted);
-            line-height: 1.7;
+        .feature-text h3 {
+            font-size: 2.5rem;
             margin-bottom: 1.5rem;
         }
-
-        .sub-features {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            padding-top: 1.5rem;
-        }
-
-        .sub-item {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-start;
-        }
-
-        .sub-item i {
-            color: var(--primary-light);
+        .feature-text p {
             font-size: 1.1rem;
-            margin-top: 0.2rem;
-        }
-
-        .sub-item h5 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 0.25rem;
-            font-family: 'Cinzel', serif;
-        }
-
-        .sub-item p {
-            font-size: 0.9rem;
             color: var(--text-muted);
-            line-height: 1.5;
-            margin-bottom: 0;
+            margin-bottom: 1.5rem;
         }
-
-        footer {
-            padding: 2.5rem;
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-glass);
-            background: #ffffff;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.01);
+        .feature-points {
+            list-style: none;
+            margin-top: 2rem;
         }
-
-        footer strong {
+        .feature-points li {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 1.2rem;
+            font-size: 1.05rem;
             color: var(--primary);
         }
-
-        @media (max-width: 768px) {
-            header {
-                padding: 1.25rem 2rem;
-            }
-            .title-section h2 {
-                font-size: 2.2rem;
-            }
-            .feature-detail-card {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-                padding: 2rem;
-            }
-            .icon-box {
-                width: 64px;
-                height: 64px;
-                font-size: 1.8rem;
-            }
-            .sub-features {
-                grid-template-columns: 1fr;
-            }
+        .feature-points li i {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            color: var(--success);
+            font-size: 1.25rem;
         }
 
-        @media (max-width: 640px) {
-            header {
-                padding: 0.85rem 1rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.5rem;
+        /* ----- CTA Section ----- */
+        .cta-section {
+            background: var(--surface);
+            padding: 80px 5%;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+            padding: 4rem 2rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+        }
+        .cta-container h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .cta-container p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        /* ----- Footer ----- */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 2rem 5%;
+        }
+
+        @media (max-width: 992px) {
+            .hero h2 { font-size: 2.5rem; }
+            .feature-row, .feature-row:nth-child(even) {
+                flex-direction: column;
+                gap: 3rem;
             }
-            .logo i {
-                font-size: 1.5rem !important;
+            .feature-icon-badge {
+                top: -15px;
+                left: -15px;
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
             }
-            .logo h1 {
-                font-size: 1.2rem !important;
-            }
-            .logo h1 span {
-                font-size: 0.85rem !important;
-            }
-            .header-actions {
-                display: flex;
-                gap: 0.4rem;
-                align-items: center;
-            }
-            .btn-header-register {
-                display: none !important;
-            }
-            .btn-header-login {
-                padding: 0.45rem 0.85rem !important;
-                font-size: 0.8rem !important;
-                border-radius: 10px !important;
-                margin-right: 0 !important;
-                box-shadow: none !important;
-                border: 1px solid rgba(16, 185, 129, 0.2) !important;
-                background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(11, 89, 52, 0.03)) !important;
-                color: var(--primary) !important;
-                font-weight: 700 !important;
-                text-decoration: none;
-            }
-            .btn-header-dashboard {
-                padding: 0.45rem 0.85rem !important;
-                font-size: 0.8rem !important;
-                border-radius: 10px !important;
-                box-shadow: none !important;
-                text-decoration: none;
-            }
-            .container {
-                padding: 0 1rem;
-            }
-            .title-section h2 {
-                font-size: 1.8rem;
-            }
+        }
+        @media (max-width: 768px) {
+            .header-actions .btn-header-login { display: none; }
+            .feature-text h3 { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
 
     <!-- Header Section -->
-    <header>
+    <header id="navbar">
         <a href="{% url 'agency_promo' %}" class="logo">
-            <i class="fa-solid fa-hotel" style="color: var(--primary-light); font-size: 2rem;"></i>
+            <i class="fa-solid fa-hotel" style="color: var(--primary); font-size: 2rem;"></i>
             <h1>Loger Togo <span style="font-weight: 400; font-size: 1.1rem; opacity: 0.8; color: var(--accent);">PRO</span></h1>
         </a>
         <div class="header-actions">
             {% if request.user.is_authenticated %}
                 <a href="{% url 'agency_dashboard' %}" class="btn btn-primary btn-header-dashboard">
-                    <i class="fa-solid fa-gauge-high"></i> Tableau de bord
+                    <i class="fa-solid fa-gauge-high"></i> Mon Dashboard
                 </a>
             {% else %}
-                <a href="{% url 'agency_login' %}" class="btn btn-secondary btn-header-login" style="margin-right: 0.75rem;">Se Connecter</a>
+                <a href="{% url 'agency_login' %}" class="btn btn-secondary btn-header-login">Se Connecter</a>
                 <a href="{% url 'agency_register' %}" class="btn btn-primary btn-header-register">Créer un compte</a>
             {% endif %}
         </div>
     </header>
 
-    <!-- Main Container -->
-    <div class="container">
-        
-        <div class="title-section animate__animated animate__fadeIn">
-            <h2>Fonctionnalités de l'Espace Pro</h2>
-            <p>Découvrez en détail les outils haute performance développés pour simplifier et optimiser la gestion quotidienne de votre agence immobilière.</p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">L'outil ultime pour les agences</div>
+            <h2>Une maîtrise totale de votre gérance immobilière</h2>
+            <p>
+                Découvrez en détail l'arsenal technologique que Loger Togo Pro met à la disposition de votre agence.
+                Automatisez vos tâches chronophages, sécurisez vos actes juridiques et développez votre portefeuille sans limites.
+            </p>
         </div>
+    </section>
 
-        <!-- Feature 1: Dynamic Ledger & Receival -->
-        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-            <div class="icon-box">
-                <i class="fa-solid fa-file-invoice-dollar"></i>
-            </div>
-            <div>
-                <h3>Gestion des Loyers & Comptabilité <span>Automatique</span></h3>
+    <!-- Detailed Features Wrapper -->
+    <main class="features-wrapper">
+
+        <!-- Feature 1: Accounting -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">Comptabilité Automatisée</span>
+                <h3>La gestion financière enfin simplifiée et transparente</h3>
                 <p>
-                    Suivez la santé financière de vos mandats de gestion en temps réel. Notre grand livre comptable (Ledger) enregistre automatiquement les loyers dus à chaque début de période de facturation, éliminant ainsi toute saisie manuelle fastidieuse.
+                    Dites adieu aux fichiers Excel complexes et aux erreurs de calcul. Notre système intègre un grand livre comptable (Ledger) intelligent qui génère automatiquement les appels de loyers à chaque échéance, sans aucune intervention de votre part.
                 </p>
-                <div class="sub-features">
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Suivi des Impayés</h5>
-                            <p>Visualisez instantanément le montant total dû, le montant encaissé et le reste à recouvrer par mandat.</p>
-                        </div>
-                    </div>
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Quittances Personnalisées</h5>
-                            <p>Éditez des quittances élégantes au format PDF avec signature numérisée et logo spécifique à votre agence.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Feature 2: Automated Leases -->
-        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-            <div class="icon-box">
-                <i class="fa-solid fa-file-signature"></i>
-            </div>
-            <div>
-                <h3>Baux & Contrats de Location <span>Légalement Conformes</span></h3>
                 <p>
-                    Rédigez des contrats de bail professionnels en quelques secondes. Les modèles intégrés sont rigoureusement indexés sur la législation et les usages en vigueur au Togo pour assurer la protection juridique de votre agence et des bailleurs.
+                    Vous encaissez un paiement ? Renseignez-le en un clic : le système met à jour instantanément le solde du locataire, calcule les arriérés éventuels et génère une quittance PDF numérotée, datée et à l'effigie de votre agence.
                 </p>
-                <div class="sub-features">
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Modèles Modulables</h5>
-                            <p>Ajoutez des clauses particulières et des conditions spécifiques à chaque bail en fonction des négociations.</p>
-                        </div>
-                    </div>
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Historisation Complète</h5>
-                            <p>Conservez l'historique complet des baux actifs, échus ou résiliés de chaque locataire pour un suivi sans faille.</p>
-                        </div>
-                    </div>
-                </div>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Génération Automatique :</strong> Loyers échus facturés automatiquement le jour J.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Quittances en 1 clic :</strong> Impression ou téléchargement de documents PDF élégants et conformes.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Tableau de Bord :</strong> Suivi des impayés et de la balance de chaque propriétaire.</li>
+                </ul>
+            </div>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Comptabilité et finances" class="feature-image">
             </div>
         </div>
 
-        <!-- Feature 3: Visual Dashboard Prospects -->
-        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-            <div class="icon-box">
-                <i class="fa-solid fa-sliders"></i>
-            </div>
-            <div>
-                <h3>Suivi Visuel & CRM Prospects <span>Interactif</span></h3>
+        <!-- Feature 2: Leases -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">Contrats & Baux Légaux</span>
+                <h3>Générez des contrats juridiquement blindés en 30 secondes</h3>
                 <p>
-                    Ne perdez plus aucune opportunité commerciale. Notre tableau de bord visuel interactif vous permet de suivre l'avancement de vos prospects, de la première prise de contact jusqu'à la signature finale du bail ou de l'acte de vente.
+                    La rédaction d'un bail ne devrait plus être une corvée ni une source d'erreurs juridiques. Loger Togo Pro vous propose une bibliothèque de modèles de contrats (Classique, Coloré, Minimaliste) directement intégrés.
                 </p>
-                <div class="sub-features">
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Glisser-Déposer Intuitif</h5>
-                            <p>Mettez à jour instantanément l'étape d'un prospect (Prospection, Visite, Négociation...) en glissant sa fiche d'une colonne à l'autre.</p>
-                        </div>
-                    </div>
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Base Clients Unifiée</h5>
-                            <p>Conservez toutes les coordonnées, numéros de téléphone et observations sur vos clients dans un annuaire sécurisé.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Feature 4: Portfolio Management -->
-        <div class="feature-detail-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
-            <div class="icon-box">
-                <i class="fa-solid fa-city"></i>
-            </div>
-            <div>
-                <h3>Gestion de Portefeuille & Diffusion <span>Flexible</span></h3>
                 <p>
-                    Gérez et valorisez vos biens immobiliers. Choisissez en un clic de conserver un bien strictement privé pour la gestion interne de votre agence, ou de le publier instantanément sur le portail public d'annonces de Loger Togo pour attirer de nouveaux locataires ou acquéreurs.
+                    Sélectionnez un bien, un locataire, définissez le loyer et les clauses particulières (ex: "Entretien du jardin à la charge du preneur"). Le système compile toutes les informations et génère un bail au format PDF, parfaitement formaté, contenant les données des parties, du bien et votre logo d'agence.
                 </p>
-                <div class="sub-features">
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Fiches Biens Ultra-Complètes</h5>
-                            <p>Renseignez les pièces, surfaces, photos haute définition, tarifs mensuels ou prix par nuitée.</p>
-                        </div>
-                    </div>
-                    <div class="sub-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <h5>Statut d'Occupation</h5>
-                            <p>Visualisez instantanément quels biens sont vacants, loués ou en cours de maintenance dans votre portefeuille.</p>
-                        </div>
-                    </div>
-                </div>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Modèles Globaux :</strong> Profitez de modèles design et professionnels mis à jour.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Prévisualisation :</strong> Voyez le rendu final exact avant la validation.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Clauses Flexibles :</strong> Ajoutez des conditions spécifiques sans casser la mise en page.</li>
+                </ul>
+            </div>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-file-signature"></i></div>
+                <img src="https://images.unsplash.com/photo-1450101499163-c8848c66cb85?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Signature de contrat" class="feature-image">
             </div>
         </div>
 
-    </div>
+        <!-- Feature 3: CRM Pipeline -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">CRM Prospect Visuel</span>
+                <h3>Un suivi interactif pour convertir chaque opportunité</h3>
+                <p>
+                    Gérer des dizaines de prospects peut vite devenir chaotique. Nous avons conçu un Pipeline Visuel interactif (style Kanban / Trello) qui vous permet de suivre chaque client potentiel de la "Prise de contact" jusqu'à la "Signature".
+                </p>
+                <p>
+                    Un simple <strong>Glisser-Déposer (Drag & Drop)</strong> permet de faire avancer un prospect dans les étapes de négociation. Chaque fiche client centralise les coordonnées, les visites effectuées et les commentaires de vos agents. Vous ne laisserez plus jamais un client sans réponse.
+                </p>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Vue Kanban :</strong> Colonnes organisées par statut (Nouveau, Visite, Offre, Signé).</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Base Client Centralisée :</strong> Tous vos bailleurs et locataires sécurisés dans votre espace privé.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Historique :</strong> Gardez une trace des échanges et des baux passés.</li>
+                </ul>
+            </div>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-sliders"></i></div>
+                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Équipe gérant le pipeline CRM" class="feature-image">
+            </div>
+        </div>
 
-    <!-- Footer Section -->
+        <!-- Feature 4: Portfolio & Diffusion -->
+        <div class="feature-row scroll-anim">
+            <div class="feature-text">
+                <span class="feature-tag">Gestion du Portefeuille</span>
+                <h3>Diffusez ou gardez vos biens confidentiels en un clic</h3>
+                <p>
+                    Chaque bien que vous ajoutez possède une fiche extrêmement détaillée (localisation, type, surfaces, équipements, photos haute définition). Vous avez le contrôle total sur la visibilité de votre portefeuille immobilier.
+                </p>
+                <p>
+                    Vous recherchez un locataire rapidement ? Activez l'option "Publier" et le bien est instantanément propulsé sur le grand portail public Loger Togo. Une fois loué, le système désactive l'annonce automatiquement et vous le conservez dans votre espace pour la gérance.
+                </p>
+                <ul class="feature-points">
+                    <li><i class="fa-solid fa-check"></i> <strong>Mode Privé / Public :</strong> Contrôle total sur la visibilité de votre parc.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>États des Lieux :</strong> Création et gestion complète de l'inventaire des biens lors de l'entrée/sortie.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Statut d'Occupation :</strong> Sachez en temps réel quel bien est vacant ou loué.</li>
+                </ul>
+            </div>
+            <div class="feature-image-wrapper">
+                <div class="feature-icon-badge"><i class="fa-solid fa-city"></i></div>
+                <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Propriété immobilière luxueuse" class="feature-image">
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Call to Action Section -->
+    <section class="cta-section">
+        <div class="cta-container scroll-anim">
+            <h2>Prêt à digitaliser votre agence ?</h2>
+            <p>Rejoignez les meilleures agences immobilières du Togo. Prenez une longueur d'avance sur vos concurrents grâce à nos outils de pointe.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{% url 'agency_register' %}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Créer mon Espace Gratuitement</a>
+                {% if not request.user.is_authenticated %}
+                <a href="{% url 'agency_login' %}" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">J'ai déjà un compte</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2026 <strong>Loger Togo</strong>. Tous droits réservés. Conçu avec prestige.</p>
+        <p>&copy; 2026 <strong>Loger Togo Pro</strong>. Tous droits réservés. L'excellence au service de l'immobilier.</p>
     </footer>
 
+    <!-- Scroll Animation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navbar scroll effect
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+                    navbar.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+                } else {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                    navbar.style.boxShadow = 'var(--shadow-sm)';
+                }
+            });
+
+            // Intersection Observer for scroll animations
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Optional: stop observing once animated
+                        // observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.scroll-anim').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
 </body>
 </html>

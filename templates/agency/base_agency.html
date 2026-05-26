@@ -595,6 +595,12 @@
                         <span>Analyses Financières</span>
                     </a>
                 </li>
+                <li class="{% if request.resolver_match.url_name == 'agency_profile' %}active{% endif %}">
+                    <a href="{% url 'agency_profile' %}">
+                        <i class="fa-solid fa-id-card"></i>
+                        <span>Profil Agence</span>
+                    </a>
+                </li>
                 <li style="margin-top: auto; border-top: 1px solid var(--border-glass); padding-top: 1rem;">
                     <a href="https://logertogo.com/mon-compte/" target="_blank">
                         <i class="fa-solid fa-globe"></i>

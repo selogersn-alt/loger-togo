@@ -82,6 +82,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Identité Professionnelle
     years_of_experience = models.PositiveIntegerField(default=0, verbose_name=_("Années d'expérience"))
     bio = models.TextField(null=True, blank=True, verbose_name=_("Biographie / Description"))
+
+    # Coordonnées Professionnelles de l'Agence (Pour documents officiels)
+    agency_address = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("Adresse postale de l'agence"))
+    agency_city = models.CharField(max_length=100, null=True, blank=True, verbose_name=_("Ville de l'agence"))
+    agency_phone_landline = models.CharField(max_length=30, null=True, blank=True, verbose_name=_("Téléphone fixe"))
+    agency_phone_mobile = models.CharField(max_length=30, null=True, blank=True, verbose_name=_("Téléphone mobile (Agence)"))
+    agency_email = models.EmailField(null=True, blank=True, verbose_name=_("Email officiel de l'agence"))
+    agency_website = models.URLField(null=True, blank=True, verbose_name=_("Site web de l'agence"))
+    agency_rccm = models.CharField(max_length=100, null=True, blank=True, verbose_name=_("Numéro RCCM / N° Entreprise"))
+    agency_nif = models.CharField(max_length=100, null=True, blank=True, verbose_name=_("Numéro NIF / Identifiant Fiscal"))
+    agency_tagline = models.CharField(max_length=200, null=True, blank=True, verbose_name=_("Slogan ou spécialité de l'agence"))
     
     # Lien enfant-parent pour le SaaS Agence
     parent_agency = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='agency_tenants', verbose_name=_("Agence parente"))

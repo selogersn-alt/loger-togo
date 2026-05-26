@@ -616,6 +616,41 @@ def agency_receipt(request, payment_id):
 
 
 @agency_saas_required
+def agency_profile(request):
+    """
+    Agency profile management: logo, full coordinates, RCCM, NIF, etc.
+    These fields are printed on official documents (receipts, contracts).
+    """
+    agency = request.user
+    
+    if request.method == 'POST':
+        # Text fields
+        agency.company_name = request.POST.get('company_name', agency.company_name)
+        agency.first_name = request.POST.get('first_name', agency.first_name)
+        agency.last_name = request.POST.get('last_name', agency.last_name)
+        agency.bio = request.POST.get('bio', agency.bio)
+        agency.agency_tagline = request.POST.get('agency_tagline', '')
+        agency.agency_address = request.POST.get('agency_address', '')
+        agency.agency_city = request.POST.get('agency_city', '')
+        agency.agency_phone_mobile = request.POST.get('agency_phone_mobile', '')
+        agency.agency_phone_landline = request.POST.get('agency_phone_landline', '')
+        agency.agency_email = request.POST.get('agency_email', '') or None
+        agency.agency_website = request.POST.get('agency_website', '') or None
+        agency.agency_rccm = request.POST.get('agency_rccm', '')
+        agency.agency_nif = request.POST.get('agency_nif', '')
+        
+        # File: logo
+        if 'profile_picture' in request.FILES:
+            agency.profile_picture = request.FILES['profile_picture']
+        
+        agency.save()
+        messages.success(request, "Profil de l'agence mis à jour avec succès. Vos documents reflèteront ces nouvelles informations.")
+        return redirect('agency_profile')
+    
+    return render(request, 'agency/agency_profile.html')
+
+
+@agency_saas_required
 def agency_properties(request):
     """
     Manage list of properties currently linked to the agency.

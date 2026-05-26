@@ -96,10 +96,33 @@
 </head>
 <body>
     {% if compiled_content %}
-        <div class="header">
-            <div class="logo">{{ filiation.landlord.company_name|default:"Loger Togo Pro" }}</div>
-            <div class="title">CONTRAT DE BAIL PROFESSIONNEL</div>
-            <div class="Confiance-info">Généré via la plateforme <strong>agence.logertogo.com</strong></div>
+        <!-- AGENCY HEADER BAND -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0B4629;padding-bottom:15px;margin-bottom:20px;">
+            <!-- Left: Logo + Agency info -->
+            <div style="display:flex;align-items:flex-start;gap:15px;">
+                {% if filiation.landlord.profile_picture %}
+                    <img src="{{ filiation.landlord.profile_picture.url }}" alt="Logo" style="max-height:80px;max-width:150px;object-fit:contain;border:1px solid #ddd;padding:4px;border-radius:6px;">
+                {% endif %}
+                <div>
+                    <div style="font-size:16pt;font-weight:800;color:#0B4629;line-height:1.2;">{{ filiation.landlord.company_name|default:filiation.landlord.get_full_name }}</div>
+                    {% if filiation.landlord.agency_tagline %}<div style="font-size:8pt;color:#555;font-style:italic;margin-top:2px;">{{ filiation.landlord.agency_tagline }}</div>{% endif %}
+                    <div style="font-size:8pt;color:#444;margin-top:6px;line-height:1.6;">
+                        {% if filiation.landlord.agency_address %}{{ filiation.landlord.agency_address }}{% if filiation.landlord.agency_city %}, {{ filiation.landlord.agency_city }}{% endif %}<br>{% endif %}
+                        {% if filiation.landlord.agency_phone_mobile %}Tél : {{ filiation.landlord.agency_phone_mobile }}{% if filiation.landlord.agency_phone_landline %} / {{ filiation.landlord.agency_phone_landline }}{% endif %}<br>{% elif filiation.landlord.phone_number %}Tél : {{ filiation.landlord.phone_number }}<br>{% endif %}
+                        {% if filiation.landlord.agency_email %}Email : {{ filiation.landlord.agency_email }}<br>{% elif filiation.landlord.email %}Email : {{ filiation.landlord.email }}<br>{% endif %}
+                        {% if filiation.landlord.agency_website %}Web : {{ filiation.landlord.agency_website }}<br>{% endif %}
+                        {% if filiation.landlord.agency_rccm %}RCCM : {{ filiation.landlord.agency_rccm }}<br>{% endif %}
+                        {% if filiation.landlord.agency_nif %}NIF : {{ filiation.landlord.agency_nif }}{% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Right: Document title -->
+            <div style="text-align:right;">
+                <div style="font-size:14pt;font-weight:800;text-transform:uppercase;color:#0B4629;">Contrat de Location</div>
+                <div style="font-size:9pt;color:#888;margin-top:4px;">à usage d'habitation</div>
+                <div style="font-size:8pt;color:#aaa;margin-top:8px;">Réf: BAIL-{{ filiation.id|stringformat:".8s"|upper }}</div>
+                <div style="font-size:8pt;color:#aaa;">Établi le : {{ today|date:"d/m/Y" }}</div>
+            </div>
         </div>
 
         <div class="content" style="white-space: pre-wrap; font-size: 10pt; line-height: 1.5;">
@@ -120,7 +143,9 @@
         </table>
 
         <div class="footer" style="margin-top: 30px;">
-            Réf: {{ filiation.id }} | Certifié et Sécurisé par <strong>Loger Togo Pro (agence.logertogo.com)</strong>.
+            {% if filiation.landlord.agency_rccm %}RCCM : {{ filiation.landlord.agency_rccm }} | {% endif %}
+            {% if filiation.landlord.agency_nif %}NIF : {{ filiation.landlord.agency_nif }} | {% endif %}
+            Réf : BAIL-{{ filiation.id|stringformat:".8s"|upper }} | Certifié par <strong>Loger Togo Pro (agence.logertogo.com)</strong>
         </div>
     {% else %}
         <div class="header">

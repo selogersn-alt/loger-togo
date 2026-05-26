@@ -258,6 +258,14 @@
             </div>
         </div>
 
+        <!-- Breadcrumbs block -->
+        <nav aria-label="breadcrumb" class="mb-4 animated-fade-in" style="margin-top: -1.5rem;">
+            <ol class="breadcrumb m-0" style="font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 500;">
+                <li class="breadcrumb-item"><a href="{% url 'hotel_dashboard' %}" class="text-decoration-none" style="color: var(--rose-accent);"><i class="fa-solid fa-house-chimney me-1"></i> PMS</a></li>
+                {% block breadcrumbs %}{% endblock %}
+            </ol>
+        </nav>
+
         <!-- Alert messages -->
         {% if messages %}
             {% for message in messages %}

@@ -21,8 +21,8 @@ User = get_user_model()
 
 def agency_saas_required(view_func):
     """
-    Decorator to ensure user is logged in and has active SaaS subscription.
-    Otherwise redirects to the agency login page.
+    Decorator to ensure user is logged in, has the AGENCY role, and has an active SaaS subscription.
+    Otherwise redirects to the agency login or promo page.
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
@@ -30,7 +30,7 @@ def agency_saas_required(view_func):
             next_url = request.build_absolute_uri()
             return redirect(f"{reverse('agency_login')}?next={next_url}")
             
-        if not request.user.is_saas_active:
+        if request.user.role != 'AGENCY' or not request.user.is_saas_active:
             # Redirect to agency landing/promo page
             return redirect('agency_promo')
             
@@ -41,9 +41,10 @@ def agency_saas_required(view_func):
 def agency_login(request):
     """
     Premium login view for the agency subdomain.
+    Only allows users with the AGENCY role.
     """
     if request.user.is_authenticated:
-        if request.user.is_saas_active:
+        if request.user.role == 'AGENCY' and request.user.is_saas_active:
             return redirect('agency_dashboard')
         return redirect('agency_promo')
         
@@ -58,14 +59,17 @@ def agency_login(request):
         else:
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                login(request, user, backend='users.backends.PhoneOrEmailBackend')
-                messages.success(request, f"Ravi de vous revoir, {user.get_full_name()} !")
-                
-                if next_url:
-                    return redirect(next_url)
-                if user.is_saas_active:
-                    return redirect('agency_dashboard')
-                return redirect('agency_promo')
+                if user.role != 'AGENCY':
+                    messages.error(request, "Accès refusé : ce compte n'est pas un profil d'Agence Immobilière.")
+                else:
+                    login(request, user, backend='users.backends.PhoneOrEmailBackend')
+                    messages.success(request, f"Ravi de vous revoir, {user.get_full_name()} !")
+                    
+                    if next_url:
+                        return redirect(next_url)
+                    if user.is_saas_active:
+                        return redirect('agency_dashboard')
+                    return redirect('agency_promo')
             else:
                 messages.error(request, "Identifiants incorrects ou compte inexistant.")
                 
@@ -75,16 +79,17 @@ def agency_login(request):
 def agency_register(request):
     """
     Premium registration view for the agency subdomain.
+    Forces role as AGENCY.
     """
     if request.user.is_authenticated:
-        if request.user.is_saas_active:
+        if request.user.role == 'AGENCY' and request.user.is_saas_active:
             return redirect('agency_dashboard')
         return redirect('agency_promo')
         
     if request.method == 'POST':
         phone_number = request.POST.get('phone_number')
         email = request.POST.get('email')
-        role = request.POST.get('role', User.RoleEnum.AGENCY)
+        role = User.RoleEnum.AGENCY # Force AGENCY role
         company_name = request.POST.get('company_name', '')
         first_name = request.POST.get('first_name', '')
         last_name = request.POST.get('last_name', '')

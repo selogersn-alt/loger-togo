@@ -2,6 +2,11 @@
 
 {% block title %}Nouvel Enregistrement | Loger Togo{% endblock %}
 
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'hotel_bookings' %}" class="text-decoration-none" style="color: var(--rose-accent);">Réservations</a></li>
+<li class="breadcrumb-item active text-white-50" aria-current="page">Nouvel Enregistrement</li>
+{% endblock %}
+
 {% block content %}
 <div class="container py-0 animated-fade-in" style="max-width: 900px;">
     <div class="d-flex align-items-center mb-5">

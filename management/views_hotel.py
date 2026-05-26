@@ -17,8 +17,8 @@ def hotel_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('hotel_login')
-        if request.user.role not in ['HOTEL', 'AUBERGE', 'SUB_ADMIN']:
-            messages.error(request, "Accès restreint aux professionnels de l'hôtellerie.")
+        if request.user.role not in ['HOTEL', 'AUBERGE', 'SUB_ADMIN'] or not request.user.is_saas_active:
+            messages.error(request, "Accès restreint aux professionnels de l'hôtellerie avec abonnement actif.")
             return redirect('hotel_promo')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -27,15 +27,18 @@ def hotel_promo(request):
     """
     Landing page for hotels.logertogo.com showing the hotel management software.
     """
-    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE']:
+    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
-    return render(request, 'hotel/hotel_promo.html')
+    
+    # Render purchase or activation banner if logged in but not active
+    is_inactive_user = request.user.is_authenticated and (request.user.role in ['HOTEL', 'AUBERGE']) and not request.user.is_saas_active
+    return render(request, 'hotel/hotel_promo.html', {'is_inactive_user': is_inactive_user})
 
 def hotel_login(request):
     """
     Log in an hotel owner / manager.
     """
-    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE']:
+    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
         
     if request.method == 'POST':
@@ -47,9 +50,11 @@ def hotel_login(request):
             if user.role in ['HOTEL', 'AUBERGE', 'SUB_ADMIN']:
                 login(request, user)
                 messages.success(request, f"Bienvenue, {user.company_name or 'Hôtelier Loger Togo'} !")
-                return redirect('hotel_dashboard')
+                if user.is_saas_active:
+                    return redirect('hotel_dashboard')
+                return redirect('hotel_promo')
             else:
-                messages.error(request, "Ce compte n'est pas un profil Hôtel ou Auberge.")
+                messages.error(request, "Ce compte n'est pas un profil Hôtel ou Auberge. Veuillez utiliser le portail agence.")
         else:
             messages.error(request, "Identifiants invalides.")
             
@@ -59,7 +64,7 @@ def hotel_register(request):
     """
     Sign up a new hotel / auberge.
     """
-    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE']:
+    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
         
     if request.method == 'POST':
@@ -83,11 +88,11 @@ def hotel_register(request):
                     company_name=company_name,
                     role=role,
                     agency_city=city,
-                    is_saas_active=True # Activé par défaut pour test
+                    is_saas_active=False # Activation is done by admin upon subscription!
                 )
                 login(request, user)
-                messages.success(request, "Votre compte Hôtel/Auberge a été créé avec succès !")
-                return redirect('hotel_dashboard')
+                messages.success(request, "Votre compte Établissement a été créé ! En attente d'activation par l'administrateur.")
+                return redirect('hotel_promo')
             except Exception as e:
                 messages.error(request, f"Erreur lors de l'inscription : {e}")
                 

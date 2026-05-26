@@ -2,6 +2,11 @@
 
 {% block title %}{% if is_create %}Ajouter une Chambre{% else %}Modifier la Chambre {{ room.room_number }}{% endif %} | Loger Togo{% endblock %}
 
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'hotel_rooms' %}" class="text-decoration-none" style="color: var(--rose-accent);">Chambres</a></li>
+<li class="breadcrumb-item active text-white-50" aria-current="page">{% if is_create %}Ajouter{% else %}Modifier {{ room.room_number }}{% endif %}</li>
+{% endblock %}
+
 {% block content %}
 <div class="container py-0 animated-fade-in" style="max-width: 800px;">
     <div class="d-flex align-items-center mb-5">

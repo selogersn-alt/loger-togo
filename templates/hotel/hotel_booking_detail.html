@@ -3,6 +3,11 @@
 
 {% block title %}Folio Client #{{ booking.id|stringformat:"s"|slice:":8" }} | Loger Togo{% endblock %}
 
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'hotel_bookings' %}" class="text-decoration-none" style="color: var(--rose-accent);">Réservations</a></li>
+<li class="breadcrumb-item active text-white-50" aria-current="page">Folio #{{ booking.id|stringformat:"s"|slice:":8" }}</li>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     @media print {

@@ -2,9 +2,16 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from management import views_hotel
+from django.contrib.sitemaps.views import sitemap
+from logersn.sitemaps_hotel import HotelStaticSitemap
+
+sitemaps = {
+    'hotel_static': HotelStaticSitemap,
+}
 
 urlpatterns = [
     path('', views_hotel.hotel_promo, name='hotel_promo'),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('connexion/', views_hotel.hotel_login, name='hotel_login'),
     path('inscription/', views_hotel.hotel_register, name='hotel_register'),
     path('deconnexion/', views_hotel.hotel_logout, name='hotel_logout'),

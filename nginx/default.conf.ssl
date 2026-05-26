@@ -7,7 +7,7 @@ server {
 
 server {
     listen 80;
-    server_name logertogo.com www.logertogo.com agence.logertogo.com;
+    server_name logertogo.com www.logertogo.com agence.logertogo.com hotels.logertogo.com;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -20,7 +20,7 @@ server {
 
 server {
     listen 443 ssl;
-    server_name logertogo.com www.logertogo.com agence.logertogo.com;
+    server_name logertogo.com www.logertogo.com agence.logertogo.com hotels.logertogo.com;
 
     ssl_certificate /etc/letsencrypt/live/logertogo.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/logertogo.com/privkey.pem;

@@ -20,7 +20,8 @@ def deploy_to_hetzner():
             "cd /app && docker compose up -d --build web",
             "cd /app && docker compose exec web python manage.py migrate",
             "cd /app && docker compose exec web python scripts/populate_templates.py",
-            "cd /app && docker compose restart web"
+            "cd /app && docker compose restart web",
+            "cd /app && docker compose restart nginx"
         ]
         
         for command in commands:

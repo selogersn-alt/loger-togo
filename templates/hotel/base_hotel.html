@@ -235,6 +235,11 @@
             <a class="nav-item-link {% if request.resolver_match.url_name == 'hotel_profile' %}active{% endif %}" href="{% url 'hotel_profile' %}">
                 <i class="fa-solid fa-gear"></i>Profil Hôtel
             </a>
+            {% if not request.actual_user %}
+            <a class="nav-item-link {% if 'collaborateurs' in request.path %}active{% endif %}" href="{% url 'hotel_sub_agents' %}">
+                <i class="fa-solid fa-users-gear"></i>Mes Collaborateurs
+            </a>
+            {% endif %}
             <hr style="border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 2rem 0;">
             
             <a class="nav-item-link" href="https://logertogo.com" target="_blank">

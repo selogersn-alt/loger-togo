@@ -22,7 +22,7 @@ User = get_user_model()
 def agency_saas_required(view_func):
     """
     Decorator to ensure user is logged in, has the AGENCY role, and has an active SaaS subscription.
-    Otherwise redirects to the agency login or promo page.
+    Otherwise redirects to the agency login or promo page. Supports sub-agents (AGENT with parent_agency).
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
@@ -30,9 +30,22 @@ def agency_saas_required(view_func):
             next_url = request.build_absolute_uri()
             return redirect(f"{reverse('agency_login')}?next={next_url}")
             
-        if request.user.role != 'AGENCY' or not request.user.is_saas_active:
+        user = request.user
+        is_allowed = False
+        
+        if user.role == 'AGENCY' and user.is_saas_active:
+            is_allowed = True
+        elif user.role == 'AGENT' and user.parent_agency and user.parent_agency.role == 'AGENCY' and user.parent_agency.is_saas_active:
+            is_allowed = True
+            
+        if not is_allowed:
             # Redirect to agency landing/promo page
             return redirect('agency_promo')
+            
+        # Delegate context: Swap request.user with parent if it is a sub-agent
+        if user.role == 'AGENT' and user.parent_agency:
+            request.actual_user = user
+            request.user = user.parent_agency
             
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -1400,5 +1413,76 @@ def agency_inventory_detail(request, inventory_id):
         'details': details,
     }
     return render(request, 'agency/agency_inventory_detail.html', context)
+
+
+@login_required
+@agency_saas_required
+def agency_sub_agents(request):
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les administrateurs de l'agence peuvent gérer les collaborateurs.")
+        return redirect('agency_dashboard')
+        
+    agency = request.user
+    staff = User.objects.filter(parent_agency=agency, role='AGENT')
+    staff_count = staff.count()
+    
+    if request.method == 'POST':
+        if staff_count >= 5:
+            messages.error(request, "Limite de collaborateurs atteinte. Vous ne pouvez pas ajouter plus de 5 sous-agents.")
+            return redirect('agency_sub_agents')
+            
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone = request.POST.get('phone_number')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+        
+        if first_name and last_name and phone and password:
+            try:
+                phone_clean = phone.replace(' ', '').replace('-', '')
+                if not phone_clean.startswith('+') and len(phone_clean) == 8:
+                    phone_clean = '+228' + phone_clean
+                elif not phone_clean.startswith('+') and len(phone_clean) == 12 and phone_clean.startswith('228'):
+                    phone_clean = '+' + phone_clean
+                
+                if User.objects.filter(phone_number=phone_clean).exists():
+                    messages.error(request, "Un utilisateur existe déjà avec ce numéro de téléphone.")
+                else:
+                    new_agent = User.objects.create_user(
+                        phone_number=phone_clean,
+                        password=password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email if email else None,
+                        role='AGENT',
+                        parent_agency=agency,
+                        is_saas_active=True
+                    )
+                    messages.success(request, f"Collaborateur {new_agent.get_full_name()} créé avec succès !")
+                    return redirect('agency_sub_agents')
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la création : {e}")
+        else:
+            messages.error(request, "Veuillez renseigner tous les champs obligatoires.")
+            
+    context = {
+        'staff': staff,
+        'staff_count': staff_count,
+    }
+    return render(request, 'agency/agency_sub_agents.html', context)
+
+
+@login_required
+@agency_saas_required
+def agency_sub_agent_delete(request, agent_id):
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les administrateurs de l'agence peuvent gérer les collaborateurs.")
+        return redirect('agency_dashboard')
+        
+    agency = request.user
+    agent = get_object_or_404(User, id=agent_id, parent_agency=agency, role='AGENT')
+    agent.delete()
+    messages.success(request, f"Collaborateur supprimé avec succès.")
+    return redirect('agency_sub_agents')
 
 

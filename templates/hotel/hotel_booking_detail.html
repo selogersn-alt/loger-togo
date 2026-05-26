@@ -1,20 +1,61 @@
 {% extends 'hotel/base_hotel.html' %}
 {% load humanize %}
 
-{% block title %}Folio Client #{{ booking.id|stringformat:"s"|slice:":8" }} | Loger Togo{% endblock %}
+{% block title %}Folio Client #{{ booking.unique_ref }} | Loger Togo{% endblock %}
 
 {% block breadcrumbs %}
 <li class="breadcrumb-item"><a href="{% url 'hotel_bookings' %}" class="text-decoration-none" style="color: var(--rose-accent);">Réservations</a></li>
-<li class="breadcrumb-item active text-white-50" aria-current="page">Folio #{{ booking.id|stringformat:"s"|slice:":8" }}</li>
+<li class="breadcrumb-item active text-white-50" aria-current="page">Folio #{{ booking.unique_ref }}</li>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+    
+    .document-watermark {
+        position: absolute;
+        top: 45%;
+        left: 5%;
+        width: 90%;
+        text-align: center;
+        font-size: 3.5rem;
+        color: rgba(128, 0, 32, 0.15); /* 15% opacity primary burgundy */
+        font-weight: bold;
+        transform: rotate(-30deg);
+        z-index: -1000;
+        pointer-events: none;
+        white-space: nowrap;
+        text-transform: uppercase;
+    }
+    
+    .barcode-container {
+        font-family: 'Libre Barcode 39', cursive, monospace;
+        font-size: 38px;
+        text-align: center;
+        margin-top: 15px;
+        color: #222;
+    }
+    
+    .barcode-label {
+        font-size: 9px;
+        text-align: center;
+        letter-spacing: 2px;
+        color: #666;
+        text-transform: uppercase;
+    }
+
     @media print {
         body * { visibility: hidden; }
         .invoice-print, .invoice-print * { visibility: visible; }
         .invoice-print { position: absolute; left: 0; top: 0; width: 100%; }
         .no-print { display: none !important; }
+        .d-print-block { display: block !important; }
+        
+        body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            background-color: #ffffff !important;
+        }
     }
 </style>
 {% endblock %}
@@ -29,7 +70,7 @@
             </a>
             <div>
                 <h2 class="font-luxury m-0" style="color: var(--primary-luxury);">Folio Voyageur / Facturation</h2>
-                <p class="text-muted m-0">Gérez le séjour, facturez des extras et encaissez le règlement final.</p>
+                <p class="text-muted m-0">Réf : <strong class="text-dark">{{ booking.unique_ref }}</strong> | Gérez le séjour, facturez des extras et encaissez le règlement final.</p>
             </div>
         </div>
         
@@ -54,7 +95,26 @@
     </div>
 
     <!-- Main Grid -->
-    <div class="row g-4 invoice-print">
+    <div class="row g-4 invoice-print" style="position: relative;">
+        <!-- Watermark -->
+        <div class="document-watermark">
+            {{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}
+        </div>
+
+        <!-- Print-only Elegant Header -->
+        <div class="d-none d-print-block col-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3" style="border-color: var(--rose-accent) !important;">
+                <div>
+                    <h1 class="font-luxury m-0" style="color: var(--primary-luxury); font-size: 2.5rem;">{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</h1>
+                    <p class="text-muted m-0 small"><i class="fa-solid fa-hotel me-1 text-danger"></i> PMS Hôtelier - Loger Togo SaaS</p>
+                </div>
+                <div class="text-end">
+                    <h4 class="font-luxury m-0" style="color: var(--rose-accent);">FACTURE / FOLIO Voyageur</h4>
+                    <p class="m-0 fw-bold text-dark">Réf : {{ booking.unique_ref }}</p>
+                    <p class="text-muted m-0 small">Date : {% now "d/m/Y H:i" %}</p>
+                </div>
+            </div>
+        </div>
         <!-- Guest and Room Information card -->
         <div class="col-lg-8">
             <div class="card-luxury p-4 mb-4 bg-white">
@@ -243,6 +303,17 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Print-only Footer with Barcode & Watermark -->
+        <div class="d-none d-print-block col-12 mt-5 text-center border-top pt-4" style="border-color: rgba(0,0,0,0.1) !important;">
+            <div class="barcode-container">*{{ booking.unique_ref }}*</div>
+            <div class="barcode-label">Référence Réservation : {{ booking.unique_ref }}</div>
+            
+            <div class="mt-3 text-muted small">
+                Facture générée par <strong>{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</strong> via Loger Togo PMS.<br>
+                DigitalH Group - Lomé, Togo
             </div>
         </div>
     </div>

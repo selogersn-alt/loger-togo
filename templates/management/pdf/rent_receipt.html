@@ -77,9 +77,46 @@
             display: inline-block;
             margin-top: 50px;
         }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+        
+        .document-watermark {
+            position: absolute;
+            top: 45%;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 3.5rem;
+            color: rgba(17, 70, 41, 0.15);
+            font-weight: bold;
+            transform: rotate(-30deg);
+            z-index: -1000;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+        
+        .barcode-container {
+            font-family: 'Libre Barcode 39', cursive, monospace;
+            font-size: 38px;
+            text-align: center;
+            margin-top: 15px;
+            color: #222;
+        }
+        .barcode-label {
+            font-size: 9px;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
+    <div class="document-watermark">
+        {{ lease.landlord.company_name|default:lease.landlord.get_full_name }}
+    </div>
+
     <div class="header">
         <h1>Quittance de Loyer</h1>
         <p>Loger Togo - Gestion Immobilière DigitalH</p>
@@ -127,7 +164,12 @@
         <div class="signature-line"></div>
     </div>
 
-    <div class="footer">
+    <div style="margin-top: 30px; text-align: center; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+        <div class="barcode-container">*{{ payment.unique_ref }}*</div>
+        <div class="barcode-label">Référence Quittance : {{ payment.unique_ref }}</div>
+    </div>
+
+    <div class="footer" style="margin-top: 20px;">
         <p>Généré par <strong>Loger Togo</strong> - Plateforme n°1 de l'immobilier au Togo.</p>
         <p>DigitalH Group - Lomé, Togo</p>
     </div>

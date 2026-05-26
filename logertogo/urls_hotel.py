@@ -42,6 +42,10 @@ urlpatterns = [
     path('shifts/', views_hotel.hotel_shifts, name='hotel_shifts'),
     path('shifts/ouvrir/', views_hotel.hotel_shift_open, name='hotel_shift_open'),
     path('shifts/<uuid:shift_id>/cloturer/', views_hotel.hotel_shift_close, name='hotel_shift_close'),
+    
+    # Collaborators / Sub-agents Management
+    path('collaborateurs/', views_hotel.hotel_sub_agents, name='hotel_sub_agents'),
+    path('collaborateurs/<uuid:agent_id>/supprimer/', views_hotel.hotel_sub_agent_delete, name='hotel_sub_agent_delete'),
 ]
 
 if settings.DEBUG:

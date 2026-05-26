@@ -164,9 +164,45 @@
             padding-top: 8px;
             margin-top: 16px;
         }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+        
+        .document-watermark {
+            position: absolute;
+            top: 45%;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 3.5rem;
+            color: rgba(11, 89, 52, 0.15); /* emerald green with 15% transparency */
+            font-weight: bold;
+            transform: rotate(-30deg);
+            z-index: -1000;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+        
+        .barcode-container {
+            font-family: 'Libre Barcode 39', cursive, monospace;
+            font-size: 38px;
+            text-align: center;
+            margin-top: 15px;
+            color: #222;
+        }
+        .barcode-label {
+            font-size: 9px;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
+    <div class="document-watermark">
+        {{ agency.company_name|default:agency.get_full_name }}
+    </div>
 
     <!-- AGENCY HEADER -->
     <table class="agency-header-table" cellpadding="0" cellspacing="0">
@@ -315,11 +351,17 @@
         </tr>
     </table>
 
+    <!-- BARCODE -->
+    <div style="margin-top: 25px; text-align: center; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+        <div class="barcode-container">*{{ payment.unique_ref }}*</div>
+        <div class="barcode-label">Référence Quittance : {{ payment.unique_ref }}</div>
+    </div>
+
     <!-- FOOTER -->
-    <div class="footer">
+    <div class="footer" style="margin-top: 15px;">
         {% if agency.agency_rccm %}RCCM : {{ agency.agency_rccm }} | {% endif %}
         {% if agency.agency_nif %}NIF : {{ agency.agency_nif }} | {% endif %}
-        Document Réf : QLT-{{ payment.id|stringformat:".8s"|upper }} | {{ today.year }} {{ agency.company_name|default:"Loger Togo Pro" }}
+        Document Réf : {{ payment.unique_ref }} | {{ today.year }} {{ agency.company_name|default:"Loger Togo Pro" }}
     </div>
 
 </body>

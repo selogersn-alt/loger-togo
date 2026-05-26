@@ -26,6 +26,11 @@ class UserAdmin(BaseUserAdmin):
     ]
     ordering = ('-date_joined',)
     
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Exclude sub-agents from general Django admin visibility
+        return qs.exclude(role='AGENT', parent_agency__isnull=False).exclude(role='AGENT', parent_hotel__isnull=False)
+    
     fieldsets = (
         ('Informations de Connexion', {'fields': ('phone_number', 'email', 'password')}),
         ('Vérification & Sécurité', {'fields': ('phone_otp', 'is_phone_verified')}),

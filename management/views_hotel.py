@@ -17,9 +17,24 @@ def hotel_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('hotel_login')
-        if request.user.role not in ['HOTEL', 'AUBERGE', 'SUB_ADMIN'] or not request.user.is_saas_active:
+        
+        user = request.user
+        is_allowed = False
+        
+        if user.role in ['HOTEL', 'AUBERGE', 'SUB_ADMIN'] and user.is_saas_active:
+            is_allowed = True
+        elif user.role == 'AGENT' and user.parent_hotel and user.parent_hotel.role in ['HOTEL', 'AUBERGE'] and user.parent_hotel.is_saas_active:
+            is_allowed = True
+            
+        if not is_allowed:
             messages.error(request, "Accès restreint aux professionnels de l'hôtellerie avec abonnement actif.")
             return redirect('hotel_promo')
+            
+        # Delegate context: Swap request.user with parent if it is a sub-agent
+        if user.role == 'AGENT' and user.parent_hotel:
+            request.actual_user = user
+            request.user = user.parent_hotel
+            
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
@@ -761,7 +776,7 @@ def hotel_shift_open(request):
         try:
             HotelShift.objects.create(
                 hotel=hotel,
-                receptionist=request.user,
+                receptionist=getattr(request, 'actual_user', request.user),
                 initial_cash=Decimal(initial_cash),
                 is_closed=False
             )
@@ -791,6 +806,77 @@ def hotel_shift_close(request, shift_id):
             messages.error(request, f"Erreur de clôture : {e}")
             
     return redirect('hotel_shifts')
+
+
+@login_required
+@hotel_required
+def hotel_sub_agents(request):
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les administrateurs de l'hôtel peuvent gérer les collaborateurs.")
+        return redirect('hotel_dashboard')
+        
+    hotel = request.user
+    staff = User.objects.filter(parent_hotel=hotel, role='AGENT')
+    staff_count = staff.count()
+    
+    if request.method == 'POST':
+        if staff_count >= 5:
+            messages.error(request, "Limite de collaborateurs atteinte. Vous ne pouvez pas ajouter plus de 5 sous-agents.")
+            return redirect('hotel_sub_agents')
+            
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone = request.POST.get('phone_number')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+        
+        if first_name and last_name and phone and password:
+            try:
+                phone_clean = phone.replace(' ', '').replace('-', '')
+                if not phone_clean.startswith('+') and len(phone_clean) == 8:
+                    phone_clean = '+228' + phone_clean
+                elif not phone_clean.startswith('+') and len(phone_clean) == 12 and phone_clean.startswith('228'):
+                    phone_clean = '+' + phone_clean
+                
+                if User.objects.filter(phone_number=phone_clean).exists():
+                    messages.error(request, "Un utilisateur existe déjà avec ce numéro de téléphone.")
+                else:
+                    new_agent = User.objects.create_user(
+                        phone_number=phone_clean,
+                        password=password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email if email else None,
+                        role='AGENT',
+                        parent_hotel=hotel,
+                        is_saas_active=True
+                    )
+                    messages.success(request, f"Collaborateur {new_agent.get_full_name()} créé avec succès !")
+                    return redirect('hotel_sub_agents')
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la création : {e}")
+        else:
+            messages.error(request, "Veuillez renseigner tous les champs obligatoires.")
+            
+    context = {
+        'staff': staff,
+        'staff_count': staff_count,
+    }
+    return render(request, 'hotel/hotel_sub_agents.html', context)
+
+
+@login_required
+@hotel_required
+def hotel_sub_agent_delete(request, agent_id):
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les administrateurs de l'hôtel peuvent gérer les collaborateurs.")
+        return redirect('hotel_dashboard')
+        
+    hotel = request.user
+    agent = get_object_or_404(User, id=agent_id, parent_hotel=hotel, role='AGENT')
+    agent.delete()
+    messages.success(request, f"Collaborateur supprimé avec succès.")
+    return redirect('hotel_sub_agents')
 
 
 # --- Dynamic Subdomain Error Handlers ---

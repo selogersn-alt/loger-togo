@@ -1,4 +1,5 @@
 import uuid
+import builtins
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
@@ -67,6 +68,11 @@ class Lease(models.Model):
     def __str__(self):
         return f"Bail: {self.property.title} - {self.tenant.get_full_name()}"
 
+    @builtins.property
+    def unique_ref(self):
+        """Référence unique du contrat de bail"""
+        return f"CTR-{str(self.id)[:8].upper()}"
+
 class RentPayment(models.Model):
     """
     Suivi des paiements de loyer pour un bail.
@@ -105,6 +111,11 @@ class RentPayment(models.Model):
     def __str__(self):
         return f"Loyer {self.period_start.strftime('%m/%Y')} - {self.lease.tenant}"
 
+    @builtins.property
+    def unique_ref(self):
+        """Référence unique de la quittance de loyer"""
+        return f"QTC-{str(self.id)[:8].upper()}"
+
 class MaintenanceRequest(models.Model):
     """
     Demandes d'entretien ou incidents signalés par le locataire.
@@ -140,6 +151,11 @@ class MaintenanceRequest(models.Model):
 
     def __str__(self):
         return f"Incident: {self.title} ({self.get_status_display()})"
+
+    @builtins.property
+    def unique_ref(self):
+        """Référence unique du ticket d'incident"""
+        return f"TKT-{str(self.id)[:8].upper()}"
 
 class TenantDocument(models.Model):
     """
@@ -351,6 +367,12 @@ class HotelBooking(models.Model):
     @property
     def balance_due(self):
         return self.total_amount - self.amount_paid
+
+    @builtins.property
+    def unique_ref(self):
+        """Référence unique de la réservation hôtelière"""
+        return f"RES-{str(self.id)[:8].upper()}"
+
 
 
 class HotelChargeItem(models.Model):

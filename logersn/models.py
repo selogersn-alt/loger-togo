@@ -186,6 +186,11 @@ class Property(models.Model):
         # Placeholder neutre et professionnel aux couleurs de la marque
         return "https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=1000&auto=format&fit=crop"
 
+    @property
+    def unique_ref(self):
+        """Identité unique du bien immobilier"""
+        return f"BIEN-{str(self.id)[:8].upper()}"
+
 class PropertyImage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')

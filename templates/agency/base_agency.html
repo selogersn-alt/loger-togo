@@ -601,6 +601,14 @@
                         <span>Profil Agence</span>
                     </a>
                 </li>
+                {% if not request.actual_user %}
+                <li class="{% if 'collaborateurs' in request.path %}active{% endif %}">
+                    <a href="{% url 'agency_sub_agents' %}">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <span>Mes Collaborateurs</span>
+                    </a>
+                </li>
+                {% endif %}
                 <li style="margin-top: auto; border-top: 1px solid var(--border-glass); padding-top: 1rem;">
                     <a href="https://logertogo.com/mon-compte/" target="_blank">
                         <i class="fa-solid fa-globe"></i>

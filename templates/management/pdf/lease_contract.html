@@ -51,9 +51,46 @@
         .signature-space {
             height: 100px;
         }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+        
+        .document-watermark {
+            position: absolute;
+            top: 45%;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 3.5rem;
+            color: rgba(21, 115, 71, 0.15);
+            font-weight: bold;
+            transform: rotate(-30deg);
+            z-index: -1000;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+        
+        .barcode-container {
+            font-family: 'Libre Barcode 39', cursive, monospace;
+            font-size: 38px;
+            text-align: center;
+            margin-top: 15px;
+            color: #222;
+        }
+        .barcode-label {
+            font-size: 9px;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
+    <div class="document-watermark">
+        {{ lease.landlord.company_name|default:lease.landlord.get_full_name }}
+    </div>
+
     <table style="width: 100%; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 10px;">
         <tr>
             <td style="width: 25%; vertical-align: middle;">
@@ -141,7 +178,12 @@
         </tr>
     </table>
 
-    <div class="footer">
+    <div style="margin-top: 30px; text-align: center; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+        <div class="barcode-container">*{{ lease.unique_ref }}*</div>
+        <div class="barcode-label">Référence Contrat : {{ lease.unique_ref }}</div>
+    </div>
+
+    <div class="footer" style="margin-top: 20px;">
         Document généré par la plateforme Loger Togo (DigitalH Group). 
         La validité juridique est soumise à la signature manuscrite des parties.
     </div>

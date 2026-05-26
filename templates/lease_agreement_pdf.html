@@ -92,9 +92,46 @@
             font-size: 8pt;
             font-weight: bold;
         }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+        
+        .document-watermark {
+            position: absolute;
+            top: 45%;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 3.5rem;
+            color: rgba(11, 89, 52, 0.15); /* emerald green 15% transparency */
+            font-weight: bold;
+            transform: rotate(-30deg);
+            z-index: -1000;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+        
+        .barcode-container {
+            font-family: 'Libre Barcode 39', cursive, monospace;
+            font-size: 38px;
+            text-align: center;
+            margin-top: 15px;
+            color: #222;
+        }
+        .barcode-label {
+            font-size: 9px;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
+    <div class="document-watermark">
+        {{ filiation.landlord.company_name|default:filiation.landlord.get_full_name }}
+    </div>
+
     {% if compiled_content %}
         <!-- AGENCY HEADER BAND -->
         <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0B4629;padding-bottom:15px;margin-bottom:20px;">
@@ -120,7 +157,7 @@
             <div style="text-align:right;">
                 <div style="font-size:14pt;font-weight:800;text-transform:uppercase;color:#0B4629;">Contrat de Location</div>
                 <div style="font-size:9pt;color:#888;margin-top:4px;">à usage d'habitation</div>
-                <div style="font-size:8pt;color:#aaa;margin-top:8px;">Réf: BAIL-{{ filiation.id|stringformat:".8s"|upper }}</div>
+                <div style="font-size:8pt;color:#aaa;margin-top:8px;">Réf: {{ filiation.unique_ref }}</div>
                 <div style="font-size:8pt;color:#aaa;">Établi le : {{ today|date:"d/m/Y" }}</div>
             </div>
         </div>
@@ -142,10 +179,15 @@
             </tr>
         </table>
 
-        <div class="footer" style="margin-top: 30px;">
+        <div style="margin-top: 30px; text-align: center; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+            <div class="barcode-container">*{{ filiation.unique_ref }}*</div>
+            <div class="barcode-label">Référence Contrat : {{ filiation.unique_ref }}</div>
+        </div>
+
+        <div class="footer" style="margin-top: 20px;">
             {% if filiation.landlord.agency_rccm %}RCCM : {{ filiation.landlord.agency_rccm }} | {% endif %}
             {% if filiation.landlord.agency_nif %}NIF : {{ filiation.landlord.agency_nif }} | {% endif %}
-            Réf : BAIL-{{ filiation.id|stringformat:".8s"|upper }} | Certifié par <strong>Loger Togo Pro (agence.logertogo.com)</strong>
+            Réf : {{ filiation.unique_ref }} | Certifié par <strong>Loger Togo Pro (agence.logertogo.com)</strong>
         </div>
     {% else %}
         <div class="header">
@@ -220,9 +262,14 @@
             </table>
         </div>
 
-        <div class="footer">
-            Document ID: SOLV-{{ filiation.id }}<br>
-            <strong>Loger Togo Togo (DigitalH)</strong> - www.Logertogo.com - La Trust-Tech Immobilière.
+        <div style="margin-top: 30px; text-align: center; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 15px;">
+            <div class="barcode-container">*{{ filiation.unique_ref }}*</div>
+            <div class="barcode-label">Référence Contrat : {{ filiation.unique_ref }}</div>
+        </div>
+
+        <div class="footer" style="margin-top: 20px;">
+            Réf : {{ filiation.unique_ref }}<br>
+            <strong>Loger Togo (DigitalH)</strong> - www.Logertogo.com - La Trust-Tech Immobilière.
         </div>
     {% endif %}
 </body>

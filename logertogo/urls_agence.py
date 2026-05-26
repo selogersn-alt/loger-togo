@@ -46,6 +46,10 @@ urlpatterns = [
     path('biens/nouveau/', views_agency.agency_property_create, name='agency_property_create'),
     path('biens/<uuid:property_id>/modifier/', views_agency.agency_property_edit, name='agency_property_edit'),
     path('biens/<uuid:property_id>/publication/', views_agency.agency_property_toggle_publication, name='agency_property_toggle_publication'),
+    
+    # Collaborators / Sub-agents Management
+    path('collaborateurs/', views_agency.agency_sub_agents, name='agency_sub_agents'),
+    path('collaborateurs/<uuid:agent_id>/supprimer/', views_agency.agency_sub_agent_delete, name='agency_sub_agent_delete'),
 ]
 
 # Ensure static & media urls work under the subdomain as well

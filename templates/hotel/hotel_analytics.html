@@ -1,0 +1,128 @@
+{% extends 'hotel/base_hotel.html' %}
+
+{% block title %}Analyses & Métriques Hôtelières | Loger Togo{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active text-white-50" aria-current="page">Analyses & Performance</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 animated-fade-in">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h2 class="font-luxury" style="color: var(--primary-luxury);">Analyses & Performance</h2>
+            <p class="text-muted m-0">Indicateurs clés de performance et rentabilité de votre établissement pour <strong>{{ month_name }} {{ year }}</strong>.</p>
+        </div>
+    </div>
+
+    <!-- Premium KPIs Grid -->
+    <div class="row g-4 mb-5">
+        <!-- RevPAR Widget -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card-luxury p-4 h-100 text-center border-start border-3 border-danger">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background-color: var(--rose-light); color: var(--primary-luxury);">
+                    <i class="fa-solid fa-chart-line fs-5"></i>
+                </div>
+                <h5 class="text-muted small text-uppercase fw-bold m-0" style="letter-spacing: 0.5px;">RevPAR</h5>
+                <h3 class="fw-black mt-2 mb-1 text-dark">{{ revpar|floatformat:0 }} F</h3>
+                <small class="text-muted text-center" style="font-size: 0.7rem;">Revenu Moyen Par Chambre Disponible</small>
+            </div>
+        </div>
+
+        <!-- ADR Widget -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card-luxury p-4 h-100 text-center border-start border-3 border-danger">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background-color: var(--rose-light); color: var(--primary-luxury);">
+                    <i class="fa-solid fa-calculator fs-5"></i>
+                </div>
+                <h5 class="text-muted small text-uppercase fw-bold m-0" style="letter-spacing: 0.5px;">ADR (Tarif Moyen)</h5>
+                <h3 class="fw-black mt-2 mb-1 text-dark">{{ adr|floatformat:0 }} F</h3>
+                <small class="text-muted text-center" style="font-size: 0.7rem;">Tarif Journalier Moyen Occupé</small>
+            </div>
+        </div>
+
+        <!-- Occupancy Rate Widget -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card-luxury p-4 h-100 text-center border-start border-3 border-danger">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background-color: var(--rose-light); color: var(--primary-luxury);">
+                    <i class="fa-solid fa-percent fs-5"></i>
+                </div>
+                <h5 class="text-muted small text-uppercase fw-bold m-0" style="letter-spacing: 0.5px;">Taux d'Occupation</h5>
+                <h3 class="fw-black mt-2 mb-1 text-danger">{{ occupancy_rate }}%</h3>
+                <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
+                    <div class="progress-bar" role="progressbar" style="width: {{ occupancy_rate }}%; background-color: var(--rose-accent);" aria-valuenow="{{ occupancy_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue Widget -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card-luxury p-4 h-100 text-center border-start border-3 border-danger">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background-color: #E8F5E9; color: var(--success-color);">
+                    <i class="fa-solid fa-wallet fs-5"></i>
+                </div>
+                <h5 class="text-muted small text-uppercase fw-bold m-0" style="letter-spacing: 0.5px;">Chiffre d'Affaires</h5>
+                <h3 class="fw-black mt-2 mb-1 text-success">{{ total_revenue|floatformat:0 }} F</h3>
+                <small class="text-muted text-center" style="font-size: 0.7rem;">Total des encaissements ce mois</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Breakdown & Statistics Charts -->
+    <div class="row g-4 mb-5">
+        <!-- Monthly Growth (SVG Columns Chart) -->
+        <div class="col-lg-7">
+            <div class="card-luxury p-4 h-100 bg-white">
+                <h5 class="font-luxury mb-4" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;"><i class="fa-solid fa-chart-column me-2 text-danger"></i> Historique des Encaissements (6 derniers mois)</h5>
+                
+                <div class="d-flex justify-content-between align-items-end h-300 px-3 py-4 bg-light rounded-4" style="height: 250px;">
+                    {% for m_rev in growth_chart_data %}
+                    <div class="d-flex flex-column align-items-center h-100 justify-content-end" style="width: 14%;">
+                        <span class="small fw-bold text-dark mb-2" style="font-size: 0.7rem;">{{ m_rev.value|floatformat:0 }} F</span>
+                        <!-- Calculate responsive height using pure inline style -->
+                        <div class="w-100 rounded-top-3 animated-fade-in" 
+                             style="
+                                 height: {% if m_rev.value > 0 %}calc(150px * ({{ m_rev.value }} / {{ total_revenue|default:1000000 }}) + 10px){% else %}10px{% endif %};
+                                 background: linear-gradient(to top, var(--primary-luxury), var(--rose-accent));
+                                 transition: height 0.5s ease;
+                             "></div>
+                        <span class="text-muted small mt-2 fw-semibold" style="font-size: 0.65rem; white-space: nowrap;">{{ m_rev.label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- POS Extras breakdown (Progress list card) -->
+        <div class="col-lg-5">
+            <div class="card-luxury p-4 h-100 bg-white">
+                <h5 class="font-luxury mb-4" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;"><i class="fa-solid fa-pizza-slice me-2 text-danger"></i> Répartition des Ventes POS & Extras</h5>
+                
+                <div class="d-flex flex-column gap-4">
+                    {% for cat_label, cat_val in categories.items %}
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold text-dark small">{{ cat_label }}</span>
+                            <span class="fw-bold text-dark small">{{ cat_val|floatformat:0 }} FCFA</span>
+                        </div>
+                        <div class="progress" style="height: 8px; border-radius: 20px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="
+                                     width: {% if extra_revenue > 0 %}calc(({{ cat_val }} / {{ extra_revenue }}) * 100%){% else %}0%{% endif %};
+                                     background-color: var(--rose-accent);
+                                 " 
+                                 aria-valuenow="{{ cat_val }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="bg-light rounded-4 p-3 mt-4 text-center">
+                    <span class="text-muted small d-block">TOTAL CHIFFRE D'AFFAIRES EXTRAS</span>
+                    <h4 class="fw-black text-danger m-0 mt-1">{{ extra_revenue|floatformat:0 }} FCFA</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

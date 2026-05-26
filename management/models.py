@@ -332,6 +332,7 @@ class HotelBooking(models.Model):
     
     payment_method = models.CharField(max_length=50, blank=True, null=True, verbose_name="Mode de paiement")
     notes = models.TextField(blank=True, null=True, verbose_name="Notes / Demandes spéciales")
+    shift = models.ForeignKey('HotelShift', on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings', verbose_name="Shift de caisse")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -363,4 +364,27 @@ class HotelChargeItem(models.Model):
     @property
     def total_price(self):
         return self.quantity * self.price
+
+
+class HotelShift(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hotel = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hotel_shifts', verbose_name="Établissement")
+    receptionist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receptionist_shifts', verbose_name="Réceptionniste")
+    start_time = models.DateTimeField(auto_now_add=True, verbose_name="Date/Heure d'ouverture")
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name="Date/Heure de clôture")
+    initial_cash = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Fonds de caisse initial (FCFA)", validators=[MinValueValidator(0)])
+    actual_cash = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name="Espèces réelles comptées (FCFA)", validators=[MinValueValidator(0)])
+    is_closed = models.BooleanField(default=False, verbose_name="Shift clôturé")
+    notes = models.TextField(blank=True, null=True, verbose_name="Notes / Observations de passation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Shift de Caisse"
+        verbose_name_plural = "Shifts de Caisse"
+        ordering = ['-start_time']
+
+    def __str__(self):
+        return f"Shift {self.receptionist.get_full_name()} du {self.start_time.strftime('%d/%m/%Y %H:%M')}"
+
 

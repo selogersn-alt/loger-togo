@@ -33,6 +33,15 @@ urlpatterns = [
     
     # Profile / Establishment Settings
     path('profil/', views_hotel.hotel_profile, name='hotel_profile'),
+    
+    # Visual Planning & Analytics
+    path('planning/', views_hotel.hotel_planning, name='hotel_planning'),
+    path('analyses/', views_hotel.hotel_analytics, name='hotel_analytics'),
+    
+    # Shifts & Reception Cash Register
+    path('shifts/', views_hotel.hotel_shifts, name='hotel_shifts'),
+    path('shifts/ouvrir/', views_hotel.hotel_shift_open, name='hotel_shift_open'),
+    path('shifts/<uuid:shift_id>/cloturer/', views_hotel.hotel_shift_close, name='hotel_shift_close'),
 ]
 
 if settings.DEBUG:

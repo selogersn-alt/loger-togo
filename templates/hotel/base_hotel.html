@@ -223,6 +223,15 @@
             <a class="nav-item-link {% if 'reservations' in request.path %}active{% endif %}" href="{% url 'hotel_bookings' %}">
                 <i class="fa-solid fa-calendar-check"></i>Réservations & POS
             </a>
+            <a class="nav-item-link {% if 'planning' in request.path %}active{% endif %}" href="{% url 'hotel_planning' %}">
+                <i class="fa-solid fa-calendar-days"></i>Planning Graphique
+            </a>
+            <a class="nav-item-link {% if 'analyses' in request.path %}active{% endif %}" href="{% url 'hotel_analytics' %}">
+                <i class="fa-solid fa-chart-line"></i>Analyses & Rapports
+            </a>
+            <a class="nav-item-link {% if 'shifts' in request.path %}active{% endif %}" href="{% url 'hotel_shifts' %}">
+                <i class="fa-solid fa-vault"></i>Caisse & Shifts
+            </a>
             <a class="nav-item-link {% if request.resolver_match.url_name == 'hotel_profile' %}active{% endif %}" href="{% url 'hotel_profile' %}">
                 <i class="fa-solid fa-gear"></i>Profil Hôtel
             </a>

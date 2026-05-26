@@ -1,0 +1,210 @@
+{% extends 'hotel/base_hotel.html' %}
+
+{% block title %}Planning Graphique | Loger Togo{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active text-white-50" aria-current="page">Planning Graphique</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gantt-container {
+        overflow-x: auto;
+        background: white;
+        border-radius: 20px;
+        border: 1px solid rgba(183, 110, 121, 0.15);
+        box-shadow: var(--shadow-luxury);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .gantt-header-row {
+        display: grid;
+        grid-template-columns: 160px repeat({{ num_days }}, minmax(40px, 1fr));
+        border-bottom: 2px solid var(--rose-medium);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 700;
+        text-align: center;
+        align-items: center;
+    }
+
+    .gantt-row {
+        display: grid;
+        grid-template-columns: 160px repeat({{ num_days }}, minmax(40px, 1fr));
+        border-bottom: 1px solid rgba(183, 110, 121, 0.1);
+        padding: 0.75rem 0;
+        align-items: center;
+        position: relative;
+    }
+
+    .gantt-row:hover {
+        background-color: var(--rose-light);
+    }
+
+    .gantt-room-cell {
+        font-weight: 700;
+        color: var(--primary-luxury);
+        font-family: 'Outfit', sans-serif;
+        padding-left: 0.5rem;
+    }
+
+    .gantt-day-header {
+        font-size: 0.8rem;
+        color: var(--dark-luxury);
+        padding: 4px;
+        border-radius: 6px;
+    }
+
+    .gantt-day-header.today {
+        background-color: var(--rose-accent);
+        color: white;
+        font-weight: 800;
+    }
+
+    /* CSS Grid booking bar widget styling */
+    .gantt-timeline-wrapper {
+        grid-column: 2 / span {{ num_days }};
+        display: grid;
+        grid-template-columns: repeat({{ num_days }}, minmax(40px, 1fr));
+        position: relative;
+        height: 38px;
+        gap: 2px;
+    }
+
+    .gantt-booking-bar {
+        position: absolute;
+        height: 32px;
+        top: 3px;
+        border-radius: 8px;
+        color: white;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        box-shadow: 0 4px 10px rgba(128, 0, 32, 0.15);
+        transition: var(--transition-smooth);
+        z-index: 10;
+    }
+
+    .gantt-booking-bar:hover {
+        transform: scale(1.02);
+        color: white;
+        box-shadow: 0 6px 15px rgba(128, 0, 32, 0.25);
+    }
+
+    .booking-pending {
+        background: linear-gradient(135deg, var(--rose-accent), #d698a3);
+    }
+
+    .booking-checked-in {
+        background: linear-gradient(135deg, var(--primary-luxury), var(--rose-accent));
+    }
+
+    .booking-checked-out {
+        background: linear-gradient(135deg, #2E7D32, #4CAF50);
+        opacity: 0.85;
+    }
+
+    .gantt-grid-line {
+        border-right: 1px dashed rgba(183, 110, 121, 0.08);
+        height: 100%;
+        grid-row: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 animated-fade-in">
+    <!-- Header visual controller -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
+        <div>
+            <h2 class="font-luxury" style="color: var(--primary-luxury);">Planning de Réservations</h2>
+            <p class="text-muted m-0">Visualisation chronologique et occupation en temps réel des chambres.</p>
+        </div>
+        
+        <!-- Navigation bar controls -->
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'hotel_planning' %}{{ prev_month_url }}" class="btn btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-color: var(--rose-accent);">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+            <h3 class="font-luxury m-0 text-center" style="min-width: 180px; color: var(--primary-luxury);">{{ month_name }} {{ year }}</h3>
+            <a href="{% url 'hotel_planning' %}{{ next_month_url }}" class="btn btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border-color: var(--rose-accent);">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Gantt grid visual panel -->
+    <div class="gantt-container">
+        <!-- Gantt Header (Days names/numbers) -->
+        <div class="gantt-header-row">
+            <div class="text-start ps-3" style="color: var(--primary-luxury);">Chambre / Suite</div>
+            {% for d in days %}
+            <div class="gantt-day-header {% if d == today %}today{% endif %}">
+                <span class="d-block small text-muted">{{ d|date:"D"|slice:":1" }}</span>
+                <span class="fs-6 fw-bold">{{ d.day }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Gantt rows for each room -->
+        {% for data in room_data_list %}
+        <div class="gantt-row">
+            <div class="gantt-room-cell text-start">
+                <span class="badge bg-dark bg-opacity-10 text-dark rounded-3 px-2 me-1">{{ data.room.room_number }}</span>
+                <small class="text-muted d-block small" style="font-size: 0.65rem;">{{ data.room.get_room_type_display }}</small>
+            </div>
+            
+            <div class="gantt-timeline-wrapper">
+                <!-- Visual dashed vertical lines -->
+                {% for d in days %}
+                <div class="gantt-grid-line"></div>
+                {% endfor %}
+                
+                <!-- Active bookings overlapping this month -->
+                {% for b_data in data.bookings %}
+                <a href="{% url 'hotel_booking_detail' b_data.booking.id %}" 
+                   class="gantt-booking-bar {% if b_data.booking.status == 'PENDING' %}booking-pending{% elif b_data.booking.status == 'CHECKED_IN' %}booking-checked-in{% else %}booking-checked-out{% endif %}"
+                   style="
+                       left: calc((100% / {{ num_days }}) * {{ b_data.left_offset }});
+                       width: calc((100% / {{ num_days }}) * {{ b_data.span }} - 4px);
+                   "
+                   title="{{ b_data.booking.client_name }} ({{ b_data.booking.check_in|date:'d/m' }} - {{ b_data.booking.check_out|date:'d/m' }})">
+                    <span class="text-truncate"><i class="fa-solid fa-user-tag me-1"></i> {{ b_data.booking.client_name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-calendar-xmark fs-2 text-danger opacity-40 mb-3 d-block"></i>
+            Aucune chambre configurée dans votre établissement.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Color codes / Legend widget -->
+    <div class="card-luxury p-3 bg-white d-inline-flex gap-4 mb-5 flex-wrap">
+        <span class="small fw-bold text-muted text-uppercase my-auto">Légende :</span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="d-inline-block rounded-circle booking-pending" style="width: 15px; height: 15px;"></span>
+            <span class="small text-muted">Confirmée (En attente d'arrivée)</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="d-inline-block rounded-circle booking-checked-in" style="width: 15px; height: 15px;"></span>
+            <span class="small text-muted">Client Arrivé (Check-in actif)</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="d-inline-block rounded-circle booking-checked-out" style="width: 15px; height: 15px;"></span>
+            <span class="small text-muted">Client Parti (Check-out finalisé)</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

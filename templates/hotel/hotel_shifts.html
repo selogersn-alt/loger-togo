@@ -1,0 +1,245 @@
+{% extends 'hotel/base_hotel.html' %}
+{% load humanize %}
+
+{% block title %}Gestion de la Caisse & Shifts | PMS Hôtelier | Loger Togo{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active text-white-50" aria-current="page">Caisse & Shifts</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 animated-fade-in">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="font-luxury m-0" style="color: var(--primary-luxury);">Caisse & Shifts de Réception</h2>
+            <p class="text-muted m-0">Contrôlez les flux de caisse espèces, gérez les passations d'équipes et validez les audits nocturnes.</p>
+        </div>
+        <div>
+            <span class="badge {% if active_shift %}bg-success{% else %}bg-secondary{% endif %} rounded-pill px-3 py-2 fw-semibold">
+                <i class="fa-solid {% if active_shift %}fa-lock-open me-2{% else %}fa-lock me-2{% endif %}"></i>
+                {% if active_shift %}Shift en cours (Ouvert){% else %}Caisse Fermée{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Shift Actif ou Formulaire d'ouverture -->
+        <div class="col-lg-8">
+            {% if not active_shift %}
+            <!-- FORMULAIRE D'OUVERTURE DE CAISSE -->
+            <div class="card-luxury p-5 bg-white text-center">
+                <div class="my-4">
+                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger mb-4" style="width: 80px; height: 80px;">
+                        <i class="fa-solid fa-vault fa-3x"></i>
+                    </span>
+                    <h3 class="font-luxury text-dark mb-3">Aucun shift de caisse ouvert</h3>
+                    <p class="text-muted mx-auto" style="max-width: 500px;">
+                        Avant d'enregistrer de nouvelles réservations hôtelières ou de facturer des consommations en espèces, vous devez ouvrir votre session de caisse en indiquant le fonds de caisse initial disponible dans le tiroir-caisse.
+                    </p>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-5">
+                        <form action="{% url 'hotel_shift_open' %}" method="post" class="text-start bg-light p-4 rounded-4 border border-1" style="border-color: rgba(183, 110, 121, 0.2) !important;">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark"><i class="fa-solid fa-coins me-2 text-warning"></i> Fonds de caisse initial (FCFA)</label>
+                                <div class="input-group">
+                                    <input type="number" name="initial_cash" class="form-control form-control-lg rounded-start-3" value="0" min="0" required style="font-family: 'Outfit', sans-serif; font-weight: 600;">
+                                    <span class="input-group-text bg-dark text-white fw-bold">FCFA</span>
+                                </div>
+                                <div class="form-text text-muted">Ex: Espèces de rechange laissées dans le tiroir.</div>
+                            </div>
+                            <button type="submit" class="btn btn-luxury w-100 py-3 rounded-pill text-uppercase fw-bold shadow">
+                                <i class="fa-solid fa-key me-2"></i> Ouvrir la session
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- SHIFT EN COURS D'EXÉCUTION -->
+            <div class="card-luxury p-4 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);"><i class="fa-solid fa-clock-rotate-left me-2 text-danger"></i> Session Active de Réception</h5>
+                    <span class="badge bg-danger rounded-pill px-3 py-1">Ouvert par {{ active_shift.receptionist.get_full_name }}</span>
+                </div>
+
+                <div class="row g-4 text-center mb-4">
+                    <div class="col-md-4">
+                        <div class="bg-light p-3 rounded-4 border border-1" style="border-color: rgba(183, 110, 121, 0.1) !important;">
+                            <span class="text-muted small d-block">OUVERTURE LE</span>
+                            <strong class="text-dark fs-6">{{ active_shift.start_time|date:"d/m/Y à H:i" }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light p-3 rounded-4 border border-1" style="border-color: rgba(183, 110, 121, 0.1) !important;">
+                            <span class="text-muted small d-block">CAISSE INITIALE</span>
+                            <strong class="text-dark fs-5">{{ active_shift.initial_cash|floatformat:0 }} FCFA</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-1 border-danger">
+                            <span class="text-danger small d-block">CAISSE THÉORIQUE ATTENDUE</span>
+                            <strong class="text-danger fs-4">{{ expected_cash|floatformat:0 }} FCFA</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-cash-register me-2 text-success"></i> Flux Espèces Encaissés durant ce Shift</h6>
+                {% if not shift_cash_bookings %}
+                <div class="alert alert-light text-center border rounded-4 py-4 mb-0 text-muted">
+                    <i class="fa-solid fa-circle-info me-2"></i> Aucun paiement espèces n'a été enregistré sous ce shift pour l'instant.
+                </div>
+                {% else %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="small text-muted text-uppercase" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th>Voyageur</th>
+                                <th>Chambre</th>
+                                <th class="text-center">Heure de Transaction</th>
+                                <th class="text-end">Montant Encaissé</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in shift_cash_bookings %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                <td>
+                                    <strong class="text-dark">{{ booking.client_name }}</strong>
+                                    <div class="text-muted small">Folio #{{ booking.id|stringformat:"s"|slice:":8" }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark rounded-3">Ch. {{ booking.room.room_number }}</span>
+                                </td>
+                                <td class="text-center text-muted small">
+                                    {{ booking.updated_at|date:"H:i" }}
+                                </td>
+                                <td class="text-end fw-bold text-success">
+                                    +{{ booking.amount_paid|floatformat:0 }} F
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'hotel_booking_detail' booking.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        Voir Folio
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Clôture & Night Audit -->
+        <div class="col-lg-4">
+            {% if active_shift %}
+            <div class="card-luxury p-4 bg-white mb-4">
+                <h5 class="font-luxury mb-4 text-start" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;">
+                    <i class="fa-solid fa-lock me-2 text-danger"></i> Clôture & Night Audit
+                </h5>
+                
+                <p class="text-muted small">
+                    Avant de passer la main à l'équipe suivante ou de finir votre journée, comptez physiquement toutes les espèces de votre tiroir-caisse et saisissez le montant réel ci-dessous.
+                </p>
+
+                <form action="{% url 'hotel_shift_close' active_shift.id %}" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3 bg-light rounded-4 p-3 border border-1 text-center" style="border-color: rgba(183, 110, 121, 0.1) !important;">
+                        <span class="text-muted small d-block">MONTANT SOUHAITÉ EN CAISSE</span>
+                        <h4 class="text-dark m-0 fw-bold">{{ expected_cash|floatformat:0 }} FCFA</h4>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Espèces réelles comptées (FCFA)</label>
+                        <div class="input-group">
+                            <input type="number" name="actual_cash" class="form-control rounded-start-3" value="{{ expected_cash|floatformat:0 }}" min="0" required style="font-family: 'Outfit', sans-serif; font-weight: 600;">
+                            <span class="input-group-text bg-dark text-white fw-bold">FCFA</span>
+                        </div>
+                        <div class="form-text text-muted">Indiquez la somme physique exacte trouvée.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Notes de passation / Écart</label>
+                        <textarea name="notes" rows="4" class="form-control rounded-3" placeholder="Exemple : Caisse parfaitement équilibrée. Passation faite à M. Kodjo. R.A.S."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-3 rounded-pill text-uppercase fw-bold shadow" onclick="return confirm('Êtes-vous sûr de vouloir clôturer ce shift ? Cette action est irréversible.');">
+                        <i class="fa-solid fa-shield-halved me-2"></i> Clôturer & Valider l'Audit
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="card-luxury p-4 bg-light text-center border-dashed">
+                <i class="fa-solid fa-shield-halved fa-2x text-muted mb-3"></i>
+                <h6 class="fw-bold text-dark m-0">En attente d'ouverture de shift</h6>
+                <p class="text-muted small m-0 mt-2">Le module d'audit et de contrôle s'activera dès que le réceptionniste aura ouvert sa caisse.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- HISTORIQUE DES SHIFTS PASSÉS -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card-luxury p-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);"><i class="fa-solid fa-history me-2 text-danger"></i> Historique des 10 Derniers Audits de Shifts</h5>
+                </div>
+
+                {% if not past_shifts %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-folder-open fa-3x mb-3"></i>
+                    <p class="m-0">Aucun shift archivé dans l'historique.</p>
+                </div>
+                {% else %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="small text-muted text-uppercase" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th>Réceptionniste</th>
+                                <th>Ouverture</th>
+                                <th>Clôture / Audit</th>
+                                <th class="text-end">Caisse Initiale</th>
+                                <th class="text-end">Caisse Réelle (Comptée)</th>
+                                <th>Notes / Observations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for shift in past_shifts %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                <td>
+                                    <strong class="text-dark">{{ shift.receptionist.get_full_name }}</strong>
+                                    <div class="text-muted small">ID: {{ shift.id|stringformat:"s"|slice:":8" }}</div>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">{{ shift.start_time|date:"d/m/Y H:i" }}</span>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">{{ shift.end_time|date:"d/m/Y H:i" }}</span>
+                                </td>
+                                <td class="text-end fw-bold">
+                                    {{ shift.initial_cash|floatformat:0 }} F
+                                </td>
+                                <td class="text-end fw-black text-danger">
+                                    {{ shift.actual_cash|floatformat:0 }} F
+                                </td>
+                                <td class="text-muted small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ shift.notes }}">
+                                    {{ shift.notes|default:"Aucune note enregistrée" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

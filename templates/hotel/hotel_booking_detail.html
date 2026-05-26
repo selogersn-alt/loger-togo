@@ -176,45 +176,73 @@
         
         <!-- Booking Billing / Folio summary -->
         <div class="col-lg-4">
-            <div class="card-luxury p-4 bg-white text-center mb-4 sticky-lg-top" style="top: 2rem; z-index: 10;">
-                <h5 class="font-luxury mb-4 text-start" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;">Résumé Financier</h5>
-                
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">Total Hébergement :</span>
-                    <strong class="text-dark">{{ booking.amount_due|floatformat:0 }} F</strong>
+            <div class="sticky-lg-top" style="top: 2rem; z-index: 10;">
+                <div class="card-luxury p-4 bg-white text-center mb-4">
+                    <h5 class="font-luxury mb-4 text-start" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;">Résumé Financier</h5>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Total Hébergement :</span>
+                        <strong class="text-dark">{{ booking.amount_due|floatformat:0 }} F</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Consommations & Extras :</span>
+                        <strong class="text-dark">{{ booking.extra_charges|floatformat:0 }} F</strong>
+                    </div>
+                    
+                    <hr style="border-top: 1px dashed rgba(183, 110, 121, 0.3);">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3 py-2 bg-light rounded-3 px-3">
+                        <span class="text-muted fw-bold">TOTAL DU :</span>
+                        <strong class="text-dark fs-4">{{ booking.total_amount|floatformat:0 }} F</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+                        <span class="text-muted">Acomptes versés :</span>
+                        <strong class="text-success">{{ booking.amount_paid|floatformat:0 }} F</strong>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4 py-2 rounded-3 px-3 {% if booking.balance_due > 0 %}bg-danger bg-opacity-10 text-danger{% else %}bg-success bg-opacity-10 text-success{% endif %}">
+                        <span class="fw-bold">Reste à payer :</span>
+                        <strong class="fs-4">{{ booking.balance_due|floatformat:0 }} F</strong>
+                    </div>
+                    
+                    {% if booking.status == 'CHECKED_IN' %}
+                    <button type="button" class="btn btn-luxury w-100 py-3 rounded-pill no-print" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                        <i class="fa-solid fa-plane-departure me-2"></i>Procéder au Check-out
+                    </button>
+                    {% elif booking.status == 'CHECKED_OUT' %}
+                    <div class="alert alert-success rounded-pill mb-0 py-2">
+                        <i class="fa-solid fa-circle-check me-2"></i>Séjour clôturé avec succès.
+                    </div>
+                    {% endif %}
                 </div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">Consommations & Extras :</span>
-                    <strong class="text-dark">{{ booking.extra_charges|floatformat:0 }} F</strong>
+
+                <!-- WhatsApp Helper Card -->
+                <div class="card-luxury p-4 bg-white text-start mb-4 no-print">
+                    <h5 class="font-luxury mb-3" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;">
+                        <i class="fa-brands fa-whatsapp text-success me-2"></i>Communication Voyageur
+                    </h5>
+                    <p class="text-muted small">Envoyez des messages de suivi directement sur WhatsApp avec des modèles pré-remplis.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Numéro WhatsApp du Client</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-phone"></i></span>
+                            <input type="text" id="whatsapp_phone" class="form-control" value="{{ booking.client_phone }}">
+                        </div>
+                        <div class="form-text text-muted small">Format international (ex: 22890909090).</div>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" onclick="sendWhatsappConfirmation()" class="btn btn-outline-success rounded-pill text-start py-2 px-3 fw-bold small">
+                            <i class="fa-solid fa-paper-plane me-2"></i>1. Confirmer Réservation
+                        </button>
+                        <button type="button" onclick="sendWhatsappInvoice()" class="btn btn-success rounded-pill text-start py-2 px-3 fw-bold small bg-success border-0 text-white">
+                            <i class="fa-solid fa-receipt me-2"></i>2. Envoyer Facture Finale
+                        </button>
+                    </div>
                 </div>
-                
-                <hr style="border-top: 1px dashed rgba(183, 110, 121, 0.3);">
-                
-                <div class="d-flex justify-content-between align-items-center mb-3 py-2 bg-light rounded-3 px-3">
-                    <span class="text-muted fw-bold">TOTAL DU :</span>
-                    <strong class="text-dark fs-4">{{ booking.total_amount|floatformat:0 }} F</strong>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-3 px-3">
-                    <span class="text-muted">Acomptes versés :</span>
-                    <strong class="text-success">{{ booking.amount_paid|floatformat:0 }} F</strong>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-4 py-2 rounded-3 px-3 {% if booking.balance_due > 0 %}bg-danger bg-opacity-10 text-danger{% else %}bg-success bg-opacity-10 text-success{% endif %}">
-                    <span class="fw-bold">Reste à payer :</span>
-                    <strong class="fs-4">{{ booking.balance_due|floatformat:0 }} F</strong>
-                </div>
-                
-                {% if booking.status == 'CHECKED_IN' %}
-                <button type="button" class="btn btn-luxury w-100 py-3 rounded-pill no-print" data-bs-toggle="modal" data-bs-target="#checkoutModal">
-                    <i class="fa-solid fa-plane-departure me-2"></i>Procéder au Check-out
-                </button>
-                {% elif booking.status == 'CHECKED_OUT' %}
-                <div class="alert alert-success rounded-pill mb-0 py-2">
-                    <i class="fa-solid fa-circle-check me-2"></i>Séjour clôturé avec succès.
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -266,4 +294,70 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCleanPhone() {
+        let rawPhone = document.getElementById('whatsapp_phone').value.trim();
+        // Remove spaces, plus, dashes, parentheses
+        let cleanPhone = rawPhone.replace(/[\s\+\-\(\)]/g, '');
+        // If it starts with 00, replace with nothing (keep the country code)
+        if (cleanPhone.startsWith('00')) {
+            cleanPhone = cleanPhone.substring(2);
+        }
+        // If it is an 8-digit Togolese number without prefix, prepends 228
+        if (cleanPhone.length === 8) {
+            cleanPhone = '228' + cleanPhone;
+        }
+        return cleanPhone;
+    }
+
+    function sendWhatsappConfirmation() {
+        let phone = getCleanPhone();
+        if (!phone) {
+            alert("Veuillez saisir un numéro de téléphone WhatsApp valide.");
+            return;
+        }
+        let clientName = "{{ booking.client_name|escapejs }}";
+        let hotelName = "{{ booking.room.hotel.company_name|default:booking.room.hotel.username|escapejs }}";
+        let roomNum = "{{ booking.room.room_number|escapejs }}";
+        let roomType = "{{ booking.room.get_room_type_display|escapejs }}";
+        let checkIn = "{{ booking.check_in|date:'d/m/Y' }}";
+        let checkOut = "{{ booking.check_out|date:'d/m/Y' }}";
+        let amountPaid = "{{ booking.amount_paid|floatformat:0 }}";
+
+        let text = "Woezon looo! 🌸 Bonjour *" + clientName + "*, nous avons le plaisir de vous confirmer votre réservation au *" + hotelName + "* pour la Chambre *" + roomNum + "* (" + roomType + ").\n\n" +
+                   "📅 Arrivée : " + checkIn + "\n" +
+                   "📅 Départ : " + checkOut + "\n" +
+                   "💵 Acompte versé : *" + amountPaid + " FCFA*\n\n" +
+                   "Nous vous souhaitons un excellent séjour au Togo ! 🇹🇬";
+
+        let url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(text);
+        window.open(url, '_blank');
+    }
+
+    function sendWhatsappInvoice() {
+        let phone = getCleanPhone();
+        if (!phone) {
+            alert("Veuillez saisir un numéro de téléphone WhatsApp valide.");
+            return;
+        }
+        let clientName = "{{ booking.client_name|escapejs }}";
+        let hotelName = "{{ booking.room.hotel.company_name|default:booking.room.hotel.username|escapejs }}";
+        let roomNum = "{{ booking.room.room_number|escapejs }}";
+        let totalAmount = "{{ booking.total_amount|floatformat:0 }}";
+        let amountPaid = "{{ booking.amount_paid|floatformat:0 }}";
+        let balanceDue = "{{ booking.balance_due|floatformat:0 }}";
+
+        let text = "Bonjour *" + clientName + "*, voici le résumé de votre folio/facture finale pour votre séjour au *" + hotelName + "* (Chambre *" + roomNum + "*).\n\n" +
+                   "💵 Total Séjour & Extras : *" + totalAmount + " FCFA*\n" +
+                   "💵 Acomptes versés : *" + amountPaid + " FCFA*\n" +
+                   "🔴 Reste à payer : *" + balanceDue + " FCFA*\n\n" +
+                   "Merci pour votre confiance et à bientôt ! 🇹🇬";
+
+        let url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(text);
+        window.open(url, '_blank');
+    }
+</script>
 {% endblock %}

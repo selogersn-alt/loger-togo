@@ -100,7 +100,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Lien enfant-parent pour le SaaS Agence
     parent_agency = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='agency_tenants', verbose_name=_("Agence parente"))
 
-    is_saas_active = models.BooleanField(default=False, verbose_name=_("Abonnement SaaS Agence Actif"))
+    is_saas_active = models.BooleanField(default=False, verbose_name=_("Abonnement SaaS Actif (Agence / Hôtel / Auberge)"))
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

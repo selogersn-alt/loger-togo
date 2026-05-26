@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gérez Votre Établissement de Prestige | Loger Togo Hôtels</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-luxury: #800020;
+            --rose-accent: #B76E79;
+            --rose-light: #FFF0F2;
+            --dark-luxury: #1F080F;
+            --gold-color: #D4AF37;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FCF8F9;
+            color: var(--dark-luxury);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        .hero-hotel {
+            background: linear-gradient(135deg, #1F080F 0%, #4A0E17 50%, #800020 100%);
+            padding: 8rem 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 3px solid var(--rose-accent);
+        }
+
+        .hero-hotel::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 150px;
+            background: linear-gradient(to top, #FCF8F9, transparent);
+            pointer-events: none;
+        }
+
+        .navbar-brand-custom {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: white !important;
+            font-weight: 700;
+        }
+
+        .navbar-brand-custom span {
+            color: var(--rose-accent);
+        }
+
+        .btn-hotel-primary {
+            background: linear-gradient(135deg, var(--rose-accent), var(--primary-luxury));
+            color: white !important;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            font-weight: 700;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(128, 0, 32, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-hotel-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(128, 0, 32, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-hotel-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+            border: 2px solid var(--rose-accent);
+            padding: 0.8rem 2.5rem;
+            font-weight: 700;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .btn-hotel-secondary:hover {
+            background: var(--rose-accent);
+            transform: translateY(-3px);
+        }
+
+        .card-feature {
+            background: white;
+            border: 1px solid rgba(183, 110, 121, 0.15);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(128, 0, 32, 0.03);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .card-feature:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 45px rgba(128, 0, 32, 0.08);
+            border-color: var(--rose-accent);
+        }
+
+        .feature-icon-box {
+            width: 70px; height: 70px;
+            border-radius: 20px;
+            background: var(--rose-light);
+            color: var(--primary-luxury);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(183, 110, 121, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent position-absolute w-100 py-3" style="z-index: 10;">
+        <div class="container">
+            <a class="navbar-brand navbar-brand-custom" href="#">Loger Togo<span>.hotels</span></a>
+            <div class="ms-auto d-flex gap-3">
+                <a href="{% url 'hotel_login' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold">Connexion</a>
+                <a href="{% url 'hotel_register' %}" class="btn btn-hotel-primary px-4 py-2">Inscription</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-hotel d-flex align-items-center">
+        <div class="container py-5 text-center text-lg-start">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <span class="badge bg-danger rounded-pill px-3 py-2 mb-3 text-uppercase font-luxury" style="letter-spacing: 1.5px; background-color: var(--rose-accent) !important; color: white !important;">PMS Hôtelier de Prestige</span>
+                    <h1 class="display-3 fw-black font-luxury text-white mb-4" style="line-height: 1.1;">
+                        Propulsez la gestion de votre <span style="color: var(--rose-accent); font-family: 'Playfair Display', serif; font-style: italic;">Hôtel ou Auberge</span>
+                    </h1>
+                    <p class="lead text-white-50 mb-5" style="max-width: 600px;">
+                        Gagnez du temps, maximisez vos réservations et offrez une expérience 5 étoiles à vos clients grâce au premier système de gestion hôtelière cloud adapté au contexte togolais.
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
+                        <a href="{% url 'hotel_register' %}" class="btn btn-hotel-primary">Démarrer Gratuitement</a>
+                        <a href="{% url 'hotel_login' %}" class="btn btn-hotel-secondary">Accéder au PMS</a>
+                    </div>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block text-center position-relative">
+                    <!-- Elegant mock room image -->
+                    <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1000&auto=format&fit=crop" class="img-fluid rounded-4 shadow-lg border border-3" style="border-color: var(--rose-accent) !important; transform: rotate(2deg); max-height: 400px; object-fit: cover;" alt="Luxury hotel room">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="py-5">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="font-luxury text-luxury" style="color: var(--primary-luxury); font-size: 2.5rem;">Une Solution Cloud Tout-en-Un</h2>
+                <p class="text-muted" style="max-width: 600px; margin: 0 auto;">Simplifiez chaque aspect opérationnel de votre hôtel ou auberge en quelques secondes.</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card-feature">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <h4 style="color: var(--primary-luxury);">Moteur de Réservations</h4>
+                        <p class="text-muted">
+                            Enregistrez des réservations en ligne ou des clients de passage (Walk-in) en quelques clics avec calcul automatique des tarifs.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card-feature">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <h4 style="color: var(--primary-luxury);">Tarification Flexible</h4>
+                        <p class="text-muted">
+                            Gérez les tarifs classiques par nuitée ainsi que les formules à l'heure, extrêmement demandées et rentables pour les auberges togolaises.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card-feature">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-utensils"></i>
+                        </div>
+                        <h4 style="color: var(--primary-luxury);">Facturation d'Extras (POS)</h4>
+                        <p class="text-muted">
+                            Ajoutez des consommations de bar, restaurant ou frais de blanchisserie directement sur le compte de la chambre pour un règlement final sans oubli.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card-feature">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-broom"></i>
+                        </div>
+                        <h4 style="color: var(--primary-luxury);">Suivi de Ménage & Statuts</h4>
+                        <p class="text-muted">
+                            Attribuez des statuts en temps réel à vos chambres (Disponible, Occupée, Ménage, Maintenance) pour une coordination impeccable de vos équipes.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card-feature">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <h4 style="color: var(--primary-luxury);">Propulsion Proximité</h4>
+                        <p class="text-muted">
+                            Les établissements partenaires sont propulsés en priorité absolue sur la fonctionnalité de géolocalisation mobile "Autour de moi".
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card-feature">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <h4 style="color: var(--primary-luxury);">Facturation A4 Directe</h4>
+                        <p class="text-muted">
+                            Éditez instantanément des factures de séjour soignées pour vos clients d'affaires au format PDF A4 ou pour impression directe.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4 border-top" style="background-color: var(--dark-luxury); border-color: rgba(183, 110, 121, 0.2) !important;">
+        <div class="container text-center text-white-50 small">
+            &copy; 2026 Loger Togo. Module de Gestion Hôtelière Propulsé par DigitalH. Tous droits réservés.
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

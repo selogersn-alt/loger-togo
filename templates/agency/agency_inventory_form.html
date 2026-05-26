@@ -101,7 +101,12 @@
         </div>
 
         <!-- Grille Dynamique des Pièces -->
-        <h4 class="fw-bold mb-3 text-emerald"><i class="fa-solid fa-list-check me-2"></i> {% trans "Inspection Pièce par Pièce" %}</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0 text-emerald"><i class="fa-solid fa-list-check me-2"></i> {% trans "Inspection Pièce par Pièce" %}</h4>
+            <button type="button" class="btn btn-outline-success btn-sm rounded-pill" onclick="addCustomRoom()">
+                <i class="fa-solid fa-plus me-1"></i> {% trans "Ajouter une pièce" %}
+            </button>
+        </div>
         <div id="roomsContainer">
             <!-- Injecté dynamiquement par JavaScript -->
         </div>
@@ -153,56 +158,167 @@
 <script>
     // Structure de données de l'état des lieux
     const rawStructure = '{{ default_structure_json|safe }}';
-    const structure = JSON.parse(rawStructure);
+    let structure = JSON.parse(rawStructure);
     
-    // Initialiser les pièces et composants dynamiquement
     const container = document.getElementById('roomsContainer');
-    
-    structure.forEach((room, roomIdx) => {
-        let roomHtml = `
-            <div class="room-card" data-room-idx="${roomIdx}">
-                <div class="room-title">
-                    <i class="fa-solid fa-house-chimney-window me-2"></i> ${room.room}
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-borderless align-middle m-0">
-                        <thead>
-                            <tr class="text-muted small fw-bold" style="border-bottom: 1px solid rgba(0,0,0,0.04);">
-                                <th class="pb-2">Élément</th>
-                                <th class="pb-2" style="width: 150px;">État</th>
-                                <th class="pb-2">Observations / Commentaires</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        `;
-        
-        room.components.forEach((comp, compIdx) => {
-            roomHtml += `
-                <tr class="component-row" data-room="${room.room}" data-comp="${comp.name}">
-                    <td class="py-2 fw-semibold" style="color: #475569;">${comp.name}</td>
-                    <td class="py-2">
-                        <select class="form-select form-select-sm rounded-3 select-condition">
-                            <option value="NEW" ${comp.condition === 'NEW' ? 'selected' : ''}>Neuf</option>
-                            <option value="GOOD" ${comp.condition === 'GOOD' ? 'selected' : ''}>Bon état</option>
-                            <option value="FAIR" ${comp.condition === 'FAIR' ? 'selected' : ''}>Usage</option>
-                            <option value="BAD" ${comp.condition === 'BAD' ? 'selected' : ''}>Mauvais</option>
-                        </select>
-                    </td>
-                    <td class="py-2">
-                        <input type="text" class="form-control form-control-sm rounded-3 input-comment" placeholder="Ex: RAS ou Traces d'usure légères">
-                    </td>
-                </tr>
+
+    function renderRooms() {
+        container.innerHTML = '';
+        structure.forEach((room, roomIdx) => {
+            let roomHtml = `
+                <div class="room-card" data-room-idx="${roomIdx}">
+                    <div class="room-title d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-house-chimney-window me-2"></i> ${room.room}</span>
+                        <div>
+                            <button type="button" class="btn btn-link btn-sm text-success text-decoration-none fw-bold me-2" onclick="addCustomComponent(${roomIdx})">
+                                <i class="fa-solid fa-plus-circle"></i> Élément
+                            </button>
+                            <button type="button" class="btn btn-link btn-sm text-danger text-decoration-none fw-bold" onclick="removeRoom(${roomIdx})">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle m-0">
+                            <thead>
+                                <tr class="text-muted small fw-bold" style="border-bottom: 1px solid rgba(0,0,0,0.04);">
+                                    <th class="pb-2">Élément</th>
+                                    <th class="pb-2" style="width: 130px;">État</th>
+                                    <th class="pb-2">Observations / Commentaires</th>
+                                    <th class="pb-2" style="width: 140px; text-align: center;">Illustration Photo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
-        });
-        
-        roomHtml += `
-                        </tbody>
-                    </table>
+            
+            room.components.forEach((comp, compIdx) => {
+                roomHtml += `
+                    <tr class="component-row" data-room="${room.room}" data-comp="${comp.name}">
+                        <td class="py-2 fw-semibold" style="color: #475569;">${comp.name}</td>
+                        <td class="py-2">
+                            <select class="form-select form-select-sm rounded-3 select-condition">
+                                <option value="NEW" ${comp.condition === 'NEW' ? 'selected' : ''}>Neuf</option>
+                                <option value="GOOD" ${comp.condition === 'GOOD' ? 'selected' : ''}>Bon état</option>
+                                <option value="FAIR" ${comp.condition === 'FAIR' ? 'selected' : ''}>Usage</option>
+                                <option value="BAD" ${comp.condition === 'BAD' ? 'selected' : ''}>Mauvais</option>
+                            </select>
+                        </td>
+                        <td class="py-2">
+                            <input type="text" class="form-control form-control-sm rounded-3 input-comment" value="${comp.comment || ''}" placeholder="Ex: RAS ou Traces d'usure légères">
+                        </td>
+                        <td class="py-2 text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <label class="btn btn-outline-secondary btn-sm rounded-circle m-0" style="width: 34px; height: 34px; padding:0; display:flex; align-items:center; justify-content:center; cursor: pointer;">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <input type="file" class="d-none" accept="image/*" onchange="handlePhotoUpload(this, ${roomIdx}, ${compIdx})">
+                                </label>
+                                <input type="hidden" class="input-photo-data" value="${comp.photo || ''}">
+                                <div class="photo-preview-box" id="preview-${roomIdx}-${compIdx}">
+                                    ${comp.photo ? `<img src="${comp.photo}" style="width:34px; height:34px; object-fit:cover; border-radius:6px; border:1px solid #ddd;">` : ''}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            roomHtml += `
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        `;
-        container.innerHTML += roomHtml;
-    });
+            `;
+            container.innerHTML += roomHtml;
+        });
+    }
+
+    // Dynamic Rooms Control
+    function addCustomRoom() {
+        const name = prompt("Entrez le nom de la nouvelle pièce (ex: Terrasse Extérieure, Couloir...) :");
+        if (name && name.trim()) {
+            structure.push({
+                room: name.trim(),
+                components: [
+                    { name: "Sols / Murs", condition: "GOOD", comment: "" },
+                    { name: "Plafonds / Éclairages", condition: "GOOD", comment: "" }
+                ]
+            });
+            renderRooms();
+        }
+    }
+
+    function removeRoom(roomIdx) {
+        if (confirm("Voulez-vous vraiment supprimer cette pièce de l'état des lieux ?")) {
+            structure.splice(roomIdx, 1);
+            renderRooms();
+        }
+    }
+
+    function addCustomComponent(roomIdx) {
+        const name = prompt("Entrez le nom du composant ou élément à inspecter (ex: Prise TV, Serrures, Climatiseur...) :");
+        if (name && name.trim()) {
+            structure[roomIdx].components.push({
+                name: name.trim(),
+                condition: "GOOD",
+                comment: ""
+            });
+            renderRooms();
+        }
+    }
+
+    // Photo Attachment Compression & Conversion to Base64
+    function handlePhotoUpload(input, roomIdx, compIdx) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Compress slightly in memory using a canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Limit max dimensions for lighter weight
+                const maxDim = 800;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) {
+                        h = Math.round((h * maxDim) / w);
+                        w = maxDim;
+                    } else {
+                        w = Math.round((w * maxDim) / h);
+                        h = maxDim;
+                    }
+                }
+                
+                canvas.width = w;
+                canvas.height = h;
+                ctx.drawImage(img, 0, 0, w, h);
+                
+                // Convert back to lightweight Base64 string
+                const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Store in hidden field
+                const row = input.closest('tr');
+                row.querySelector('.input-photo-data').value = base64;
+                
+                // Update preview in UI
+                document.getElementById(`preview-${roomIdx}-${compIdx}`).innerHTML = `
+                    <img src="${base64}" style="width:34px; height:34px; object-fit:cover; border-radius:6px; border:1px solid #ddd;">
+                `;
+                
+                // Update local structure
+                structure[roomIdx].components[compIdx].photo = base64;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Initial render
+    renderRooms();
 
     // --- LOGIQUE CANVAS DE SIGNATURE ---
     const canvases = {
@@ -215,7 +331,6 @@
         const canvas = item.element;
         const ctx = canvas.getContext('2d');
         
-        // Ajuster la résolution physique du canvas au conteneur CSS
         function resize() {
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
@@ -226,7 +341,6 @@
         resize();
         window.addEventListener('resize', resize);
         
-        // Souris
         canvas.addEventListener('mousedown', (e) => {
             item.drawing = true;
             ctx.beginPath();
@@ -241,7 +355,6 @@
             item.drawing = false;
         });
 
-        // Toucher (Smartphone / Tablette)
         canvas.addEventListener('touchstart', (e) => {
             item.drawing = true;
             const touch = e.touches[0];
@@ -274,17 +387,17 @@
 
     // --- PREPARE DATA FOR SUBMIT ---
     function prepareSubmit(e) {
-        // 1. Extraire les détails structurés
         const structuredResults = [];
         document.querySelectorAll('.room-card').forEach(card => {
-            const roomTitle = card.querySelector('.room-title').innerText.trim();
+            const roomTitle = card.querySelector('.room-title span').innerText.trim();
             const components = [];
             
             card.querySelectorAll('.component-row').forEach(row => {
                 const name = row.getAttribute('data-comp');
                 const condition = row.querySelector('.select-condition').value;
                 const comment = row.querySelector('.input-comment').value;
-                components.push({ name, condition, comment });
+                const photo = row.querySelector('.input-photo-data').value;
+                components.push({ name, condition, comment, photo });
             });
             
             structuredResults.push({ room: roomTitle, components });
@@ -292,11 +405,9 @@
         
         document.getElementById('id_details_json').value = JSON.stringify(structuredResults);
         
-        // 2. Extraire les signatures en Base64
         const dataUrlAgent = canvases.canvasAgent.element.toDataURL('image/png');
         const dataUrlTenant = canvases.canvasTenant.element.toDataURL('image/png');
         
-        // Vérification sommaire si dessiné (facultatif)
         document.getElementById('id_signature_agent').value = dataUrlAgent;
         document.getElementById('id_signature_tenant').value = dataUrlTenant;
     }

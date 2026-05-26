@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PMS Hôtelier | Loger Togo{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom Style with Elegant Pink & Rose Gold Premium Theme -->
+    <style>
+        :root {
+            --primary-luxury: #800020; /* Deep Burgundy / Bordeaux */
+            --rose-accent: #B76E79; /* Elegant Rose Gold */
+            --rose-light: #FFF0F2; /* Soft Blush Pink Background */
+            --rose-medium: #F3C6CF; /* Soft Rose border/accents */
+            --dark-luxury: #1F080F; /* Dark Plum for text */
+            --grey-light: #F8F9FA;
+            --success-color: #2E7D32;
+            --warning-color: #EF6C00;
+            --danger-color: #C62828;
+            --shadow-luxury: 0 10px 30px rgba(128, 0, 32, 0.04);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FCF8F9;
+            color: var(--dark-luxury);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-luxury {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Sidebar Style */
+        .sidebar {
+            background-color: var(--dark-luxury);
+            min-height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            width: 260px;
+            z-index: 1000;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
+            transition: var(--transition-smooth);
+            border-right: 2px solid var(--rose-accent);
+        }
+
+        .sidebar-logo {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(183, 110, 121, 0.2);
+        }
+
+        .sidebar-logo h3 {
+            color: #ffffff;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .sidebar-logo span {
+            color: var(--rose-accent);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            padding: 1.5rem 1rem;
+        }
+
+        .nav-item-link {
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-item-link i {
+            font-size: 1.15rem;
+            margin-right: 1rem;
+            width: 24px;
+            text-align: center;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-item-link:hover {
+            background-color: rgba(183, 110, 121, 0.15);
+            color: #ffffff;
+        }
+
+        .nav-item-link.active {
+            background: linear-gradient(135deg, var(--primary-luxury), var(--rose-accent));
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(128, 0, 32, 0.25);
+        }
+
+        .nav-item-link.active i {
+            color: #ffffff;
+        }
+
+        /* Main Content Container */
+        .main-wrapper {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 2rem;
+            transition: var(--transition-smooth);
+        }
+
+        /* Luxury Cards */
+        .card-luxury {
+            background: #ffffff;
+            border: 1px solid rgba(183, 110, 121, 0.15);
+            border-radius: 20px;
+            box-shadow: var(--shadow-luxury);
+            transition: var(--transition-smooth);
+            overflow: hidden;
+        }
+
+        .card-luxury:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(128, 0, 32, 0.08);
+            border-color: var(--rose-medium);
+        }
+
+        /* Buttons Premium */
+        .btn-luxury {
+            background: linear-gradient(135deg, var(--primary-luxury), var(--rose-accent));
+            color: #ffffff;
+            border: none;
+            border-radius: 30px;
+            padding: 0.6rem 2rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(128, 0, 32, 0.2);
+            transition: var(--transition-smooth);
+        }
+
+        .btn-luxury:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(128, 0, 32, 0.3);
+            color: #ffffff;
+            filter: brightness(1.1);
+        }
+
+        .btn-luxury-outline {
+            background: transparent;
+            color: var(--primary-luxury);
+            border: 2px solid var(--primary-luxury);
+            border-radius: 30px;
+            padding: 0.5rem 1.8rem;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-luxury-outline:hover {
+            background: var(--primary-luxury);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        /* Stat badge */
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 30px;
+            padding: 0.35rem 1rem;
+            display: inline-block;
+        }
+
+        .status-available { background-color: #E8F5E9; color: var(--success-color); }
+        .status-occupied { background-color: #FFEBEE; color: var(--danger-color); }
+        .status-cleaning { background-color: #FFF3E0; color: var(--warning-color); }
+        .status-maintenance { background-color: #ECEFF1; color: #546E7A; }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated-fade-in {
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <h3>Loger Togo</h3>
+            <span>Espace Hôtelier</span>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item-link {% if request.resolver_match.url_name == 'hotel_dashboard' %}active{% endif %}" href="{% url 'hotel_dashboard' %}">
+                <i class="fa-solid fa-hotel"></i>Tableau de Bord
+            </a>
+            <a class="nav-item-link {% if 'chambres' in request.path %}active{% endif %}" href="{% url 'hotel_rooms' %}">
+                <i class="fa-solid fa-bed"></i>Mes Chambres & Suites
+            </a>
+            <a class="nav-item-link {% if 'reservations' in request.path %}active{% endif %}" href="{% url 'hotel_bookings' %}">
+                <i class="fa-solid fa-calendar-check"></i>Réservations & POS
+            </a>
+            <a class="nav-item-link {% if request.resolver_match.url_name == 'hotel_profile' %}active{% endif %}" href="{% url 'hotel_profile' %}">
+                <i class="fa-solid fa-gear"></i>Profil Hôtel
+            </a>
+            <hr style="border-top: 1px solid rgba(255, 255, 255, 0.15); margin: 2rem 0;">
+            
+            <a class="nav-item-link" href="https://logertogo.com" target="_blank">
+                <i class="fa-solid fa-globe"></i>Aller sur logertogo.com
+            </a>
+            <a class="nav-item-link text-danger" href="{% url 'hotel_logout' %}">
+                <i class="fa-solid fa-sign-out-alt"></i>Déconnexion
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content wrapper -->
+    <div class="main-wrapper">
+        <!-- Header Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+            <div>
+                <h4 class="font-luxury m-0" style="color: var(--primary-luxury);">{{ user.company_name }}</h4>
+                <p class="text-muted small m-0"><i class="fa-solid fa-map-pin me-1 text-danger"></i> {{ user.agency_city|default:"Togo" }}</p>
+            </div>
+            
+            <div class="d-flex align-items-center">
+                <!-- Profile Avatar visual widget -->
+                <div class="d-flex align-items-center">
+                    <img src="{{ user.get_avatar_url }}" class="rounded-circle border border-2 border-danger shadow-sm me-3" style="width: 45px; height: 45px; object-fit: cover;">
+                    <div class="d-none d-md-block text-end">
+                        <span class="d-block fw-bold small">{{ user.first_name }} {{ user.last_name }}</span>
+                        <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Hôte Premium</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4" role="alert">
+                    <i class="fa-solid {% if message.tags == 'error' %}fa-triangle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Content Block -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

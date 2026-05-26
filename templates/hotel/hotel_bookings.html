@@ -1,0 +1,96 @@
+{% extends 'hotel/base_hotel.html' %}
+{% load humanize %}
+
+{% block title %}Réservations & POS | Loger Togo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 animated-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="font-luxury" style="color: var(--primary-luxury);">Réservations & Réception</h2>
+            <p class="text-muted m-0">Consultez l'historique complet et gérez les séjours actifs de vos clients.</p>
+        </div>
+        <a href="{% url 'hotel_booking_create' %}" class="btn btn-luxury">
+            <i class="fa-solid fa-plus me-2"></i>Nouvel Enregistrement (Walk-in)
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card-luxury p-3 mb-5 bg-white">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-8">
+                <label class="form-label fw-bold small">Filtrer par Statut de Réservation</label>
+                <select name="status" class="form-select rounded-3" onchange="this.form.submit()">
+                    <option value="">Tous les statuts</option>
+                    {% for choice in status_choices %}
+                    <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end h-100 mt-md-4 pt-md-2">
+                <a href="{% url 'hotel_bookings' %}" class="btn btn-light rounded-pill px-4 fw-bold w-100">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table List -->
+    <div class="card-luxury overflow-hidden bg-white mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="small text-uppercase fw-bold text-secondary" style="border-bottom: 2px solid rgba(183, 110, 121, 0.15) !important;">
+                        <th class="py-3 ps-4">Client</th>
+                        <th class="py-3 text-center">Chambre</th>
+                        <th class="py-3">Arrivée</th>
+                        <th class="py-3">Départ</th>
+                        <th class="py-3">Montant Total</th>
+                        <th class="py-3">Reste à Payer</th>
+                        <th class="py-3 text-center">Statut</th>
+                        <th class="py-3 text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    <tr class="border-bottom" style="border-color: rgba(0,0,0,0.03) !important;">
+                        <td class="py-3 ps-4">
+                            <h6 class="fw-bold mb-0 text-dark">{{ b.client_name }}</h6>
+                            <small class="text-muted">{{ b.client_phone }}</small>
+                        </td>
+                        <td class="py-3 text-center">
+                            <span class="badge bg-dark rounded-3 px-3">N° {{ b.room.room_number }}</span>
+                        </td>
+                        <td class="py-3 small">{{ b.check_in|date:"d M Y H:i" }}</td>
+                        <td class="py-3 small">{{ b.check_out|date:"d M Y H:i" }}</td>
+                        <td class="py-3 fw-bold text-dark">{{ b.total_amount|floatformat:0 }} F</td>
+                        <td class="py-3">
+                            {% if b.balance_due > 0 %}
+                            <span class="text-danger fw-bold">{{ b.balance_due|floatformat:0 }} F</span>
+                            {% else %}
+                            <span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>Réglé</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 text-center">
+                            <span class="status-badge {% if b.status == 'PENDING' %}status-cleaning{% elif b.status == 'CHECKED_IN' %}status-occupied{% elif b.status == 'CHECKED_OUT' %}status-available{% else %}status-maintenance{% endif %}" style="font-size: 0.65rem;">
+                                {{ b.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 text-end pe-4">
+                            <a href="{% url 'hotel_booking_detail' b.id %}" class="btn btn-sm btn-luxury px-3 rounded-pill">
+                                <i class="fa-solid fa-eye me-1"></i>Folio / POS
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-calendar-xmark fs-1 d-block text-danger mb-3 opacity-40"></i>
+                            Aucune réservation enregistrée.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

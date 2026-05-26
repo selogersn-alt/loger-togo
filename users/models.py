@@ -45,6 +45,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         AGENT = 'AGENT', _('Agent')
         SUB_ADMIN = 'SUB_ADMIN', _('Sous-Administrateur DigitalH')
         CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT', _('Conseiller Client DigitalH')
+        HOTEL = 'HOTEL', _('Hôtel')
+        AUBERGE = 'AUBERGE', _('Auberge / Maison d\'Hôtes')
+
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     phone_number = models.CharField(max_length=20, unique=True, null=True, blank=True, db_index=True, verbose_name=_("Numéro de téléphone"))

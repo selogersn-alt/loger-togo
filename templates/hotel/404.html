@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Non Trouvée | Loger Togo Hôtels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1F080F 0%, #4A0E17 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .error-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            padding: 3rem;
+            max-width: 500px;
+        }
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 6rem;
+            color: #B76E79;
+        }
+        .btn-home {
+            background: linear-gradient(135deg, #B76E79, #800020);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1.5rem;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <h1>404</h1>
+        <h3 class="fw-bold mb-3">Chambre Non Trouvée</h3>
+        <p class="text-white-50 mb-4">La page ou la ressource hôtelière que vous recherchez semble introuvable ou a été déplacée.</p>
+        <a href="/" class="btn-home"><i class="fa-solid fa-hotel me-2"></i>Retour au Portail</a>
+    </div>
+</body>
+</html>

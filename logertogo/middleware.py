@@ -10,4 +10,6 @@ class SubdomainURLRoutingMiddleware:
         host = request.get_host().split(':')[0].lower()
         if host.startswith('agence.'):
             request.urlconf = 'logertogo.urls_agence'
+        elif host.startswith('hotels.'):
+            request.urlconf = 'logertogo.urls_hotel'
         return self.get_response(request)

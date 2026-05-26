@@ -504,8 +504,8 @@ def near_me_view(request):
     
     # Récupérer uniquement les hôtels et auberges géolocalisés avec coordonnées
     properties = Property.objects.filter(
-        is_published=True,
-        property_type__in=['HOTEL', 'AUBERGE']
+        Q(property_type__in=['HOTEL', 'AUBERGE']) | Q(owner__role__in=['HOTEL', 'AUBERGE']),
+        is_published=True
     ).select_related('owner').prefetch_related('images').exclude(
         latitude__isnull=True
     ).exclude(longitude__isnull=True)
@@ -592,10 +592,10 @@ def nearby_api_view(request):
     ).exclude(latitude__isnull=True).exclude(longitude__isnull=True)
 
     if filter_type:
-        qs = qs.filter(property_type=filter_type)
+        qs = qs.filter(Q(property_type=filter_type) | Q(owner__role=filter_type))
     else:
         qs = qs.filter(
-            Q(property_type='AUBERGE') | Q(listing_category='FURNISHED')
+            Q(property_type__in=['AUBERGE', 'HOTEL']) | Q(owner__role__in=['AUBERGE', 'HOTEL']) | Q(listing_category='FURNISHED')
         )
 
     results = []

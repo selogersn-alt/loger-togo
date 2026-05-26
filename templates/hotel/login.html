@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion PMS Hôtelier | Loger Togo</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-luxury: #800020;
+            --rose-accent: #B76E79;
+            --rose-light: #FFF0F2;
+            --dark-luxury: #1F080F;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1F080F 0%, #4A0E17 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: #ffffff;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 450px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-logo {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand-logo span {
+            color: var(--rose-accent);
+        }
+
+        .form-control-luxury {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            color: #ffffff !important;
+            padding: 0.85rem 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .form-control-luxury:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--rose-accent);
+            box-shadow: 0 0 15px rgba(183, 110, 121, 0.3);
+            outline: none;
+        }
+
+        .btn-luxury {
+            background: linear-gradient(135deg, var(--rose-accent), var(--primary-luxury));
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            padding: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(128, 0, 32, 0.35);
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+        .btn-luxury:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(128, 0, 32, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-footer-link {
+            color: var(--rose-accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .auth-footer-link:hover {
+            color: #ffffff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="brand-logo">
+            Loger Togo<span>.pms</span>
+        </div>
+        
+        <h4 class="text-center fw-bold mb-4 font-luxury">Connexion Hôtelier</h4>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small mb-4" style="background: rgba(220, 53, 69, 0.2); color: #ff8793;" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Numéro de téléphone</label>
+                <input type="text" name="phone_number" class="form-control form-control-luxury" placeholder="Ex: +228 90 00 00 00" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" name="password" class="form-control form-control-luxury" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn-luxury">Se Connecter</button>
+        </form>
+        
+        <div class="text-center mt-5 small text-white-50">
+            Vous n'avez pas de compte ? <a href="{% url 'hotel_register' %}" class="auth-footer-link">Inscrire mon établissement</a>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="{% url 'hotel_promo' %}" class="small text-white-50 text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i> Retour à l'accueil</a>
+        </div>
+    </div>
+
+</body>
+</html>

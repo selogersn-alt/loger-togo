@@ -1,0 +1,111 @@
+{% extends 'hotel/base_hotel.html' %}
+
+{% block title %}Mes Chambres & Suites | Loger Togo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 animated-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="font-luxury" style="color: var(--primary-luxury);">Gestion des Chambres</h2>
+            <p class="text-muted m-0">Consultez et modifiez les chambres et suites de votre établissement.</p>
+        </div>
+        <a href="{% url 'hotel_room_create' %}" class="btn btn-luxury">
+            <i class="fa-solid fa-plus me-2"></i>Ajouter une Chambre
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card-luxury p-3 mb-5 bg-white">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label fw-bold small">Filtrer par Statut</label>
+                <select name="status" class="form-select rounded-3" onchange="this.form.submit()">
+                    <option value="">Tous les statuts</option>
+                    {% for choice in status_choices %}
+                    <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold small">Filtrer par Type</label>
+                <select name="type" class="form-select rounded-3" onchange="this.form.submit()">
+                    <option value="">Tous les types</option>
+                    {% for choice in room_types %}
+                    <option value="{{ choice.0 }}" {% if request.GET.type == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end h-100 mt-md-4 pt-md-2">
+                <a href="{% url 'hotel_rooms' %}" class="btn btn-light rounded-pill px-4 fw-bold w-100">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Rooms Grid -->
+    <div class="row g-4 mb-5">
+        {% for room in rooms %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card-luxury h-100 d-flex flex-column">
+                <div class="p-4 flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="status-badge {% if room.status == 'AVAILABLE' %}status-available{% elif room.status == 'OCCUPIED' %}status-occupied{% elif room.status == 'CLEANING' %}status-cleaning{% else %}status-maintenance{% endif %}">
+                            {{ room.get_status_display }}
+                        </span>
+                        
+                        <a href="{% url 'hotel_room_edit' room.id %}" class="text-secondary" title="Modifier">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+                    </div>
+                    
+                    <h3 class="fw-bold mb-1 text-dark">N° {{ room.room_number }}</h3>
+                    <h6 class="text-muted font-luxury mb-4">{{ room.get_room_type_display }}</h6>
+                    
+                    <div class="small text-muted mb-2">
+                        <i class="fa-solid fa-moon me-2 text-danger"></i> {{ room.price_per_night|floatformat:0 }} FCFA / nuitée
+                    </div>
+                    {% if room.price_per_hour %}
+                    <div class="small text-muted mb-4">
+                        <i class="fa-solid fa-clock me-2 text-danger"></i> {{ room.price_per_hour|floatformat:0 }} FCFA / heure
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Amenities icons list widget -->
+                    <div class="d-flex gap-3 text-secondary mt-3">
+                        {% if room.wifi %}<i class="fa-solid fa-wifi" title="WiFi"></i>{% endif %}
+                        {% if room.air_conditioning %}<i class="fa-solid fa-snowflake" title="Climatisation"></i>{% endif %}
+                        {% if room.minibar %}<i class="fa-solid fa-wine-glass" title="Mini-bar"></i>{% endif %}
+                        {% if room.tv %}<i class="fa-solid fa-tv" title="Télévision"></i>{% endif %}
+                        {% if room.safe %}<i class="fa-solid fa-vault" title="Coffre-fort"></i>{% endif %}
+                        {% if room.balcony %}<i class="fa-solid fa-mountain-sun" title="Balcon"></i>{% endif %}
+                    </div>
+                </div>
+                
+                <!-- Quick Status Switch Form widget -->
+                <div class="card-footer bg-light border-0 p-3 mt-auto">
+                    <form action="{% url 'hotel_room_toggle_status' room.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="input-group input-group-sm">
+                            <select name="status" class="form-select rounded-start-3" style="font-size: 0.8rem;">
+                                <option value="AVAILABLE" {% if room.status == 'AVAILABLE' %}selected{% endif %}>Disponible</option>
+                                <option value="CLEANING" {% if room.status == 'CLEANING' %}selected{% endif %}>Ménage</option>
+                                <option value="MAINTENANCE" {% if room.status == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
+                            </select>
+                            <button type="submit" class="btn btn-luxury btn-sm rounded-end-3 px-3">Valider</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="card-luxury p-5 bg-white text-muted">
+                <i class="fa-solid fa-bed fs-1 d-block text-danger mb-3 opacity-40"></i>
+                <h4 class="fw-bold mb-1">Aucune chambre trouvée</h4>
+                <p class="small mb-3">Commencez par ajouter des chambres à votre portefeuille pour recevoir des réservations.</p>
+                <a href="{% url 'hotel_room_create' %}" class="btn btn-luxury px-4 py-2 mt-2">Ajouter ma première chambre</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

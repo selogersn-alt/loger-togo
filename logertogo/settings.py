@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-de
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['157.180.127.70', 'logertogo.com', 'www.logertogo.com', 'agence.logertogo.com', 'localhost', 'agence.localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['157.180.127.70', 'logertogo.com', 'www.logertogo.com', 'agence.logertogo.com', 'hotels.logertogo.com', 'localhost', 'agence.localhost', 'hotels.localhost', '127.0.0.1']
 SITE_URL = 'https://logertogo.com'
 
 # Security & SSL Configuration (Senior Production Setup)
@@ -39,7 +39,9 @@ CSRF_TRUSTED_ORIGINS = [
     'https://logertogo.com',
     'https://www.logertogo.com',
     'https://agence.logertogo.com',
+    'https://hotels.logertogo.com',
     'http://agence.localhost:8000',
+    'http://hotels.localhost:8000',
     'http://localhost:8000',
 ]
 SECURE_HSTS_SECONDS = 31536000  # 1 year

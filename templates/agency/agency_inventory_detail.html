@@ -172,9 +172,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 250px;">Composant / Élément</th>
-                        <th style="width: 120px;">État</th>
+                        <th style="width: 200px;">Composant / Élément</th>
+                        <th style="width: 100px;">État</th>
                         <th>Observations / Commentaires</th>
+                        <th style="width: 120px; text-align: center;">Photo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,6 +194,13 @@
                                 {% endif %}
                             </td>
                             <td style="color: #475569;">{{ comp.comment|default:"R.A.S. (Rien à signaler)" }}</td>
+                            <td style="text-align: center;">
+                                {% if comp.photo %}
+                                    <img src="{{ comp.photo }}" style="max-width: 100px; max-height: 80px; border-radius: 6px; border: 1px solid #e2e8f0; object-fit: cover;">
+                                {% else %}
+                                    <span style="color: #cbd5e1; font-size: 11px;">Aucune</span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

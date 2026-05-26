@@ -1,0 +1,264 @@
+{% extends 'hotel/base_hotel.html' %}
+{% load humanize %}
+
+{% block title %}Folio Client #{{ booking.id|stringformat:"s"|slice:":8" }} | Loger Togo{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body * { visibility: hidden; }
+        .invoice-print, .invoice-print * { visibility: visible; }
+        .invoice-print { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 animated-fade-in">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5 no-print">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'hotel_bookings' %}" class="btn btn-outline-secondary rounded-circle me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="font-luxury m-0" style="color: var(--primary-luxury);">Folio Voyageur / Facturation</h2>
+                <p class="text-muted m-0">Gérez le séjour, facturez des extras et encaissez le règlement final.</p>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4 fw-bold">
+                <i class="fa-solid fa-print me-2"></i>Imprimer la Facture
+            </button>
+            
+            {% if booking.status == 'PENDING' %}
+            <form action="{% url 'hotel_booking_checkin' booking.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+                    <i class="fa-solid fa-plane-arrival me-2"></i>Valider l'Arrivée (Check-in)
+                </button>
+            </form>
+            {% elif booking.status == 'CHECKED_IN' %}
+            <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                <i class="fa-solid fa-plane-departure me-2"></i>Clôturer le Séjour (Check-out)
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="row g-4 invoice-print">
+        <!-- Guest and Room Information card -->
+        <div class="col-lg-8">
+            <div class="card-luxury p-4 mb-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);"><i class="fa-solid fa-user me-2 text-danger"></i> Détails du Voyageur</h5>
+                    <span class="status-badge {% if booking.status == 'PENDING' %}status-cleaning{% elif booking.status == 'CHECKED_IN' %}status-occupied{% else %}status-available{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <span class="text-muted small d-block">Nom complet</span>
+                        <strong class="text-dark fs-5">{{ booking.client_name }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted small d-block">Téléphone</span>
+                        <strong class="text-dark">{{ booking.client_phone }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted small d-block">Adresse email</span>
+                        <span class="text-dark">{{ booking.client_email|default:"Non renseignée" }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted small d-block">Pièce d'identité</span>
+                        <span class="text-dark">{{ booking.client_id_card|default:"Non renseignée" }}</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);"><i class="fa-solid fa-bed me-2 text-danger"></i> Détails de l'Hébergement</h5>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <span class="text-muted small d-block">Numéro de chambre</span>
+                        <span class="badge bg-dark rounded-3 px-3 fs-6">Chambre N° {{ booking.room.room_number }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted small d-block">Type de chambre</span>
+                        <strong class="text-dark">{{ booking.room.get_room_type_display }}</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted small d-block">Tarif unitaire</span>
+                        <strong class="text-dark">{{ booking.room.price_per_night|floatformat:0 }} F / nuitée</strong>
+                    </div>
+                    
+                    <div class="col-md-6 mt-4">
+                        <span class="text-muted small d-block"><i class="fa-solid fa-circle-arrow-right text-success me-1"></i> Date d'Arrivée (Check-in)</span>
+                        <strong class="text-dark">{{ booking.check_in|date:"d F Y à H:i" }}</strong>
+                    </div>
+                    <div class="col-md-6 mt-4">
+                        <span class="text-muted small d-block"><i class="fa-solid fa-circle-arrow-left text-danger me-1"></i> Date de Départ (Check-out)</span>
+                        <strong class="text-dark">{{ booking.check_out|date:"d F Y à H:i" }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Extra Charges / POS details -->
+            <div class="card-luxury p-4 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);"><i class="fa-solid fa-utensils me-2 text-danger"></i> Prestations Annexes & Extras (Bar / Resto / Blanchisserie)</h5>
+                </div>
+                
+                <!-- Billed items table -->
+                <div class="table-responsive mb-4">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="small text-muted text-uppercase fw-bold" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th>Prestation / Article</th>
+                                <th class="text-center">Quantité</th>
+                                <th class="text-end">Prix Unitaire</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                <td class="py-3">Hébergement en formule hôtelière</td>
+                                <td class="py-3 text-center">1</td>
+                                <td class="py-3 text-end">{{ booking.amount_due|floatformat:0 }} F</td>
+                                <td class="py-3 text-end fw-bold">{{ booking.amount_due|floatformat:0 }} F</td>
+                            </tr>
+                            
+                            {% for charge in charges %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                <td class="py-3 text-dark fw-semibold">{{ charge.label }}</td>
+                                <td class="py-3 text-center">{{ charge.quantity }}</td>
+                                <td class="py-3 text-end">{{ charge.price|floatformat:0 }} F</td>
+                                <td class="py-3 text-end fw-bold text-dark">{{ charge.total_price|floatformat:0 }} F</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- POS Add extra charge form (No-print widget) -->
+                {% if booking.status == 'CHECKED_IN' %}
+                <div class="card bg-light border-0 rounded-4 p-3 no-print">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-cart-plus me-2 text-danger"></i> Facturer une Consommation / Prestation</h6>
+                    <form action="{% url 'hotel_booking_add_charge' booking.id %}" method="post" class="row g-2">
+                        {% csrf_token %}
+                        <div class="col-md-5">
+                            <input type="text" name="label" class="form-control form-control-sm rounded-3" placeholder="Libellé (ex: 2 Canettes Coca, Blanchisserie...)" required>
+                        </div>
+                        <div class="col-md-2 col-4">
+                            <input type="number" name="quantity" class="form-control form-control-sm rounded-3" value="1" min="1" placeholder="Qté" required>
+                        </div>
+                        <div class="col-md-3 col-8">
+                            <input type="number" name="price" class="form-control form-control-sm rounded-3" min="0" placeholder="Prix Unit. (FCFA)" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-sm btn-luxury rounded-pill w-100">Ajouter</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Booking Billing / Folio summary -->
+        <div class="col-lg-4">
+            <div class="card-luxury p-4 bg-white text-center mb-4 sticky-lg-top" style="top: 2rem; z-index: 10;">
+                <h5 class="font-luxury mb-4 text-start" style="color: var(--primary-luxury); border-bottom: 2px solid rgba(183, 110, 121, 0.15); padding-bottom: 8px;">Résumé Financier</h5>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Total Hébergement :</span>
+                    <strong class="text-dark">{{ booking.amount_due|floatformat:0 }} F</strong>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Consommations & Extras :</span>
+                    <strong class="text-dark">{{ booking.extra_charges|floatformat:0 }} F</strong>
+                </div>
+                
+                <hr style="border-top: 1px dashed rgba(183, 110, 121, 0.3);">
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 py-2 bg-light rounded-3 px-3">
+                    <span class="text-muted fw-bold">TOTAL DU :</span>
+                    <strong class="text-dark fs-4">{{ booking.total_amount|floatformat:0 }} F</strong>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+                    <span class="text-muted">Acomptes versés :</span>
+                    <strong class="text-success">{{ booking.amount_paid|floatformat:0 }} F</strong>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4 py-2 rounded-3 px-3 {% if booking.balance_due > 0 %}bg-danger bg-opacity-10 text-danger{% else %}bg-success bg-opacity-10 text-success{% endif %}">
+                    <span class="fw-bold">Reste à payer :</span>
+                    <strong class="fs-4">{{ booking.balance_due|floatformat:0 }} F</strong>
+                </div>
+                
+                {% if booking.status == 'CHECKED_IN' %}
+                <button type="button" class="btn btn-luxury w-100 py-3 rounded-pill no-print" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                    <i class="fa-solid fa-plane-departure me-2"></i>Procéder au Check-out
+                </button>
+                {% elif booking.status == 'CHECKED_OUT' %}
+                <div class="alert alert-success rounded-pill mb-0 py-2">
+                    <i class="fa-solid fa-circle-check me-2"></i>Séjour clôturé avec succès.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check-out Modal (No-print widget) -->
+{% if booking.status == 'CHECKED_IN' %}
+<div class="modal fade no-print" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-dark text-white border-0 rounded-top-4 py-3">
+                <h5 class="modal-title font-luxury" id="checkoutModalLabel"><i class="fa-solid fa-plane-departure me-2 text-warning"></i> Enregistrer le Check-out</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'hotel_booking_checkout' booking.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <p class="text-muted small">
+                        Le voyageur s'apprête à quitter la chambre. Veuillez enregistrer le paiement du solde restant dû pour finaliser.
+                    </p>
+                    
+                    <div class="bg-light rounded-4 p-3 mb-4 text-center">
+                        <span class="text-muted small d-block">SOLDE CRÉDITEUR RESTANT</span>
+                        <h3 class="fw-black text-danger m-0 mt-1">{{ booking.balance_due|floatformat:0 }} FCFA</h3>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Montant encaissé pour règlement final (FCFA)</label>
+                        <input type="number" name="final_payment" class="form-control rounded-3" value="{{ booking.balance_due|floatformat:0 }}" min="0" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mode de Règlement Final</label>
+                        <select name="payment_method_final" class="form-select rounded-3">
+                            <option value="ESPECES" selected>Espèces (Cash)</option>
+                            <option value="TMONEY">T-Money</option>
+                            <option value="FLOOZ">Flooz</option>
+                            <option value="WAVE">Wave</option>
+                            <option value="CARTE">Carte Bancaire</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light rounded-bottom-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Valider le Départ & Règlement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

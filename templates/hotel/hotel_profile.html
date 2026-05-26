@@ -1,0 +1,83 @@
+{% extends 'hotel/base_hotel.html' %}
+
+{% block title %}Profil de l'Établissement | Loger Togo{% endblock %}
+
+{% block content %}
+<div class="container py-0 animated-fade-in" style="max-width: 900px;">
+    <div class="mb-5">
+        <h2 class="font-luxury" style="color: var(--primary-luxury);">Configuration de l'Établissement</h2>
+        <p class="text-muted m-0">Gérez les informations officielles et de contact de votre établissement.</p>
+    </div>
+
+    <div class="card-luxury p-5 bg-white mb-5">
+        <form method="post">
+            {% csrf_token %}
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-hotel me-2 text-danger"></i> Fiche d'Identité Hôtelière</h5>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Nom de l'Établissement</label>
+                    <input type="text" name="company_name" class="form-control rounded-3" value="{{ user.company_name }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Adresse E-mail Officielle</label>
+                    <input type="email" name="email" class="form-control rounded-3" value="{{ user.email|default:'' }}">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Adresse Géographique / Localisation exacte</label>
+                <input type="text" name="agency_address" class="form-control rounded-3" value="{{ user.agency_address|default:'' }}" placeholder="Ex: Boulevard du Mono, Face Plage, Lomé">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Description / Slogan de l'établissement</label>
+                <textarea name="description" class="form-control rounded-3" rows="4" placeholder="Saisissez une courte biographie ou présentation pour vos futurs clients...">{{ user.bio|default:'' }}</textarea>
+            </div>
+            
+            <hr class="my-4" style="border-color: rgba(183, 110, 121, 0.15);">
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-phone me-2 text-danger"></i> Coordonnées & Canaux de Vente</h5>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Téléphone Mobile (Réception)</label>
+                    <input type="text" name="phone_mobile" class="form-control rounded-3" value="{{ user.agency_phone_mobile|default:'' }}" placeholder="Ex: +228 90 00 00 00">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Téléphone Fixe / Ligne d'urgence</label>
+                    <input type="text" name="phone_landline" class="form-control rounded-3" value="{{ user.agency_phone_landline|default:'' }}" placeholder="Ex: +228 22 21 00 00">
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label class="form-label fw-bold">Site Web officiel</label>
+                    <input type="url" name="website" class="form-control rounded-3" value="{{ user.agency_website|default:'' }}" placeholder="Ex: https://www.hotelsarakawa.com">
+                </div>
+            </div>
+            
+            <hr class="my-4" style="border-color: rgba(183, 110, 121, 0.15);">
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-briefcase me-2 text-danger"></i> Identifiants Fiscaux & Administratifs</h5>
+            
+            <div class="row mb-5">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Numéro RCCM / Immatriculation</label>
+                    <input type="text" name="rccm" class="form-control rounded-3" value="{{ user.agency_rccm|default:'' }}" placeholder="Ex: TG-LOM-2023-B-0000">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Numéro NIF / Identifiant Fiscal</label>
+                    <input type="text" name="nif" class="form-control rounded-3" value="{{ user.agency_nif|default:'' }}" placeholder="Ex: 1000123456">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-3 mt-5">
+                <button type="submit" class="btn btn-luxury px-5 py-2.5 rounded-pill">Sauvegarder les Coordonnées</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Lease, RentPayment, MaintenanceRequest
+from .models import Lease, RentPayment, MaintenanceRequest, PropertyInventory
 from logersn.models import Property
 from users.models import User
 from django.utils import timezone
@@ -25,6 +25,7 @@ def tenant_dashboard_view(request):
     my_leases = Lease.objects.filter(tenant=request.user, status='ACTIVE').select_related('property', 'landlord')
     my_payments = RentPayment.objects.filter(lease__tenant=request.user).order_by('-period_start')
     my_incidents = MaintenanceRequest.objects.filter(lease__tenant=request.user).order_by('-created_at')
+    my_inventories = PropertyInventory.objects.filter(lease__tenant=request.user).order_by('-inventory_date')
     
     # Candidatures envoyées
     from logersn.models import PropertyApplication
@@ -38,6 +39,7 @@ def tenant_dashboard_view(request):
         'leases': my_leases,
         'payments': my_payments,
         'incidents': my_incidents,
+        'inventories': my_inventories,
         'applications': my_applications,
         'conversations': my_conversations,
         'stats': {

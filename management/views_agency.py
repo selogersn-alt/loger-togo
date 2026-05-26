@@ -1371,13 +1371,19 @@ def agency_inventory_create(request, lease_id):
     return render(request, 'agency/agency_inventory_form.html', context)
 
 
-@agency_saas_required
+@login_required
 def agency_inventory_detail(request, inventory_id):
     """
     Rapport d'état des lieux A4 formaté pour impression.
+    Accessible par le bailleur et le locataire lié.
     """
     import json
-    inventory = get_object_or_404(PropertyInventory, id=inventory_id, lease__landlord=request.user)
+    inventory = get_object_or_404(PropertyInventory, id=inventory_id)
+    
+    # Sécurité : Seul le bailleur ou le locataire du bail peut y accéder
+    if request.user != inventory.lease.landlord and request.user != inventory.lease.tenant:
+        messages.error(request, "Accès refusé.")
+        return redirect('dashboard')
     
     try:
         details = json.loads(inventory.details_json)

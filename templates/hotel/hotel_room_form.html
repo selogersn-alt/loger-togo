@@ -1,0 +1,105 @@
+{% extends 'hotel/base_hotel.html' %}
+
+{% block title %}{% if is_create %}Ajouter une Chambre{% else %}Modifier la Chambre {{ room.room_number }}{% endif %} | Loger Togo{% endblock %}
+
+{% block content %}
+<div class="container py-0 animated-fade-in" style="max-width: 800px;">
+    <div class="d-flex align-items-center mb-5">
+        <a href="{% url 'hotel_rooms' %}" class="btn btn-outline-secondary rounded-circle me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="font-luxury m-0" style="color: var(--primary-luxury);">{% if is_create %}Ajouter une Chambre{% else %}Modifier la Chambre {{ room.room_number }}{% endif %}</h2>
+            <p class="text-muted m-0">Saisissez les spécifications opérationnelles et tarifaires.</p>
+        </div>
+    </div>
+
+    <div class="card-luxury p-5 bg-white">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-bold">Numéro ou Nom de Chambre <span class="text-danger">*</span></label>
+                    <input type="text" name="room_number" class="form-control rounded-3" value="{{ room.room_number }}" placeholder="Ex: 101, Suite Royale..." required>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-bold">Type de Chambre <span class="text-danger">*</span></label>
+                    <select name="room_type" class="form-select rounded-3" required>
+                        {% for choice in room_types %}
+                        <option value="{{ choice.0 }}" {% if room.room_type == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-bold">Tarif par Nuitée (FCFA) <span class="text-danger">*</span></label>
+                    <input type="number" name="price_per_night" class="form-control rounded-3" value="{{ room.price_per_night|floatformat:0 }}" placeholder="Ex: 25000" min="0" required>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-bold">Tarif par Heure (FCFA) - <span class="text-muted">Optionnel</span></label>
+                    <input type="number" name="price_per_hour" class="form-control rounded-3" value="{{ room.price_per_hour|floatformat:0 }}" placeholder="Ex: 5000 (Laissez vide si non applicable)" min="0">
+                    <small class="text-muted" style="font-size: 0.75rem;">Très prisé pour les séjours de courte durée / micro-séjours.</small>
+                </div>
+            </div>
+            
+            <hr class="my-4" style="border-color: rgba(183, 110, 121, 0.15);">
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);">Équipements & Commodités</h5>
+            
+            <div class="row mb-5">
+                <div class="col-6 col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="wifi" id="id_wifi" {% if room.wifi %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-secondary" for="id_wifi"><i class="fa-solid fa-wifi me-2"></i>WiFi Gratuit</label>
+                    </div>
+                </div>
+                
+                <div class="col-6 col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="air_conditioning" id="id_ac" {% if room.air_conditioning %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-secondary" for="id_ac"><i class="fa-solid fa-snowflake me-2"></i>Climatisation</label>
+                    </div>
+                </div>
+                
+                <div class="col-6 col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="minibar" id="id_minibar" {% if room.minibar %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-secondary" for="id_minibar"><i class="fa-solid fa-wine-glass me-2"></i>Mini-bar</label>
+                    </div>
+                </div>
+                
+                <div class="col-6 col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="tv" id="id_tv" {% if room.tv %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-secondary" for="id_tv"><i class="fa-solid fa-tv me-2"></i>Téléviseur LED</label>
+                    </div>
+                </div>
+                
+                <div class="col-6 col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="safe" id="id_safe" {% if room.safe %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-secondary" for="id_safe"><i class="fa-solid fa-vault me-2"></i>Coffre-fort</label>
+                    </div>
+                </div>
+                
+                <div class="col-6 col-md-4 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="balcony" id="id_balcony" {% if room.balcony %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-secondary" for="id_balcony"><i class="fa-solid fa-mountain-sun me-2"></i>Balcon / Terrasse</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-3">
+                <a href="{% url 'hotel_rooms' %}" class="btn btn-light rounded-pill px-4 fw-bold">Annuler</a>
+                <button type="submit" class="btn btn-luxury px-5">{% if is_create %}Enregistrer la Chambre{% else %}Sauvegarder les modifications{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

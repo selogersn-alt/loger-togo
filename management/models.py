@@ -262,3 +262,105 @@ class PropertyInventory(models.Model):
 
     def __str__(self):
         return f"État des lieux ({self.get_inventory_type_display()}) - {self.lease.property.title}"
+
+
+class HotelRoom(models.Model):
+    class TypeEnum(models.TextChoices):
+        SINGLE = 'SINGLE', 'Chambre Simple'
+        DOUBLE = 'DOUBLE', 'Chambre Double'
+        TWIN = 'TWIN', 'Chambre Twin'
+        SUITE = 'SUITE', 'Suite'
+        DELUXE = 'DELUXE', 'Suite Deluxe'
+        DORMITORY = 'DORMITORY', 'Dortoir'
+
+    class StatusEnum(models.TextChoices):
+        AVAILABLE = 'AVAILABLE', 'Disponible'
+        OCCUPIED = 'OCCUPIED', 'Occupée'
+        CLEANING = 'CLEANING', 'En cours de ménage'
+        MAINTENANCE = 'MAINTENANCE', 'En maintenance'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hotel = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hotel_rooms')
+    room_number = models.CharField(max_length=50, verbose_name="Numéro de chambre / Nom")
+    room_type = models.CharField(max_length=20, choices=TypeEnum.choices, default=TypeEnum.SINGLE)
+    price_per_night = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Prix par nuitée (FCFA)", validators=[MinValueValidator(0)])
+    price_per_hour = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True, verbose_name="Prix par heure (FCFA) - Optionnel", validators=[MinValueValidator(0)])
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.AVAILABLE)
+    
+    # Équipements
+    wifi = models.BooleanField(default=False)
+    air_conditioning = models.BooleanField(default=False)
+    minibar = models.BooleanField(default=False)
+    tv = models.BooleanField(default=False)
+    safe = models.BooleanField(default=False)
+    balcony = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Chambre d'Hôtel"
+        verbose_name_plural = "Chambres d'Hôtel"
+        unique_together = ('hotel', 'room_number')
+
+    def __str__(self):
+        return f"{self.room_number} - {self.get_room_type_display()}"
+
+
+class HotelBooking(models.Model):
+    class StatusEnum(models.TextChoices):
+        PENDING = 'PENDING', 'Confirmée'
+        CHECKED_IN = 'CHECKED_IN', 'Client Arrivé (Check-in)'
+        CHECKED_OUT = 'CHECKED_OUT', 'Client Parti (Check-out)'
+        CANCELLED = 'CANCELLED', 'Annulée'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    room = models.ForeignKey(HotelRoom, on_delete=models.CASCADE, related_name='bookings')
+    client_name = models.CharField(max_length=255, verbose_name="Nom complet du client")
+    client_phone = models.CharField(max_length=50, verbose_name="Téléphone")
+    client_email = models.EmailField(blank=True, null=True, verbose_name="Email")
+    client_id_card = models.CharField(max_length=100, blank=True, null=True, verbose_name="Pièce d'identité")
+    
+    check_in = models.DateTimeField(verbose_name="Date/Heure d'arrivée")
+    check_out = models.DateTimeField(verbose_name="Date/Heure de départ")
+    
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
+    
+    amount_due = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant hébergement", default=0)
+    extra_charges = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Frais supplémentaires", default=0)
+    amount_paid = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant payé", default=0)
+    
+    payment_method = models.CharField(max_length=50, blank=True, null=True, verbose_name="Mode de paiement")
+    notes = models.TextField(blank=True, null=True, verbose_name="Notes / Demandes spéciales")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Réservation d'Hôtel"
+        verbose_name_plural = "Réservations d'Hôtel"
+
+    def __str__(self):
+        return f"Res: {self.client_name} - Chambre {self.room.room_number}"
+
+    @property
+    def total_amount(self):
+        return self.amount_due + self.extra_charges
+
+    @property
+    def balance_due(self):
+        return self.total_amount - self.amount_paid
+
+
+class HotelChargeItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    booking = models.ForeignKey(HotelBooking, on_delete=models.CASCADE, related_name='charges')
+    label = models.CharField(max_length=255, verbose_name="Libellé de la prestation (ex: Bière, Petit déj, Lessive)")
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Prix unitaire (FCFA)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def total_price(self):
+        return self.quantity * self.price
+

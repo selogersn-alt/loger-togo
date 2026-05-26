@@ -1,0 +1,172 @@
+{% extends 'hotel/base_hotel.html' %}
+
+{% block title %}Nouvel Enregistrement | Loger Togo{% endblock %}
+
+{% block content %}
+<div class="container py-0 animated-fade-in" style="max-width: 900px;">
+    <div class="d-flex align-items-center mb-5">
+        <a href="{% url 'hotel_bookings' %}" class="btn btn-outline-secondary rounded-circle me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="font-luxury m-0" style="color: var(--primary-luxury);">Réception / Enregistrement Client</h2>
+            <p class="text-muted m-0">Créez une réservation ou enregistrez un client de passage (Walk-in).</p>
+        </div>
+    </div>
+
+    <div class="card-luxury p-5 bg-white">
+        <form method="post" id="bookingForm">
+            {% csrf_token %}
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-circle-user me-2 text-danger"></i> Fiche Client</h5>
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Nom Complet <span class="text-danger">*</span></label>
+                    <input type="text" name="client_name" class="form-control rounded-3" placeholder="Ex: Jean KOFFI" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Téléphone <span class="text-danger">*</span></label>
+                    <input type="text" name="client_phone" class="form-control rounded-3" placeholder="Ex: +228 90 00 00 00" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Adresse E-mail</label>
+                    <input type="email" name="client_email" class="form-control rounded-3" placeholder="Ex: client@email.com">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Pièce d'identité (CNI / Passeport / Permis)</label>
+                    <input type="text" name="client_id_card" class="form-control rounded-3" placeholder="Ex: CNI N° 1234567890">
+                </div>
+            </div>
+            
+            <hr class="my-4" style="border-color: rgba(183, 110, 121, 0.15);">
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-bed me-2 text-danger"></i> Attribution de Chambre & Formule</h5>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Sélectionner la Chambre <span class="text-danger">*</span></label>
+                    <select name="room_id" id="roomSelect" class="form-select rounded-3" required>
+                        <option value="" disabled selected>-- Choisissez une chambre disponible --</option>
+                        {% for room in rooms %}
+                        <option value="{{ room.id }}" data-price-night="{{ room.price_per_night }}" data-price-hour="{{ room.price_per_hour|default:'0' }}">
+                            N° {{ room.room_number }} - {{ room.get_room_type_display }} ({{ room.price_per_night|floatformat:0 }} F / nuitée)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Formule de Tarification</label>
+                    <select name="rate_type" id="rateType" class="form-select rounded-3">
+                        <option value="NIGHTLY" selected>Nuitée classique</option>
+                        <option value="HOURLY">Micro-séjour (Tarif horaire)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3 d-none" id="hourlyQtyBox">
+                    <label class="form-label fw-bold">Nombre d'Heures du Séjour</label>
+                    <input type="number" name="hours_qty" id="hoursQty" class="form-control rounded-3" value="1" min="1">
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Date & Heure d'Arrivée <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="check_in" id="checkIn" class="form-control rounded-3" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Date & Heure de Départ Prévue <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="check_out" id="checkOut" class="form-control rounded-3" required>
+                </div>
+            </div>
+            
+            <hr class="my-4" style="border-color: rgba(183, 110, 121, 0.15);">
+            
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-credit-card me-2 text-danger"></i> Règlement & Dépôt d'Acompte</h5>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Acompte / Montant payé à la réservation (FCFA)</label>
+                    <input type="number" name="amount_paid" class="form-control rounded-3" value="0" min="0">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Mode de Paiement</label>
+                    <select name="payment_method" class="form-select rounded-3">
+                        <option value="ESPECES" selected>Espèces (Cash)</option>
+                        <option value="TMONEY">T-Money</option>
+                        <option value="FLOOZ">Flooz</option>
+                        <option value="WAVE">Wave</option>
+                        <option value="CARTE">Carte Bancaire</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Notes / Demandes Spéciales / Allergies</label>
+                <textarea name="notes" class="form-control rounded-3" rows="3" placeholder="Ex: Client VIP, souhaite un lit d'appoint, etc."></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-3 mt-5">
+                <a href="{% url 'hotel_bookings' %}" class="btn btn-light rounded-pill px-4 fw-bold">Annuler</a>
+                <button type="submit" class="btn btn-luxury px-5">Valider l'Enregistrement</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set default check-in and check-out dates
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('checkIn').value = now.toISOString().slice(0, 16);
+    
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(12, 0, 0, 0); // default checkout tomorrow at 12:00
+    document.getElementById('checkOut').value = tomorrow.toISOString().slice(0, 16);
+
+    const rateTypeSelect = document.getElementById('rateType');
+    const hourlyQtyBox = document.getElementById('hourlyQtyBox');
+    
+    rateTypeSelect.addEventListener('change', function() {
+        if (this.value === 'HOURLY') {
+            hourlyQtyBox.classList.remove('d-none');
+            // update checkout based on hours
+            updateHourlyDates();
+        } else {
+            hourlyQtyBox.classList.add('d-none');
+            // reset checkout to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(12, 0, 0, 0);
+            tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+            document.getElementById('checkOut').value = tomorrow.toISOString().slice(0, 16);
+        }
+    });
+
+    const hoursQtyInput = document.getElementById('hoursQty');
+    hoursQtyInput.addEventListener('input', updateHourlyDates);
+    document.getElementById('checkIn').addEventListener('input', function() {
+        if (rateTypeSelect.value === 'HOURLY') {
+            updateHourlyDates();
+        }
+    });
+
+    function updateHourlyDates() {
+        const checkInVal = new Date(document.getElementById('checkIn').value);
+        if (!isNaN(checkInVal.getTime())) {
+            const hours = parseInt(hoursQtyInput.value) || 1;
+            const checkoutDate = new Date(checkInVal.getTime() + hours * 60 * 60 * 1000);
+            checkoutDate.setMinutes(checkoutDate.getMinutes() - checkoutDate.getTimezoneOffset());
+            document.getElementById('checkOut').value = checkoutDate.toISOString().slice(0, 16);
+        }
+    }
+</script>
+{% endblock %}

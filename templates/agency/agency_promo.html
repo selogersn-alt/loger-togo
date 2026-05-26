@@ -374,6 +374,27 @@
             .feature-text h3 { font-size: 2rem; }
             .price-text { font-size: 2.5rem; }
         }
+        
+        .hero-btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 576px) {
+            .hero-btn-group {
+                flex-direction: column !important;
+                align-items: center !important;
+                width: 100% !important;
+            }
+            .hero-btn-group a.btn {
+                width: 100% !important;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -413,7 +434,7 @@
                 <br><br>
                 Pour débloquer votre accès exclusif et bénéficier des avantages listés ci-dessous, veuillez contacter notre support technique pour régulariser votre abonnement.
             </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+            <div class="hero-btn-group">
                 <a href="mailto:support@logertogo.com" class="btn btn-primary" style="background-color: #10b981;">
                     <i class="fa-solid fa-headset"></i> Contacter le Support
                 </a>
@@ -433,7 +454,7 @@
                 Découvrez en détail l'arsenal technologique que Loger Togo Pro met à la disposition de votre agence.
                 Automatisez vos tâches chronophages, sécurisez vos actes juridiques et développez votre portefeuille sans limites.
             </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+            <div class="hero-btn-group">
                 <a href="#trial-box" class="btn btn-primary">
                     <i class="fa-solid fa-rocket"></i> Activer mon essai
                 </a>

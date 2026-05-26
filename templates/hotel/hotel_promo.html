@@ -143,6 +143,18 @@
                 transform: translateY(0);
             }
         }
+        @media (max-width: 576px) {
+            .hero-hotel .d-flex {
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+            .hero-hotel .d-flex a.btn-hotel-primary,
+            .hero-hotel .d-flex a.btn-hotel-secondary {
+                width: 100% !important;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -309,7 +321,7 @@
     <!-- Footer -->
     <footer class="py-4 border-top" style="background-color: var(--dark-luxury); border-color: rgba(183, 110, 121, 0.2) !important;">
         <div class="container text-center text-white-50 small">
-            &copy; 2026 Loger Togo. Module de Gestion Hôtelière Propulsé par DigitalH. Tous droits réservés.
+            &copy; 2026 Loger Togo. Tous droits réservés.
         </div>
     </footer>
 

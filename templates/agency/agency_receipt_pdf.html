@@ -1,0 +1,326 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #1f2937;
+            line-height: 1.4;
+        }
+
+        /* AGENCY HEADER */
+        .agency-header {
+            display: block;
+            width: 100%;
+            border-bottom: 3px solid #0b4629;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .agency-header-table {
+            width: 100%;
+        }
+        .agency-logo {
+            max-height: 75px;
+            max-width: 140px;
+        }
+        .agency-name {
+            font-size: 15pt;
+            font-weight: bold;
+            color: #0b4629;
+            line-height: 1.2;
+        }
+        .agency-tagline {
+            font-size: 8pt;
+            color: #555;
+            font-style: italic;
+        }
+        .agency-contacts {
+            font-size: 8pt;
+            color: #444;
+            line-height: 1.6;
+            margin-top: 4px;
+        }
+        .doc-title {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #0b4629;
+            text-transform: uppercase;
+            text-align: right;
+        }
+        .doc-ref {
+            font-size: 8pt;
+            color: #888;
+            text-align: right;
+            line-height: 1.7;
+        }
+
+        /* Parties */
+        .parties-table { width: 100%; margin-bottom: 16px; }
+        .party-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 8px 10px;
+            border-radius: 4px;
+        }
+        .party-label {
+            font-size: 8pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #0b4629;
+            margin-bottom: 4px;
+        }
+        .party-name {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .party-info {
+            font-size: 8.5pt;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        /* Table */
+        .ledger {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+        .ledger th {
+            background: #0b4629;
+            color: white;
+            font-size: 8pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        .ledger td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 9pt;
+        }
+        .ledger .total-row td {
+            background: #f0fdf4;
+            font-weight: bold;
+            font-size: 11pt;
+            color: #0b4629;
+            border-bottom: 2px solid #0b4629;
+        }
+        .amount { font-weight: bold; color: #065f46; }
+
+        /* Payment badge */
+        .payment-badge {
+            display: inline-block;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #065f46;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 8.5pt;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            font-size: 8pt;
+            color: #6b7280;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 8px 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        /* Signatures */
+        .sig-table { width: 100%; margin-top: 24px; }
+        .sig-cell {
+            width: 45%;
+            text-align: center;
+            padding: 10px;
+            border-top: 1px dashed #9ca3af;
+            font-size: 8pt;
+            color: #6b7280;
+            vertical-align: top;
+        }
+        .sig-space { height: 60px; }
+
+        /* Footer */
+        .footer {
+            font-size: 7.5pt;
+            color: #9ca3af;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 8px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AGENCY HEADER -->
+    <table class="agency-header-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td width="60%">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        {% if agency.profile_picture %}
+                        <td width="90" valign="middle">
+                            <img src="{{ agency.profile_picture.url }}" class="agency-logo" alt="Logo">
+                        </td>
+                        {% endif %}
+                        <td valign="middle" style="padding-left:10px;">
+                            <div class="agency-name">{{ agency.company_name|default:agency.get_full_name }}</div>
+                            {% if agency.agency_tagline %}<div class="agency-tagline">{{ agency.agency_tagline }}</div>{% endif %}
+                            <div class="agency-contacts">
+                                {% if agency.agency_address %}{{ agency.agency_address }}{% if agency.agency_city %}, {{ agency.agency_city }}{% endif %}<br>{% endif %}
+                                {% if agency.agency_phone_mobile %}Tél : {{ agency.agency_phone_mobile }}{% if agency.agency_phone_landline %} / {{ agency.agency_phone_landline }}{% endif %}<br>{% endif %}
+                                {% if agency.agency_email %}Email : {{ agency.agency_email }}<br>{% endif %}
+                                {% if agency.agency_rccm %}RCCM : {{ agency.agency_rccm }}<br>{% endif %}
+                                {% if agency.agency_nif %}NIF : {{ agency.agency_nif }}{% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="40%" valign="top">
+                <div class="doc-title">Quittance de Loyer</div>
+                <div class="doc-ref">
+                    Réf : QLT-{{ payment.id|stringformat:".8s"|upper }}<br>
+                    Date : {{ today|date:"d/m/Y" }}
+                </div>
+            </td>
+        </tr>
+    </table>
+    <hr style="border:none; border-top:3px solid #0b4629; margin-bottom:16px;">
+
+    <!-- PARTIES -->
+    <table class="parties-table" cellpadding="6" cellspacing="8">
+        <tr>
+            <td width="48%" valign="top">
+                <div class="party-box">
+                    <div class="party-label">Émetteur / Bailleur</div>
+                    <div class="party-name">{{ agency.company_name|default:agency.get_full_name }}</div>
+                    <div class="party-info">
+                        Gestionnaire : {{ agency.get_full_name }}<br>
+                        {% if agency.agency_address %}{{ agency.agency_address }}<br>{% endif %}
+                        Tél : {{ agency.agency_phone_mobile|default:agency.phone_number }}<br>
+                        Email : {{ agency.agency_email|default:agency.email|default:"—" }}
+                    </div>
+                </div>
+            </td>
+            <td width="4%"></td>
+            <td width="48%" valign="top">
+                <div class="party-box">
+                    <div class="party-label">Locataire / Preneur</div>
+                    <div class="party-name">{{ payment.lease.tenant.get_full_name }}</div>
+                    <div class="party-info">
+                        Tél : {{ payment.lease.tenant.phone_number }}<br>
+                        {% if payment.lease.tenant.cni_number %}CNI : {{ payment.lease.tenant.cni_number }}<br>{% endif %}
+                        Email : {{ payment.lease.tenant.email|default:"Non renseigné" }}
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- PAYMENT BADGE -->
+    <div class="payment-badge">
+        &#10003; Paiement reçu par :
+        {% if payment.payment_method == 'ESPECES' %}Espèces
+        {% elif payment.payment_method == 'VIREMENT' %}Virement Bancaire
+        {% elif payment.payment_method == 'T-MONEY' %}T-Money
+        {% elif payment.payment_method == 'FLOOZ' %}Flooz
+        {% elif payment.payment_method == 'CHEQUE' %}Chèque
+        {% else %}{{ payment.payment_method|default:"Espèces" }}
+        {% endif %}
+    </div>
+
+    <!-- LEDGER TABLE -->
+    <table class="ledger" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Bien Immobilier</th>
+                <th>Période</th>
+                <th>Montant Dû</th>
+                <th>Montant Reçu</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Loyer Mensuel</strong></td>
+                <td>{{ payment.lease.property.title }}<br>
+                    <span style="font-size:8pt;color:#6b7280;">{{ payment.lease.property.neighborhood }}</span></td>
+                <td>{{ payment.period_start|date:"d/m/Y" }} — {{ payment.period_end|date:"d/m/Y" }}</td>
+                <td>{{ payment.amount_due|intcomma }} FCFA</td>
+                <td class="amount">{{ payment.amount_paid|intcomma }} FCFA</td>
+            </tr>
+            {% if payment.lease.deposit_amount > 0 and payment.period_start == payment.lease.start_date %}
+            <tr>
+                <td><strong>Dépôt de Garantie</strong></td>
+                <td>{{ payment.lease.property.title }}</td>
+                <td>Caution d'entrée</td>
+                <td>{{ payment.lease.deposit_amount|intcomma }} FCFA</td>
+                <td class="amount">{{ payment.lease.deposit_amount|intcomma }} FCFA</td>
+            </tr>
+            {% endif %}
+            <tr class="total-row">
+                <td colspan="4"><strong>TOTAL ENCAISSÉ</strong></td>
+                <td>
+                    {% if payment.lease.deposit_amount > 0 and payment.period_start == payment.lease.start_date %}
+                        {{ payment.amount_paid|add:payment.lease.deposit_amount|intcomma }} FCFA
+                    {% else %}
+                        {{ payment.amount_paid|intcomma }} FCFA
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- DISCLAIMER -->
+    <div class="disclaimer">
+        La présente quittance donne décharge au locataire pour le versement de la somme ci-dessus indiquée,
+        sous réserve de tous droits et d'encaissement définitif. Conservez ce document comme justificatif de paiement.
+    </div>
+
+    {% if payment.receipt_footer %}
+    <div style="font-size:8pt; color:#6b7280; text-align:center; margin-bottom:10px; font-style:italic;">
+        {{ payment.receipt_footer }}
+    </div>
+    {% endif %}
+
+    <!-- SIGNATURES -->
+    <table class="sig-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="sig-cell">
+                <div class="sig-space"></div>
+                <strong>Signature & Cachet de l'Agence</strong>
+            </td>
+            <td width="10%"></td>
+            <td class="sig-cell">
+                <div class="sig-space"></div>
+                <strong>Signature du Locataire</strong>
+            </td>
+        </tr>
+    </table>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        {% if agency.agency_rccm %}RCCM : {{ agency.agency_rccm }} | {% endif %}
+        {% if agency.agency_nif %}NIF : {{ agency.agency_nif }} | {% endif %}
+        Document Réf : QLT-{{ payment.id|stringformat:".8s"|upper }} | {{ today.year }} {{ agency.company_name|default:"Loger Togo Pro" }}
+    </div>
+
+</body>
+</html>

@@ -33,6 +33,8 @@ urlpatterns = [
     path('paiements/', views_agency.agency_payments, name='agency_payments'),
     path('paiements/export/', views_agency.export_payments_csv, name='export_payments_csv'),
     path('quittance/<uuid:payment_id>/', views_agency.agency_receipt, name='agency_receipt'),
+    path('quittance/<uuid:payment_id>/pdf/', views_agency.agency_receipt_pdf, name='agency_receipt_pdf'),
+    path('baux/<uuid:lease_id>/contrat/pdf/', views_agency.agency_lease_pdf, name='agency_lease_pdf'),
     path('comptabilite/analyses/', views_agency.agency_financial_analysis, name='agency_financial_analysis'),
     
     # États des lieux (Property Inventories)

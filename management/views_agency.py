@@ -174,39 +174,33 @@ def agency_privacy_view(request):
 @agency_saas_required
 def agency_dashboard(request):
     """
-    Main SaaS Dashboard for the agency with Advanced Statistics.
+    Main SaaS Dashboard for the agency with Advanced Statistics & Charts.
     """
+    from datetime import date
     agency = request.user
+    today = timezone.now().date()
     
-    # 1. Calculations & Metrics
+    # 1. Core KPIs
     total_clients = AgencyClient.objects.filter(agency=agency).count()
     total_properties = Property.objects.filter(owner=agency).count()
-    
-    # Leases where agency is landlord
     my_leases = Lease.objects.filter(landlord=agency)
     total_leases = my_leases.count()
     active_leases_count = my_leases.filter(status=Lease.StatusEnum.ACTIVE).count()
     
-    # Occupancy Rate (taux d'occupation)
+    # Occupancy Rate
     occupancy_rate = 0
     if total_properties > 0:
-        occupied_properties_count = my_leases.filter(status=Lease.StatusEnum.ACTIVE).values('property').distinct().count()
-        occupancy_rate = round((occupied_properties_count / total_properties) * 100, 1)
-        
-    # Collected rent revenue (Total payments where status is PAID or PARTIAL)
+        occupied_count = my_leases.filter(status=Lease.StatusEnum.ACTIVE).values('property').distinct().count()
+        occupancy_rate = round((occupied_count / total_properties) * 100, 1)
+    
+    # Revenue
     payments = RentPayment.objects.filter(lease__landlord=agency)
     total_revenue = payments.filter(status=RentPayment.StatusEnum.PAID).aggregate(total=Sum('amount_paid'))['total'] or 0
+    total_unpaid = payments.filter(status=RentPayment.StatusEnum.UNPAID).aggregate(total=Sum('amount_due'))['total'] or 0
     
-    # Outstanding/Unpaid rents
-    unpaid_payments = payments.filter(status=RentPayment.StatusEnum.UNPAID)
-    total_unpaid = unpaid_payments.aggregate(total=Sum('amount_due'))['total'] or 0
-    
-    # Recent clients
+    # Recent clients & payments
     recent_clients = AgencyClient.objects.filter(agency=agency).order_by('-created_at')[:5]
-    
-    # Recent payments
     recent_payments = list(payments.order_by('-period_start')[:5])
-    today = timezone.now().date()
     for p in recent_payments:
         due_day = p.lease.payment_due_day
         try:
@@ -215,28 +209,74 @@ def agency_dashboard(request):
             due_date = p.period_start.replace(day=28)
         p.is_overdue = (p.status != RentPayment.StatusEnum.PAID) and (today > due_date)
     
-    # Pipeline clients count for pipeline mini-summary
+    # Pipeline counts
     pipeline_stats = AgencyClient.objects.filter(agency=agency).values('pipeline_stage').annotate(count=Count('id'))
     pipeline_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     for stat in pipeline_stats:
         stage = stat['pipeline_stage']
         if stage in pipeline_counts:
             pipeline_counts[stage] = stat['count']
-            
-    # Monthly collected revenues (actual if payments exist)
-    months_labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
-    monthly_data = [0] * 12
-    for p in payments.filter(status=RentPayment.StatusEnum.PAID, date_paid__isnull=False):
-        month_idx = p.date_paid.month - 1
-        monthly_data[month_idx] += float(p.amount_paid)
-
-    # Property category breakdown for advanced visual analysis
+    
+    # --- CHART 1: Rolling 12 months revenue & unpaid ---
+    import calendar
+    rolling_labels = []
+    rolling_revenue = []
+    rolling_unpaid = []
+    for i in range(11, -1, -1):
+        if today.month - i <= 0:
+            m = today.month - i + 12
+            y = today.year - 1
+        else:
+            m = today.month - i
+            y = today.year
+        label = f"{calendar.month_abbr[m]} {str(y)[2:]}"
+        rolling_labels.append(label)
+        paid = payments.filter(
+            status=RentPayment.StatusEnum.PAID,
+            date_paid__year=y,
+            date_paid__month=m
+        ).aggregate(total=Sum('amount_paid'))['total'] or 0
+        unpaid = payments.filter(
+            status=RentPayment.StatusEnum.UNPAID,
+            period_start__year=y,
+            period_start__month=m
+        ).aggregate(total=Sum('amount_due'))['total'] or 0
+        rolling_revenue.append(float(paid))
+        rolling_unpaid.append(float(unpaid))
+    
+    # --- CHART 2: Property category breakdown ---
     categories_stats = Property.objects.filter(owner=agency).values('listing_category').annotate(count=Count('id'))
     categories_data = {'RENT': 0, 'SALE': 0, 'FURNISHED': 0}
     for item in categories_stats:
         cat = item['listing_category']
         if cat in categories_data:
             categories_data[cat] = item['count']
+    
+    # --- CHART 3: Payment status breakdown (for current year) ---
+    paid_count = payments.filter(status=RentPayment.StatusEnum.PAID).count()
+    unpaid_count = payments.filter(status=RentPayment.StatusEnum.UNPAID).count()
+    partial_count = payments.filter(status=RentPayment.StatusEnum.PARTIAL).count()
+    
+    # --- CHART 4: Top 5 tenants by revenue ---
+    from django.db.models import Sum
+    top_tenants = payments.filter(status=RentPayment.StatusEnum.PAID)\
+        .values('lease__tenant__first_name', 'lease__tenant__last_name', 'lease__tenant__phone_number')\
+        .annotate(total_paid=Sum('amount_paid'))\
+        .order_by('-total_paid')[:5]
+    top_tenant_labels = []
+    top_tenant_values = []
+    for t in top_tenants:
+        name = f"{t['lease__tenant__first_name'] or ''} {t['lease__tenant__last_name'] or ''}".strip()
+        if not name:
+            name = t['lease__tenant__phone_number'] or '—'
+        top_tenant_labels.append(name[:18])
+        top_tenant_values.append(float(t['total_paid']))
+    
+    # Legacy months_labels for backward compat
+    months_labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+    monthly_data = [0] * 12
+    for p in payments.filter(status=RentPayment.StatusEnum.PAID, date_paid__isnull=False):
+        monthly_data[p.date_paid.month - 1] += float(p.amount_paid)
 
     context = {
         'total_clients': total_clients,
@@ -249,11 +289,21 @@ def agency_dashboard(request):
         'recent_clients': recent_clients,
         'recent_payments': recent_payments,
         'pipeline_counts': pipeline_counts,
+        # Charts
         'months_labels': months_labels,
         'monthly_data': monthly_data,
+        'rolling_labels': rolling_labels,
+        'rolling_revenue': rolling_revenue,
+        'rolling_unpaid': rolling_unpaid,
         'categories_data': categories_data,
+        'paid_count': paid_count,
+        'unpaid_count': unpaid_count,
+        'partial_count': partial_count,
+        'top_tenant_labels': top_tenant_labels,
+        'top_tenant_values': top_tenant_values,
     }
     return render(request, 'agency/agency_dashboard.html', context)
+
 
 
 @agency_saas_required
@@ -662,6 +712,112 @@ def agency_properties(request):
         'properties': properties,
     }
     return render(request, 'agency/agency_properties.html', context)
+
+
+@agency_saas_required
+def agency_receipt_pdf(request, payment_id):
+    """
+    Server-side PDF generation for a rent receipt using xhtml2pdf.
+    Returns a proper PDF download (no browser print dialog).
+    """
+    from io import BytesIO
+    from xhtml2pdf import pisa
+    from django.template.loader import render_to_string
+
+    agency = request.user
+    payment = get_object_or_404(RentPayment, id=payment_id, lease__landlord=agency)
+
+    context = {
+        'payment': payment,
+        'agency': agency,
+        'today': timezone.now().date(),
+        'request': request,
+    }
+
+    html_string = render_to_string('agency/agency_receipt_pdf.html', context, request=request)
+
+    buffer = BytesIO()
+    pisa_status = pisa.CreatePDF(html_string, dest=buffer, encoding='UTF-8')
+
+    if pisa_status.err:
+        return HttpResponse('Erreur lors de la génération du PDF', status=500)
+
+    buffer.seek(0)
+    filename = f"Quittance-{payment.lease.tenant.get_full_name().replace(' ', '_')}-{payment.period_start.strftime('%m%Y')}.pdf"
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@agency_saas_required
+def agency_lease_pdf(request, lease_id):
+    """
+    Server-side PDF generation for a lease agreement using xhtml2pdf.
+    Uses the compiled template content.
+    """
+    from io import BytesIO
+    from xhtml2pdf import pisa
+    from django.template.loader import render_to_string
+    from management.models import ContractTemplate
+
+    agency = request.user
+    filiation = get_object_or_404(Lease, id=lease_id, landlord=agency)
+
+    # Get compiled content (same logic as agency_lease_agreement)
+    template_id = request.GET.get('template')
+    compiled_content = None
+
+    if template_id:
+        try:
+            template = ContractTemplate.objects.get(id=template_id)
+        except ContractTemplate.DoesNotExist:
+            template = None
+    else:
+        template = ContractTemplate.objects.filter(agency=agency).first() or \
+                   ContractTemplate.objects.filter(agency=None).first()
+
+    if template:
+        content = template.content
+        replacements = {
+            '[NOM_BAILLEUR]': agency.company_name or agency.get_full_name(),
+            '[NOM_COMPLET_CLIENT]': filiation.tenant.get_full_name(),
+            '[NATIONALITE_CLIENT]': filiation.tenant.document_country or 'Togolaise',
+            '[NUMERO_CARTE_CLIENT]': filiation.tenant.cni_number or '___________',
+            '[TYPE_DE_BIEN]': filiation.property.get_property_type_display() if hasattr(filiation.property, 'get_property_type_display') else 'Appartement',
+            '[DETAILS_DE_BIEN]': f"{filiation.property.title} — {filiation.property.neighborhood or ''}, {filiation.property.get_city_display() if hasattr(filiation.property, 'get_city_display') else ''}",
+            '[TYPE_D_USAGE]': 'Habitation',
+            '[PRIX_DU_BIEN]': f"{int(filiation.monthly_rent):,} FCFA".replace(',', ' '),
+            '[CAUTION]': f"{int(filiation.deposit_amount):,} FCFA".replace(',', ' ') if filiation.deposit_amount else 'Néant',
+            '[DATE_DEBUT_CONTRAT]': filiation.start_date.strftime('%d/%m/%Y') if filiation.start_date else '—',
+            '[DATE_FIN_CONTRAT]': filiation.end_date.strftime('%d/%m/%Y') if filiation.end_date else 'Indéterminée',
+            '[DATE_D_ETABLISSEMENT]': timezone.now().strftime('%d/%m/%Y'),
+            '[SIGNATURE_BAILLEUR]': '',
+            '[SIGNATURE_LOCATAIRE]': '',
+        }
+        for key, val in replacements.items():
+            content = content.replace(key, str(val))
+        compiled_content = content
+
+    context = {
+        'filiation': filiation,
+        'compiled_content': compiled_content,
+        'today': timezone.now().date(),
+        'request': request,
+    }
+
+    html_string = render_to_string('lease_agreement_pdf.html', context, request=request)
+
+    buffer = BytesIO()
+    pisa_status = pisa.CreatePDF(html_string, dest=buffer, encoding='UTF-8')
+
+    if pisa_status.err:
+        return HttpResponse('Erreur lors de la génération du PDF', status=500)
+
+    buffer.seek(0)
+    filename = f"Contrat-{filiation.tenant.get_full_name().replace(' ', '_')}-{filiation.start_date.strftime('%m%Y') if filiation.start_date else 'ND'}.pdf"
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @agency_saas_required

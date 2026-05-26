@@ -481,29 +481,29 @@
 <!-- ── Charts Row ─────────────────── -->
 <div class="charts-row">
 
-    <!-- Line Chart -->
-    <div class="panel">
+    <!-- Chart 1: Rolling 12m Revenue vs Unpaid (Bar) -->
+    <div class="panel" style="grid-column: span 2;">
         <div class="panel-header">
             <div class="panel-title">
-                <i class="fa-solid fa-chart-line" style="color: #10b981;"></i>
-                Revenus Mensuels
+                <i class="fa-solid fa-chart-column" style="color: #10b981;"></i>
+                Revenus vs Impayés — 12 derniers mois
             </div>
-            <span class="panel-caption">FCFA encaissés</span>
+            <span class="panel-caption">FCFA</span>
         </div>
         <div style="height: 240px; position: relative;">
             <canvas id="revenueChart"></canvas>
         </div>
     </div>
 
-    <!-- Doughnut Chart -->
+    <!-- Chart 2: Category Doughnut -->
     <div class="panel">
         <div class="panel-header">
             <div class="panel-title">
                 <i class="fa-solid fa-chart-pie" style="color: #3b82f6;"></i>
-                Répartition
+                Portefeuille
             </div>
         </div>
-        <div style="height: 170px; position: relative; margin-bottom: 0.75rem;">
+        <div style="height: 160px; position: relative; margin-bottom: 0.75rem;">
             <canvas id="categoryChart"></canvas>
         </div>
         <div class="chart-legend">
@@ -513,12 +513,57 @@
         </div>
     </div>
 
+</div>
+
+<!-- ── Second Charts Row ──────────── -->
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+
+    <!-- Chart 3: Payment status doughnut -->
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <i class="fa-solid fa-circle-half-stroke" style="color: #f59e0b;"></i>
+                Statut des Loyers
+            </div>
+        </div>
+        <div style="height: 160px; position: relative; margin-bottom: 0.75rem;">
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span>Payés</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>Impayés</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Partiels</div>
+        </div>
+    </div>
+
+    <!-- Chart 4: Top Tenants horizontal bar -->
+    <div class="panel" style="grid-column: span 2;">
+        <div class="panel-header">
+            <div class="panel-title">
+                <i class="fa-solid fa-ranking-star" style="color: #d4af37;"></i>
+                Top 5 — Locataires par Revenus
+            </div>
+            <a href="{% url 'agency_payments' %}" class="panel-link">Tout voir <i class="fa-solid fa-arrow-right" style="font-size:0.65rem;"></i></a>
+        </div>
+        <div style="height: 160px; position: relative;">
+            <canvas id="topTenantsChart"></canvas>
+        </div>
+    </div>
+
     <!-- Pipeline -->
+    <div class="panel" style="display:none;"><!-- hidden, kept below --></div>
+
+</div>
+
+<!-- ── Pipeline + Tables Row ─────── -->
+<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+
+    <!-- Pipeline mini -->
     <div class="panel">
         <div class="panel-header">
             <div class="panel-title">
                 <i class="fa-solid fa-filter" style="color: #d4af37;"></i>
-                Prospects
+                Prospects Pipeline
             </div>
             <a href="{% url 'agency_pipeline' %}" class="panel-link">Suivi <i class="fa-solid fa-arrow-right" style="font-size:0.65rem;"></i></a>
         </div>
@@ -546,76 +591,73 @@
         </div>
     </div>
 
-</div>
+    <!-- Tables: Prospects + Payments side by side -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
 
-<!-- ── Tables Row ─────────────────── -->
-<div class="tables-row">
-
-    <!-- Prospects récents -->
-    <div class="panel">
-        <div class="tbl-header">
-            <div class="tbl-title">
-                <i class="fa-solid fa-user-clock" style="color: #10b981;"></i>
-                Prospects Récents
-            </div>
-            <a href="{% url 'agency_clients' %}" class="panel-link">Tout voir</a>
-        </div>
-        {% for client in recent_clients %}
-        <div class="row-item">
-            <div style="display:flex; align-items:center; gap:0.75rem;">
-                <div class="avatar-sm">{{ client.full_name|slice:":1"|upper }}</div>
-                <div class="row-info">
-                    <h4>{{ client.full_name }}</h4>
-                    <small><i class="fa-solid fa-phone" style="font-size:0.65rem; margin-right:3px;"></i>{{ client.phone }}</small>
+        <div class="panel">
+            <div class="tbl-header">
+                <div class="tbl-title">
+                    <i class="fa-solid fa-user-clock" style="color: #10b981;"></i>
+                    Prospects Récents
                 </div>
+                <a href="{% url 'agency_clients' %}" class="panel-link">Tout voir</a>
             </div>
-            <span class="pill {% if client.status == 'ACTIVE' %}pill-green{% elif client.status == 'PROSPECT' %}pill-yellow{% else %}pill-red{% endif %}">
-                {{ client.get_status_display }}
-            </span>
-        </div>
-        {% empty %}
-        <div class="empty-state">
-            <i class="fa-solid fa-user-plus"></i>
-            Aucun prospect pour le moment
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Encaissements récents -->
-    <div class="panel">
-        <div class="tbl-header">
-            <div class="tbl-title">
-                <i class="fa-solid fa-money-bill-wave" style="color: #d4af37;"></i>
-                Encaissements Récents
-            </div>
-            <a href="{% url 'agency_payments' %}" class="panel-link">Tout voir</a>
-        </div>
-        {% for p in recent_payments %}
-        <div class="row-item">
-            <div style="display:flex; align-items:center; gap:0.75rem;">
-                <div class="avatar-sm" style="background: linear-gradient(135deg, #d4af37, #b58900);">
-                    {{ p.lease.tenant.get_full_name|slice:":1"|upper }}
+            {% for client in recent_clients %}
+            <div class="row-item">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div class="avatar-sm">{{ client.full_name|slice:":1"|upper }}</div>
+                    <div class="row-info">
+                        <h4>{{ client.full_name }}</h4>
+                        <small><i class="fa-solid fa-phone" style="font-size:0.65rem; margin-right:3px;"></i>{{ client.phone }}</small>
+                    </div>
                 </div>
-                <div class="row-info">
-                    <h4>{{ p.lease.tenant.get_full_name }}</h4>
-                    <small>Période : {{ p.period_start|date:"M Y" }}</small>
-                </div>
-            </div>
-            <div class="amount-block">
-                <strong>{{ p.amount_paid|intcomma }} <span style="font-size:0.65rem; font-weight:500; color:var(--text-muted);">CFA</span></strong>
-                <span class="pill {% if p.is_overdue %}pill-overdue-alert{% elif p.status == 'PAID' %}pill-green{% elif p.status == 'PARTIAL' %}pill-yellow{% else %}pill-red{% endif %}">
-                    {% if p.is_overdue %}<i class="fa-solid fa-triangle-exclamation"></i> En Retard{% else %}{{ p.get_status_display }}{% endif %}
+                <span class="pill {% if client.status == 'ACTIVE' %}pill-green{% elif client.status == 'PROSPECT' %}pill-yellow{% else %}pill-red{% endif %}">
+                    {{ client.get_status_display }}
                 </span>
             </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fa-solid fa-user-plus"></i>
+                Aucun prospect
+            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="empty-state">
-            <i class="fa-solid fa-receipt"></i>
-            Aucun loyer enregistré
-        </div>
-        {% endfor %}
-    </div>
 
+        <div class="panel">
+            <div class="tbl-header">
+                <div class="tbl-title">
+                    <i class="fa-solid fa-money-bill-wave" style="color: #d4af37;"></i>
+                    Encaissements Récents
+                </div>
+                <a href="{% url 'agency_payments' %}" class="panel-link">Tout voir</a>
+            </div>
+            {% for p in recent_payments %}
+            <div class="row-item">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div class="avatar-sm" style="background: linear-gradient(135deg, #d4af37, #b58900);">
+                        {{ p.lease.tenant.get_full_name|slice:":1"|upper }}
+                    </div>
+                    <div class="row-info">
+                        <h4>{{ p.lease.tenant.get_full_name }}</h4>
+                        <small>{{ p.period_start|date:"M Y" }}</small>
+                    </div>
+                </div>
+                <div class="amount-block">
+                    <strong>{{ p.amount_paid|intcomma }} <span style="font-size:0.65rem; font-weight:500; color:var(--text-muted);">CFA</span></strong>
+                    <span class="pill {% if p.is_overdue %}pill-overdue-alert{% elif p.status == 'PAID' %}pill-green{% elif p.status == 'PARTIAL' %}pill-yellow{% else %}pill-red{% endif %}">
+                        {% if p.is_overdue %}<i class="fa-solid fa-triangle-exclamation"></i> En Retard{% else %}{{ p.get_status_display }}{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fa-solid fa-receipt"></i>
+                Aucun loyer enregistré
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
 </div>
 
 {% endblock %}
@@ -629,111 +671,162 @@ document.addEventListener("DOMContentLoaded", function () {
     const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     document.getElementById('dashDate').textContent = d.toLocaleDateString('fr-FR', opts);
 
-    // ── Line Chart (Revenus) ──
-    const ctxRev = document.getElementById('revenueChart').getContext('2d');
-    const grad = ctxRev.createLinearGradient(0, 0, 0, 240);
-    grad.addColorStop(0, 'rgba(16,185,129,0.20)');
-    grad.addColorStop(1, 'rgba(16,185,129,0.00)');
+    const TOOLTIP_DEFAULTS = {
+        backgroundColor: '#0f172a',
+        titleColor: '#94a3b8',
+        bodyColor: '#f8fafc',
+        bodyFont: { family: 'Outfit', weight: '700', size: 13 },
+        padding: 12,
+        cornerRadius: 10,
+    };
 
+    // ── Chart 1: Rolling 12m Bar (Revenue vs Impayés) ──
+    const ctxRev = document.getElementById('revenueChart').getContext('2d');
     new Chart(ctxRev, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: {{ months_labels|safe }},
-            datasets: [{
-                label: 'Revenus (FCFA)',
-                data: {{ monthly_data|safe }},
-                borderColor: '#10b981',
-                borderWidth: 2.5,
-                backgroundColor: grad,
-                fill: true,
-                tension: 0.45,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#10b981',
-                pointBorderWidth: 2.5,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                pointHoverBackgroundColor: '#d4af37',
-                pointHoverBorderColor: '#ffffff'
-            }]
+            labels: {{ rolling_labels|safe }},
+            datasets: [
+                {
+                    label: 'Encaissés (FCFA)',
+                    data: {{ rolling_revenue|safe }},
+                    backgroundColor: 'rgba(16,185,129,0.75)',
+                    borderColor: '#10b981',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Impayés (FCFA)',
+                    data: {{ rolling_unpaid|safe }},
+                    backgroundColor: 'rgba(239,68,68,0.55)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { display: false },
+                legend: {
+                    display: true,
+                    labels: { color: '#64748b', font: { family: 'Outfit', size: 11 }, boxWidth: 12, boxHeight: 12, borderRadius: 4 }
+                },
                 tooltip: {
-                    backgroundColor: '#0f172a',
-                    titleColor: '#94a3b8',
-                    bodyColor: '#f8fafc',
-                    bodyFont: { family: 'Outfit', weight: '700', size: 14 },
-                    padding: 12,
-                    cornerRadius: 10,
-                    callbacks: {
-                        label: ctx => '  ' + ctx.parsed.y.toLocaleString('fr-FR') + ' CFA'
-                    }
+                    ...TOOLTIP_DEFAULTS,
+                    callbacks: { label: ctx => '  ' + ctx.dataset.label + ' : ' + ctx.parsed.y.toLocaleString('fr-FR') + ' FCFA' }
                 }
             },
             scales: {
-                x: {
-                    grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-                    ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 11 } }
-                },
+                x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 } } },
                 y: {
-                    grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-                    ticks: {
-                        color: '#94a3b8',
-                        font: { family: 'Outfit', size: 11 },
-                        callback: v => v.toLocaleString('fr-FR')
-                    }
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
                 }
             }
         }
     });
 
-    // ── Doughnut Chart ──
+    // ── Chart 2: Category Doughnut ──
     const ctxCat = document.getElementById('categoryChart').getContext('2d');
-    const rentC = parseInt('{{ categories_data.RENT|default:"0" }}');
-    const saleC = parseInt('{{ categories_data.SALE|default:"0" }}');
-    const furnC = parseInt('{{ categories_data.FURNISHED|default:"0" }}');
-
     new Chart(ctxCat, {
         type: 'doughnut',
         data: {
             labels: ['Location', 'Vente', 'Meublé'],
             datasets: [{
-                data: [rentC, saleC, furnC],
+                data: [
+                    parseInt('{{ categories_data.RENT|default:"0" }}'),
+                    parseInt('{{ categories_data.SALE|default:"0" }}'),
+                    parseInt('{{ categories_data.FURNISHED|default:"0" }}')
+                ],
                 backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6'],
                 borderColor: '#ffffff',
                 borderWidth: 3,
-                hoverOffset: 6
+                hoverOffset: 8
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '72%',
+            responsive: true, maintainAspectRatio: false, cutout: '68%',
             plugins: {
                 legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    bodyFont: { family: 'Outfit', weight: '700' },
-                    callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed }
-                }
+                tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed + ' biens' } }
             }
         }
     });
 
-    // ── Animation d'entrée KPI ──
+    // ── Chart 3: Payment Status Doughnut ──
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: ['Payés', 'Impayés', 'Partiels'],
+            datasets: [{
+                data: [{{ paid_count }}, {{ unpaid_count }}, {{ partial_count }}],
+                backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '68%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed + ' loyers' } }
+            }
+        }
+    });
+
+    // ── Chart 4: Top Tenants Horizontal Bar ──
+    const ctxTop = document.getElementById('topTenantsChart').getContext('2d');
+    new Chart(ctxTop, {
+        type: 'bar',
+        data: {
+            labels: {{ top_tenant_labels|safe }},
+            datasets: [{
+                label: 'Total encaissé (FCFA)',
+                data: {{ top_tenant_values|safe }},
+                backgroundColor: [
+                    'rgba(212,175,55,0.75)', 'rgba(16,185,129,0.65)', 'rgba(59,130,246,0.65)',
+                    'rgba(139,92,246,0.65)', 'rgba(245,158,11,0.65)'
+                ],
+                borderColor: ['#d4af37','#10b981','#3b82f6','#8b5cf6','#f59e0b'],
+                borderWidth: 1.5,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.parsed.x.toLocaleString('fr-FR') + ' FCFA' } }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+                },
+                y: { grid: { display: false }, ticks: { color: '#334155', font: { family: 'Outfit', size: 11, weight: '600' } } }
+            }
+        }
+    });
+
+    // ── Animation d'entrée ──
     const cards = document.querySelectorAll('.kpi-card, .panel');
     cards.forEach((el, i) => {
         el.style.opacity = '0';
-        el.style.transform = 'translateY(16px)';
+        el.style.transform = 'translateY(14px)';
         setTimeout(() => {
             el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
             el.style.opacity = '1';
             el.style.transform = 'translateY(0)';
-        }, 60 + i * 55);
+        }, 50 + i * 45);
     });
 
 });

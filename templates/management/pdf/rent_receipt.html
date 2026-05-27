@@ -119,7 +119,7 @@
 
     <div class="header">
         <h1>Quittance de Loyer</h1>
-        <p>Loger Togo - Gestion Immobilière DigitalH</p>
+        <p>{{ lease.landlord.company_name|default:lease.landlord.get_full_name }}</p>
     </div>
 
     <table class="info-grid">
@@ -170,8 +170,8 @@
     </div>
 
     <div class="footer" style="margin-top: 20px;">
-        <p>Généré par <strong>Loger Togo</strong> - Plateforme n°1 de l'immobilier au Togo.</p>
-        <p>DigitalH Group - Lomé, Togo</p>
+        <p>Document généré pour le compte de <strong>{{ lease.landlord.company_name|default:lease.landlord.get_full_name }}</strong>.</p>
+        <p>Quittance officielle de loyer.</p>
     </div>
 </body>
 </html>

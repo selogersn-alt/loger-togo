@@ -187,13 +187,13 @@
         <div class="footer" style="margin-top: 20px;">
             {% if filiation.landlord.agency_rccm %}RCCM : {{ filiation.landlord.agency_rccm }} | {% endif %}
             {% if filiation.landlord.agency_nif %}NIF : {{ filiation.landlord.agency_nif }} | {% endif %}
-            Réf : {{ filiation.unique_ref }} | Certifié par <strong>Loger Togo Pro (agence.logertogo.com)</strong>
+            Réf : {{ filiation.unique_ref }} | Document de Location Officiel
         </div>
     {% else %}
         <div class="header">
-            <div class="logo">Loger Togo</div>
+            <div class="logo">{{ filiation.landlord.company_name|default:filiation.landlord.get_full_name }}</div>
             <div class="title">CONTRAT DE LOCATION À USAGE D’HABITATION</div>
-            <div class="Confiance-info">Certifié par le réseau de confiance <strong>Loger Togo (DigitalH)</strong></div>
+            <div class="Confiance-info">Document certifié conforme</div>
         </div>
 
         <div class="content">
@@ -201,7 +201,6 @@
             
             <div class="party">
                 <strong>M/Mme/Société :</strong> <span class="variable">{{ filiation.landlord.get_full_name|upper }}</span><br>
-                <strong>Confiance Propriétaire :</strong> <span class="badge-Confiance">{{ filiation.landlord.Confiance_profile.Confiance_number|default:"EN ATTENTE" }}</span><br>
                 Ci-après dénommé <strong>LE BAILLEUR</strong>, d’une part.
             </div>
 
@@ -211,7 +210,6 @@
                 <strong>M/Mme :</strong> <span class="variable">{{ filiation.tenant.get_full_name|upper }}</span>, 
                 titulaire d’une pièce d’identité <strong>{{ filiation.tenant.document_country|default:"Togoaise" }}</strong> 
                 N° <span class="variable">{{ filiation.tenant.cni_number|default:"___________" }}</span><br>
-                <strong>Confiance Locataire :</strong> <span class="badge-Confiance">{{ filiation.tenant.Confiance_profile.Confiance_number|default:"EN ATTENTE" }}</span><br>
                 Ci-après dénommé <strong>LE LOCATAIRE</strong>, d’autre part.
             </div>
 
@@ -234,7 +232,7 @@
 
             <p><strong>3) OBLIGATIONS :</strong> Le bailleur s'oblige à délivrer un logement en bon état et assurer une jouissance paisible. Le locataire s'oblige à payer le loyer, user paisiblement des lieux et répondre des dégradations.</p>
 
-            <p><strong>4) CLAUSE DE TRANPARENCE Confiance :</strong> Les parties acceptent que l'exécution de ce contrat soit tracée sur la plateforme Loger Togo. Tout incident de paiement ou dégradation sera reporté au profil Confiance des parties concernées.</p>
+            <p><strong>4) CLAUSE DE RÈGLEMENT DES DIFFÉRENDS :</strong> Les parties s'engagent à régler à l'amiable tout différend relatif à l'interprétation ou à l'exécution du présent contrat. À défaut, le litige sera soumis aux tribunaux compétents.</p>
 
             <h3>CONDITIONS PARTICULIÈRES</h3>
             <p><strong>LOYER :</strong> Le montant mensuel est fixé à <span class="variable">{{ filiation.monthly_rent|floatformat:0 }} FCFA</span> payable au plus tard le 05 de chaque mois.</p>
@@ -269,7 +267,7 @@
 
         <div class="footer" style="margin-top: 20px;">
             Réf : {{ filiation.unique_ref }}<br>
-            <strong>Loger Togo (DigitalH)</strong> - www.Logertogo.com - La Trust-Tech Immobilière.
+            Généré pour le compte de <strong>{{ filiation.landlord.company_name|default:filiation.landlord.get_full_name }}</strong>.
         </div>
     {% endif %}
 </body>

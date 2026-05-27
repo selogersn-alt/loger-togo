@@ -1,4 +1,5 @@
 import uuid
+import builtins
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
@@ -67,7 +68,7 @@ class Lease(models.Model):
     def __str__(self):
         return f"Bail: {self.property.title} - {self.tenant.get_full_name()}"
 
-    @property
+    @builtins.property
     def unique_ref(self):
         """Référence unique du contrat de bail"""
         return f"CTR-{str(self.id)[:8].upper()}"

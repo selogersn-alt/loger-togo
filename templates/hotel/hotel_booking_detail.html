@@ -106,7 +106,7 @@
             <div class="d-flex justify-content-between align-items-center border-bottom pb-3" style="border-color: var(--rose-accent) !important;">
                 <div>
                     <h1 class="font-luxury m-0" style="color: var(--primary-luxury); font-size: 2.5rem;">{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</h1>
-                    <p class="text-muted m-0 small"><i class="fa-solid fa-hotel me-1 text-danger"></i> PMS Hôtelier - Loger Togo SaaS</p>
+                    <p class="text-muted m-0 small"><i class="fa-solid fa-hotel me-1 text-danger"></i> Logiciel de Gestion Hôtelière</p>
                 </div>
                 <div class="text-end">
                     <h4 class="font-luxury m-0" style="color: var(--rose-accent);">FACTURE / FOLIO Voyageur</h4>
@@ -312,8 +312,8 @@
             <div class="barcode-label">Référence Réservation : {{ booking.unique_ref }}</div>
             
             <div class="mt-3 text-muted small">
-                Facture générée par <strong>{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</strong> via Loger Togo PMS.<br>
-                DigitalH Group - Lomé, Togo
+                Facture générée par <strong>{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</strong>.<br>
+                Établissement Hôtelier Partenaire
             </div>
         </div>
     </div>

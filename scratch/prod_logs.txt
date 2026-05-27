@@ -1,0 +1,200 @@
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:28 +0000] "GET /about.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:28 +0000] "GET /222.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:29 +0000] "GET /test1.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:29 +0000] "GET /wp-mail.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:30 +0000] "GET /wp.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:30 +0000] "GET /adminfuns.php HTTP/1.1" 404 41892 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:30 +0000] "GET /php8.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:31 +0000] "GET /ioxi-o.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:31 +0000] "GET /edit.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:32 +0000] "GET /sid3.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:32 +0000] "GET /166.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:33 +0000] "GET /test.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:33 +0000] "GET /phpinfo/info.php HTTP/1.1" 404 41907 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:34 +0000] "GET /wp-the.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:34 +0000] "GET /CDX2.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:34 +0000] "GET /profile.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:35 +0000] "GET /ws80.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:36 +0000] "GET /a4.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:36 +0000] "GET /buy.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:36 +0000] "GET /core.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:37 +0000] "GET /lock360.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:37 +0000] "GET /bc.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:38 +0000] "GET /av.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:38 +0000] "GET /xs.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:39 +0000] "GET /xxa.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:39 +0000] "GET /index0.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:40 +0000] "GET /wp-kz.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:40 +0000] "GET /19.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:40 +0000] "GET /11.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:41 +0000] "GET /w.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:41 +0000] "GET /ws78.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:42 +0000] "GET /xxx.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:42 +0000] "GET /a7.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:43 +0000] "GET /BDKR28WP.php HTTP/1.1" 404 41887 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:43 +0000] "GET /a1.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:43 +0000] "GET /d.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:44 +0000] "GET /xff.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:44 +0000] "GET /xltt.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:45 +0000] "GET /son.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:45 +0000] "GET /doc.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:46 +0000] "GET /zo.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:46 +0000] "GET /xper1.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:47 +0000] "GET /tiny.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:47 +0000] "GET /s1.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:47 +0000] "GET /de.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:48 +0000] "GET /1a.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:48 +0000] "GET /2.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:49 +0000] "GET /sky.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:49 +0000] "GET /man.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:50 +0000] "GET /ms-edit.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:50 +0000] "GET /7.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:50 +0000] "GET /pp.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:51 +0000] "GET /mar.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:51 +0000] "GET /acp.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:52 +0000] "GET /zdd.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:52 +0000] "GET /link.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:53 +0000] "GET /sallu.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:53 +0000] "GET /aboute.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:53 +0000] "GET /one.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:54 +0000] "GET /tx79.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:54 +0000] "GET /wp-class.php HTTP/1.1" 404 41887 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:55 +0000] "GET /8.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:55 +0000] "GET /options.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:56 +0000] "GET /f5.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:56 +0000] "GET /alpha.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:56 +0000] "GET /son1.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:57 +0000] "GET /ggb.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:58 +0000] "GET /ss.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:58 +0000] "GET /rh.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:59 +0000] "GET /99.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:59 +0000] "GET /layout.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:15:59 +0000] "GET /12.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:00 +0000] "GET /fs.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:00 +0000] "GET /aaa.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:01 +0000] "GET /Ov-Simple1.php HTTP/1.1" 404 41897 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:01 +0000] "GET /a5.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:01 +0000] "GET /hplfuns.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:02 +0000] "GET /bolt.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:02 +0000] "GET /inputs.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:03 +0000] "GET /file2.php HTTP/1.1" 404 41872 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:03 +0000] "GET /index/function.php HTTP/1.1" 404 41917 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:04 +0000] "GET /wk/index.php HTTP/1.1" 404 41887 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:04 +0000] "GET /alfa.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:05 +0000] "GET /wp-theme.php HTTP/1.1" 404 41887 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:05 +0000] "GET /wp-file.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:06 +0000] "GET /default.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:06 +0000] "GET /mah.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:07 +0000] "GET /plugins.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:07 +0000] "GET /sf.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:08 +0000] "GET /a.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:08 +0000] "GET /k.php HTTP/1.1" 404 41852 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:09 +0000] "GET /ini.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:09 +0000] "GET /ca4.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:10 +0000] "GET /wp-admin/includes/index.php HTTP/1.1" 404 41962 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:10 +0000] "GET /wp-info.php HTTP/1.1" 404 41882 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:11 +0000] "GET /init.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:11 +0000] "GET /100.php HTTP/1.1" 404 41862 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:12 +0000] "GET /fm.php HTTP/1.1" 404 41857 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:12 +0000] "GET /z.ph HTTP/1.1" 404 41847 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:12 +0000] "GET /xroot7.php HTTP/1.1" 404 41877 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:16:13 +0000] "GET /mini.php HTTP/1.1" 404 41867 "-" "-"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:22 +0000] "GET /wp-login.php HTTP/1.1" 404 41887 "https://wordpress.org/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:43 +0000] "POST /reservations/nouveau/ HTTP/1.1" 302 0 "https://hotels.logertogo.com/reservations/nouveau/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:44 +0000] "GET /reservations/1a1a9345-1230-47b6-b646-3fffe6e05a8f/ HTTP/1.1" 500 2253 "https://hotels.logertogo.com/reservations/nouveau/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:47 +0000] "GET / HTTP/1.1" 302 0 "https://hotels.logertogo.com/reservations/1a1a9345-1230-47b6-b646-3fffe6e05a8f/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:47 +0000] "GET /dashboard/ HTTP/1.1" 200 23350 "https://hotels.logertogo.com/reservations/1a1a9345-1230-47b6-b646-3fffe6e05a8f/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:53 +0000] "GET /reservations/ HTTP/1.1" 200 21351 "https://hotels.logertogo.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:17:59 +0000] "GET /reservations/1a1a9345-1230-47b6-b646-3fffe6e05a8f/ HTTP/1.1" 500 2253 "https://hotels.logertogo.com/reservations/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:18:25 +0000] "GET /autour-de-moi/?focus=9d6ae3c0-bc1a-4ee0-a9f8-5c8044f5bbcf HTTP/1.1" 200 73311 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0.1938.76 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:20:26 +0000] "GET /annonces/chambre-salon-a-louer-a-agoe-legbassito-copie-88abeced/ HTTP/1.1" 200 118064 "-" "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)"
+web-1  | 172.18.0.3 - - [27/May/2026:01:20:47 +0000] "HEAD / HTTP/1.1" 200 183121 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:24:45 +0000] "GET /wp-admin/install.php?step=1 HTTP/1.1" 404 41948 "-" "http://logertogo.com/wp-admin/install.php?step=1"
+web-1  | 172.18.0.3 - - [27/May/2026:01:24:47 +0000] "GET /robots.txt HTTP/1.1" 200 290 "-" "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)"
+web-1  | 172.18.0.3 - - [27/May/2026:01:24:47 +0000] "GET /connexion/?next=%2Fannonces%2Fdeux-chambres-salon-meuble-d1749751%2F HTTP/1.1" 200 44603 "-" "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)"
+web-1  | [2026-05-27 01:26:01 +0000] [1] [INFO] Handling signal: term
+web-1  | [2026-05-27 01:26:01 +0000] [21] [INFO] Worker exiting (pid: 21)
+web-1  | [2026-05-27 01:26:01 +0000] [20] [INFO] Worker exiting (pid: 20)
+web-1  | [2026-05-27 01:26:01 +0000] [22] [INFO] Worker exiting (pid: 22)
+web-1  | [2026-05-27 01:26:02 +0000] [1] [INFO] Shutting down: Master
+web-1  | ═══════════════════════════════════════════════════
+web-1  |    Loger Togo — Démarrage Production (Hetzner VPS)
+web-1  | ═══════════════════════════════════════════════════
+web-1  | [1/5] Attente de la base de données PostgreSQL...
+web-1  | [2/5] Application des migrations...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Operations to perform:
+web-1  |   Apply all migrations: admin, ads, auth, blog, chat, contenttypes, logersn, management, sessions, sites, users
+web-1  | Running migrations:
+web-1  |   No migrations to apply.
+web-1  | [3/5] Collecte des fichiers statiques...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | 
+web-1  | 516 static files deleted, 276 static files copied to '/app/staticfiles', 240 post-processed, 2 skipped due to conflict.
+web-1  |     → Statiques collectés avec succès.
+web-1  | [4/5] Compilation des traductions...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  |     ⚠ Traductions non compilées (locales absentes - ignoré)
+web-1  | [5/5] Démarrage du serveur Gunicorn...
+web-1  |     → Workers: 3 | Port: 8000 | Timeout: 120s
+web-1  | [2026-05-27 01:26:09 +0000] [1] [INFO] Starting gunicorn 25.3.0
+web-1  | [2026-05-27 01:26:09 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+web-1  | [2026-05-27 01:26:09 +0000] [1] [INFO] Using worker: sync
+web-1  | [2026-05-27 01:26:09 +0000] [20] [INFO] Booting worker with pid: 20
+web-1  | [2026-05-27 01:26:10 +0000] [21] [INFO] Booting worker with pid: 21
+web-1  | [2026-05-27 01:26:10 +0000] [22] [INFO] Booting worker with pid: 22
+web-1  | [2026-05-27 01:26:10 +0000] [1] [INFO] Control socket listening at /home/django/.gunicorn/gunicorn.ctl
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | 172.18.0.3 - - [27/May/2026:01:26:23 +0000] "GET / HTTP/1.1" 200 12810 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:26:26 +0000] "GET /favicon.ico HTTP/1.1" 404 2251 "https://hotels.logertogo.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:26:34 +0000] "GET /reservations/nouveau/ HTTP/1.1" 200 19647 "https://hotels.logertogo.com/reservations/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:27:07 +0000] "POST /reservations/nouveau/ HTTP/1.1" 302 0 "https://hotels.logertogo.com/reservations/nouveau/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:27:07 +0000] "GET /reservations/3817dbe4-bd5a-4c90-adde-d071c9ae4f2a/ HTTP/1.1" 500 2253 "https://hotels.logertogo.com/reservations/nouveau/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:27:10 +0000] "GET / HTTP/1.1" 302 0 "https://hotels.logertogo.com/reservations/3817dbe4-bd5a-4c90-adde-d071c9ae4f2a/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:27:10 +0000] "GET /dashboard/ HTTP/1.1" 200 23350 "https://hotels.logertogo.com/reservations/3817dbe4-bd5a-4c90-adde-d071c9ae4f2a/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:27:20 +0000] "GET /reservations/ HTTP/1.1" 200 22969 "https://hotels.logertogo.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:27:32 +0000] "GET /reservations/1a1a9345-1230-47b6-b646-3fffe6e05a8f/ HTTP/1.1" 500 2253 "https://hotels.logertogo.com/reservations/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:30:22 +0000] "GET / HTTP/1.1" 200 183121 "http://157.180.127.70:80/" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity"
+web-1  | 172.18.0.3 - - [27/May/2026:01:37:09 +0000] "GET / HTTP/1.1" 200 183127 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0.1938.76 Safari/537.36"
+web-1  | [2026-05-27 01:39:34 +0000] [1] [INFO] Handling signal: term
+web-1  | [2026-05-27 01:39:34 +0000] [21] [INFO] Worker exiting (pid: 21)
+web-1  | [2026-05-27 01:39:34 +0000] [22] [INFO] Worker exiting (pid: 22)
+web-1  | [2026-05-27 01:39:34 +0000] [20] [INFO] Worker exiting (pid: 20)
+web-1  | [2026-05-27 01:39:35 +0000] [1] [INFO] Shutting down: Master
+web-1  | ═══════════════════════════════════════════════════
+web-1  |    Loger Togo — Démarrage Production (Hetzner VPS)
+web-1  | ═══════════════════════════════════════════════════
+web-1  | [1/5] Attente de la base de données PostgreSQL...
+web-1  | [2/5] Application des migrations...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Operations to perform:
+web-1  |   Apply all migrations: admin, ads, auth, blog, chat, contenttypes, logersn, management, sessions, sites, users
+web-1  | Running migrations:
+web-1  |   No migrations to apply.
+web-1  | [3/5] Collecte des fichiers statiques...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | 
+web-1  | 516 static files deleted, 276 static files copied to '/app/staticfiles', 240 post-processed, 2 skipped due to conflict.
+web-1  |     → Statiques collectés avec succès.
+web-1  | [4/5] Compilation des traductions...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  |     ⚠ Traductions non compilées (locales absentes - ignoré)
+web-1  | [5/5] Démarrage du serveur Gunicorn...
+web-1  |     → Workers: 3 | Port: 8000 | Timeout: 120s
+web-1  | [2026-05-27 01:39:42 +0000] [1] [INFO] Starting gunicorn 25.3.0
+web-1  | [2026-05-27 01:39:42 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+web-1  | [2026-05-27 01:39:42 +0000] [1] [INFO] Using worker: sync
+web-1  | [2026-05-27 01:39:42 +0000] [20] [INFO] Booting worker with pid: 20
+web-1  | [2026-05-27 01:39:42 +0000] [21] [INFO] Booting worker with pid: 21
+web-1  | [2026-05-27 01:39:42 +0000] [22] [INFO] Booting worker with pid: 22
+web-1  | [2026-05-27 01:39:42 +0000] [1] [INFO] Control socket listening at /home/django/.gunicorn/gunicorn.ctl
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | 172.18.0.3 - - [27/May/2026:01:40:33 +0000] "GET /reservations/1a1a9345-1230-47b6-b646-3fffe6e05a8f/ HTTP/1.1" 500 2253 "https://hotels.logertogo.com/reservations/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:40:56 +0000] "GET /reservations/ HTTP/1.1" 200 22969 "https://hotels.logertogo.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:40:59 +0000] "GET /reservations/ HTTP/1.1" 200 22969 "https://hotels.logertogo.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:41:01 +0000] "GET /favicon.ico HTTP/1.1" 404 2251 "https://hotels.logertogo.com/reservations/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+web-1  | 172.18.0.3 - - [27/May/2026:01:41:02 +0000] "GET /reservations/3817dbe4-bd5a-4c90-adde-d071c9ae4f2a/ HTTP/1.1" 500 2253 "https://hotels.logertogo.com/reservations/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"

@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from django.core.validators import MinValueValidator
-from django.urls import reverse
+from django.urls import reverse, set_urlconf
 from users.models import User
 from .models import HotelRoom, HotelBooking, HotelChargeItem, HotelShift
 import datetime
@@ -38,6 +38,7 @@ def hotel_required(view_func):
         # Force the hotel urlconf on every hotel view to ensure {% url %} tags
         # in templates resolve correctly regardless of middleware/proxy state
         request.urlconf = 'logertogo.urls_hotel'
+        set_urlconf('logertogo.urls_hotel')
             
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -47,6 +48,7 @@ def hotel_promo(request):
     Landing page for hotels.logertogo.com showing the hotel management software.
     """
     request.urlconf = 'logertogo.urls_hotel'
+    set_urlconf('logertogo.urls_hotel')
     if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
     
@@ -59,6 +61,7 @@ def hotel_login(request):
     Log in an hotel owner / manager.
     """
     request.urlconf = 'logertogo.urls_hotel'
+    set_urlconf('logertogo.urls_hotel')
     if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
         
@@ -86,6 +89,7 @@ def hotel_register(request):
     Sign up a new hotel / auberge.
     """
     request.urlconf = 'logertogo.urls_hotel'
+    set_urlconf('logertogo.urls_hotel')
     if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
         
@@ -122,6 +126,7 @@ def hotel_register(request):
 
 def hotel_logout(request):
     request.urlconf = 'logertogo.urls_hotel'
+    set_urlconf('logertogo.urls_hotel')
     logout(request)
     messages.info(request, "Vous avez été déconnecté.")
     return redirect('hotel_promo')

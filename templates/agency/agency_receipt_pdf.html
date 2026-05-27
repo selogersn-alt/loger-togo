@@ -361,7 +361,7 @@
     <div class="footer" style="margin-top: 15px;">
         {% if agency.agency_rccm %}RCCM : {{ agency.agency_rccm }} | {% endif %}
         {% if agency.agency_nif %}NIF : {{ agency.agency_nif }} | {% endif %}
-        Document Réf : {{ payment.unique_ref }} | {{ today.year }} {{ agency.company_name|default:"Loger Togo Pro" }}
+        Document Réf : {{ payment.unique_ref }} | {{ today.year }} {{ agency.company_name|default:agency.get_full_name }}
     </div>
 
 </body>

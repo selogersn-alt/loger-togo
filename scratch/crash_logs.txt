@@ -1,0 +1,53 @@
+STDOUT:
+web-1  |             return f"CTR-{str(self.id)[:8].upper()}"
+web-1  |   File "/app/management/models.py", line 70, in Lease
+web-1  |     @property
+web-1  |      ^^^^^^^^
+web-1  | TypeError: 'ForeignKey' object is not callable
+web-1  | ═══════════════════════════════════════════════════
+web-1  |    Loger Togo — Démarrage Production (Hetzner VPS)
+web-1  | ═══════════════════════════════════════════════════
+web-1  | [1/5] Attente de la base de données PostgreSQL...
+web-1  | [2/5] Application des migrations...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Traceback (most recent call last):
+web-1  |   File "/app/manage.py", line 22, in <module>
+web-1  |     main()
+web-1  |     ~~~~^^
+web-1  |   File "/app/manage.py", line 18, in main
+web-1  |     execute_from_command_line(sys.argv)
+web-1  |     ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/__init__.py", line 443, in execute_from_command_line
+web-1  |     utility.execute()
+web-1  |     ~~~~~~~~~~~~~~~^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/__init__.py", line 417, in execute
+web-1  |     django.setup()
+web-1  |     ~~~~~~~~~~~~^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/__init__.py", line 24, in setup
+web-1  |     apps.populate(settings.INSTALLED_APPS)
+web-1  |     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/apps/registry.py", line 116, in populate
+web-1  |     app_config.import_models()
+web-1  |     ~~~~~~~~~~~~~~~~~~~~~~~~^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/apps/config.py", line 269, in import_models
+web-1  |     self.models_module = import_module(models_module_name)
+web-1  |                          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/importlib/__init__.py", line 88, in import_module
+web-1  |     return _bootstrap._gcd_import(name[level:], package, level)
+web-1  |            ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "<frozen importlib._bootstrap>", line 1395, in _gcd_import
+web-1  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+web-1  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+web-1  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+web-1  |   File "<frozen importlib._bootstrap_external>", line 1023, in exec_module
+web-1  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+web-1  |   File "/app/management/models.py", line 9, in <module>
+web-1  |     class Lease(models.Model):
+web-1  |     ...<63 lines>...
+web-1  |             return f"CTR-{str(self.id)[:8].upper()}"
+web-1  |   File "/app/management/models.py", line 70, in Lease
+web-1  |     @property
+web-1  |      ^^^^^^^^
+web-1  | TypeError: 'ForeignKey' object is not callable
+
+STDERR:

@@ -34,6 +34,9 @@ def tenant_dashboard_view(request):
     # Messagerie
     my_conversations = request.user.conversations.all().prefetch_related('participants', 'messages')
     
+    from chat.models import Message
+    unread_messages_count = Message.objects.filter(conversation__in=my_conversations, is_read=False).exclude(sender=request.user).count()
+    
     context = {
         'section': section,
         'leases': my_leases,
@@ -45,7 +48,7 @@ def tenant_dashboard_view(request):
         'stats': {
             'active_leases': my_leases.count(),
             'total_applications': my_applications.count(),
-            'unread_messages': 0, # TODO: implémenter compteur
+            'unread_messages': unread_messages_count,
         }
     }
     return render(request, 'management/tenant_dashboard.html', context)

@@ -164,12 +164,19 @@
         <div class="container">
             <a class="navbar-brand navbar-brand-custom" href="#">Loger Togo<span>.hotels</span></a>
             <div class="ms-auto d-flex gap-3 align-items-center">
-                {% if user.is_authenticated %}
-                    <span class="text-white-50 me-2 d-none d-md-inline">Bienvenue, <strong class="text-white">{{ user.company_name }}</strong></span>
-                    <a href="{% url 'hotel_logout' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold">Déconnexion</a>
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_saas_active %}
+                    <a href="{% url 'hotel_dashboard' %}" class="btn btn-hotel-primary px-4 py-2 rounded-pill fw-bold">
+                        <i class="fa-solid fa-gauge-high me-1"></i> Mon Dashboard
+                    </a>
+                    {% else %}
+                    <a href="{% url 'hotel_logout' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold">
+                        <i class="fa-solid fa-right-from-bracket me-1"></i> Déconnexion
+                    </a>
+                    {% endif %}
                 {% else %}
-                    <a href="{% url 'hotel_login' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold">Connexion</a>
-                    <a href="{% url 'hotel_register' %}" class="btn btn-hotel-primary px-4 py-2">Inscription</a>
+                    <a href="{% url 'hotel_login' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold">Se Connecter</a>
+                    <a href="{% url 'hotel_register' %}" class="btn btn-hotel-primary px-4 py-2 rounded-pill fw-bold">Créer un compte</a>
                 {% endif %}
             </div>
         </div>

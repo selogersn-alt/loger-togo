@@ -24,7 +24,7 @@
                 <select id="roleFilter" class="form-select border-0 shadow-sm" style="background-color: var(--bg-card); color: var(--text-main); padding: 12px; border-radius: 10px;" onchange="filterPros()">
                     <option value="ALL">{% trans "Tous les statuts" %}</option>
                     <option value="AGENCY">{% trans "Agences Immobilières" %}</option>
-                    <option value="BROKER">{% trans "Courtiers" %}</option>
+                    <option value="BROKER">{% trans "Démarcheurs" %}</option>
                     <option value="AGENT">{% trans "Agents (Indépendants)" %}</option>
                     <option value="LANDLORD">{% trans "Bailleurs" %}</option>
                 </select>
@@ -75,14 +75,17 @@
                             {% if pro.coverage_area %}
                                 <p class="mb-2 text-muted"><i class="fa-solid fa-map-location-dot me-2" style="color: var(--color-light-green);"></i> <strong>{% trans "Zone:" %}</strong> <span class="text-truncate">{{ pro.coverage_area }}</span></p>
                             {% endif %}
+                            {% if pro.role != 'HOTEL' and pro.role != 'AUBERGE' %}
                             <p class="mb-2 text-muted"><i class="fa-solid fa-phone me-2" style="color: var(--color-light-green);"></i> {{ pro.phone_number }}</p>
                             {% if pro.email %}
                             <p class="mb-0 text-muted text-truncate"><i class="fa-solid fa-envelope me-2" style="color: var(--color-light-green);"></i> {{ pro.email }}</p>
+                            {% endif %}
                             {% endif %}
                         </div>
 
                         <div class="d-flex flex-column gap-2 mt-auto">
                             <div class="d-flex justify-content-center gap-2">
+                                {% if pro.role != 'HOTEL' and pro.role != 'AUBERGE' %}
                                 <!-- Link to Whatsapp -->
                                 <a href="https://wa.me/{{ pro.phone_number|cut:' ' }}?text={% trans "Bonjour, je vous ai trouvé sur Loger Togo." %}" target="_blank" class="btn btn-sm text-white flex-grow-1" style="background-color: #25D366; border-radius: 8px;">
                                     <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
@@ -91,6 +94,7 @@
                                 <a href="tel:{{ pro.phone_number }}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;">
                                     <i class="fa-solid fa-phone"></i>
                                 </a>
+                                {% endif %}
                                 <!-- Link to Chat -->
                                 <a href="{% url 'initiate-pro-chat' pro.id %}" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" title="{% trans "Message Interne" %}">
                                     <i class="fa-solid fa-comment-dots"></i>

@@ -20,7 +20,8 @@ class ChantiersIntegrationTest(TestCase):
             phone_number="79055970", 
             password="Systernadjak@2026",
             first_name="NH",
-            last_name="Immo"
+            last_name="Immo",
+            role=User.RoleEnum.AGENCY
         )
         self.landlord.is_saas_active = True
         self.landlord.save()

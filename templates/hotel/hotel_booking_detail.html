@@ -391,7 +391,7 @@
             return;
         }
         let clientName = "{{ booking.client_name|escapejs }}";
-        let hotelName = "{{ booking.room.hotel.company_name|default:booking.room.hotel.username|escapejs }}";
+        let hotelName = "{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name|escapejs }}";
         let roomNum = "{{ booking.room.room_number|escapejs }}";
         let roomType = "{{ booking.room.get_room_type_display|escapejs }}";
         let checkIn = "{{ booking.check_in|date:'d/m/Y' }}";
@@ -415,7 +415,7 @@
             return;
         }
         let clientName = "{{ booking.client_name|escapejs }}";
-        let hotelName = "{{ booking.room.hotel.company_name|default:booking.room.hotel.username|escapejs }}";
+        let hotelName = "{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name|escapejs }}";
         let roomNum = "{{ booking.room.room_number|escapejs }}";
         let totalAmount = "{{ booking.total_amount|floatformat:0 }}";
         let amountPaid = "{{ booking.amount_paid|floatformat:0 }}";

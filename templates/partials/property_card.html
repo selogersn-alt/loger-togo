@@ -96,14 +96,16 @@
         <!-- Contact et Bouton -->
         <div class="d-flex justify-content-between align-items-center" style="position: relative; z-index: 10;">
             <div class="d-flex gap-1">
-                {% if property.id %}
-                <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce :" %} {{ property.title }}" target="_blank" class="btn btn-sm btn-outline-success border-0 px-2" style="background: rgba(25, 135, 84, 0.05);">
-                    <i class="fa-brands fa-whatsapp fs-5"></i>
-                </a>
+                {% if property.owner.role != 'HOTEL' and property.owner.role != 'AUBERGE' %}
+                    {% if property.id %}
+                    <a href="https://wa.me/{{ property.owner.phone_number|cut:' ' }}?text={% trans "Bonjour, je suis intéressé par votre annonce :" %} {{ property.title }}" target="_blank" class="btn btn-sm btn-outline-success border-0 px-2" style="background: rgba(25, 135, 84, 0.05); z-index: 15; position: relative;">
+                        <i class="fa-brands fa-whatsapp fs-5"></i>
+                    </a>
+                    {% endif %}
+                    <a href="tel:{{ property.owner.phone_number }}" class="btn btn-sm btn-outline-primary border-0 px-2" style="background: rgba(13, 110, 253, 0.05); z-index: 15; position: relative;">
+                        <i class="fa-solid fa-phone fs-6"></i>
+                    </a>
                 {% endif %}
-                <a href="tel:{{ property.owner.phone_number }}" class="btn btn-sm btn-outline-primary border-0 px-2" style="background: rgba(13, 110, 253, 0.05);">
-                    <i class="fa-solid fa-phone fs-6"></i>
-                </a>
                 {% if property.property_type == 'AUBERGE' or property.listing_category == 'FURNISHED' %}
                 <a href="{% url 'near_me' %}?focus={{ property.id }}" class="btn btn-sm btn-outline-warning border-0 px-2" style="background: rgba(245, 196, 47, 0.05); z-index: 15; position: relative;" title="{% trans "Voir sur la carte" %}">
                     <i class="fa-solid fa-map-location-dot fs-6"></i>

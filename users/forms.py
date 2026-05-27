@@ -38,6 +38,14 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['phone_number'].required = False
         self.fields['email'].required = False
 
+        # Exclure SUB_ADMIN et CUSTOMER_SUPPORT du frontend
+        if 'role' in self.fields:
+            choices = self.fields['role'].choices
+            self.fields['role'].choices = [
+                choice for choice in choices 
+                if choice[0] not in ['SUB_ADMIN', 'CUSTOMER_SUPPORT']
+            ]
+
     def clean(self):
         cleaned_data = super().clean()
         phone = cleaned_data.get('phone_number')

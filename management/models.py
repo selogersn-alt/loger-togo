@@ -360,11 +360,11 @@ class HotelBooking(models.Model):
     def __str__(self):
         return f"Res: {self.client_name} - Chambre {self.room.room_number}"
 
-    @property
+    @builtins.property
     def total_amount(self):
         return self.amount_due + self.extra_charges
 
-    @property
+    @builtins.property
     def balance_due(self):
         return self.total_amount - self.amount_paid
 
@@ -383,7 +383,7 @@ class HotelChargeItem(models.Model):
     price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Prix unitaire (FCFA)")
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @property
+    @builtins.property
     def total_price(self):
         return self.quantity * self.price
 
@@ -408,5 +408,23 @@ class HotelShift(models.Model):
 
     def __str__(self):
         return f"Shift {self.receptionist.get_full_name()} du {self.start_time.strftime('%d/%m/%Y %H:%M')}"
+
+
+class HotelPayment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    booking = models.ForeignKey(HotelBooking, on_delete=models.CASCADE, related_name='payments', verbose_name="Réservation")
+    shift = models.ForeignKey(HotelShift, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments', verbose_name="Shift de caisse")
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant (FCFA)", validators=[MinValueValidator(0)])
+    payment_method = models.CharField(max_length=50, verbose_name="Mode de paiement")
+    payment_type = models.CharField(max_length=50, choices=[('INITIAL', 'Initial'), ('CHARGE', 'Extra Charge'), ('FINAL', 'Final')], default='INITIAL')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Paiement Hôtelier"
+        verbose_name_plural = "Paiements Hôteliers"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Pay: {self.amount} F - {self.payment_method} ({self.get_payment_type_display()})"
 
 

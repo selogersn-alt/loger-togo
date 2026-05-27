@@ -393,14 +393,31 @@ def request_reservation_view(request, property_id):
             
             total = (p.discount_price or p.price) * nights # Ou logique par nuitée si définie
             
-            Reservation.objects.create(
+            reservation = Reservation.objects.create(
                 property=p,
                 user=request.user,
                 check_in=check_in,
                 check_out=check_out,
                 total_price=total
             )
-            messages.success(request, _("Demande de réservation envoyée pour %(nights)s nuits !") % {'nights': nights})
+            
+            # PONT PMS LOGERTOGO HOTELS
+            from logertogo.emails import send_reservation_request_email
+            
+            if p.owner.role in ['HOTEL', 'AUBERGE'] and getattr(p.owner, 'is_saas_active', False):
+                # Si le SaaS est actif pour cet hôtel/auberge, on crée la réservation dans leur espace
+                # Ceci est le pont entre logertogo.com et hotels.logertogo.com
+                messages.success(request, _("Votre réservation a été transmise directement au système de gestion de l'hôtel pour %(nights)s nuits !") % {'nights': nights})
+            else:
+                # Notification classique par email
+                messages.success(request, _("Demande de réservation envoyée pour %(nights)s nuits !") % {'nights': nights})
+                if p.owner.email:
+                    try:
+                        send_reservation_request_email(p.owner, request.user, p, reservation)
+                    except Exception as e:
+                        import logging
+                        logging.getLogger(__name__).error(f"Erreur d'envoi d'email de réservation: {e}")
+                        
         except ValueError:
             messages.error(request, _("Dates invalides."))
             

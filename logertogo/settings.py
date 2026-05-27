@@ -22,17 +22,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-for-local-dev-only')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-for-local-dev-only-change-in-prod-12345678901234567890')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['157.180.127.70', 'logertogo.com', 'www.logertogo.com', 'agence.logertogo.com', 'hotels.logertogo.com', 'localhost', 'agence.localhost', 'hotels.localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['157.180.127.70', 'logertogo.com', 'www.logertogo.com', 'agence.logertogo.com', 'hotels.logertogo.com', 'localhost', 'agence.localhost', 'hotels.localhost', '127.0.0.1', 'agence.logertogo.local', 'hotels.logertogo.local']
 SITE_URL = 'https://logertogo.com'
 
 # Security & SSL Configuration (Senior Production Setup)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [

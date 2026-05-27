@@ -26,6 +26,9 @@ class ConversationSerializer(serializers.ModelSerializer):
         model = Conversation
         fields = ['id', 'participants', 'topic', 'topic_display', 'related_property', 'created_at', 'updated_at', 'last_message']
 
+    from drf_spectacular.utils import extend_schema_field
+
+    @extend_schema_field(MessageSerializer)
     def get_last_message(self, obj):
         last_msg = obj.messages.order_by('-created_at').first()
         if last_msg:

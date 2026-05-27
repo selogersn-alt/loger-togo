@@ -353,6 +353,22 @@ def hotel_booking_create(request):
             check_in = timezone.make_aware(datetime.datetime.strptime(check_in_str, '%Y-%m-%dT%H:%M'))
             check_out = timezone.make_aware(datetime.datetime.strptime(check_out_str, '%Y-%m-%dT%H:%M'))
             
+            # --- DATE COHERENCE ---
+            if check_out <= check_in:
+                messages.error(request, "Erreur : La date de départ doit être postérieure à la date d'arrivée.")
+                return redirect('hotel_booking_create')
+            
+            # --- OVERLAPPING RESERVATIONS (DOUBLE BOOKING) PREVENTION ---
+            overlapping_bookings = HotelBooking.objects.filter(
+                room=room,
+                status__in=['PENDING', 'CHECKED_IN'],
+                check_in__lt=check_out,
+                check_out__gt=check_in
+            )
+            if overlapping_bookings.exists():
+                messages.error(request, "Erreur : La chambre est déjà occupée ou réservée pour cette période.")
+                return redirect('hotel_booking_create')
+            
             # Amount calculations
             if rate_type == 'HOURLY' and room.price_per_hour:
                 qty = int(hours_qty)
@@ -382,7 +398,18 @@ def hotel_booking_create(request):
                 shift=active_shift
             )
             
-            messages.success(request, f"Réservation créée avec succès pour {name} !")
+            # --- RECORD TRANSACTION ---
+            if amount_paid > 0:
+                from .models import HotelPayment
+                HotelPayment.objects.create(
+                    booking=booking,
+                    shift=active_shift,
+                    amount=amount_paid,
+                    payment_method=payment_method or 'ESPECES',
+                    payment_type='INITIAL'
+                )
+            
+            messages.success(request, f"Réservation créée et validée avec succès pour {name} !")
             return redirect('hotel_booking_detail', booking_id=booking.id)
         except Exception as e:
             messages.error(request, f"Erreur lors de la création : {e}")
@@ -439,11 +466,24 @@ def hotel_booking_checkout(request, booking_id):
         
         # Ensure outstanding balance is fully paid (or record what they paid)
         final_payment = Decimal(request.POST.get('final_payment', 0))
+        payment_method_final = request.POST.get('payment_method_final', 'ESPECES')
+        
         booking.amount_paid += final_payment
         booking.status = 'CHECKED_OUT'
         if active_shift:
             booking.shift = active_shift
         booking.save()
+        
+        # --- RECORD TRANSACTION ---
+        if final_payment > 0:
+            from .models import HotelPayment
+            HotelPayment.objects.create(
+                booking=booking,
+                shift=active_shift,
+                amount=final_payment,
+                payment_method=payment_method_final,
+                payment_type='FINAL'
+            )
         
         # Mark room as cleaning required
         room = booking.room
@@ -743,22 +783,22 @@ def hotel_shifts(request):
     past_shifts = HotelShift.objects.filter(hotel=hotel, is_closed=True).order_by('-end_time')[:10]
     
     expected_cash = Decimal('0.00')
-    shift_cash_bookings = []
+    shift_cash_payments = []
     if active_shift:
+        from .models import HotelPayment
         # Sum all cash payments processed under this active shift
-        cash_bookings = HotelBooking.objects.filter(
+        shift_cash_payments = HotelPayment.objects.filter(
             shift=active_shift,
             payment_method='ESPECES'
         )
-        shift_cash_bookings = cash_bookings
-        cash_revenue = cash_bookings.aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
+        cash_revenue = shift_cash_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
         expected_cash = active_shift.initial_cash + cash_revenue
         
     context = {
         'active_shift': active_shift,
         'past_shifts': past_shifts,
         'expected_cash': expected_cash,
-        'shift_cash_bookings': shift_cash_bookings,
+        'shift_cash_payments': shift_cash_payments,
     }
     return render(request, 'hotel/hotel_shifts.html', context)
 

@@ -270,6 +270,45 @@ def send_visit_request_email(owner, user, property, proposed_date):
     )
 
 
+def send_reservation_request_email(owner, user, property, check_in, check_out, total_price):
+    """Notifie un propriétaire qu'une demande de réservation a été effectuée sur son bien meublé."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    dashboard_url = f"{site_url}/mon-compte/"
+    
+    check_in_str = check_in.strftime('%d/%m/%Y') if hasattr(check_in, 'strftime') else str(check_in)
+    check_out_str = check_out.strftime('%d/%m/%Y') if hasattr(check_out, 'strftime') else str(check_out)
+
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:linear-gradient(135deg,#0b4629,#198754);padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">📅 Nouvelle demande de réservation</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{owner.first_name or owner.phone_number}</strong>,</p>
+        <p>Une nouvelle demande de réservation a été effectuée par <strong>{user.get_full_name() or user.phone_number}</strong> pour votre bien meublé :</p>
+        <div style="background:#f0fdf4;border-left:4px solid #198754;padding:16px;border-radius:8px;margin:20px 0;">
+          <strong style="display:block;margin-bottom:5px;">{property.title}</strong>
+          <span style="display:block;margin-bottom:5px;color:#0b4629;">📅 Du {check_in_str} au {check_out_str}</span>
+          <span style="font-weight:bold;">💵 Prix estimé : {int(total_price):,} FCFA</span>
+        </div>
+        <p>Connectez-vous à votre tableau de bord Loger Togo pour répondre à cette demande et contacter le client.</p>
+        <p style="text-align:center;margin-top:24px;">
+          <a href="{dashboard_url}" style="background:#198754;color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:bold;display:inline-block;">
+            Accéder à mon espace →
+          </a>
+        </p>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Plateforme Immobilière au Togo · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    return send_simple_email(
+        f"📅 Demande de réservation pour : {property.title}",
+        html,
+        owner.email
+    )
+
+
 # ─── GESTION LOCATIVE ───────────────────────────────────────────────────────
 
 def send_rent_paid_email(payment):

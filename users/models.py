@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         TENANT = 'TENANT', _('Locataire')
         LANDLORD = 'LANDLORD', _('Bailleur')
         AGENCY = 'AGENCY', _('Agence Immobilière')
-        BROKER = 'BROKER', _('Courtier')
+        BROKER = 'BROKER', _('Démarcheur')
         AGENT = 'AGENT', _('Agent')
         SUB_ADMIN = 'SUB_ADMIN', _('Sous-Administrateur DigitalH')
         CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT', _('Conseiller Client DigitalH')

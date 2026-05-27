@@ -102,13 +102,16 @@ def verify_phone_view(request):
     return render(request, 'verify_phone.html')
 
 def password_recovery_view(request):
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        phone = request.GET.get('phone')
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    if is_ajax:
         email = request.GET.get('email')
-        user = User.objects.filter(email=email).first()
-        if user:
-            return JsonResponse({'exists': True})
+        phone = request.GET.get('phone')
+        if email:
+            user = User.objects.filter(email=email).first()
+            return JsonResponse({'exists': user is not None})
+        elif phone:
+            user = User.objects.filter(phone_number=phone).first()
+            return JsonResponse({'exists': user is not None})
         return JsonResponse({'exists': False})
 
     if request.method == 'POST':

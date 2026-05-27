@@ -75,15 +75,34 @@ class FedaPayBridge:
         Vérifie l'état réel de la transaction auprès de l'API FedaPay.
         DigitalH Security: Cette méthode doit être appelée dans le callback.
         """
-        # Note: En production, on ferait un call API vers FedaPay avec la clé secrète.
-        # Ici on simule le succès si la transaction existe et est PENDING.
-        # En prod: response = requests.get(f"https://api.fedapay.com/v1/transactions/{reference}", headers={"Authorization": f"Bearer {settings.FEDAPAY_SECRET_KEY}"})
         try:
             transaction = Transaction.objects.get(reference=reference)
             if transaction.status == 'SUCCESS':
                 return True, transaction
-            # Simulation: En l'absence de clés réelles, on accepte le "success" 
-            # mais on le marque dans les logs pour audit futur.
+            
+            # En production avec clé API réelle
+            api_key = getattr(settings, 'FEDAPAY_SECRET_KEY', None)
+            if api_key and api_key != 'xsmtpsib-87c2f6d6363a0980c6566085a676451e22067784347788448888888-fallback':
+                try:
+                    headers = {"Authorization": f"Bearer {api_key}"}
+                    # Recherche de la transaction par métadonnée ou référence interne
+                    url = f"https://api.fedapay.com/v1/transactions?custom_metadata[reference]={reference}"
+                    response = requests.get(url, headers=headers, timeout=10)
+                    if response.status_code == 200:
+                        data = response.json()
+                        for tx in data.get('v1/transactions', []):
+                            if tx.get('status') == 'approved':
+                                return True, transaction
+                    return False, transaction
+                except Exception as e:
+                    import logging
+                    logging.getLogger('django').error(f"FedaPay verification failed: {e}")
+                    return False, transaction
+            
+            # Simulation : Si pas de clé secrète configurée en local/dev,
+            # on accepte mais on log l'audit.
+            import logging
+            logging.getLogger('django').warning(f"SIMULATION: Transaction {reference} auto-approuvée en développement.")
             return True, transaction
         except Transaction.DoesNotExist:
             return False, None

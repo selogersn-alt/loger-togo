@@ -88,7 +88,7 @@
                 </div>
 
                 <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-cash-register me-2 text-success"></i> Flux Espèces Encaissés durant ce Shift</h6>
-                {% if not shift_cash_bookings %}
+                {% if not shift_cash_payments %}
                 <div class="alert alert-light text-center border rounded-4 py-4 mb-0 text-muted">
                     <i class="fa-solid fa-circle-info me-2"></i> Aucun paiement espèces n'a été enregistré sous ce shift pour l'instant.
                 </div>
@@ -105,23 +105,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for booking in shift_cash_bookings %}
+                            {% for payment in shift_cash_payments %}
                             <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
                                 <td>
-                                    <strong class="text-dark">{{ booking.client_name }}</strong>
-                                    <div class="text-muted small">Folio #{{ booking.id|stringformat:"s"|slice:":8" }}</div>
+                                    <strong class="text-dark">{{ payment.booking.client_name }}</strong>
+                                    <div class="text-muted small">Folio #{{ payment.booking.id|stringformat:"s"|slice:":8" }} ({{ payment.get_payment_type_display }})</div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-dark rounded-3">Ch. {{ booking.room.room_number }}</span>
+                                    <span class="badge bg-dark rounded-3">Ch. {{ payment.booking.room.room_number }}</span>
                                 </td>
                                 <td class="text-center text-muted small">
-                                    {{ booking.updated_at|date:"H:i" }}
+                                    {{ payment.created_at|date:"H:i" }}
                                 </td>
                                 <td class="text-end fw-bold text-success">
-                                    +{{ booking.amount_paid|floatformat:0 }} F
+                                    +{{ payment.amount|floatformat:0 }} F
                                 </td>
                                 <td class="text-end">
-                                    <a href="{% url 'hotel_booking_detail' booking.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                    <a href="{% url 'hotel_booking_detail' payment.booking.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
                                         Voir Folio
                                     </a>
                                 </td>

@@ -189,7 +189,7 @@ def admin_marketing_email_view(request):
         for user in users:
             if user.email:
                 # On remplace les tags [NOM], [PRENOM] si présents
-                personalized_message = message_content.replace('[PRENOM]', user.first_name).replace('[NOM]', user.last_name)
+                personalized_message = message_content.replace('[PRENOM]', user.first_name or "").replace('[NOM]', user.last_name or "")
                 
                 msg = EmailMultiAlternatives(
                     subject,

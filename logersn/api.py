@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 class ProfessionalsViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Répertoire des agences et courtiers vérifiés.
+    Répertoire des agences et démarcheurs vérifiés.
     """
     queryset = User.objects.filter(
         Q(role='AGENCY') | Q(role='BROKER') | Q(role='AGENT')

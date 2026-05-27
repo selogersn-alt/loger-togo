@@ -11,6 +11,23 @@ class RegisterView(APIView):
     """
     permission_classes = [AllowAny]
 
+    from drf_spectacular.utils import extend_schema, inline_serializer
+    from rest_framework import serializers
+    @extend_schema(
+        request=inline_serializer(
+            name='RegisterRequest',
+            fields={
+                'email': serializers.EmailField(required=False),
+                'phone_number': serializers.CharField(required=True),
+                'password': serializers.CharField(required=True),
+                'role': serializers.CharField(required=False),
+                'first_name': serializers.CharField(required=False),
+                'last_name': serializers.CharField(required=False),
+                'company_name': serializers.CharField(required=False),
+            }
+        ),
+        responses={201: inline_serializer('RegisterResponse', fields={'message': serializers.CharField()})}
+    )
     def post(self, request):
         data = request.data
         email = data.get('email')
@@ -50,6 +67,8 @@ class UserMeView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    from drf_spectacular.utils import extend_schema
+    @extend_schema(responses=UserMeSerializer)
     def get(self, request):
         serializer = UserMeSerializer(request.user)
         return Response(serializer.data)

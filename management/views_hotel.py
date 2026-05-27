@@ -34,6 +34,10 @@ def hotel_required(view_func):
         if user.role == 'AGENT' and user.parent_hotel:
             request.actual_user = user
             request.user = user.parent_hotel
+
+        # Force the hotel urlconf on every hotel view to ensure {% url %} tags
+        # in templates resolve correctly regardless of middleware/proxy state
+        request.urlconf = 'logertogo.urls_hotel'
             
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -42,6 +46,7 @@ def hotel_promo(request):
     """
     Landing page for hotels.logertogo.com showing the hotel management software.
     """
+    request.urlconf = 'logertogo.urls_hotel'
     if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
     
@@ -53,6 +58,7 @@ def hotel_login(request):
     """
     Log in an hotel owner / manager.
     """
+    request.urlconf = 'logertogo.urls_hotel'
     if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
         
@@ -79,6 +85,7 @@ def hotel_register(request):
     """
     Sign up a new hotel / auberge.
     """
+    request.urlconf = 'logertogo.urls_hotel'
     if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
         return redirect('hotel_dashboard')
         
@@ -114,6 +121,7 @@ def hotel_register(request):
     return render(request, 'hotel/register.html')
 
 def hotel_logout(request):
+    request.urlconf = 'logertogo.urls_hotel'
     logout(request)
     messages.info(request, "Vous avez été déconnecté.")
     return redirect('hotel_promo')

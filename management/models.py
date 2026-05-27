@@ -1,5 +1,4 @@
 import uuid
-import builtins
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
@@ -68,7 +67,7 @@ class Lease(models.Model):
     def __str__(self):
         return f"Bail: {self.property.title} - {self.tenant.get_full_name()}"
 
-    @builtins.property
+    @property
     def unique_ref(self):
         """Référence unique du contrat de bail"""
         return f"CTR-{str(self.id)[:8].upper()}"
@@ -343,7 +342,6 @@ class HotelBooking(models.Model):
     status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
     
     amount_due = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant hébergement", default=0)
-    extra_charges = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Frais supplémentaires", default=0)
     amount_paid = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Montant payé", default=0)
     
     payment_method = models.CharField(max_length=50, blank=True, null=True, verbose_name="Mode de paiement")
@@ -360,15 +358,26 @@ class HotelBooking(models.Model):
     def __str__(self):
         return f"Res: {self.client_name} - Chambre {self.room.room_number}"
 
-    @builtins.property
+    @property
+    def extra_charges(self):
+        """Calcule les frais supplémentaires en temps réel depuis HotelChargeItem."""
+        from django.db.models import Sum
+        result = self.charges.aggregate(total=Sum('price', default=0))['total'] or 0
+        # Multiply by quantity using Python sum for accuracy
+        total = sum(c.quantity * c.price for c in self.charges.all())
+        return total
+
+    @property
     def total_amount(self):
+        """Total hébergement + extras."""
         return self.amount_due + self.extra_charges
 
-    @builtins.property
+    @property
     def balance_due(self):
+        """Reste à payer."""
         return self.total_amount - self.amount_paid
 
-    @builtins.property
+    @property
     def unique_ref(self):
         """Référence unique de la réservation hôtelière"""
         return f"RES-{str(self.id)[:8].upper()}"
@@ -383,8 +392,9 @@ class HotelChargeItem(models.Model):
     price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Prix unitaire (FCFA)")
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @builtins.property
+    @property
     def total_price(self):
+        """Prix total = quantité × prix unitaire."""
         return self.quantity * self.price
 
 

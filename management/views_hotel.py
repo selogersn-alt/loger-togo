@@ -522,9 +522,18 @@ def hotel_booking_add_charge(request, booking_id):
                 price=price
             )
             
-            # Update extra_charges in booking
-            booking.extra_charges += charge.total_price
-            booking.save()
+            # Get active shift to record payment transaction
+            active_shift = HotelShift.objects.filter(hotel=request.user, is_closed=False).first()
+            
+            # Record the payment transaction for this extra charge
+            from .models import HotelPayment
+            HotelPayment.objects.create(
+                booking=booking,
+                shift=active_shift,
+                amount=charge.total_price,
+                payment_method=booking.payment_method or 'ESPECES',
+                payment_type='CHARGE'
+            )
             
             messages.success(request, f"Prestation '{label}' ajoutée avec succès.")
         except Exception as e:

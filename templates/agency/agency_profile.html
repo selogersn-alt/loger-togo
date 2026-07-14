@@ -194,7 +194,7 @@
     </div>
 </div>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" id="agency-profile-form" onsubmit="return validateMap(event);">
     {% csrf_token %}
     <div class="profile-grid">
 
@@ -240,16 +240,55 @@
         <!-- Right: Contacts & Address -->
         <div>
             <div class="profile-card">
-                <div class="section-title"><i class="fa-solid fa-location-dot"></i> Adresse</div>
+                <div class="section-title"><i class="fa-solid fa-location-dot"></i> Localisation de l'Agence</div>
+                
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Adresse postale</label>
-                        <input type="text" name="agency_address" value="{{ request.user.agency_address|default:'' }}" placeholder="Rue 123, Quartier...">
+                        <label>Ville <span class="text-danger">*</span></label>
+                        <select name="agency_city" id="id_city" class="form-control" required style="width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--border-glass); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--text-main); background: #fff;">
+                            <option value="">Sélectionnez la ville</option>
+                            {% for value, label in city_choices %}
+                                <option value="{{ value }}" {% if request.user.agency_city == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label>Ville</label>
-                        <input type="text" name="agency_city" value="{{ request.user.agency_city|default:'' }}" placeholder="Lomé">
+                        <label>Quartier <span class="text-danger">*</span></label>
+                        <input type="text" name="agency_neighborhood" id="id_neighborhood" value="{{ request.user.agency_neighborhood|default:'' }}" placeholder="Ex: Agoè-Logopé" list="neighborhoods-datalist" required>
+                        <datalist id="neighborhoods-datalist">
+                            {% for n in togo_neighborhoods %}
+                                <option value="{{ n }}">
+                            {% endfor %}
+                        </datalist>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Adresse postale / Repère</label>
+                    <input type="text" name="agency_address" value="{{ request.user.agency_address|default:'' }}" placeholder="Ex: Rue 123, Derrière la pharmacie...">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-crosshairs me-2"></i>Carte Interactive (GPS)</label>
+                    <p class="field-hint mb-2">Pointez la localisation exacte de votre agence. Cela permet aux clients de vous retrouver sur la carte LogerTogo.</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <button type="button" class="btn btn-sm btn-light" style="border: 1px solid #ccc; border-radius: 50px; font-size: 0.75rem; padding: 4px 12px; cursor: pointer;" onclick="geocodeAddr()"><i class="fa-solid fa-magnifying-glass-location me-1"></i>Chercher l'adresse</button>
+                        <button type="button" class="btn btn-sm" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; border-radius: 50px; font-size: 0.75rem; padding: 4px 12px; cursor: pointer;" onclick="useGPS()"><i class="fa-solid fa-location-dot me-1"></i>Ma position</button>
+                    </div>
+                    
+                    <div id="form-map" style="height: 250px; width: 100%; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 10px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #6b7280; font-weight: 500;">
+                        <div style="text-align: center; padding: 12px;">
+                            <i class="fa-solid fa-map-location-dot fa-2x mb-2" style="color: var(--primary-light); margin-bottom: 8px;"></i>
+                            <p style="margin: 0; font-size: 0.8rem;">Initialisation de la carte...</p>
+                        </div>
+                    </div>
+                    <div id="form-map-status" style="font-size: 0.75rem; margin-bottom: 8px;"></div>
+                    <div style="display: flex; align-items: center; font-size: 0.75rem; color: var(--text-muted);">
+                        <span style="margin-right: 8px;">LAT :</span> <strong id="coord-lat-display" style="color: var(--text-main); margin-right: 16px;">{{ request.user.agency_latitude|default:'--' }}</strong>
+                        <span style="margin-right: 8px;">LNG :</span> <strong id="coord-lng-display" style="color: var(--text-main);">{{ request.user.agency_longitude|default:'--' }}</strong>
+                    </div>
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ request.user.agency_latitude|default:'' }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ request.user.agency_longitude|default:'' }}">
                 </div>
 
                 <div class="section-title" style="margin-top:1.25rem;"><i class="fa-solid fa-phone"></i> Contacts</div>
@@ -302,4 +341,185 @@
     </div>
 </form>
 
+{% endblock %}
+
+{% block extra_js %}
+<!-- MapLibre GL JS -->
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+
+<style>
+.premium-marker {
+    background: #10b981;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50% 50% 50% 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
+}
+.premium-marker i {
+    transform: rotate(45deg);
+    font-size: 14px;
+}
+</style>
+
+<script>
+    var _map = null, _marker = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initMapLibreFormMap();
+    });
+
+    function validateMap(e) {
+        var lat = document.getElementById('id_latitude').value;
+        if (!lat || lat.trim() === '') {
+            statutMap('OBLIGATOIRE : Veuillez pointer votre position sur la carte !', 'danger');
+            var mapEl = document.getElementById('form-map');
+            if (mapEl) {
+                window.scrollTo({ top: mapEl.offsetTop - 150, behavior: 'smooth' });
+                mapEl.style.border = '2px solid #ef4444';
+                setTimeout(() => mapEl.style.border = '1px solid var(--border-glass)', 3000);
+            }
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    function initMapLibreFormMap() {
+        var el = document.getElementById('form-map');
+        if (!el || _map) return;
+
+        var lome = [1.2123, 6.1375]; 
+        
+        _map = new maplibregl.Map({
+            container: 'form-map',
+            style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+            center: lome,
+            zoom: 13,
+            attributionControl: false
+        });
+
+        _map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+        _map.on('click', function(e) { 
+            poseMarqueur([e.lngLat.lng, e.lngLat.lat]); 
+        });
+
+        // Charger coordonnées existantes
+        var latE = document.getElementById('id_latitude');
+        var lngE = document.getElementById('id_longitude');
+        if (latE && lngE && latE.value && lngE.value) {
+            var lat0 = parseFloat(latE.value.replace(',', '.'));
+            var lng0 = parseFloat(lngE.value.replace(',', '.'));
+            if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
+                var pos = [lng0, lat0];
+                _map.setCenter(pos);
+                _map.setZoom(16);
+                poseMarqueur(pos);
+            }
+        }
+    }
+
+    function poseMarqueur(lngLat) {
+        if (!lngLat || isNaN(lngLat[0])) return;
+        if (_marker) {
+            _marker.setLngLat(lngLat);
+        } else {
+            const el = document.createElement('div');
+            el.className = 'premium-marker';
+            el.innerHTML = '<i class="fa-solid fa-building"></i>';
+            
+            _marker = new maplibregl.Marker({
+                element: el,
+                draggable: true,
+                offset: [0, -16]
+            })
+            .setLngLat(lngLat)
+            .addTo(_map);
+
+            _marker.on('dragend', function() {
+                var p = _marker.getLngLat();
+                majCoords(p.lat, p.lng);
+                statutMap('Position ajustée.', 'success');
+            });
+        }
+        
+        _map.easeTo({ center: lngLat, zoom: 16 });
+        majCoords(lngLat[1], lngLat[0]); 
+    }
+
+    function majCoords(lat, lng) {
+        var iLat = document.getElementById('id_latitude');
+        var iLng = document.getElementById('id_longitude');
+        if (iLat) iLat.value = parseFloat(lat).toFixed(7);
+        if (iLng) iLng.value = parseFloat(lng).toFixed(7);
+        var dLat = document.getElementById('coord-lat-display');
+        var dLng = document.getElementById('coord-lng-display');
+        if (dLat) dLat.textContent = parseFloat(lat).toFixed(5);
+        if (dLng) dLng.textContent = parseFloat(lng).toFixed(5);
+    }
+
+    function statutMap(msg, type) {
+        var box = document.getElementById('form-map-status');
+        if (!box) return;
+        var color = type === 'success' ? '#10b981' : type === 'danger' ? '#ef4444' : '#f59e0b';
+        box.innerHTML = '<span style="color:' + color + ';font-weight:600;">' + msg + '</span>';
+        setTimeout(function(){ box.innerHTML = ''; }, 5000);
+    }
+
+    function geocodeAddr() {
+        var city = document.getElementById('id_city');
+        var hood = document.getElementById('id_neighborhood');
+        var q = (hood ? hood.value.trim() : '') + ' ' + (city && city.selectedIndex > 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
+        
+        if (q.trim().length < 5) {
+            statutMap('Veuillez saisir un quartier et une ville.', 'warning');
+            return;
+        }
+
+        statutMap('Recherche en cours...', 'info');
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=tg`, {
+            headers: { 'Accept-Language': 'fr', 'User-Agent': 'LogerTogo-App' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    var pos = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+                    if (_map) {
+                        _map.easeTo({ center: pos, zoom: 16 });
+                        poseMarqueur(pos);
+                    }
+                    statutMap('Adresse trouvée !', 'success');
+                } else {
+                    statutMap('Adresse introuvable.', 'warning');
+                }
+            })
+            .catch(err => {
+                statutMap('Erreur de recherche.', 'danger');
+            });
+    }
+
+    function useGPS() {
+        if (!navigator.geolocation) { statutMap('GPS non supporté.', 'danger'); return; }
+        statutMap('Détection GPS...', 'info');
+        navigator.geolocation.getCurrentPosition(
+            function(p) {
+                var pos = [p.coords.longitude, p.coords.latitude];
+                _map.easeTo({ center: pos, zoom: 17 });
+                poseMarqueur(pos);
+                statutMap('Position détectée.', 'success');
+            },
+            function() { statutMap('GPS refusé. Cliquez manuellement.', 'warning'); },
+            { enableHighAccuracy: true, timeout: 12000 }
+        );
+    }
+</script>
 {% endblock %}

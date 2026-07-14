@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
 from django.conf import settings
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nom")
@@ -46,7 +47,7 @@ class Post(models.Model):
     slug = models.SlugField(max_length=250, unique=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Auteur")
     featured_image = models.ImageField(upload_to='blog/posts/%Y/%m/', verbose_name="Image à la une", blank=True, null=True)
-    content = models.TextField(verbose_name="Contenu (Texte ou HTML)")
+    content = RichTextUploadingField(verbose_name="Contenu (Texte ou HTML)")
     
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='posts', verbose_name="Catégorie")
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts', verbose_name="Mots-clés")

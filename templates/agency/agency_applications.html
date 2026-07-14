@@ -1,0 +1,222 @@
+{% extends 'agency/base_agency.html' %}
+{% load static %}
+
+{% block title %}Demandes en Ligne | Loger Togo Agence{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="font-weight-bold" style="color: var(--primary);">Demandes en Ligne</h2>
+            <p class="text-muted m-0">Gérez les candidatures, demandes de visites et réservations provenant de logertogo.com</p>
+        </div>
+    </div>
+
+    <!-- Nav tabs -->
+    <ul class="nav nav-pills mb-4 gap-2" id="requestsTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-bold" style="border: 1px solid var(--border-glass);" id="applications-tab" data-bs-toggle="tab" data-bs-target="#applications" type="button" role="tab" aria-controls="applications" aria-selected="true">
+                Candidatures <span class="badge bg-danger ms-1">{{ applications.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" style="border: 1px solid var(--border-glass);" id="visits-tab" data-bs-toggle="tab" data-bs-target="#visits" type="button" role="tab" aria-controls="visits" aria-selected="false">
+                Demandes de Visite <span class="badge bg-danger ms-1">{{ visits.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" style="border: 1px solid var(--border-glass);" id="reservations-tab" data-bs-toggle="tab" data-bs-target="#reservations" type="button" role="tab" aria-controls="reservations" aria-selected="false">
+                Réservations <span class="badge bg-danger ms-1">{{ reservations.count }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content" id="requestsTabContent">
+        <!-- Candidatures -->
+        <div class="tab-pane fade show active" id="applications" role="tabpanel" aria-labelledby="applications-tab">
+            <div class="glass-panel p-0 overflow-hidden">
+                <div class="table-container">
+                    <table class="table table-hover align-middle mb-0" style="background: transparent;">
+                        <thead class="text-muted small text-uppercase" style="background: rgba(11, 89, 52, 0.05);">
+                            <tr>
+                                <th class="py-3 px-4 border-0">Date</th>
+                                <th class="py-3 px-4 border-0">Locataire</th>
+                                <th class="py-3 px-4 border-0">Bien Immobilier</th>
+                                <th class="py-3 px-4 border-0">Message</th>
+                                <th class="py-3 px-4 border-0">Statut</th>
+                                <th class="py-3 px-4 border-0 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td class="px-4"><small class="text-muted fw-bold">{{ app.created_at|date:"d/m/Y" }}</small></td>
+                                <td class="px-4">
+                                    <div class="fw-bold">{{ app.tenant.get_full_name|default:app.tenant.phone_number }}</div>
+                                    <small class="text-muted">{{ app.tenant.email|default:"" }}</small>
+                                </td>
+                                <td class="px-4">
+                                    <a href="{{ app.property.get_absolute_url }}" target="_blank" class="text-decoration-none fw-bold" style="color: var(--primary);">
+                                        {{ app.property.title|truncatechars:30 }}
+                                    </a>
+                                </td>
+                                <td class="px-4"><small class="text-muted" style="white-space: normal; max-width: 250px; display: block;">{{ app.message|truncatechars:80 }}</small></td>
+                                <td class="px-4">
+                                    <span class="badge {% if app.status == 'PENDING' %}bg-warning text-dark{% elif app.status == 'ACCEPTED' %}bg-success{% else %}bg-danger{% endif %} rounded-pill px-3 py-2">
+                                        {{ app.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 text-end">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{% url 'initiate-pro-chat' app.tenant.id %}" class="btn btn-sm btn-light border" style="border-radius: 8px;" title="Contacter">
+                                            <i class="fa-solid fa-comment-dots" style="color: var(--primary-light);"></i>
+                                        </a>
+                                        <form method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="item_type" value="application">
+                                            <input type="hidden" name="item_id" value="{{ app.id }}">
+                                            {% if app.status != 'ACCEPTED' %}
+                                            <button type="submit" name="status" value="ACCEPTED" class="btn btn-sm btn-success border-0" style="border-radius: 8px; background: var(--primary-light);" title="Accepter"><i class="fa-solid fa-check"></i></button>
+                                            {% endif %}
+                                            {% if app.status != 'REJECTED' %}
+                                            <button type="submit" name="status" value="REJECTED" class="btn btn-sm btn-danger border-0" style="border-radius: 8px; background: #ef4444;" title="Refuser"><i class="fa-solid fa-xmark"></i></button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-inbox fa-3x mb-3 opacity-25"></i><br>Aucune candidature en attente.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demandes de Visite -->
+        <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="visits-tab">
+            <div class="glass-panel p-0 overflow-hidden">
+                <div class="table-container">
+                    <table class="table table-hover align-middle mb-0" style="background: transparent;">
+                        <thead class="text-muted small text-uppercase" style="background: rgba(11, 89, 52, 0.05);">
+                            <tr>
+                                <th class="py-3 px-4 border-0">Date Demandée</th>
+                                <th class="py-3 px-4 border-0">Client</th>
+                                <th class="py-3 px-4 border-0">Bien Immobilier</th>
+                                <th class="py-3 px-4 border-0">Statut</th>
+                                <th class="py-3 px-4 border-0 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for visit in visits %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td class="px-4"><span class="fw-bold">{{ visit.proposed_date|date:"d/m/Y H:i" }}</span></td>
+                                <td class="px-4">
+                                    <div class="fw-bold">{{ visit.user.get_full_name|default:visit.user.phone_number }}</div>
+                                </td>
+                                <td class="px-4">
+                                    <a href="{{ visit.property.get_absolute_url }}" target="_blank" class="text-decoration-none fw-bold" style="color: var(--primary);">
+                                        {{ visit.property.title|truncatechars:30 }}
+                                    </a>
+                                </td>
+                                <td class="px-4">
+                                    <span class="badge {% if visit.status == 'PENDING' %}bg-warning text-dark{% elif visit.status == 'CONFIRMED' %}bg-success{% else %}bg-danger{% endif %} rounded-pill px-3 py-2">
+                                        {{ visit.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 text-end">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{% url 'initiate-pro-chat' visit.user.id %}" class="btn btn-sm btn-light border" style="border-radius: 8px;" title="Contacter">
+                                            <i class="fa-solid fa-comment-dots" style="color: var(--primary-light);"></i>
+                                        </a>
+                                        <form method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="item_type" value="visit">
+                                            <input type="hidden" name="item_id" value="{{ visit.id }}">
+                                            {% if visit.status != 'CONFIRMED' %}
+                                            <button type="submit" name="status" value="CONFIRMED" class="btn btn-sm btn-success border-0" style="border-radius: 8px; background: var(--primary-light);" title="Confirmer"><i class="fa-solid fa-check"></i></button>
+                                            {% endif %}
+                                            {% if visit.status != 'CANCELLED' %}
+                                            <button type="submit" name="status" value="CANCELLED" class="btn btn-sm btn-danger border-0" style="border-radius: 8px; background: #ef4444;" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-5 text-muted"><i class="fa-solid fa-calendar-xmark fa-3x mb-3 opacity-25"></i><br>Aucune demande de visite.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Réservations -->
+        <div class="tab-pane fade" id="reservations" role="tabpanel" aria-labelledby="reservations-tab">
+            <div class="glass-panel p-0 overflow-hidden">
+                <div class="table-container">
+                    <table class="table table-hover align-middle mb-0" style="background: transparent;">
+                        <thead class="text-muted small text-uppercase" style="background: rgba(11, 89, 52, 0.05);">
+                            <tr>
+                                <th class="py-3 px-4 border-0">Période</th>
+                                <th class="py-3 px-4 border-0">Client</th>
+                                <th class="py-3 px-4 border-0">Bien Immobilier</th>
+                                <th class="py-3 px-4 border-0">Total (CFA)</th>
+                                <th class="py-3 px-4 border-0">Statut</th>
+                                <th class="py-3 px-4 border-0 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for res in reservations %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td class="px-4">
+                                    <small class="text-muted d-block">Du : <span class="fw-bold">{{ res.check_in|date:"d/m/Y" }}</span></small>
+                                    <small class="text-muted d-block">Au : <span class="fw-bold">{{ res.check_out|date:"d/m/Y" }}</span></small>
+                                </td>
+                                <td class="px-4">
+                                    <div class="fw-bold">{{ res.user.get_full_name|default:res.user.phone_number }}</div>
+                                </td>
+                                <td class="px-4">
+                                    <a href="{{ res.property.get_absolute_url }}" target="_blank" class="text-decoration-none fw-bold" style="color: var(--primary);">
+                                        {{ res.property.title|truncatechars:30 }}
+                                    </a>
+                                </td>
+                                <td class="px-4"><span class="fw-bold text-success">{{ res.total_price }}</span></td>
+                                <td class="px-4">
+                                    <span class="badge {% if res.status == 'PENDING' %}bg-warning text-dark{% elif res.status == 'CONFIRMED' %}bg-success{% else %}bg-danger{% endif %} rounded-pill px-3 py-2">
+                                        {{ res.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 text-end">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{% url 'initiate-pro-chat' res.user.id %}" class="btn btn-sm btn-light border" style="border-radius: 8px;" title="Contacter">
+                                            <i class="fa-solid fa-comment-dots" style="color: var(--primary-light);"></i>
+                                        </a>
+                                        <form method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="item_type" value="reservation">
+                                            <input type="hidden" name="item_id" value="{{ res.id }}">
+                                            {% if res.status != 'CONFIRMED' %}
+                                            <button type="submit" name="status" value="CONFIRMED" class="btn btn-sm btn-success border-0" style="border-radius: 8px; background: var(--primary-light);" title="Confirmer"><i class="fa-solid fa-check"></i></button>
+                                            {% endif %}
+                                            {% if res.status != 'CANCELLED' %}
+                                            <button type="submit" name="status" value="CANCELLED" class="btn btn-sm btn-danger border-0" style="border-radius: 8px; background: #ef4444;" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-clipboard-list fa-3x mb-3 opacity-25"></i><br>Aucune réservation en ligne.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

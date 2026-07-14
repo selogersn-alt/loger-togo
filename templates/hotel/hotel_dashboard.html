@@ -21,6 +21,176 @@
         </div>
     </div>
 
+    <!-- Collaborator Time Clock & Tasks Widgets -->
+    {% if my_attendance is not None or my_tasks is not None or request.actual_user %}
+    <div class="row g-4 mb-5">
+        <!-- Pointage Widget -->
+        <div class="col-lg-6">
+            <div class="card-luxury p-4 h-100 bg-white" style="border-left: 4px solid var(--rose-accent) !important;">
+                <h5 class="font-luxury mb-3" style="color: var(--primary-luxury);">
+                    <i class="fa-solid fa-clock me-2 text-danger"></i> Pointage Présence & Shift
+                </h5>
+                <p class="text-muted small mb-4">Enregistrez vos heures d'arrivée, de pause et de départ.</p>
+                
+                <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-4">
+                    <div class="me-3 fs-3 text-danger"><i class="fa-solid fa-user-clock"></i></div>
+                    <div>
+                        <span class="text-muted small d-block">Statut Actuel :</span>
+                        {% if not my_attendance or my_attendance.status == 'ABSENT' %}
+                            <strong class="text-danger">NON POINTE (Absent)</strong>
+                        {% elif my_attendance.status == 'PRESENT' %}
+                            <strong class="text-success">✔ EN SERVICE (Présent)</strong>
+                            <div class="mt-1 text-dark fs-5 font-luxury fw-bold">
+                                <i class="fa-solid fa-stopwatch text-success opacity-75 d-inline-block align-middle me-2"></i><div class="luxury-work-timer d-inline-block align-middle" data-seconds="{{ my_attendance.total_work_hours|default:0|floatformat:4 }}"></div>
+                            </div>
+                        {% elif my_attendance.status == 'LATE' %}
+                            <strong class="text-warning">⚠ EN SERVICE (En Retard de {{ my_attendance.late_minutes }} min)</strong>
+                            <div class="mt-1 text-dark fs-5 font-luxury fw-bold">
+                                <i class="fa-solid fa-stopwatch text-warning opacity-75 d-inline-block align-middle me-2"></i><div class="luxury-work-timer d-inline-block align-middle" data-seconds="{{ my_attendance.total_work_hours|default:0|floatformat:4 }}"></div>
+                            </div>
+                        {% elif my_attendance.status == 'ON_BREAK' %}
+                            <strong class="text-info">☕ EN PAUSE</strong>
+                            <div class="mt-1 text-dark fs-5 font-luxury fw-bold">
+                                <i class="fa-solid fa-mug-hot text-info opacity-75 d-inline-block align-middle me-2"></i><div class="luxury-break-timer d-inline-block align-middle" data-start="{{ my_attendance.break_start|date:'c' }}"></div>
+                            </div>
+                        {% elif my_attendance.status == 'CLOCK_OUT' %}
+                            <strong class="text-muted">⏹ SERVICE TERMINE (Départ enregistré à {{ my_attendance.clock_out|date:"H:i" }})</strong>
+                            <div class="mt-1 text-muted fs-6 fw-bold">
+                                Total : {{ my_attendance.total_work_hours|default:0|floatformat:2 }}h
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <form action="{% url 'hotel_clock_action' %}" method="post" class="d-flex flex-wrap gap-2 geolocation-clock-form" id="hotel-clock-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="latitude" id="hotel-latitude">
+                    <input type="hidden" name="longitude" id="hotel-longitude">
+                    
+                    {% if not my_attendance or not my_attendance.clock_in %}
+                        <button type="submit" name="action" value="in" class="btn btn-success rounded-pill px-4 py-2 fw-bold clock-btn">
+                            <i class="fa-solid fa-sign-in me-2"></i>Pointer l'Arrivée
+                        </button>
+                    {% endif %}
+                    
+                    {% if my_attendance.clock_in and not my_attendance.clock_out %}
+                        {% if my_attendance.status != 'ON_BREAK' %}
+                            <button type="submit" name="action" value="break_start" class="btn btn-outline-info rounded-pill px-3 py-2 fw-bold">
+                                <i class="fa-solid fa-coffee me-2"></i>Prendre une Pause
+                            </button>
+                            <button type="submit" name="action" value="out" class="btn btn-danger rounded-pill px-4 py-2 fw-bold clock-btn">
+                                <i class="fa-solid fa-sign-out me-2"></i>Pointer le Départ
+                            </button>
+                        {% else %}
+                            <button type="submit" name="action" value="break_end" class="btn btn-success rounded-pill px-4 py-2 fw-bold">
+                                <i class="fa-solid fa-play me-2"></i>Reprendre le Service
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </form>
+
+                <!-- Geolocation Loading Overlay -->
+                <div id="geo-loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(11, 70, 41, 0.7); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; flex-direction:column; color:white; transition: all 0.3s ease;">
+                    <div class="spinner-border text-light mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <h5 class="fw-bold mb-1">Sécurisation du Pointage...</h5>
+                    <p class="small text-white-50 m-0">Télémétrie GPS en cours d'acquisition...</p>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const form = document.getElementById('hotel-clock-form');
+                        if (form) {
+                            form.addEventListener('submit', function(e) {
+                                const activeElement = document.activeElement;
+                                if (activeElement && activeElement.classList.contains('clock-btn')) {
+                                    const actionVal = activeElement.value;
+                                    if (actionVal === 'in' || actionVal === 'out') {
+                                        e.preventDefault();
+                                        const overlay = document.getElementById('geo-loading-overlay');
+                                        if (overlay) {
+                                            overlay.style.display = 'flex';
+                                        }
+                                        
+                                        if (navigator.geolocation) {
+                                            navigator.geolocation.getCurrentPosition(
+                                                function(position) {
+                                                    document.getElementById('hotel-latitude').value = position.coords.latitude;
+                                                    document.getElementById('hotel-longitude').value = position.coords.longitude;
+                                                    
+                                                    // Dynamic hidden field input for value of clicked button
+                                                    const hiddenAction = document.createElement('input');
+                                                    hiddenAction.type = 'hidden';
+                                                    hiddenAction.name = 'action';
+                                                    hiddenAction.value = actionVal;
+                                                    form.appendChild(hiddenAction);
+                                                    
+                                                    form.submit();
+                                                },
+                                                function(error) {
+                                                    console.warn('Geolocation failed or denied:', error);
+                                                    // Fail gracefully: proceed without coordinates
+                                                    const hiddenAction = document.createElement('input');
+                                                    hiddenAction.type = 'hidden';
+                                                    hiddenAction.name = 'action';
+                                                    hiddenAction.value = actionVal;
+                                                    form.appendChild(hiddenAction);
+                                                    
+                                                    form.submit();
+                                                },
+                                                { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+                                            );
+                                        } else {
+                                            // Fallback if not supported
+                                            const hiddenAction = document.createElement('input');
+                                            hiddenAction.type = 'hidden';
+                                            hiddenAction.name = 'action';
+                                            hiddenAction.value = actionVal;
+                                            form.appendChild(hiddenAction);
+                                            form.submit();
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+
+        <!-- Consignes & Tâches Widget -->
+        <div class="col-lg-6">
+            <div class="card-luxury p-4 h-100 bg-white" style="border-left: 4px solid var(--rose-accent) !important;">
+                <h5 class="font-luxury mb-3" style="color: var(--primary-luxury);">
+                    <i class="fa-solid fa-circle-exclamation me-2 text-danger"></i> Consignes & Tâches Exceptionnelles
+                </h5>
+                <p class="text-muted small mb-3">Tâches assignées par l'administration à réaliser aujourd'hui.</p>
+                
+                <div class="list-group list-group-flush">
+                    {% for t in my_tasks %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-0 border-bottom">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">{{ t.title }}</h6>
+                                <p class="text-muted small mb-0">{{ t.description|default:"Aucun détail fourni." }}</p>
+                                <span class="badge bg-light text-muted small mt-1"><i class="fa-solid fa-calendar me-1"></i>Échéance : {{ t.due_date|date:"d/m/Y" }}</span>
+                            </div>
+                            <div>
+                                <a href="{% url 'hotel_task_complete' t.id %}" class="btn btn-sm btn-success rounded-pill px-3">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Terminer
+                                </a>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4 text-muted small">
+                            <i class="fa-solid fa-clipboard-check fa-2x mb-2 text-success" style="opacity:0.5;"></i>
+                            <p class="m-0 fw-bold">Parfait ! Aucune tâche en attente.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Stats Panel -->
     <div class="row g-4 mb-5">
         <div class="col-6 col-lg-3">
@@ -65,6 +235,7 @@
     </div>
 
     <!-- Financial widgets -->
+    {% if not request.actual_user %}
     <div class="row g-4 mb-5">
         <div class="col-md-6 col-lg-4">
             <div class="card-luxury p-4 h-100 border-start border-3 border-danger d-flex align-items-center">
@@ -100,6 +271,112 @@
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Live Collaborators Presence & Tasks Tracking for Owner -->
+    {% if live_staff is not None or pending_tasks is not None %}
+    <div class="row g-4 mb-5">
+        <!-- Live Presence Tracker -->
+        <div class="col-lg-7">
+            <div class="card-luxury p-4 h-100 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);">
+                        <i class="fa-solid fa-users-gear me-2 text-danger"></i> Présences en Temps Réel (Pointage)
+                    </h5>
+                    <a href="{% url 'hotel_sub_agents' %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                        Gérer le Personnel
+                    </a>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle m-0">
+                        <thead>
+                            <tr class="small text-muted text-uppercase fw-bold" style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                <th class="ps-0">Collaborateur</th>
+                                <th class="text-center">Statut</th>
+                                <th class="text-center">Arrivée</th>
+                                <th class="text-center">Pause</th>
+                                <th class="text-end pe-0">Retard</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in live_staff %}
+                            <tr class="border-bottom" style="border-color: rgba(0,0,0,0.03) !important;">
+                                <td class="py-3 ps-0">
+                                    <strong class="text-dark">{{ att.employee.get_full_name }}</strong>
+                                </td>
+                                <td class="py-3 text-center">
+                                    {% if att.status == 'PRESENT' %}
+                                        <span class="badge bg-success rounded-pill px-3 py-1">Présent</span>
+                                    {% elif att.status == 'LATE' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1">En Retard</span>
+                                    {% elif att.status == 'ON_BREAK' %}
+                                        <span class="badge bg-info text-white rounded-pill px-3 py-1">En Pause</span>
+                                    {% elif att.status == 'CLOCK_OUT' %}
+                                        <span class="badge bg-secondary rounded-pill px-3 py-1">Parti</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 text-center small text-muted">
+                                    {{ att.clock_in|date:"H:i"|default:"—" }}
+                                </td>
+                                <td class="py-3 text-center small text-muted">
+                                    {% if att.break_start %}
+                                        {{ att.break_start|date:"H:i" }} {% if att.break_end %}— {{ att.break_end|date:"H:i" }}{% endif %}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 text-end pe-0 fw-bold {% if att.is_late %}text-danger{% else %}text-muted{% endif %}">
+                                    {% if att.is_late %}{{ att.late_minutes }} min{% else %}Aucun{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted small">
+                                    <i class="fa-solid fa-user-clock fs-2 text-muted mb-3 d-block opacity-40"></i>
+                                    Aucun collaborateur n'a pointé aujourd'hui.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Tasks Tracking -->
+        <div class="col-lg-5">
+            <div class="card-luxury p-4 h-100 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(183, 110, 121, 0.15) !important;">
+                    <h5 class="font-luxury m-0" style="color: var(--primary-luxury);">
+                        <i class="fa-solid fa-list-check me-2 text-danger"></i> Consignes & Tâches Assignées
+                    </h5>
+                    <span class="badge bg-danger rounded-pill px-3">{{ pending_tasks.count }}</span>
+                </div>
+                
+                <div class="list-group list-group-flush">
+                    {% for task in pending_tasks %}
+                    <div class="list-group-item py-3 px-0 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">{{ task.title }}</h6>
+                                <p class="text-muted small mb-1">{{ task.description|truncatechars:50 }}</p>
+                                <span class="small text-muted"><i class="fa-solid fa-user me-1"></i>{{ task.employee.get_full_name }}</span>
+                            </div>
+                            <span class="badge bg-warning text-dark small rounded-pill px-2">En Attente</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-clipboard-check fs-2 text-success mb-3 d-block opacity-40"></i>
+                        Aucune tâche exceptionnelle en cours de réalisation.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Arrivals & Departures operations panels -->
     <div class="row g-4 mb-5">
@@ -118,6 +395,7 @@
                                 <td class="py-3 ps-0">
                                     <h6 class="fw-bold mb-0 text-dark">{{ b.client_name }}</h6>
                                     <small class="text-muted">{{ b.client_phone }}</small>
+                                    <div class="mt-1 luxury-live-countdown" data-target="{{ b.check_in|date:'c' }}" data-type="checkin"><i class="fa-solid fa-spinner fa-spin text-primary"></i> Chargement...</div>
                                 </td>
                                 <td class="py-3 text-center">
                                     <span class="badge bg-dark rounded-3 px-3">Chambre {{ b.room.room_number }}</span>
@@ -160,6 +438,7 @@
                                 <td class="py-3 ps-0">
                                     <h6 class="fw-bold mb-0 text-dark">{{ b.client_name }}</h6>
                                     <small class="text-muted">Solde restant : <strong>{{ b.balance_due|floatformat:0 }} FCFA</strong></small>
+                                    <div class="mt-1 luxury-live-countdown" data-target="{{ b.check_out|date:'c' }}" data-type="checkout"><i class="fa-solid fa-spinner fa-spin text-danger"></i> Chargement...</div>
                                 </td>
                                 <td class="py-3 text-center">
                                     <span class="badge bg-dark rounded-3 px-3">Chambre {{ b.room.room_number }}</span>
@@ -183,6 +462,128 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
-</div>
+
+    <!-- Manager Tracking & Global Traceability Audit Log -->
+    {% if not request.actual_user %}
+    <div class="row g-4 mb-5">
+        <!-- Live Collaborators Presence -->
+        <div class="col-lg-6">
+            <div class="card-luxury p-4 h-100 bg-white" style="border-top: 4px solid var(--rose-accent) !important;">
+                <h5 class="font-luxury mb-3" style="color: var(--primary-luxury);">
+                    <i class="fa-solid fa-fingerprint me-2 text-danger animate-pulse"></i> Présence Collaborateurs (En Direct)
+                </h5>
+                <p class="text-muted small mb-4">Suivez en temps réel le statut, la localisation GPS et la durée de travail effectif de vos collaborateurs aujourd'hui.</p>
+                
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle m-0 text-center">
+                        <thead>
+                            <tr class="small text-muted text-uppercase fw-bold border-bottom" style="border-color: rgba(183,110,121,0.15) !important;">
+                                <th class="text-start">Collaborateur</th>
+                                <th>Statut</th>
+                                <th>Durée Actuelle</th>
+                                <th class="text-end">Localisation GPS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in live_staff %}
+                            <tr class="border-bottom" style="border-color: rgba(0,0,0,0.03) !important;">
+                                <td class="py-3 text-start">
+                                    <h6 class="fw-bold mb-0 text-dark">{{ att.employee.get_full_name }}</h6>
+                                    <small class="text-muted">{{ att.employee.phone_number }}</small>
+                                </td>
+                                <td>
+                                    {% if att.status == 'PRESENT' %}
+                                        <span class="badge bg-success rounded-pill px-3 py-1">Présent</span>
+                                    {% elif att.status == 'LATE' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1" title="Retard de {{ att.late_minutes }} min">En Retard</span>
+                                    {% elif att.status == 'ON_BREAK' %}
+                                        <span class="badge bg-info text-white rounded-pill px-3 py-1">En Pause</span>
+                                    {% elif att.status == 'CLOCK_OUT' %}
+                                        <span class="badge bg-secondary rounded-pill px-3 py-1">Parti</span>
+                                    {% elif att.status == 'ABSENT' %}
+                                        <span class="badge bg-danger rounded-pill px-3 py-1">Absent</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold">{{ att.total_work_hours }} Heures</td>
+                                <td class="text-end pe-0">
+                                    {% if att.latitude_in and att.longitude_in %}
+                                        <a href="https://www.google.com/maps/search/?api=1&query={{ att.latitude_in }},{{ att.longitude_in }}" target="_blank" class="badge bg-light text-success border rounded-pill text-decoration-none d-inline-block py-1 px-2" title="Arrivée : Voir la position GPS" style="font-size:0.75rem;">
+                                            <i class="fa-solid fa-location-dot text-danger me-1"></i>Arrivée
+                                        </a>
+                                    {% endif %}
+                                    {% if att.latitude_out and att.longitude_out %}
+                                        <a href="https://www.google.com/maps/search/?api=1&query={{ att.latitude_out }},{{ att.longitude_out }}" target="_blank" class="badge bg-light text-secondary border rounded-pill text-decoration-none d-inline-block py-1 px-2" title="Départ : Voir la position GPS" style="font-size:0.75rem;">
+                                            <i class="fa-solid fa-location-dot text-muted me-1"></i>Départ
+                                        </a>
+                                    {% endif %}
+                                    {% if not att.latitude_in and not att.latitude_out %}
+                                        <span class="text-muted small" style="font-style: italic;">Non fournie</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted small">
+                                    <i class="fa-solid fa-bell-slash fs-2 text-danger mb-3 d-block opacity-40"></i>
+                                    Aucun collaborateur n'a pointé aujourd'hui.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Traceability Log Panel -->
+        <div class="col-lg-6">
+            <div class="card-luxury p-4 h-100 bg-white" style="border-top: 4px solid var(--rose-accent) !important;">
+                <h5 class="font-luxury mb-3" style="color: var(--primary-luxury);">
+                    <i class="fa-solid fa-list-check me-2 text-danger"></i> Journal d'Audit & Traçabilité (RH)
+                </h5>
+                <p class="text-muted small mb-4">Journal chronologique inaltérable des actions exécutées par vos collaborateurs sur la plateforme.</p>
+                
+                <div class="action-log-container" style="max-height: 310px; overflow-y: auto; padding-right: 5px;">
+                    {% for log in action_logs %}
+                    <div class="d-flex align-items-start p-3 bg-light rounded-4 mb-3 border-start" style="border-left: 4px solid {% if log.action_type == 'CLOCK_IN' %}var(--rose-accent){% elif log.action_type == 'CLOCK_OUT' %}var(--primary-luxury){% else %}#198754{% endif %} !important;">
+                        <div class="me-3 mt-1 fs-5 text-dark">
+                            {% if log.action_type == 'CLOCK_IN' or log.action_type == 'CLOCK_OUT' or log.action_type == 'BREAK_START' or log.action_type == 'BREAK_END' %}
+                                <i class="fa-solid fa-user-clock"></i>
+                            {% elif log.action_type == 'TASK_COMPLETE' %}
+                                <i class="fa-solid fa-circle-check"></i>
+                            {% elif log.action_type == 'ABSENCE_DETECTED' %}
+                                <i class="fa-solid fa-circle-exclamation text-danger"></i>
+                            {% else %}
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-dark small">{{ log.employee.get_full_name }}</strong>
+                                <span class="badge bg-dark rounded-pill px-2 py-0 font-monospace text-white" style="font-size:0.65rem;">{{ log.created_at|date:"H:i:s" }}</span>
+                            </div>
+                            <p class="small text-muted mb-1">{{ log.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-light text-dark px-2 rounded" style="font-size:0.65rem;">{{ log.action_type }}</span>
+                                <span class="small text-muted font-monospace" style="font-size:0.65rem;">IP: {{ log.ip_address|default:"127.0.0.1" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-clock-rotate-left fs-2 text-danger mb-3 d-block opacity-40"></i>
+                        Aucune action enregistrée dans l'historique de traçabilité.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/luxury-timers.js' %}"></script>
 {% endblock %}

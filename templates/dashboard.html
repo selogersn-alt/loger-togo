@@ -233,10 +233,22 @@
                         </div>
                         <div class="col-md-6">
                             <div class="tool-item p-4 rounded-4 bg-white border h-100 transition-up">
-                                <div class="tool-icon bg-success text-white"><i class="fas fa-file-invoice-dollar"></i></div>
-                                <h5 class="fw-bold mt-3">{% trans "Gestion Locative" %}</h5>
-                                <p class="text-muted small">{% trans "Baux, quittances et suivi des paiements de vos locataires." %}</p>
-                                <a href="http://agence.logertogo.com/" class="stretched-link text-success fw-bold text-decoration-none">{% trans "Espace Gestion" %} <i class="fas fa-chevron-right ms-1"></i></a>
+                                <div class="tool-icon bg-success text-white">
+                                    {% if request.user.role == 'HOTEL' or request.user.role == 'AUBERGE' %}
+                                        <i class="fas fa-concierge-bell"></i>
+                                    {% else %}
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    {% endif %}
+                                </div>
+                                {% if request.user.role == 'HOTEL' or request.user.role == 'AUBERGE' %}
+                                    <h5 class="fw-bold mt-3">{% trans "PMS Hôtel" %}</h5>
+                                    <p class="text-muted small">{% trans "Gérez vos réservations de chambres et arrivées." %}</p>
+                                    <a href="http://hotels.logertogo.com/" class="stretched-link text-success fw-bold text-decoration-none">{% trans "Ouvrir PMS" %} <i class="fas fa-chevron-right ms-1"></i></a>
+                                {% else %}
+                                    <h5 class="fw-bold mt-3">{% trans "Gestion Locative" %}</h5>
+                                    <p class="text-muted small">{% trans "Baux, quittances et suivi des paiements de vos locataires." %}</p>
+                                    <a href="http://agence.logertogo.com/" class="stretched-link text-success fw-bold text-decoration-none">{% trans "Espace Gestion" %} <i class="fas fa-chevron-right ms-1"></i></a>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -312,6 +324,49 @@
                             </div>
                         </div>
                     </div>
+
+                    {% if tenant_hotel_bookings %}
+                    <h5 class="fw-bold mt-5 mb-4"><i class="fas fa-concierge-bell text-warning me-2"></i>{% trans "Mes Réservations d'Hôtel" %}</h5>
+                    <div class="table-responsive bg-white rounded-4 border shadow-sm p-3">
+                        <table class="table table-hover align-middle border-0 mb-0">
+                            <thead class="text-muted small text-uppercase bg-light">
+                                <tr>
+                                    <th class="border-0 rounded-start">{% trans "Hôtel & Chambre" %}</th>
+                                    <th class="border-0">{% trans "Dates" %}</th>
+                                    <th class="border-0">{% trans "Montant" %}</th>
+                                    <th class="border-0 rounded-end">{% trans "Statut" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in tenant_hotel_bookings %}
+                                <tr>
+                                    <td class="border-bottom-0">
+                                        <div class="fw-bold text-dark">{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</div>
+                                        <small class="text-muted"><i class="fas fa-bed me-1"></i> {{ booking.room.room_number }} ({{ booking.room.get_room_type_display }})</small>
+                                    </td>
+                                    <td class="border-bottom-0">
+                                        <div class="small fw-bold">{{ booking.check_in|date:"d M Y" }}</div>
+                                        <small class="text-muted">au {{ booking.check_out|date:"d M Y" }}</small>
+                                    </td>
+                                    <td class="border-bottom-0 fw-bold text-success">{{ booking.total_amount|floatformat:0 }} <small>CFA</small></td>
+                                    <td class="border-bottom-0">
+                                        {% if booking.status == 'PENDING' %}
+                                            <span class="badge bg-soft-warning text-warning border-0 px-3"><i class="fas fa-clock me-1"></i> {% trans "Confirmée" %}</span>
+                                        {% elif booking.status == 'CHECKED_IN' %}
+                                            <span class="badge bg-soft-success text-success border-0 px-3"><i class="fas fa-check-circle me-1"></i> {% trans "Séjour en cours" %}</span>
+                                        {% elif booking.status == 'CHECKED_OUT' %}
+                                            <span class="badge bg-light text-dark border-0 px-3"><i class="fas fa-door-open me-1"></i> {% trans "Terminé" %}</span>
+                                        {% elif booking.status == 'CANCELLED' %}
+                                            <span class="badge bg-soft-danger text-danger border-0 px-3"><i class="fas fa-times-circle me-1"></i> {% trans "Annulée" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+
                     
                     <div class="mt-5 p-4 rounded-4 border bg-light text-center">
                         <p class="mb-0 text-muted">{% trans "Vous cherchez quelque chose de précis ?" %}</p>

@@ -12,8 +12,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+import logging
 
 from logersn.models import Property, Favorite, Transaction, Reservation, VisitRequest, PropertyAvailability
+from management.models import HotelBooking
 from logersn.forms import PropertyForm
 from users.models import User, KYCProfile
 from chat.models import Conversation, Message
@@ -92,10 +97,22 @@ def dashboard_view(request):
         total_views = stats_aggregation.get('total_views') or 0
         
         # Statistiques avancées pour le tableau de bord Pro
-        pending_reservations = Reservation.objects.filter(property__owner=request.user, status='PENDING').count()
-        total_reservations = Reservation.objects.filter(property__owner=request.user).count()
+        if request.user.role in ['HOTEL', 'AUBERGE']:
+            # Gestion Hôtelière
+            pending_reservations = HotelBooking.objects.filter(room__hotel=request.user, status='PENDING').count()
+            total_reservations = HotelBooking.objects.filter(room__hotel=request.user).count()
+        else:
+            # Gestion Immobilière classique
+            pending_reservations = Reservation.objects.filter(property__owner=request.user, status='PENDING').count()
+            total_reservations = Reservation.objects.filter(property__owner=request.user).count()
+            
         pending_visits = VisitRequest.objects.filter(property__owner=request.user, status='PENDING').count()
         pending_messages = request.user.conversations.filter(status='PENDING').count()
+        
+        # Pour le rôle TENANT : Récupérer ses réservations d'hôtel
+        tenant_hotel_bookings = None
+        if request.user.role == 'TENANT':
+            tenant_hotel_bookings = HotelBooking.objects.filter(portal_client=request.user).order_by('-created_at')[:10]
         
     except Exception as e:
         # En cas d'erreur de base de données ou autre, on initialise des valeurs par défaut pour éviter le crash 500
@@ -105,6 +122,7 @@ def dashboard_view(request):
         
         user_properties = request.user.properties.all().prefetch_related('images').order_by('-created_at')
         total_views, pending_reservations, total_reservations, pending_visits, pending_messages = 0, 0, 0, 0, 0
+        tenant_hotel_bookings = None
 
     return render(request, 'dashboard.html', {
         'user_properties': user_properties,
@@ -114,6 +132,7 @@ def dashboard_view(request):
         'total_reservations': total_reservations,
         'pending_visits': pending_visits,
         'pending_messages': pending_messages,
+        'tenant_hotel_bookings': tenant_hotel_bookings,
     })
 
 # --- PAIEMENTS FEDAPAY ---
@@ -191,6 +210,69 @@ def payment_callback_view(request):
     transaction.save()
     messages.error(request, _("Le paiement a échoué ou a été annulé."))
     return redirect('dashboard')
+
+@csrf_exempt
+@require_POST
+def fedapay_webhook_view(request):
+    """
+    Endpoint sécurisé pour les Webhooks FedaPay (S2S).
+    Permet de valider un paiement même si l'utilisateur quitte la page.
+    """
+    logger = logging.getLogger(__name__)
+    try:
+        payload = json.loads(request.body)
+        event_type = payload.get('name', '')
+        
+        if event_type == 'transaction.approved':
+            entity = payload.get('entity', {})
+            # Dans certains cas de webhooks FedaPay, c'est entity.custom_metadata.reference
+            # ou bien simplement la référence sur la transaction
+            custom_metadata = entity.get('custom_metadata', {})
+            ref = custom_metadata.get('reference')
+            
+            if not ref:
+                logger.error("Webhook FedaPay: Référence introuvable dans le payload.")
+                return HttpResponse(status=400)
+                
+            transaction = Transaction.objects.filter(reference=ref).first()
+            if not transaction:
+                logger.error(f"Webhook FedaPay: Transaction introuvable pour {ref}.")
+                return HttpResponse(status=404)
+                
+            if transaction.status == 'SUCCESS':
+                # Déjà validé
+                return HttpResponse(status=200)
+
+            # DigitalH Security: On vérifie tout de même via l'API pour être certain
+            is_valid, _ = FedaPayBridge.verify_transaction(ref)
+            
+            if is_valid:
+                transaction.status = 'SUCCESS'
+                transaction.save()
+                
+                # Actions selon le type de transaction
+                if transaction.transaction_type == 'PUBLICATION' and transaction.property:
+                    transaction.property.is_published = True
+                    transaction.property.is_paid = True
+                    transaction.property.save()
+                    logger.info(f"Webhook FedaPay: Publication activée pour la transaction {ref}")
+                    
+                elif transaction.transaction_type == 'BOOST' and transaction.property:
+                    transaction.property.is_boosted = True
+                    transaction.property.boost_until = timezone.now() + datetime.timedelta(days=transaction.days)
+                    transaction.property.save()
+                    logger.info(f"Webhook FedaPay: Boost activé pour la transaction {ref}")
+                    
+            return HttpResponse(status=200)
+            
+        return HttpResponse(status=200) # Evènement non géré, on répond OK
+        
+    except json.JSONDecodeError:
+        return HttpResponse(status=400)
+    except Exception as e:
+        logger.error(f"Webhook FedaPay Erreur Globale: {str(e)}")
+        return HttpResponse(status=500)
+
 
 @login_required
 def payment_success_view(request, transaction_id):

@@ -14,7 +14,7 @@
     </div>
 
     <div class="card-luxury p-5 bg-white mb-5">
-        <form method="post">
+        <form method="post" id="hotel-profile-form" onsubmit="return validateMap(event);">
             {% csrf_token %}
             
             <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-hotel me-2 text-danger"></i> Fiche d'Identité Hôtelière</h5>
@@ -31,9 +31,56 @@
                 </div>
             </div>
             
+            <hr class="my-4" style="border-color: rgba(183, 110, 121, 0.15);">
+            <h5 class="font-luxury mb-4" style="color: var(--primary-luxury);"><i class="fa-solid fa-map-location-dot me-2 text-danger"></i> Localisation de l'Établissement</h5>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Ville <span class="text-danger">*</span></label>
+                    <select name="city" id="id_city" class="form-select rounded-3" required>
+                        <option value="">Sélectionnez la ville</option>
+                        {% for value, label in city_choices %}
+                            <option value="{{ value }}" {% if user.agency_city == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Quartier <span class="text-danger">*</span></label>
+                    <input type="text" name="neighborhood" id="id_neighborhood" class="form-control rounded-3" required placeholder="Ex: Agoè-Logopé" list="neighborhoods-datalist" value="{{ user.agency_neighborhood|default:'' }}">
+                    <datalist id="neighborhoods-datalist">
+                        {% for n in togo_neighborhoods %}
+                            <option value="{{ n }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+            </div>
+
             <div class="mb-4">
-                <label class="form-label fw-bold">Adresse Géographique / Localisation exacte</label>
+                <label class="form-label fw-bold">Adresse / Repère (Optionnel)</label>
                 <input type="text" name="agency_address" class="form-control rounded-3" value="{{ user.agency_address|default:'' }}" placeholder="Ex: Boulevard du Mono, Face Plage, Lomé">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold"><i class="fa-solid fa-crosshairs me-2"></i>Carte Interactive (GPS)</label>
+                <p class="text-muted small mb-2">Pointez la localisation exacte de votre hôtel. Cela permettra à vos chambres d'apparaître sur la carte LogerTogo (Autour de moi).</p>
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="geocodeAddr()"><i class="fa-solid fa-magnifying-glass-location me-1"></i>Chercher l'adresse</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" onclick="useGPS()"><i class="fa-solid fa-location-dot me-1"></i>Ma position actuelle</button>
+                </div>
+                
+                <div id="form-map" style="height: 350px; width: 100%; border-radius: 12px; border: 1px solid var(--border-glass); margin-bottom: 10px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #6b7280; font-weight: 500;">
+                    <div class="text-center p-3">
+                        <i class="fa-solid fa-map-location-dot fa-2x mb-2 text-rose-accent" style="color: var(--rose-accent);"></i>
+                        <p class="m-0 small">Initialisation de la carte...</p>
+                    </div>
+                </div>
+                <div id="form-map-status" class="small mb-2"></div>
+                <div class="d-flex align-items-center text-muted small">
+                    <span class="me-2">LAT :</span> <strong id="coord-lat-display" class="text-dark me-4">{{ user.agency_latitude|default:'--' }}</strong>
+                    <span class="me-2">LNG :</span> <strong id="coord-lng-display" class="text-dark">{{ user.agency_longitude|default:'--' }}</strong>
+                </div>
+                <input type="hidden" name="latitude" id="id_latitude" value="{{ user.agency_latitude|default:'' }}">
+                <input type="hidden" name="longitude" id="id_longitude" value="{{ user.agency_longitude|default:'' }}">
             </div>
 
             <div class="mb-4">
@@ -84,4 +131,186 @@
         </form>
     </div>
 </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- MapLibre GL JS -->
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+
+<style>
+.premium-marker {
+    background: var(--primary-luxury);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50% 50% 50% 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
+}
+.premium-marker i {
+    transform: rotate(45deg);
+    font-size: 14px;
+}
+</style>
+
+<script>
+    var _map = null, _marker = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initMapLibreFormMap();
+    });
+
+    function validateMap(e) {
+        var lat = document.getElementById('id_latitude').value;
+        if (!lat || lat.trim() === '') {
+            statutMap('OBLIGATOIRE : Veuillez d\'office indiquer votre position sur la carte !', 'danger');
+            var mapEl = document.getElementById('form-map');
+            if (mapEl) {
+                window.scrollTo({ top: mapEl.offsetTop - 150, behavior: 'smooth' });
+                mapEl.style.border = '2px solid #ef4444';
+                setTimeout(() => mapEl.style.border = '1px solid var(--border-glass)', 3000);
+            }
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    function initMapLibreFormMap() {
+        var el = document.getElementById('form-map');
+        if (!el || _map) return;
+
+        var lome = [1.2123, 6.1375]; 
+        
+        _map = new maplibregl.Map({
+            container: 'form-map',
+            style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+            center: lome,
+            zoom: 13,
+            attributionControl: false
+        });
+
+        _map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+        _map.on('click', function(e) { 
+            poseMarqueur([e.lngLat.lng, e.lngLat.lat]); 
+        });
+
+        // Charger coordonnées existantes
+        var latE = document.getElementById('id_latitude');
+        var lngE = document.getElementById('id_longitude');
+        if (latE && lngE && latE.value && lngE.value) {
+            var lat0 = parseFloat(latE.value.replace(',', '.'));
+            var lng0 = parseFloat(lngE.value.replace(',', '.'));
+            if (!isNaN(lat0) && !isNaN(lng0) && lat0 !== 0) {
+                var pos = [lng0, lat0];
+                _map.setCenter(pos);
+                _map.setZoom(16);
+                poseMarqueur(pos);
+            }
+        }
+    }
+
+    function poseMarqueur(lngLat) {
+        if (!lngLat || isNaN(lngLat[0])) return;
+        if (_marker) {
+            _marker.setLngLat(lngLat);
+        } else {
+            const el = document.createElement('div');
+            el.className = 'premium-marker';
+            el.innerHTML = '<i class="fa-solid fa-hotel"></i>';
+            
+            _marker = new maplibregl.Marker({
+                element: el,
+                draggable: true,
+                offset: [0, -16]
+            })
+            .setLngLat(lngLat)
+            .addTo(_map);
+
+            _marker.on('dragend', function() {
+                var p = _marker.getLngLat();
+                majCoords(p.lat, p.lng);
+                statutMap('Position ajustée.', 'success');
+            });
+        }
+        
+        _map.easeTo({ center: lngLat, zoom: 16 });
+        majCoords(lngLat[1], lngLat[0]); 
+    }
+
+    function majCoords(lat, lng) {
+        var iLat = document.getElementById('id_latitude');
+        var iLng = document.getElementById('id_longitude');
+        if (iLat) iLat.value = parseFloat(lat).toFixed(7);
+        if (iLng) iLng.value = parseFloat(lng).toFixed(7);
+        var dLat = document.getElementById('coord-lat-display');
+        var dLng = document.getElementById('coord-lng-display');
+        if (dLat) dLat.textContent = parseFloat(lat).toFixed(5);
+        if (dLng) dLng.textContent = parseFloat(lng).toFixed(5);
+    }
+
+    function statutMap(msg, type) {
+        var box = document.getElementById('form-map-status');
+        if (!box) return;
+        var color = type === 'success' ? '#10b981' : type === 'danger' ? '#ef4444' : '#f59e0b';
+        box.innerHTML = '<span style="color:' + color + ';font-weight:600;">' + msg + '</span>';
+        setTimeout(function(){ box.innerHTML = ''; }, 5000);
+    }
+
+    function geocodeAddr() {
+        var city = document.getElementById('id_city');
+        var hood = document.getElementById('id_neighborhood');
+        var q = (hood ? hood.value.trim() : '') + ' ' + (city && city.selectedIndex > 0 ? city.options[city.selectedIndex].text : '') + ', Togo';
+        
+        if (q.trim().length < 5) {
+            statutMap('Veuillez saisir un quartier et une ville.', 'warning');
+            return;
+        }
+
+        statutMap('Recherche en cours...', 'info');
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=tg`, {
+            headers: { 'Accept-Language': 'fr', 'User-Agent': 'LogerTogo-App' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    var pos = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+                    if (_map) {
+                        _map.easeTo({ center: pos, zoom: 16 });
+                        poseMarqueur(pos);
+                    }
+                    statutMap('Adresse trouvée !', 'success');
+                } else {
+                    statutMap('Adresse introuvable.', 'warning');
+                }
+            })
+            .catch(err => {
+                statutMap('Erreur de recherche.', 'danger');
+            });
+    }
+
+    function useGPS() {
+        if (!navigator.geolocation) { statutMap('GPS non supporté.', 'danger'); return; }
+        statutMap('Détection GPS...', 'info');
+        navigator.geolocation.getCurrentPosition(
+            function(p) {
+                var pos = [p.coords.longitude, p.coords.latitude];
+                _map.easeTo({ center: pos, zoom: 17 });
+                poseMarqueur(pos);
+                statutMap('Position détectée.', 'success');
+            },
+            function() { statutMap('GPS refusé. Cliquez manuellement.', 'warning'); },
+            { enableHighAccuracy: true, timeout: 12000 }
+        );
+    }
+</script>
 {% endblock %}

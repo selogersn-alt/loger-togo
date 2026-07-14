@@ -1,7 +1,7 @@
 {% extends 'agency/base_agency.html' %}
 {% load humanize %}
 
-{% block title %}Gestion des Collaborateurs d'Agence | Loger Togo PRO{% endblock %}
+{% block title %}Gestion de l'Équipe & Plannings | Loger Togo PRO{% endblock %}
 
 {% block content %}
 <!-- Glassmorphic Main Layout Panel -->
@@ -9,8 +9,8 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom" style="border-color: var(--border-glass) !important;">
         <div>
-            <h2 style="color: var(--primary);"><i class="fa-solid fa-users-gear me-2"></i> Collaborateurs d'Agence</h2>
-            <p class="text-muted small m-0">Créez et gérez les comptes d'accès pour vos négociateurs, gestionnaires et agents immobiliers.</p>
+            <h2 style="color: var(--primary);"><i class="fa-solid fa-users-gear me-2"></i> Gestion de l'Équipe & Horaires</h2>
+            <p class="text-muted small m-0">Gérez les comptes d'accès, configurez les plannings hebdomadaires, suivez les pointages et suivez les performances de vos collaborateurs.</p>
         </div>
         <div>
             <span class="badge bg-success rounded-pill px-3 py-2 fw-semibold" style="font-size: 0.85rem; background-color: var(--primary) !important;">
@@ -33,62 +33,349 @@
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Liste des Collaborateurs -->
-        <div class="col-lg-8">
-            <div class="p-3 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
-                <h5 class="mb-4 text-start fw-bold" style="color: var(--primary);">
-                    <i class="fa-solid fa-address-book me-2 text-success"></i> Équipe d'Agents Enregistrée
-                </h5>
+    <!-- Nav tabs -->
+    <ul class="nav nav-pills mb-4 gap-2 no-print" id="staffTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-bold" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts-pane" type="button" role="tab" aria-controls="accounts-pane" aria-selected="true" style="border: 1px solid var(--border-glass);">
+                <i class="fa-solid fa-users me-2"></i>Personnel & Comptes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-bold" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule-pane" type="button" role="tab" aria-controls="schedule-pane" aria-selected="false" style="border: 1px solid var(--border-glass);">
+                <i class="fa-solid fa-calendar-days me-2"></i>Plannings Hebdomadaires
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-bold" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance-pane" type="button" role="tab" aria-controls="attendance-pane" aria-selected="false" style="border: 1px solid var(--border-glass);">
+                <i class="fa-solid fa-user-clock me-2"></i>Historique Pointages
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-bold" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks-pane" type="button" role="tab" aria-controls="tasks-pane" aria-selected="false" style="border: 1px solid var(--border-glass);">
+                <i class="fa-solid fa-list-check me-2"></i>Consignes & Tâches
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-bold" id="bi-tab" data-bs-toggle="tab" data-bs-target="#bi-pane" type="button" role="tab" aria-controls="bi-pane" aria-selected="false" style="border: 1px solid var(--border-glass);">
+                <i class="fa-solid fa-chart-line me-2"></i>Statistiques & Performance (BI)
+            </button>
+        </li>
+    </ul>
 
+    <style>
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            background: #ffffff;
+            transition: all 0.3s ease;
+        }
+        .nav-pills .nav-link:hover {
+            color: var(--primary);
+            background: rgba(11, 89, 52, 0.05);
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary)) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(11, 89, 52, 0.25);
+        }
+    </style>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="staffTabsContent">
+        <!-- Tab 1: Accounts -->
+        <div class="tab-pane fade show active" id="accounts-pane" role="tabpanel" aria-labelledby="accounts-tab">
+            <div class="row g-4">
+                <!-- Liste des Collaborateurs -->
+                <div class="col-lg-8">
+                    <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                        <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                            <i class="fa-solid fa-address-book me-2 text-success"></i> Équipe d'Agents Enregistrée
+                        </h5>
+
+                        {% if not staff %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-user-tie fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
+                            <p class="m-0 fw-bold">Aucun agent collaborateur créé pour l'instant.</p>
+                            <p class="small text-muted mt-1">Utilisez le formulaire à droite pour ajouter vos négociateurs immobiliers.</p>
+                        </div>
+                        {% else %}
+                        <div class="table-container">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="small text-muted text-uppercase" style="border-bottom: 1px solid var(--border-glass);">
+                                        <th>Agent / Prénom & Nom</th>
+                                        <th>Téléphone de Connexion</th>
+                                        <th>Email</th>
+                                        <th class="text-center">Statut Aujourd'hui</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for agent in staff %}
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                        <td class="py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold me-3" style="width: 40px; height: 40px; font-family: 'Outfit'; font-size: 0.95rem;">
+                                                    {{ agent.first_name|slice:":1" }}{{ agent.last_name|slice:":1" }}
+                                                </div>
+                                                <div>
+                                                    <strong class="text-dark">{{ agent.get_full_name }}</strong>
+                                                    <div class="text-muted small">Collaborateur Agence</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code class="text-dark fw-bold" style="font-size: 0.95rem;">{{ agent.phone_number }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="small text-muted">{{ agent.email|default:"Non renseigné" }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if not agent.today_attendance %}
+                                                <span class="badge bg-danger rounded-pill px-3 py-1" style="background-color: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important;">Absent (Non Pointé)</span>
+                                            {% else %}
+                                                {% if agent.today_attendance.is_late %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 mb-1 d-block mx-auto" style="width: fit-content;"><i class="fa-solid fa-clock text-warning"></i> Retard ({{ agent.today_attendance.late_minutes }}m)</span>
+                                                {% endif %}
+                                                
+                                                {% if agent.today_attendance.status == 'PRESENT' %}
+                                                    <span class="badge bg-success rounded-pill px-3 py-1">En service (Présent)</span>
+                                                {% elif agent.today_attendance.status == 'ON_BREAK' %}
+                                                    <span class="badge bg-info text-white rounded-pill px-3 py-1">En Pause</span>
+                                                {% elif agent.today_attendance.status == 'CLOCK_OUT' %}
+                                                    <span class="badge bg-secondary rounded-pill px-3 py-1">Service Terminé</span>
+                                                {% elif agent.today_attendance.status == 'LATE' and not agent.today_attendance.is_late %}
+                                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1">En service (En Retard)</span>
+                                                {% endif %}
+                                                
+                                                <div class="mt-1 small text-muted"><strong>{{ agent.today_attendance.total_work_hours }}h</strong> travaillées</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'agency_sub_agent_delete' agent.id %}" 
+                                               class="btn btn-secondary btn-sm rounded-pill px-3 text-danger border-danger" 
+                                               style="padding: 0.35rem 1rem; font-size: 0.85rem;"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir révoquer l\'accès de cet agent ? Il sera déconnecté définitivement.');">
+                                                <i class="fa-solid fa-user-minus me-1"></i> Supprimer
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Formulaire d'ajout -->
+                <div class="col-lg-4">
+                    <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                        <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                            <i class="fa-solid fa-user-plus me-2 text-success"></i> Ajouter un Agent
+                        </h5>
+
+                        {% if staff_count >= 5 %}
+                        <div class="alert alert-error rounded-4 p-3 text-center border-0">
+                            <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-danger"></i>
+                            <h6 class="fw-bold m-0">Limite maximale atteinte</h6>
+                            <p class="small text-muted mt-2">Vous disposez déjà de 5 sous-agents dans votre espace collaboratif.</p>
+                        </div>
+                        {% else %}
+                        <form action="{% url 'agency_sub_agents' %}" method="post" class="d-flex flex-column gap-3">
+                            {% csrf_token %}
+                            
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Prénom de l'agent <span class="text-danger">*</span></label>
+                                <input type="text" name="first_name" class="form-control" placeholder="Prénom" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Nom de famille <span class="text-danger">*</span></label>
+                                <input type="text" name="last_name" class="form-control" placeholder="Nom" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Téléphone unique (Connexion) <span class="text-danger">*</span></label>
+                                <input type="tel" name="phone_number" class="form-control" placeholder="Numéro de téléphone" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Mot de passe de l'agent <span class="text-danger">*</span></label>
+                                <input type="password" name="password" class="form-control" placeholder="Mot de passe" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Adresse Email (Optionnelle)</label>
+                                <input type="email" name="email" class="form-control" placeholder="agent@agence.com" style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill text-uppercase fw-bold shadow mt-2">
+                                <i class="fa-solid fa-circle-plus me-2"></i> Créer le Compte Agent
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Schedules/Plannings -->
+        <div class="tab-pane fade" id="schedule-pane" role="tabpanel" aria-labelledby="schedule-tab">
+            <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                    <i class="fa-solid fa-calendar-week me-2 text-success"></i> Configuration des Plannings Hebdomadaires
+                </h5>
+                <p class="text-muted small mb-4">Définissez les jours et heures de travail attendus de chaque collaborateur. Ces horaires serviront de référence pour détecter automatiquement les retards (Time Clock Audit).</p>
+                
                 {% if not staff %}
                 <div class="text-center py-5 text-muted">
-                    <i class="fa-solid fa-user-tie fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
-                    <p class="m-0 fw-bold">Aucun agent collaborateur créé pour l'instant.</p>
-                    <p class="small text-muted mt-1">Utilisez le formulaire à droite pour ajouter vos négociateurs immobiliers.</p>
+                    <i class="fa-solid fa-calendar-xmark fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
+                    <p class="m-0 fw-bold">Aucun planning à configurer.</p>
+                </div>
+                {% else %}
+                <div class="row g-4">
+                    {% for agent in staff %}
+                    <div class="col-xl-6">
+                        <div class="card p-3 rounded-4 border bg-light bg-opacity-20">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold me-3" style="width: 40px; height: 40px; font-family: 'Outfit';">
+                                    {{ agent.first_name|slice:":1" }}{{ agent.last_name|slice:":1" }}
+                                </div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ agent.get_full_name }}</h6>
+                            </div>
+                            
+                            <form action="{% url 'agency_schedule_save' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="agent_id" value="{{ agent.id }}">
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless align-middle" style="font-size: 0.88rem;">
+                                        <thead>
+                                            <tr class="text-muted small text-uppercase">
+                                                <th>Jour</th>
+                                                <th class="text-center">Actif</th>
+                                                <th>Arrivée</th>
+                                                <th>Départ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for day in agent.weekly_planning %}
+                                            <tr>
+                                                <td class="fw-bold">
+                                                    {% if day.day == 1 %}Lundi{% elif day.day == 2 %}Mardi{% elif day.day == 3 %}Mercredi{% elif day.day == 4 %}Jeudi{% elif day.day == 5 %}Vendredi{% elif day.day == 6 %}Samedi{% elif day.day == 7 %}Dimanche{% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="day_{{ day.day }}_enable" class="form-check-input" {% if day.active %}checked{% endif %}>
+                                                </td>
+                                                <td>
+                                                    <input type="time" name="day_{{ day.day }}_start" value="{{ day.start|default:'08:00' }}" class="form-control form-control-sm rounded-3">
+                                                </td>
+                                                <td>
+                                                    <input type="time" name="day_{{ day.day }}_end" value="{{ day.end|default:'18:00' }}" class="form-control form-control-sm rounded-3">
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 mt-3 py-2">
+                                    <i class="fa-solid fa-save me-1"></i> Enregistrer le Planning
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tab 3: Attendances Audit Logs -->
+        <div class="tab-pane fade" id="attendance-pane" role="tabpanel" aria-labelledby="attendance-tab">
+            <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                    <i class="fa-solid fa-clock-rotate-left me-2 text-success"></i> Journal Audit des Pointages
+                </h5>
+                
+                {% if not attendance_history %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-fingerprint fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
+                    <p class="m-0 fw-bold">Aucune entrée de pointage dans l'historique.</p>
                 </div>
                 {% else %}
                 <div class="table-container">
                     <table class="table align-middle">
                         <thead>
                             <tr class="small text-muted text-uppercase" style="border-bottom: 1px solid var(--border-glass);">
-                                <th>Agent / Prénom & Nom</th>
-                                <th>Téléphone de Connexion</th>
-                                <th>Email</th>
-                                <th class="text-center">Statut d'Accès</th>
-                                <th class="text-end">Actions</th>
+                                <th>Date</th>
+                                <th>Collaborateur</th>
+                                <th>Arrivée</th>
+                                <th>Pause / Reprise</th>
+                                <th>Départ</th>
+                                <th>Géolocalisation</th>
+                                <th class="text-center">Minutes Retard</th>
+                                <th class="text-end">Service Effectif</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for agent in staff %}
+                            {% for att in attendance_history %}
                             <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
-                                <td class="py-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold me-3" style="width: 40px; height: 40px; font-family: 'Outfit'; font-size: 0.95rem;">
-                                            {{ agent.first_name|slice:":1" }}{{ agent.last_name|slice:":1" }}
-                                        </div>
-                                        <div>
-                                            <strong class="text-dark">{{ agent.get_full_name }}</strong>
-                                            <div class="text-muted small">Collaborateur Agence</div>
-                                        </div>
-                                    </div>
+                                <td class="py-3"><strong>{{ att.date|date:"d F Y" }}</strong></td>
+                                <td><strong>{{ att.employee.get_full_name }}</strong></td>
+                                <td>
+                                    {% if att.clock_in %}
+                                        <span class="badge bg-light text-dark font-monospace" style="font-size:0.85rem;"><i class="fa-solid fa-sign-in me-1 text-success"></i>{{ att.clock_in|date:"H:i:s" }}</span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <code class="text-dark fw-bold" style="font-size: 0.95rem;">{{ agent.phone_number }}</code>
+                                    {% if att.break_start %}
+                                        <span class="text-muted small font-monospace">{{ att.break_start|date:"H:i" }}</span>
+                                        {% if att.break_end %}
+                                            <span class="text-muted small font-monospace"> — {{ att.break_end|date:"H:i" }}</span>
+                                        {% else %}
+                                            <span class="badge bg-info text-white rounded-pill px-2 py-0 ms-1 small" style="font-size: 0.65rem;">En cours</span>
+                                        {% endif %}
+                                    {% else %}
+                                        —
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <span class="small text-muted">{{ agent.email|default:"Non renseigné" }}</span>
+                                    {% if att.clock_out %}
+                                        <span class="badge bg-light text-dark font-monospace" style="font-size:0.85rem;"><i class="fa-solid fa-sign-out me-1 text-danger"></i>{{ att.clock_out|date:"H:i:s" }}</span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
                                 </td>
-                                <td class="text-center">
-                                    <span class="badge bg-success rounded-pill px-3 py-1" style="background-color: rgba(16, 185, 129, 0.15) !important; color: var(--primary-light) !important;">Actif</span>
+                                <td>
+                                    {% if att.latitude_in and att.longitude_in %}
+                                        <a href="https://www.google.com/maps/search/?api=1&query={{ att.latitude_in }},{{ att.longitude_in }}" target="_blank" class="badge bg-light text-success border rounded-pill text-decoration-none d-inline-block mb-1" title="Arrivée : Voir la position GPS" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-location-dot text-danger me-1"></i>Arrivée
+                                        </a>
+                                    {% endif %}
+                                    {% if att.latitude_out and att.longitude_out %}
+                                        <a href="https://www.google.com/maps/search/?api=1&query={{ att.latitude_out }},{{ att.longitude_out }}" target="_blank" class="badge bg-light text-secondary border rounded-pill text-decoration-none d-inline-block" title="Départ : Voir la position GPS" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-location-dot text-muted me-1"></i>Départ
+                                        </a>
+                                    {% endif %}
+                                    {% if not att.latitude_in and not att.latitude_out %}
+                                        <span class="text-muted small" style="font-style: italic; font-size: 0.75rem;">Non disponible</span>
+                                    {% endif %}
                                 </td>
-                                <td class="text-end">
-                                    <a href="{% url 'agency_sub_agent_delete' agent.id %}" 
-                                       class="btn btn-secondary btn-sm rounded-pill px-3 text-danger border-danger" 
-                                       style="padding: 0.35rem 1rem; font-size: 0.85rem;"
-                                       onclick="return confirm('Êtes-vous sûr de vouloir révoquer l\'accès de cet agent ? Il sera déconnecté définitivement.');">
-                                        <i class="fa-solid fa-user-minus me-1"></i> Supprimer
-                                    </a>
+                                <td class="text-center fw-bold {% if att.is_late %}text-danger{% else %}text-muted{% endif %}">
+                                    {% if att.is_late %}
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ att.late_minutes }} min
+                                    {% else %}
+                                        Aucun
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-black text-dark font-monospace">
+                                    {% if att.clock_out %}
+                                        {{ att.total_work_hours }} Heures
+                                    {% else %}
+                                        <span class="badge bg-success rounded-pill px-2 py-1 small" style="font-size:0.65rem;">Actif</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -99,52 +386,193 @@
             </div>
         </div>
 
-        <!-- Formulaire d'ajout -->
-        <div class="col-lg-4">
-            <div class="p-3 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
-                <h5 class="mb-4 text-start fw-bold" style="color: var(--primary);">
-                    <i class="fa-solid fa-user-plus me-2 text-success"></i> Ajouter un Agent
-                </h5>
+        <!-- Tab 4: Exceptional Tasks Assignment -->
+        <div class="tab-pane fade" id="tasks-pane" role="tabpanel" aria-labelledby="tasks-tab">
+            <div class="row g-4">
+                <!-- Formulaire d'assignation -->
+                <div class="col-lg-4">
+                    <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                        <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                            <i class="fa-solid fa-pen-nib me-2 text-success"></i> Nouvelle Consigne Exceptionnelle
+                        </h5>
+                        
+                        <form action="{% url 'agency_task_assign' %}" method="post" class="d-flex flex-column gap-3">
+                            {% csrf_token %}
+                            
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Collaborateur destiné <span class="text-danger">*</span></label>
+                                <select name="agent_id" class="form-select" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                                    <option value="">Sélectionnez l'agent...</option>
+                                    {% for agent in staff %}
+                                    <option value="{{ agent.id }}">{{ agent.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Titre de la consigne <span class="text-danger">*</span></label>
+                                <input type="text" name="title" class="form-control" placeholder="ex: Récupérer le dossier de vente de l'immeuble" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+                            
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Détails / Instructions complémentaires</label>
+                                <textarea name="description" class="form-control" rows="4" placeholder="Fournissez plus d'explications sur la tâche..." style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="form-label fw-bold text-dark small">Échéance de réalisation <span class="text-danger">*</span></label>
+                                <input type="date" name="due_date" value="{{ today|date:'Y-m-d' }}" class="form-control" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill text-uppercase fw-bold shadow mt-2">
+                                <i class="fa-solid fa-paper-plane me-2"></i> Assigner la Consigne
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Suivi des consignes -->
+                <div class="col-lg-8">
+                    <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                        <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                            <i class="fa-solid fa-list-check me-2 text-success"></i> Suivi des Consignes Exceptionnelles
+                        </h5>
+                        
+                        <div class="table-container">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="small text-muted text-uppercase" style="border-bottom: 1px solid var(--border-glass);">
+                                        <th>Date d'Échéance</th>
+                                        <th>Titre & Description</th>
+                                        <th>Destinataire</th>
+                                        <th>Statut</th>
+                                        <th class="text-end">Validation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks %}
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                                        <td class="text-start"><strong>{{ task.due_date|date:"d F Y" }}</strong></td>
+                                        <td class="text-start">
+                                            <strong class="text-dark">{{ task.title }}</strong>
+                                            {% if task.description %}<div class="text-muted small mt-1">{{ task.description }}</div>{% endif %}
+                                        </td>
+                                        <td>{{ task.employee.get_full_name }}</td>
+                                        <td>
+                                            {% if task.status == 'PENDING' %}
+                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1">En Attente</span>
+                                            {% elif task.status == 'COMPLETED' %}
+                                                <span class="badge bg-success rounded-pill px-3 py-1">Terminée</span>
+                                            {% elif task.status == 'CANCELLED' %}
+                                                <span class="badge bg-danger rounded-pill px-3 py-1">Annulée</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small text-muted">
+                                            {% if task.status == 'COMPLETED' %}
+                                                Le {{ task.completed_at|date:"d/m à H:i" }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            <i class="fa-solid fa-clipboard-check fa-3x mb-3 text-muted" style="opacity:0.4;"></i>
+                                            <p class="m-0 fw-bold">Aucune consigne exceptionnelle assignée.</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                {% if staff_count >= 5 %}
-                <div class="alert alert-error rounded-4 p-3 text-center border-0">
-                    <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-danger"></i>
-                    <h6 class="fw-bold m-0">Limite maximale atteinte</h6>
-                    <p class="small text-muted mt-2">Vous disposez déjà de 5 sous-agents dans votre espace collaboratif.</p>
+        <!-- Tab 5: BI & Performance Statistics -->
+        <div class="tab-pane fade" id="bi-pane" role="tabpanel" aria-labelledby="bi-tab">
+            <div class="p-4 bg-white rounded-4 border" style="border-color: var(--border-glass) !important;">
+                <h5 class="mb-4 text-start fw-bold" style="color: var(--primary); border-bottom: 2px solid var(--border-glass); padding-bottom: 8px;">
+                    <i class="fa-solid fa-chart-line me-2 text-danger"></i> Analyses & Performances Individuelles (30 derniers jours)
+                </h5>
+                
+                {% if not staff %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-chart-pie fa-3x mb-3 text-muted" style="opacity: 0.5;"></i>
+                    <p class="m-0 fw-bold">Aucun collaborateur enregistré pour générer les rapports de performance.</p>
                 </div>
                 {% else %}
-                <form action="{% url 'agency_sub_agents' %}" method="post" class="d-flex flex-column gap-3">
-                    {% csrf_token %}
-                    
-                    <div>
-                        <label class="form-label fw-bold text-dark small">Prénom de l'agent <span class="text-danger">*</span></label>
-                        <input type="text" name="first_name" class="form-control" placeholder="Prénom" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
+                <div class="row g-4">
+                    {% for agent in staff %}
+                    <div class="col-xl-6">
+                        <div class="card p-4 rounded-4 shadow-sm border border-light bg-light bg-opacity-30 h-100">
+                            <!-- Header with avatar & name -->
+                            <div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
+                                <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold me-3 text-uppercase" style="width: 45px; height: 45px; font-family: 'Outfit';">
+                                    {{ agent.first_name|slice:":1" }}{{ agent.last_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">{{ agent.get_full_name }}</h5>
+                                    <span class="text-muted small"><i class="fa-solid fa-user-clock me-1 text-success"></i>Agent immobilier actif</span>
+                                </div>
+                            </div>
+                            
+                            <!-- KPI grid layout -->
+                            <div class="row g-3">
+                                <!-- Presence Rate -->
+                                <div class="col-sm-6">
+                                    <div class="p-3 bg-white rounded-4 border border-light shadow-2xs">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small fw-bold">Taux de Présence</span>
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">{{ agent.presence_rate }}%</span>
+                                        </div>
+                                        <h4 class="fw-bold text-success mb-1">{{ agent.present_days }} / {{ agent.total_scheduled_days }}</h4>
+                                        <div class="progress rounded-pill" style="height: 6px;">
+                                            <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {{ agent.presence_rate }}%;"></div>
+                                        </div>
+                                        <span class="text-muted small mt-1 d-block" style="font-size: 0.72rem;">Jours pointés sur jours planifiés</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Absence Rate -->
+                                <div class="col-sm-6">
+                                    <div class="p-3 bg-white rounded-4 border border-light shadow-2xs">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small fw-bold">Taux d'Absence</span>
+                                            <span class="badge {% if agent.absence_rate > 15 %}bg-danger bg-opacity-10 text-danger{% else %}bg-secondary bg-opacity-10 text-muted{% endif %} rounded-pill px-2 py-1 small">{{ agent.absence_rate }}%</span>
+                                        </div>
+                                        <h4 class="fw-bold {% if agent.absence_days > 2 %}text-danger{% else %}text-dark{% endif %} mb-1">{{ agent.absence_days }} Jour{{ agent.absence_days|pluralize }}</h4>
+                                        <div class="progress rounded-pill" style="height: 6px;">
+                                            <div class="progress-bar {% if agent.absence_days > 2 %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill" role="progressbar" style="width: {{ agent.absence_rate }}%;"></div>
+                                        </div>
+                                        <span class="text-muted small mt-1 d-block" style="font-size: 0.72rem;">Absences constatées (non pointées)</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Productivity Rate -->
+                                <div class="col-sm-12">
+                                    <div class="p-3 bg-white rounded-4 border border-light shadow-2xs">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small fw-bold">Taux de Productivité Horaire</span>
+                                            <span class="badge {% if agent.productivity_rate >= 90 %}bg-success bg-opacity-10 text-success{% elif agent.productivity_rate >= 70 %}bg-warning bg-opacity-10 text-warning{% else %}bg-danger bg-opacity-10 text-danger{% endif %} rounded-pill px-2 py-1 small">{{ agent.productivity_rate }}%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <h4 class="fw-bold text-dark mb-0">{{ agent.total_worked_hours_30d }}h <span class="text-muted fs-6 fw-normal">travaillées</span></h4>
+                                            <h4 class="fw-bold text-muted mb-0 fs-6 mt-1">{{ agent.total_scheduled_hours_30d }}h <span class="text-muted fs-6 fw-normal">prévues</span></h4>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 6px;">
+                                            <div class="progress-bar {% if agent.productivity_rate >= 90 %}bg-success{% elif agent.productivity_rate >= 70 %}bg-warning{% else %}bg-danger{% endif %} rounded-pill" role="progressbar" style="width: {{ agent.productivity_rate }}%;"></div>
+                                        </div>
+                                        <span class="text-muted small mt-1 d-block" style="font-size: 0.72rem;">Heures réelles vs heures planifiées (temps de pause déduit)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    <div>
-                        <label class="form-label fw-bold text-dark small">Nom de famille <span class="text-danger">*</span></label>
-                        <input type="text" name="last_name" class="form-control" placeholder="Nom" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
-                    </div>
-
-                    <div>
-                        <label class="form-label fw-bold text-dark small">Téléphone unique (Connexion) <span class="text-danger">*</span></label>
-                        <input type="tel" name="phone_number" class="form-control" placeholder="Numéro de téléphone" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
-                    </div>
-
-                    <div>
-                        <label class="form-label fw-bold text-dark small">Mot de passe de l'agent <span class="text-danger">*</span></label>
-                        <input type="password" name="password" class="form-control" placeholder="Mot de passe" required style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
-                    </div>
-
-                    <div>
-                        <label class="form-label fw-bold text-dark small">Adresse Email (Optionnelle)</label>
-                        <input type="email" name="email" class="form-control" placeholder="agent@agence.com" style="border-radius: 10px; padding: 0.65rem; border: 1px solid #cbd5e1;">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill text-uppercase fw-bold shadow mt-2">
-                        <i class="fa-solid fa-circle-plus me-2"></i> Créer le Compte Agent
-                    </button>
-                </form>
+                    {% endfor %}
+                </div>
                 {% endif %}
             </div>
         </div>

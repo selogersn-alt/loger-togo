@@ -2,9 +2,11 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from management import views_agency
+from management.views_notifications import get_unread_notifications, mark_notifications_read
 
 from django.contrib.sitemaps.views import sitemap
 from logersn.sitemaps_agence import AgenceStaticSitemap
+from chat.views import messagerie_view, send_message_view, sync_messages_view
 
 sitemaps = {
     'agence_static': AgenceStaticSitemap,
@@ -42,14 +44,31 @@ urlpatterns = [
     path('baux/<uuid:lease_id>/inventaires/nouveau/', views_agency.agency_inventory_create, name='agency_inventory_create'),
     path('inventaires/<uuid:inventory_id>/', views_agency.agency_inventory_detail, name='agency_inventory_detail'),
     
+    # Demandes en ligne (Candidatures, Visites)
+    path('demandes-en-ligne/', views_agency.agency_applications, name='agency_applications'),
+    
     path('biens/', views_agency.agency_properties, name='agency_properties'),
     path('biens/nouveau/', views_agency.agency_property_create, name='agency_property_create'),
     path('biens/<uuid:property_id>/modifier/', views_agency.agency_property_edit, name='agency_property_edit'),
     path('biens/<uuid:property_id>/publication/', views_agency.agency_property_toggle_publication, name='agency_property_toggle_publication'),
     
+    # Messaging
+    path('messagerie/', messagerie_view, name='messagerie'),
+    path('chat/send/<uuid:conversation_id>/', send_message_view, name='send-message'),
+    path('chat/send/', send_message_view, name='send-message-new'),
+    path('chat/api/sync/<uuid:conversation_id>/', sync_messages_view, name='sync-messages'),
+    
     # Collaborators / Sub-agents Management
     path('collaborateurs/', views_agency.agency_sub_agents, name='agency_sub_agents'),
     path('collaborateurs/<uuid:agent_id>/supprimer/', views_agency.agency_sub_agent_delete, name='agency_sub_agent_delete'),
+    path('collaborateurs/pointage/', views_agency.agency_clock_action, name='agency_clock_action'),
+    path('collaborateurs/planning/', views_agency.agency_schedule_save, name='agency_schedule_save'),
+    path('collaborateurs/taches/', views_agency.agency_task_assign, name='agency_task_assign'),
+    path('collaborateurs/taches/<uuid:task_id>/completer/', views_agency.agency_task_complete, name='agency_task_complete'),
+    
+    # Notifications API
+    path('api/notifications/unread/', get_unread_notifications, name='agency_unread_notifications'),
+    path('api/notifications/mark-read/', mark_notifications_read, name='agency_mark_notifications_read'),
 ]
 
 # Ensure static & media urls work under the subdomain as well

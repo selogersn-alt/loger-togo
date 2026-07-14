@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture #{{ booking.unique_ref }} | {{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Conteneur A4 pour l'écran */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 20px auto;
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* En-tête de la facture */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #b76e79; /* Rose Accent par défaut ou couleur primaire du gérant */
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .company-details h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            color: #2c3e50;
+        }
+
+        .company-details p {
+            margin: 5px 0 0 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .invoice-details {
+            text-align: right;
+        }
+
+        .invoice-details h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #b76e79;
+            text-transform: uppercase;
+        }
+
+        .invoice-details p {
+            margin: 5px 0 0 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .invoice-details .date {
+            color: #7f8c8d;
+            font-weight: normal;
+        }
+
+        /* Filigrane (Watermark) */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 5rem;
+            color: rgba(183, 110, 121, 0.05);
+            font-weight: 800;
+            white-space: nowrap;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Sections */
+        .section-title {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .grid-2 {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .box {
+            width: 48%;
+        }
+
+        .box-title {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .box-content {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .box-content span {
+            display: block;
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 3px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #eee;
+        }
+
+        th.text-center { text-align: center; }
+        th.text-right { text-align: right; }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+        }
+        
+        td.text-center { text-align: center; }
+        td.text-right { text-align: right; font-weight: 600; }
+
+        /* Totaux */
+        .totals {
+            width: 50%;
+            margin-left: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .total-row.grand-total {
+            border-top: 2px solid #b76e79;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .total-row.paid {
+            color: #27ae60;
+        }
+
+        .total-row.balance {
+            background-color: #f9ebea;
+            color: #c0392b;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+        
+        .total-row.balance.settled {
+            background-color: #eafaf1;
+            color: #27ae60;
+        }
+
+        /* Pied de page */
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .barcode {
+            font-family: 'Libre Barcode 39', cursive, monospace;
+            font-size: 40px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        /* Bouton d'impression (non visible à l'impression) */
+        .print-btn-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .print-btn {
+            background: #b76e79;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 4px 10px rgba(183, 110, 121, 0.3);
+            transition: all 0.3s;
+        }
+        .print-btn:hover {
+            background: #9d5b65;
+            transform: translateY(-2px);
+        }
+
+        /* RÈGLES D'IMPRESSION STRICTES */
+        @media print {
+            body { background: white; margin: 0; padding: 0; }
+            .a4-container { margin: 0; box-shadow: none; width: 100%; min-height: 100vh; }
+            .print-btn-container { display: none !important; }
+            @page { margin: 15mm; size: A4 portrait; }
+            
+            /* Forcer l'impression des couleurs de fond (très important) */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-btn-container">
+        <button class="print-btn" onclick="window.print()">🖨️ Imprimer la Facture</button>
+    </div>
+
+    <div class="a4-container">
+        
+        <div class="watermark">
+            {{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}
+        </div>
+
+        <div class="invoice-header">
+            <div class="company-details">
+                <h1>{{ booking.room.hotel.company_name|default:booking.room.hotel.get_full_name }}</h1>
+                <p>Établissement Hôtelier</p>
+                <!-- Vous pouvez ajouter dynamiquement NINEA/RCCM ici si disponible dans le modèle user -->
+                {% if booking.room.hotel.address %}<p>{{ booking.room.hotel.address }}</p>{% endif %}
+                <p>{{ booking.room.hotel.phone_number }} | {{ booking.room.hotel.email }}</p>
+            </div>
+            <div class="invoice-details">
+                <h2>FACTURE / FOLIO</h2>
+                <p>Réf: {{ booking.unique_ref }}</p>
+                <p class="date">Émise le: {% now "d/m/Y H:i" %}</p>
+                <p class="date">Statut: {{ booking.get_status_display }}</p>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="box">
+                <div class="section-title">Facturé à</div>
+                <div class="box-title">Client</div>
+                <div class="box-content">
+                    {{ booking.client_name }}
+                    <span>Tél: {{ booking.client_phone }}</span>
+                    {% if booking.client_email %}<span>Email: {{ booking.client_email }}</span>{% endif %}
+                    {% if booking.client_id_card %}<span>Pièce d'identité: {{ booking.client_id_card }}</span>{% endif %}
+                </div>
+            </div>
+            
+            <div class="box">
+                <div class="section-title">Détails du Séjour</div>
+                <div class="box-title">Chambre N° {{ booking.room.room_number }}</div>
+                <div class="box-content">
+                    {{ booking.room.get_room_type_display }}
+                    <span>Arrivée : {{ booking.check_in|date:"d M Y H:i" }}</span>
+                    <span>Départ : {{ booking.check_out|date:"d M Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Désignation</th>
+                    <th class="text-center">Qté</th>
+                    <th class="text-right">Prix Unit.</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Hébergement (Tarif de base)</td>
+                    <td class="text-center">1</td>
+                    <td class="text-right">{{ booking.amount_due|floatformat:0 }} F</td>
+                    <td class="text-right">{{ booking.amount_due|floatformat:0 }} F</td>
+                </tr>
+                {% for charge in charges %}
+                <tr>
+                    <td>{{ charge.label }}</td>
+                    <td class="text-center">{{ charge.quantity }}</td>
+                    <td class="text-right">{{ charge.price|floatformat:0 }} F</td>
+                    <td class="text-right">{{ charge.total_price|floatformat:0 }} F</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="total-row">
+                <span>Sous-total Hébergement</span>
+                <span>{{ booking.amount_due|floatformat:0 }} F</span>
+            </div>
+            <div class="total-row">
+                <span>Consommations & Extras</span>
+                <span>{{ booking.extra_charges|floatformat:0 }} F</span>
+            </div>
+            <div class="total-row grand-total">
+                <span>TOTAL NET A PAYER</span>
+                <span>{{ booking.total_amount|floatformat:0 }} F</span>
+            </div>
+            <div class="total-row paid">
+                <span>Acomptes & Paiements effectués</span>
+                <span>- {{ booking.amount_paid|floatformat:0 }} F</span>
+            </div>
+            
+            {% if booking.balance_due > 0 %}
+            <div class="total-row balance">
+                <span>RESTE A PAYER</span>
+                <span>{{ booking.balance_due|floatformat:0 }} F</span>
+            </div>
+            {% else %}
+            <div class="total-row balance settled">
+                <span>SOLDE A PAYER</span>
+                <span>0 F (Réglé)</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <div class="barcode">*{{ booking.unique_ref }}*</div>
+            <p>Document généré électroniquement. Merci de votre confiance et à bientôt !</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Lancer automatiquement l'impression si on ajoute ?print=1 à l'URL (pratique pour l'automatisation)
+        window.onload = function() {
+            if(window.location.search.includes('print=1')) {
+                window.print();
+            }
+        };
+    </script>
+</body>
+</html>

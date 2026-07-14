@@ -14,6 +14,8 @@ files_to_deploy = [
     (r"templates\lease_agreement_pdf.html", "/app/templates/lease_agreement_pdf.html"),
     (r"templates\hotel\hotel_booking_detail.html", "/app/templates/hotel/hotel_booking_detail.html"),
     (r"templates\agency\agency_receipt_pdf.html", "/app/templates/agency/agency_receipt_pdf.html"),
+    # Python code for receptionist login
+    (r"management\views_hotel.py", "/app/management/views_hotel.py"),
 ]
 
 try:

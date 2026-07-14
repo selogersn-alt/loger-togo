@@ -406,3 +406,98 @@ def send_payment_reminder_email(payment):
         {'payment': payment, 'tenant': payment.lease.tenant},
         payment.lease.tenant.email
     )
+
+
+def send_employee_late_notification(manager, employee, minutes, lat=None, lng=None):
+    """Notifie un gérant d'hôtel ou d'agence qu'un collaborateur est arrivé en retard."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    maps_link_html = ""
+    if lat and lng:
+        maps_url = f"https://www.google.com/maps/search/?api=1&query={lat},{lng}"
+        maps_link_html = f"""
+        <div style="background:#fff3cd;border:1px solid #ffc107;padding:12px;border-radius:8px;margin:16px 0;text-align:center;">
+          <strong>📍 Localisation du Pointage :</strong><br>
+          <a href="{maps_url}" target="_blank" style="color:#0b4629;font-weight:bold;text-decoration:underline;">
+            Voir la position exacte sur Google Maps →
+          </a>
+        </div>
+        """
+    else:
+        maps_link_html = """
+        <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:12px;border-radius:8px;margin:16px 0;text-align:center;">
+          <strong>⚠️ Télémétrie GPS absente :</strong><br>
+          L'employé a désactivé ou refusé la géolocalisation lors de son pointage.
+        </div>
+        """
+
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:#dc3545;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">🚨 Alerte Retard Collaborateur</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{manager.first_name or 'Administrateur'}</strong>,</p>
+        <p>Votre collaborateur <strong>{employee.get_full_name()}</strong> vient de pointer son arrivée aujourd'hui avec un retard constaté :</p>
+        <div style="background:#f8d7da;color:#721c24;padding:16px;border-radius:8px;text-align:center;margin:20px 0;font-size:18px;">
+            <strong>⏱️ RETARD CONSTATED</strong><br>
+            <span style="font-size:28px;font-weight:800;">{minutes} minutes</span>
+        </div>
+        {maps_link_html}
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Suivi RH & Performance · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    subject = f"🚨 Alerte Retard : {employee.get_full_name()} ({minutes} min)"
+    return send_simple_email(subject, html, manager.email)
+
+
+def send_employee_task_completed_notification(manager, employee, task):
+    """Notifie un gérant d'hôtel ou d'agence qu'un collaborateur a validé une consigne."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:#198754;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">✅ Consigne Terminée</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{manager.first_name or 'Administrateur'}</strong>,</p>
+        <p>Votre collaborateur <strong>{employee.get_full_name()}</strong> a marqué la consigne exceptionnelle suivante comme **terminée** :</p>
+        <div style="background:#f0fdf4;border-left:4px solid #198754;padding:16px;border-radius:8px;margin:20px 0;">
+            <strong style="font-size:16px;color:#0b4629;">{task.title}</strong>
+            <p style="margin:8px 0 0 0;color:#555;font-size:14px;">{task.description or 'Aucun détail supplémentaire.'}</p>
+        </div>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Suivi RH & Performance · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    subject = f"✅ Consigne validée par {employee.get_full_name()} : {task.title}"
+    return send_simple_email(subject, html, manager.email)
+
+
+def send_employee_absence_notification(manager, employee, expected_time):
+    """Notifie un gérant d'hôtel ou d'agence qu'un collaborateur est absent de son poste (>30 min de retard)."""
+    site_url = getattr(settings, 'SITE_URL', 'https://logertogo.com')
+    expected_time_str = expected_time.strftime('%H:%M') if hasattr(expected_time, 'strftime') else str(expected_time)
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f9fa;padding:20px;border-radius:12px;">
+      <div style="background:#dc3545;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
+        <h2 style="color:white;margin:0;">🚨 Alerte Absence Poste Collaborateur</h2>
+      </div>
+      <div style="background:white;padding:28px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
+        <p>Bonjour <strong>{manager.first_name or 'Administrateur'}</strong>,</p>
+        <p>Votre collaborateur <strong>{employee.get_full_name()}</strong> est actuellement constaté **ABSENT** de son poste de travail :</p>
+        <div style="background:#fff5f5;border-left:4px solid #dc3545;padding:16px;border-radius:8px;margin:20px 0;">
+            <span style="display:block;color:#dc3545;font-weight:bold;font-size:16px;">⏱️ PRISE DE SERVICE MANQUÉE</span>
+            <span style="font-size:14px;color:#555;">Prévue aujourd'hui à : <strong>{expected_time_str}</strong></span>
+            <p style="margin:8px 0 0 0;color:#721c24;font-size:13px;font-style:italic;">Aucun pointage d'arrivée n'a été détecté dans les 30 minutes suivant l'heure d'arrivée planifiée.</p>
+        </div>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <p style="color:#888;font-size:12px;text-align:center;">Loger Togo · Suivi RH & Performance · <a href="{site_url}" style="color:#198754;">logertogo.com</a></p>
+      </div>
+    </div>
+    """
+    subject = f"🚨 Alerte Absence : {employee.get_full_name()} (Non pointé à {expected_time_str})"
+    return send_simple_email(subject, html, manager.email)
+

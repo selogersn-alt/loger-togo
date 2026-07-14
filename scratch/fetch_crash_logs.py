@@ -5,13 +5,15 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(host, username='root', password='AkueMax@2022', timeout=30)
 
-print("Fetching Gunicorn crash logs...")
-stdin, stdout, stderr = ssh.exec_command("cd /app && docker compose logs web --tail=100")
-out = stdout.read().decode('utf-8', 'replace')
-err = stderr.read().decode('utf-8', 'replace')
+print("Fetching docker logs for 'web' container...")
+stdin, stdout, stderr = ssh.exec_command("cd /app && docker compose logs --tail=50 web")
+logs = stdout.read().decode('utf-8')
+err_logs = stderr.read().decode('utf-8')
 
-with open("scratch/crash_logs.txt", "w", encoding="utf-8") as f:
-    f.write("STDOUT:\n" + out + "\nSTDERR:\n" + err)
+print("=== LOGS ===")
+print(logs)
+if err_logs:
+    print("=== ERRORS ===")
+    print(err_logs)
 
-print("CRASH LOGS SAVED.")
 ssh.close()

@@ -16,12 +16,12 @@
     SetHandler application/x-httpd-wsgi
 </Files>
 
-# Redirection SEO : logertogo.com -> logertg.com (ou vice-versa selon votre choix)
 RewriteEngine On
 RewriteBase /
-RewriteCond %{HTTP_HOST} ^logertogo\.com$ [NC,OR]
+
+# Redirection www → sans www (Canonical SEO)
 RewriteCond %{HTTP_HOST} ^www\.logertogo\.com$ [NC]
-RewriteRule ^(.*)$ https://logertg.com/$1 [R=301,L]
+RewriteRule ^(.*)$ https://logertogo.com/$1 [R=301,L]
 
 # Forcer HTTPS (Sécurité SSL)
 RewriteCond %{HTTPS} off

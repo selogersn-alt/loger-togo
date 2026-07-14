@@ -3,6 +3,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="300">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Loger Togo Agence - CRM Professionnel{% endblock %}</title>
     <!-- Favicon & App Icons -->
@@ -547,6 +548,18 @@
                         <span>Tableau de Bord</span>
                     </a>
                 </li>
+                <li class="{% if 'messagerie' in request.path %}active{% endif %}">
+                    <a href="{% url 'messagerie' %}">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Messagerie</span>
+                    </a>
+                </li>
+                <li class="{% if 'demandes' in request.path %}active{% endif %}">
+                    <a href="{% url 'agency_applications' %}">
+                        <i class="fa-solid fa-inbox"></i>
+                        <span>Demandes en Ligne</span>
+                    </a>
+                </li>
                 <li class="{% if request.resolver_match.url_name == 'agency_clients' %}active{% endif %}">
                     <a href="{% url 'agency_clients' %}">
                         <i class="fa-solid fa-users-between-lines"></i>
@@ -635,8 +648,10 @@
 
         <!-- Main Section -->
         <main>
-            <!-- Breadcrumbs -->
-            <nav class="breadcrumbs" aria-label="Fil d'Ariane">
+            <!-- Top Header Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <!-- Breadcrumbs -->
+                <nav class="breadcrumbs" aria-label="Fil d'Ariane" style="margin-bottom: 0;">
                 <a href="{% url 'agency_dashboard' %}"><i class="fa-solid fa-house" style="margin-right: 0.35rem; color: var(--primary-light);"></i> Accueil</a>
                 {% if request.resolver_match.url_name == 'agency_dashboard' %}
                     <span class="separator">/</span>
@@ -673,7 +688,24 @@
                     <span class="separator">/</span>
                     <span class="active">Explication des Fonctionnalités</span>
                 {% endif %}
-            </nav>
+                </nav>
+                
+                <!-- Notifications Bell -->
+                <div class="dropdown position-relative" style="background: #ffffff; border: 1px solid var(--border-glass); padding: 0.65rem 1.25rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.01);">
+                    <a href="#" class="text-decoration-none" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--primary-light); font-size: 1.2rem;">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="display:none; background: #ef4444; color: white; font-size: 0.6rem; padding: 0.35em 0.5em; border: 2px solid white; transform: translate(-30%, -30%) !important;">
+                            0
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-0 mt-3" aria-labelledby="notifDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;" id="notifList">
+                        <li class="p-3 text-center text-muted small border-bottom fw-bold" style="background: rgba(16, 185, 129, 0.05);">Notifications Récentes</li>
+                        <div id="notifItems">
+                            <li class="p-3 text-center text-muted small" id="noNotifMsg">Aucune nouvelle notification</li>
+                        </div>
+                    </ul>
+                </div>
+            </div>
 
             <!-- Alerts Block -->
             {% if messages %}
@@ -733,6 +765,89 @@
                     }
                 });
             });
+
+            // --- Notifications Polling Temps Réel ---
+            let previousNotifCount = 0;
+            
+            function fetchNotifications() {
+                fetch('{% url "agency_unread_notifications" %}')
+                    .then(r => r.json())
+                    .then(data => {
+                        if(data.status === 'success') {
+                            const badge = document.getElementById('notifBadge');
+                            const items = document.getElementById('notifItems');
+                            
+                            // Si nouvelle notification par rapport au précédent check
+                            if(data.count > previousNotifCount && previousNotifCount !== 0) {
+                                // Jouer un son discret
+                                try {
+                                    const audio = new Audio('/static/audio/notification.mp3');
+                                    audio.volume = 0.5;
+                                    audio.play().catch(e => console.log('Audio autoplay blocked'));
+                                } catch(e) {}
+                                
+                                // Afficher un toast en bas à droite
+                                const toastHTML = `
+                                <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+                                    <div class="toast show animate__animated animate__fadeInUp" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+                                        <div class="toast-header bg-success text-white">
+                                            <i class="fa-solid fa-bell me-2"></i>
+                                            <strong class="me-auto">Nouvelle Activité</strong>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                        <div class="toast-body fw-bold">
+                                            ${data.notifications[0].title}
+                                            <div class="text-muted small mt-1">${data.notifications[0].message}</div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                                document.body.insertAdjacentHTML('beforeend', toastHTML);
+                            }
+                            previousNotifCount = data.count;
+
+                            if(data.count > 0) {
+                                badge.textContent = data.count;
+                                badge.style.display = 'block';
+                                
+                                let html = '';
+                                data.notifications.forEach(n => {
+                                    html += `
+                                    <li class="p-3 border-bottom" style="transition: all 0.2s;">
+                                        <a href="${n.link || '#'}" class="text-decoration-none text-dark d-block">
+                                            <strong class="d-block small" style="color: var(--primary-light);">${n.title}</strong>
+                                            <span class="d-block text-muted mt-1" style="font-size: 0.8rem; line-height: 1.2;">${n.message}</span>
+                                            <small class="text-muted d-block mt-2" style="font-size: 0.65rem;"><i class="fa-regular fa-clock me-1"></i>${n.time}</small>
+                                        </a>
+                                    </li>`;
+                                });
+                                items.innerHTML = html;
+                            } else {
+                                badge.style.display = 'none';
+                                items.innerHTML = '<li class="p-3 text-center text-muted small">Aucune nouvelle notification</li>';
+                            }
+                        }
+                    }).catch(e => console.error("Error fetching notifs:", e));
+            }
+            
+            const notifDropdown = document.getElementById('notifDropdown');
+            if (notifDropdown) {
+                notifDropdown.addEventListener('click', function() {
+                    const badge = document.getElementById('notifBadge');
+                    if (badge.style.display !== 'none') {
+                        fetch('{% url "agency_mark_notifications_read" %}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            }
+                        }).then(() => {
+                            badge.style.display = 'none';
+                        });
+                    }
+                });
+            }
+
+            fetchNotifications();
+            setInterval(fetchNotifications, 10000); // Actualisation toutes les 10 secondes
         });
     </script>
 

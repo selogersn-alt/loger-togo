@@ -166,7 +166,7 @@
     /* ── Charts Row ── */
     .charts-row {
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr;
+        grid-template-columns: 2fr 1fr;
         gap: 1.25rem;
         margin-bottom: 1.5rem;
     }
@@ -399,14 +399,14 @@
 {% block content %}
 
 <!-- ── Header ─────────────────────── -->
-<div class="dash-header">
+<div class="dash-header animated-fade-in">
     <div>
         <div class="dash-greeting">
             Bonjour, <span>{{ request.user.first_name|default:request.user.phone_number }}</span> 👋
         </div>
         <div class="dash-subtitle">
             <i class="fa-solid fa-circle-dot" style="color: #10b981; font-size: 0.6rem;"></i>
-            Espace de Gestion Immobilière
+            Espace de Gérance Immobilière PRO
             <span class="dash-date" id="dashDate"></span>
         </div>
     </div>
@@ -414,13 +414,177 @@
         <span class="active-badge">
             <span class="dot"></span>
             <i class="fa-solid fa-crown" style="color: #d4af37;"></i>
-            Abonnement Actif
+            Abonnement Pro Actif
         </span>
     </div>
 </div>
 
+<!-- Collaborator Time Clock & Tasks Widgets -->
+{% if my_attendance is not None or my_tasks is not None or request.actual_user %}
+<div class="row g-4 mb-4 animated-fade-in">
+    <!-- Pointage Widget -->
+    <div class="col-lg-6">
+        <div class="p-4 bg-white rounded-4 border h-100" style="border-left: 4px solid var(--primary-light) !important; border-color: var(--border-glass) !important;">
+            <h5 class="fw-bold mb-3" style="color: var(--primary);">
+                <i class="fa-solid fa-clock me-2 text-success"></i> Pointage Présence & Shift
+            </h5>
+            <p class="text-muted small mb-4">Enregistrez vos heures d'arrivée, de pause et de départ du bureau aujourd'hui.</p>
+            
+            <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-4">
+                <div class="me-3 fs-3 text-success"><i class="fa-solid fa-user-clock"></i></div>
+                <div>
+                    <span class="text-muted small d-block" style="font-size:0.8rem;">Statut Actuel :</span>
+                    {% if not my_attendance or my_attendance.status == 'ABSENT' %}
+                        <strong class="text-danger">NON POINTE (Absent)</strong>
+                    {% elif my_attendance.status == 'PRESENT' %}
+                        <strong class="text-success">✔ EN SERVICE (Présent)</strong>
+                            <i class="fa-solid fa-stopwatch text-success opacity-75 d-inline-block align-middle me-2"></i><div class="luxury-work-timer d-inline-block align-middle" data-seconds="{{ my_attendance.total_work_hours|default:0|floatformat:4 }}"></div>
+                    {% elif my_attendance.status == 'LATE' %}
+                        <strong class="text-warning text-dark">⚠ EN SERVICE (En Retard de {{ my_attendance.late_minutes }} min)</strong>
+                            <i class="fa-solid fa-stopwatch text-warning opacity-75 d-inline-block align-middle me-2"></i><div class="luxury-work-timer d-inline-block align-middle" data-seconds="{{ my_attendance.total_work_hours|default:0|floatformat:4 }}"></div>
+                    {% elif my_attendance.status == 'ON_BREAK' %}
+                        <strong class="text-info text-dark">☕ EN PAUSE</strong>
+                            <i class="fa-solid fa-mug-hot text-info opacity-75 d-inline-block align-middle me-2"></i><div class="luxury-break-timer d-inline-block align-middle" data-start="{{ my_attendance.break_start|date:'c' }}"></div>
+                    {% elif my_attendance.status == 'CLOCK_OUT' %}
+                        <strong class="text-muted">⏹ SERVICE TERMINE (Départ enregistré à {{ my_attendance.clock_out|date:"H:i" }})</strong>
+                        <div class="mt-1 text-muted fs-6 fw-bold">
+                            Total : {{ my_attendance.total_work_hours|default:0|floatformat:2 }}h
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <form action="{% url 'agency_clock_action' %}" method="post" class="d-flex flex-wrap gap-2 geolocation-clock-form" id="agency-clock-form">
+                {% csrf_token %}
+                <input type="hidden" name="latitude" id="agency-latitude">
+                <input type="hidden" name="longitude" id="agency-longitude">
+                
+                {% if not my_attendance or not my_attendance.clock_in %}
+                    <button type="submit" name="action" value="in" class="btn btn-primary rounded-pill px-4 py-2 fw-bold clock-btn">
+                        <i class="fa-solid fa-sign-in me-2"></i>Pointer l'Arrivée
+                    </button>
+                {% endif %}
+                
+                {% if my_attendance.clock_in and not my_attendance.clock_out %}
+                    {% if my_attendance.status != 'ON_BREAK' %}
+                        <button type="submit" name="action" value="break_start" class="btn btn-secondary rounded-pill px-3 py-2 fw-bold">
+                            <i class="fa-solid fa-coffee me-2 text-info"></i>Prendre une Pause
+                        </button>
+                        <button type="submit" name="action" value="out" class="btn btn-secondary text-danger border-danger rounded-pill px-4 py-2 fw-bold clock-btn">
+                            <i class="fa-solid fa-sign-out me-2"></i>Pointer le Départ
+                        </button>
+                    {% else %}
+                        <button type="submit" name="action" value="break_end" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">
+                            <i class="fa-solid fa-play me-2"></i>Reprendre le Service
+                        </button>
+                    {% endif %}
+                {% endif %}
+            </form>
+
+            <!-- Geolocation Loading Overlay -->
+            <div id="agency-geo-loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(11, 70, 41, 0.75); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; flex-direction:column; color:white; transition: all 0.3s ease;">
+                <div class="spinner-border text-light mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="fw-bold mb-1">Sécurisation du Pointage...</h5>
+                <p class="small text-white-50 m-0">Télémétrie GPS en cours d'acquisition...</p>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.getElementById('agency-clock-form');
+                    if (form) {
+                        form.addEventListener('submit', function(e) {
+                            const activeElement = document.activeElement;
+                            if (activeElement && activeElement.classList.contains('clock-btn')) {
+                                const actionVal = activeElement.value;
+                                if (actionVal === 'in' || actionVal === 'out') {
+                                    e.preventDefault();
+                                    const overlay = document.getElementById('agency-geo-loading-overlay');
+                                    if (overlay) {
+                                        overlay.style.display = 'flex';
+                                    }
+                                    
+                                    if (navigator.geolocation) {
+                                        navigator.geolocation.getCurrentPosition(
+                                            function(position) {
+                                                document.getElementById('agency-latitude').value = position.coords.latitude;
+                                                document.getElementById('agency-longitude').value = position.coords.longitude;
+                                                
+                                                // Dynamic hidden action field input
+                                                const hiddenAction = document.createElement('input');
+                                                hiddenAction.type = 'hidden';
+                                                hiddenAction.name = 'action';
+                                                hiddenAction.value = actionVal;
+                                                form.appendChild(hiddenAction);
+                                                
+                                                form.submit();
+                                            },
+                                            function(error) {
+                                                console.warn('Geolocation failed or denied:', error);
+                                                // Fail gracefully: proceed without coordinates
+                                                const hiddenAction = document.createElement('input');
+                                                hiddenAction.type = 'hidden';
+                                                hiddenAction.name = 'action';
+                                                hiddenAction.value = actionVal;
+                                                form.appendChild(hiddenAction);
+                                                
+                                                form.submit();
+                                            },
+                                            { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+                                        );
+                                    } else {
+                                        // Fallback if not supported
+                                        const hiddenAction = document.createElement('input');
+                                        hiddenAction.type = 'hidden';
+                                        hiddenAction.name = 'action';
+                                        hiddenAction.value = actionVal;
+                                        form.appendChild(hiddenAction);
+                                        form.submit();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            </script>
+        </div>
+    </div>
+
+    <!-- Consignes & Tâches Widget -->
+    <div class="col-lg-6">
+        <div class="p-4 bg-white rounded-4 border h-100" style="border-left: 4px solid var(--primary-light) !important; border-color: var(--border-glass) !important;">
+            <h5 class="fw-bold mb-3" style="color: var(--primary);">
+                <i class="fa-solid fa-circle-exclamation me-2 text-success"></i> Consignes & Tâches d'Agence
+            </h5>
+            <p class="text-muted small mb-3">Consignes exceptionnelles assignées par l'administration à réaliser aujourd'hui.</p>
+            
+            <div class="list-group list-group-flush">
+                {% for t in my_tasks %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-0 border-bottom" style="background:transparent;">
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark">{{ t.title }}</h6>
+                            <p class="text-muted small mb-0">{{ t.description|default:"Aucun détail fourni." }}</p>
+                            <span class="badge bg-light text-muted small mt-1" style="font-size:0.75rem;"><i class="fa-solid fa-calendar me-1"></i>Échéance : {{ t.due_date|date:"d/m/Y" }}</span>
+                        </div>
+                        <div>
+                            <a href="{% url 'agency_task_complete' t.id %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                                <i class="fa-solid fa-circle-check me-1"></i>Terminer
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-clipboard-check fa-2x mb-2 text-success" style="opacity:0.5;"></i>
+                        <p class="m-0 fw-bold">Parfait ! Aucune tâche d'agence en attente.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- ── KPI Cards ──────────────────── -->
-<div class="kpi-grid">
+<div class="kpi-grid animated-fade-in">
 
     <div class="kpi-card k-clients">
         <div class="kpi-top">
@@ -458,6 +622,7 @@
         <div class="kpi-sub">Taux d'occupation</div>
     </div>
 
+    {% if not request.actual_user %}
     <div class="kpi-card k-rev">
         <div class="kpi-top">
             <span class="kpi-label">Revenus</span>
@@ -475,14 +640,16 @@
         <div class="kpi-value" style="font-size:1.35rem; color:#ef4444;">{{ total_unpaid|intcomma }}<span class="unit">CFA</span></div>
         <div class="kpi-sub">À recouvrer</div>
     </div>
+    {% endif %}
 
 </div>
 
-<!-- ── Charts Row ─────────────────── -->
-<div class="charts-row">
+<!-- ── Charts Row (Hiden for receptionist agents) ─────────────────── -->
+{% if not request.actual_user %}
+<div class="charts-row animated-fade-in">
 
-    <!-- Chart 1: Rolling 12m Revenue vs Unpaid (Bar) -->
-    <div class="panel" style="grid-column: span 2;">
+    <!-- Chart 1: Rolling 12m Bar (Revenue vs Impayés) -->
+    <div class="panel">
         <div class="panel-header">
             <div class="panel-title">
                 <i class="fa-solid fa-chart-column" style="color: #10b981;"></i>
@@ -515,8 +682,8 @@
 
 </div>
 
-<!-- ── Second Charts Row ──────────── -->
-<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+<!-- ── Second Charts Row (Hidden for receptionist agents) ──────────── -->
+<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 1.25rem; margin-bottom: 1.5rem;" class="animated-fade-in">
 
     <!-- Chart 3: Payment status doughnut -->
     <div class="panel">
@@ -537,7 +704,7 @@
     </div>
 
     <!-- Chart 4: Top Tenants horizontal bar -->
-    <div class="panel" style="grid-column: span 2;">
+    <div class="panel">
         <div class="panel-header">
             <div class="panel-title">
                 <i class="fa-solid fa-ranking-star" style="color: #d4af37;"></i>
@@ -550,13 +717,116 @@
         </div>
     </div>
 
-    <!-- Pipeline -->
-    <div class="panel" style="display:none;"><!-- hidden, kept below --></div>
-
 </div>
+{% endif %}
+
+<!-- Live Collaborators Presence & Tasks Tracking for Owner -->
+{% if live_staff is not None or pending_tasks is not None %}
+<div class="row g-4 mb-4 animated-fade-in">
+    <!-- Live Presence Tracker -->
+    <div class="col-lg-7">
+        <div class="p-4 bg-white rounded-4 border h-100" style="border-color: var(--border-glass) !important;">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: var(--border-glass) !important;">
+                <h5 class="fw-bold m-0" style="color: var(--primary);">
+                    <i class="fa-solid fa-users me-2 text-success"></i> Présences Collaborateurs en Direct (Pointage)
+                </h5>
+                <a href="{% url 'agency_sub_agents' %}" class="btn btn-secondary btn-sm rounded-pill px-3" style="font-size:0.8rem; padding:0.25rem 0.85rem;">
+                    Gérer
+                </a>
+            </div>
+            
+            <div class="table-container">
+                <table class="table table-borderless align-middle m-0">
+                    <thead>
+                        <tr class="small text-muted text-uppercase fw-bold" style="border-bottom: 1px solid rgba(0,0,0,0.03);">
+                            <th class="ps-0">Collaborateur</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Arrivée</th>
+                            <th class="text-center">Pause</th>
+                            <th class="text-end pe-0">Retard</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in live_staff %}
+                        <tr class="border-bottom" style="border-color: rgba(0,0,0,0.03) !important;">
+                            <td class="py-3 ps-0">
+                                <strong class="text-dark">{{ att.employee.get_full_name }}</strong>
+                            </td>
+                            <td class="py-3 text-center">
+                                {% if att.status == 'PRESENT' %}
+                                    <span class="badge bg-success rounded-pill px-3 py-1">Présent</span>
+                                {% elif att.status == 'LATE' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1">En Retard</span>
+                                {% elif att.status == 'ON_BREAK' %}
+                                    <span class="badge bg-info text-white rounded-pill px-3 py-1">En Pause</span>
+                                {% elif att.status == 'CLOCK_OUT' %}
+                                    <span class="badge bg-secondary rounded-pill px-3 py-1">Parti</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-center small text-muted">
+                                {{ att.clock_in|date:"H:i"|default:"—" }}
+                            </td>
+                            <td class="py-3 text-center small text-muted">
+                                {% if att.break_start %}
+                                    {{ att.break_start|date:"H:i" }} {% if att.break_end %}— {{ att.break_end|date:"H:i" }}{% endif %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-end pe-0 fw-bold {% if att.is_late %}text-danger{% else %}text-muted{% endif %}">
+                                {% if att.is_late %}{{ att.late_minutes }} min{% else %}Aucun{% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted small">
+                                <i class="fa-solid fa-fingerprint fs-2 text-muted mb-3 d-block opacity-40"></i>
+                                Aucun collaborateur n'a pointé son arrivée aujourd'hui.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Tasks Tracking -->
+    <div class="col-lg-5">
+        <div class="p-4 bg-white rounded-4 border h-100" style="border-color: var(--border-glass) !important;">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: var(--border-glass) !important;">
+                <h5 class="fw-bold m-0" style="color: var(--primary);">
+                    <i class="fa-solid fa-list-check me-2 text-success"></i> Consignes d'Équipe en cours
+                </h5>
+                <span class="badge bg-danger rounded-pill px-3">{{ pending_tasks.count }}</span>
+            </div>
+            
+            <div class="list-group list-group-flush">
+                {% for task in pending_tasks %}
+                <div class="list-group-item py-3 px-0 border-bottom" style="background:transparent;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark">{{ task.title }}</h6>
+                            <p class="text-muted small mb-1">{{ task.description|truncatechars:50 }}</p>
+                            <span class="small text-muted"><i class="fa-solid fa-user me-1"></i>{{ task.employee.get_full_name }}</span>
+                        </div>
+                        <span class="badge bg-warning text-dark small rounded-pill px-2">En Attente</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted small">
+                    <i class="fa-solid fa-clipboard-check fs-2 text-success mb-3 d-block opacity-40"></i>
+                    Aucune consigne d'équipe active en cours.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- ── Pipeline + Tables Row ─────── -->
-<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 1.25rem; margin-bottom: 1.5rem;" class="animated-fade-in">
 
     <!-- Pipeline mini -->
     <div class="panel">
@@ -594,6 +864,7 @@
     <!-- Tables: Prospects + Payments side by side -->
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
 
+        <!-- Prospects Récents (toujours visible) -->
         <div class="panel">
             <div class="tbl-header">
                 <div class="tbl-title">
@@ -623,6 +894,8 @@
             {% endfor %}
         </div>
 
+        <!-- Encaissements Récents (masqué pour les agents) -->
+        {% if not request.actual_user %}
         <div class="panel">
             <div class="tbl-header">
                 <div class="tbl-title">
@@ -656,6 +929,134 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <!-- Encadrement visuel vide pour harmoniser la grille des agents -->
+        <div class="panel" style="background:rgba(255,255,255,0.4); border-style:dashed;">
+            <div class="empty-state py-5">
+                <i class="fa-solid fa-shield-halved fa-2x mb-3 text-muted"></i>
+                <h6 class="fw-bold mb-1 text-dark">Espace Collaboratif Sécurisé</h6>
+                <p class="small text-muted m-0">Les rapports de caisse financière globale sont restreints aux administrateurs de gérance.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Manager Tracking & Global Traceability Audit Log -->
+        {% if not request.actual_user %}
+        <div class="row g-4 mt-3 mb-4">
+            <!-- Live Collaborators Presence -->
+            <div class="col-lg-6">
+                <div class="panel p-4 bg-white" style="border-top: 4px solid var(--primary) !important;">
+                    <h5 class="fw-bold mb-3" style="color: var(--primary);">
+                        <i class="fa-solid fa-fingerprint me-2 text-success"></i> Présence Négociateurs (En Direct)
+                    </h5>
+                    <p class="text-muted small mb-4">Suivez en temps réel le statut, la localisation GPS et la durée de travail effectif de vos collaborateurs aujourd'hui.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle m-0 text-center">
+                            <thead>
+                                <tr class="small text-muted text-uppercase fw-bold border-bottom" style="border-color: var(--border-glass) !important;">
+                                    <th class="text-start">Collaborateur</th>
+                                    <th>Statut</th>
+                                    <th>Durée Actuelle</th>
+                                    <th class="text-end">Localisation GPS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for att in live_staff %}
+                                <tr class="border-bottom" style="border-color: rgba(0,0,0,0.03) !important;">
+                                    <td class="py-3 text-start">
+                                        <h6 class="fw-bold mb-0 text-dark">{{ att.employee.get_full_name }}</h6>
+                                        <small class="text-muted">{{ att.employee.phone_number }}</small>
+                                    </td>
+                                    <td>
+                                        {% if att.status == 'PRESENT' %}
+                                            <span class="badge bg-success rounded-pill px-3 py-1 text-white">Présent</span>
+                                        {% elif att.status == 'LATE' %}
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1" title="Retard de {{ att.late_minutes }} min">En Retard</span>
+                                        {% elif att.status == 'ON_BREAK' %}
+                                            <span class="badge bg-info text-white rounded-pill px-3 py-1">En Pause</span>
+                                        {% elif att.status == 'CLOCK_OUT' %}
+                                            <span class="badge bg-secondary rounded-pill px-3 py-1 text-white">Parti</span>
+                                        {% elif att.status == 'ABSENT' %}
+                                            <span class="badge bg-danger rounded-pill px-3 py-1 text-white">Absent</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-semibold text-dark">{{ att.total_work_hours }} Heures</td>
+                                    <td class="text-end pe-0">
+                                        {% if att.latitude_in and att.longitude_in %}
+                                            <a href="https://www.google.com/maps/search/?api=1&query={{ att.latitude_in }},{{ att.longitude_in }}" target="_blank" class="badge bg-light text-success border rounded-pill text-decoration-none d-inline-block py-1 px-2" title="Arrivée : Voir la position GPS" style="font-size:0.75rem;">
+                                                <i class="fa-solid fa-location-dot text-danger me-1"></i>Arrivée
+                                            </a>
+                                        {% endif %}
+                                        {% if att.latitude_out and att.longitude_out %}
+                                            <a href="https://www.google.com/maps/search/?api=1&query={{ att.latitude_out }},{{ att.longitude_out }}" target="_blank" class="badge bg-light text-secondary border rounded-pill text-decoration-none d-inline-block py-1 px-2" title="Départ : Voir la position GPS" style="font-size:0.75rem;">
+                                                <i class="fa-solid fa-location-dot text-muted me-1"></i>Départ
+                                            </a>
+                                        {% endif %}
+                                        {% if not att.latitude_in and not att.latitude_out %}
+                                            <span class="text-muted small" style="font-style: italic;">Non fournie</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted small">
+                                        <i class="fa-solid fa-bell-slash fs-2 text-danger mb-3 d-block opacity-40"></i>
+                                        Aucun collaborateur n'a pointé aujourd'hui.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Traceability Log Panel -->
+            <div class="col-lg-6">
+                <div class="panel p-4 bg-white" style="border-top: 4px solid var(--primary) !important;">
+                    <h5 class="fw-bold mb-3" style="color: var(--primary);">
+                        <i class="fa-solid fa-list-check me-2 text-success"></i> Journal d'Audit & Traçabilité (CRM)
+                    </h5>
+                    <p class="text-muted small mb-4">Journal chronologique inaltérable des actions exécutées par vos collaborateurs sur la plateforme.</p>
+                    
+                    <div class="action-log-container" style="max-height: 310px; overflow-y: auto; padding-right: 5px;">
+                        {% for log in action_logs %}
+                        <div class="d-flex align-items-start p-3 bg-light rounded-4 mb-3 border-start" style="border-left: 4px solid {% if log.action_type == 'CLOCK_IN' %}var(--primary){% elif log.action_type == 'CLOCK_OUT' %}var(--accent){% else %}var(--primary-light){% endif %} !important; background:#f8fafc; border-radius:12px;">
+                            <div class="me-3 mt-1 fs-5 text-dark">
+                                {% if log.action_type == 'CLOCK_IN' or log.action_type == 'CLOCK_OUT' or log.action_type == 'BREAK_START' or log.action_type == 'BREAK_END' %}
+                                    <i class="fa-solid fa-user-clock text-success"></i>
+                                {% elif log.action_type == 'TASK_COMPLETE' %}
+                                    <i class="fa-solid fa-circle-check text-primary"></i>
+                                {% elif log.action_type == 'ABSENCE_DETECTED' %}
+                                    <i class="fa-solid fa-circle-exclamation text-danger"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-pen-to-square text-info"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-dark small">{{ log.employee.get_full_name }}</strong>
+                                    <span class="badge bg-dark rounded-pill px-2 py-0 font-monospace text-white" style="font-size:0.65rem;">{{ log.created_at|date:"H:i:s" }}</span>
+                                </div>
+                                <p class="small text-muted mb-1">{{ log.description }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-light text-dark px-2 rounded border" style="font-size:0.65rem;">{{ log.action_type }}</span>
+                                    <span class="small text-muted font-monospace" style="font-size:0.65rem;">IP: {{ log.ip_address|default:"127.0.0.1" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted small">
+                            <i class="fa-solid fa-clock-rotate-left fs-2 text-success mb-3 d-block opacity-40"></i>
+                            Aucune action enregistrée dans l'historique de traçabilité.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
     </div>
 </div>
@@ -667,10 +1068,15 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // ── Date dynamique ──
-    const d = new Date();
-    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    document.getElementById('dashDate').textContent = d.toLocaleDateString('fr-FR', opts);
+    function updateDate() {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('dashDate').innerText = new Date().toLocaleDateString('fr-FR', options);
+    }
+    updateDate();
+    
 
+
+    {% if not request.actual_user %}
     const TOOLTIP_DEFAULTS = {
         backgroundColor: '#0f172a',
         titleColor: '#94a3b8',
@@ -681,144 +1087,158 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // ── Chart 1: Rolling 12m Bar (Revenue vs Impayés) ──
-    const ctxRev = document.getElementById('revenueChart').getContext('2d');
-    new Chart(ctxRev, {
-        type: 'bar',
-        data: {
-            labels: {{ rolling_labels|safe }},
-            datasets: [
-                {
-                    label: 'Encaissés (FCFA)',
-                    data: {{ rolling_revenue|safe }},
-                    backgroundColor: 'rgba(16,185,129,0.75)',
-                    borderColor: '#10b981',
-                    borderWidth: 1.5,
-                    borderRadius: 6,
-                    borderSkipped: false,
-                },
-                {
-                    label: 'Impayés (FCFA)',
-                    data: {{ rolling_unpaid|safe }},
-                    backgroundColor: 'rgba(239,68,68,0.55)',
-                    borderColor: '#ef4444',
-                    borderWidth: 1.5,
-                    borderRadius: 6,
-                    borderSkipped: false,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    display: true,
-                    labels: { color: '#64748b', font: { family: 'Outfit', size: 11 }, boxWidth: 12, boxHeight: 12, borderRadius: 4 }
-                },
-                tooltip: {
-                    ...TOOLTIP_DEFAULTS,
-                    callbacks: { label: ctx => '  ' + ctx.dataset.label + ' : ' + ctx.parsed.y.toLocaleString('fr-FR') + ' FCFA' }
-                }
+    const canvasRev = document.getElementById('revenueChart');
+    if (canvasRev) {
+        const ctxRev = canvasRev.getContext('2d');
+        new Chart(ctxRev, {
+            type: 'bar',
+            data: {
+                labels: {{ rolling_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Encaissés (FCFA)',
+                        data: {{ rolling_revenue|safe }},
+                        backgroundColor: 'rgba(16,185,129,0.75)',
+                        borderColor: '#10b981',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Impayés (FCFA)',
+                        data: {{ rolling_unpaid|safe }},
+                        backgroundColor: 'rgba(239,68,68,0.55)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }
+                ]
             },
-            scales: {
-                x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 } } },
-                y: {
-                    grid: { color: 'rgba(0,0,0,0.04)' },
-                    ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#64748b', font: { family: 'Outfit', size: 11 }, boxWidth: 12, boxHeight: 12, borderRadius: 4 }
+                    },
+                    tooltip: {
+                        ...TOOLTIP_DEFAULTS,
+                        callbacks: { label: ctx => '  ' + ctx.dataset.label + ' : ' + ctx.parsed.y.toLocaleString('fr-FR') + ' FCFA' }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 } } },
+                    y: {
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
     // ── Chart 2: Category Doughnut ──
-    const ctxCat = document.getElementById('categoryChart').getContext('2d');
-    new Chart(ctxCat, {
-        type: 'doughnut',
-        data: {
-            labels: ['Location', 'Vente', 'Meublé'],
-            datasets: [{
-                data: [
-                    parseInt('{{ categories_data.RENT|default:"0" }}'),
-                    parseInt('{{ categories_data.SALE|default:"0" }}'),
-                    parseInt('{{ categories_data.FURNISHED|default:"0" }}')
-                ],
-                backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6'],
-                borderColor: '#ffffff',
-                borderWidth: 3,
-                hoverOffset: 8
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '68%',
-            plugins: {
-                legend: { display: false },
-                tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed + ' biens' } }
+    const canvasCat = document.getElementById('categoryChart');
+    if (canvasCat) {
+        const ctxCat = canvasCat.getContext('2d');
+        new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: ['Location', 'Vente', 'Meublé'],
+                datasets: [{
+                    data: [
+                        parseInt('{{ categories_data.RENT|default:"0" }}'),
+                        parseInt('{{ categories_data.SALE|default:"0" }}'),
+                        parseInt('{{ categories_data.FURNISHED|default:"0" }}')
+                    ],
+                    backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6'],
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed + ' biens' } }
+                }
             }
-        }
-    });
+        });
+    }
 
     // ── Chart 3: Payment Status Doughnut ──
-    const ctxStatus = document.getElementById('statusChart').getContext('2d');
-    new Chart(ctxStatus, {
-        type: 'doughnut',
-        data: {
-            labels: ['Payés', 'Impayés', 'Partiels'],
-            datasets: [{
-                data: [{{ paid_count }}, {{ unpaid_count }}, {{ partial_count }}],
-                backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                borderColor: '#ffffff',
-                borderWidth: 3,
-                hoverOffset: 8
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '68%',
-            plugins: {
-                legend: { display: false },
-                tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed + ' loyers' } }
+    const canvasStatus = document.getElementById('statusChart');
+    if (canvasStatus) {
+        const ctxStatus = canvasStatus.getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Payés', 'Impayés', 'Partiels'],
+                datasets: [{
+                    data: [{{ paid_count }}, {{ unpaid_count }}, {{ partial_count }}],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.label + ' : ' + ctx.parsed + ' loyers' } }
+                }
             }
-        }
-    });
+        });
+    }
 
     // ── Chart 4: Top Tenants Horizontal Bar ──
-    const ctxTop = document.getElementById('topTenantsChart').getContext('2d');
-    new Chart(ctxTop, {
-        type: 'bar',
-        data: {
-            labels: {{ top_tenant_labels|safe }},
-            datasets: [{
-                label: 'Total encaissé (FCFA)',
-                data: {{ top_tenant_values|safe }},
-                backgroundColor: [
-                    'rgba(212,175,55,0.75)', 'rgba(16,185,129,0.65)', 'rgba(59,130,246,0.65)',
-                    'rgba(139,92,246,0.65)', 'rgba(245,158,11,0.65)'
-                ],
-                borderColor: ['#d4af37','#10b981','#3b82f6','#8b5cf6','#f59e0b'],
-                borderWidth: 1.5,
-                borderRadius: 6,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.parsed.x.toLocaleString('fr-FR') + ' FCFA' } }
+    const canvasTop = document.getElementById('topTenantsChart');
+    if (canvasTop) {
+        const ctxTop = canvasTop.getContext('2d');
+        new Chart(ctxTop, {
+            type: 'bar',
+            data: {
+                labels: {{ top_tenant_labels|safe }},
+                datasets: [{
+                    label: 'Total encaissé (FCFA)',
+                    data: {{ top_tenant_values|safe }},
+                    backgroundColor: [
+                        'rgba(212,175,55,0.75)', 'rgba(16,185,129,0.65)', 'rgba(59,130,246,0.65)',
+                        'rgba(139,92,246,0.65)', 'rgba(245,158,11,0.65)'
+                    ],
+                    borderColor: ['#d4af37','#10b981','#3b82f6','#8b5cf6','#f59e0b'],
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    borderSkipped: false,
+                }]
             },
-            scales: {
-                x: {
-                    grid: { color: 'rgba(0,0,0,0.04)' },
-                    ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { ...TOOLTIP_DEFAULTS, callbacks: { label: ctx => '  ' + ctx.parsed.x.toLocaleString('fr-FR') + ' FCFA' } }
                 },
-                y: { grid: { display: false }, ticks: { color: '#334155', font: { family: 'Outfit', size: 11, weight: '600' } } }
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+                    },
+                    y: { grid: { display: false }, ticks: { color: '#334155', font: { family: 'Outfit', size: 11, weight: '600' } } }
+                }
             }
-        }
-    });
+        });
+    }
+    {% endif %}
 
     // ── Animation d'entrée ──
-    const cards = document.querySelectorAll('.kpi-card, .panel');
+    const cards = document.querySelectorAll('.kpi-card, .panel, .col-lg-6');
     cards.forEach((el, i) => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(14px)';
@@ -831,4 +1251,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/luxury-timers.js' %}"></script>
 {% endblock %}

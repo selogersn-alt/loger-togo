@@ -72,7 +72,7 @@ class CustomUserChangeForm(UserChangeForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['company_name', 'email', 'profile_picture', 'slug', 'first_name', 'last_name', 'coverage_area', 'notification_preference']
+        fields = ['company_name', 'email', 'profile_picture', 'slug', 'first_name', 'last_name', 'coverage_area', 'notification_preference', 'agency_city', 'agency_neighborhood', 'agency_address', 'agency_latitude', 'agency_longitude']
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
@@ -82,12 +82,20 @@ class UserProfileForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'coverage_area': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
             'notification_preference': forms.Select(attrs={'class': 'form-select', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'agency_city': forms.Select(attrs={'class': 'form-select', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);'}),
+            'agency_neighborhood': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'placeholder': _('Ex: Agoè-Logopé'), 'list': 'neighborhoods-datalist'}),
+            'agency_address': forms.TextInput(attrs={'class': 'form-control', 'style': 'background-color: var(--bg-body); color: var(--text-main); border-color: var(--border-color);', 'placeholder': _('Ex: Rue 123, Derrière la pharmacie...')}),
+            'agency_latitude': forms.HiddenInput(attrs={'id': 'id_latitude'}),
+            'agency_longitude': forms.HiddenInput(attrs={'id': 'id_longitude'}),
         }
         labels = {
             'company_name': _('Nom de l\'agence ou Entreprise'),
             'profile_picture': _('Logo ou Photo de profil'),
             'slug': _('Lien personnalisé (ex: Logertogo.com/p/votre-nom)'),
             'notification_preference': _('Mode de réception des notifications'),
+            'agency_city': _('Ville de l\'établissement'),
+            'agency_neighborhood': _('Quartier de l\'établissement'),
+            'agency_address': _('Adresse / Repère (Optionnel)'),
         }
 
     def clean_slug(self):

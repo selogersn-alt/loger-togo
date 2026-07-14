@@ -8,7 +8,7 @@ from django.db.models import Sum, Count, Q
 from django.core.validators import MinValueValidator
 from django.urls import reverse, set_urlconf
 from users.models import User
-from .models import HotelRoom, HotelBooking, HotelChargeItem, HotelShift
+from .models import HotelRoom, HotelBooking, HotelChargeItem, HotelShift, EmployeeSchedule, EmployeeAttendance, EmployeeTask
 import datetime
 from decimal import Decimal
 
@@ -58,12 +58,20 @@ def hotel_promo(request):
 
 def hotel_login(request):
     """
-    Log in an hotel owner / manager.
+    Log in an hotel owner / manager or their receptionist (sub-agent).
     """
     request.urlconf = 'logertogo.urls_hotel'
     set_urlconf('logertogo.urls_hotel')
-    if request.user.is_authenticated and request.user.role in ['HOTEL', 'AUBERGE'] and request.user.is_saas_active:
-        return redirect('hotel_dashboard')
+    
+    if request.user.is_authenticated:
+        user = request.user
+        is_allowed = False
+        if user.role in ['HOTEL', 'AUBERGE', 'SUB_ADMIN'] and user.is_saas_active:
+            is_allowed = True
+        elif user.role == 'AGENT' and user.parent_hotel and user.parent_hotel.role in ['HOTEL', 'AUBERGE'] and user.parent_hotel.is_saas_active:
+            is_allowed = True
+        if is_allowed:
+            return redirect('hotel_dashboard')
         
     if request.method == 'POST':
         phone = request.POST.get('phone_number')
@@ -73,12 +81,18 @@ def hotel_login(request):
         if user is not None:
             if user.role in ['HOTEL', 'AUBERGE', 'SUB_ADMIN']:
                 login(request, user)
-                messages.success(request, f"Bienvenue, {user.company_name or 'Hôtelier Loger Togo'} !")
+                messages.success(request, f"Bienvenue, {user.company_name or 'Hôtelier'} !")
                 if user.is_saas_active:
                     return redirect('hotel_dashboard')
                 return redirect('hotel_promo')
+            elif user.role == 'AGENT' and user.parent_hotel and user.parent_hotel.role in ['HOTEL', 'AUBERGE']:
+                login(request, user)
+                messages.success(request, f"Bienvenue, {user.get_full_name() or 'Réceptionniste'} !")
+                if user.parent_hotel.is_saas_active:
+                    return redirect('hotel_dashboard')
+                return redirect('hotel_promo')
             else:
-                messages.error(request, "Ce compte n'est pas un profil Hôtel ou Auberge. Veuillez utiliser le portail agence.")
+                messages.error(request, "Ce compte n'est pas un profil Hôtel, Auberge ou Réceptionniste de l'établissement.")
         else:
             messages.error(request, "Identifiants invalides.")
             
@@ -131,6 +145,89 @@ def hotel_logout(request):
     messages.info(request, "Vous avez été déconnecté.")
     return redirect('hotel_promo')
 
+
+def log_employee_action(request, action_type, description):
+    """
+    Log an action made by the currently logged-in receptionist / employee agent.
+    """
+    if hasattr(request, 'actual_user'):
+        employee = request.actual_user
+        parent = request.user
+        
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+            
+        try:
+            from management.models import EmployeeActionLog
+            EmployeeActionLog.objects.create(
+                hotel=parent,
+                employee=employee,
+                action_type=action_type,
+                description=description,
+                ip_address=ip
+            )
+        except Exception:
+            pass
+
+
+def check_employee_absences(manager, is_hotel=True):
+    """
+    Check today's employee schedules for a manager (hotel or agency).
+    If an employee scheduled to work today has not clocked in and is more than 30 minutes late,
+    we create an EmployeeAttendance record marked ABSENT and send a notification e-mail.
+    """
+    from django.utils import timezone
+    import datetime
+    from management.models import EmployeeSchedule, EmployeeAttendance
+    from users.models import User
+    from logertogo.emails import send_employee_absence_notification
+    
+    today = timezone.now().date()
+    now_dt = timezone.now()
+    day_of_week = today.isoweekday() # 1-7
+    
+    if is_hotel:
+        staff = User.objects.filter(parent_hotel=manager, role='AGENT')
+    else:
+        staff = User.objects.filter(parent_agency=manager, role='AGENT')
+        
+    for employee in staff:
+        schedule = EmployeeSchedule.objects.filter(employee=employee, day_of_week=day_of_week).first()
+        if schedule:
+            sched_start = timezone.make_aware(datetime.datetime.combine(today, schedule.start_time))
+            if now_dt > (sched_start + datetime.timedelta(minutes=30)):
+                attendance, created = EmployeeAttendance.objects.get_or_create(
+                    employee=employee,
+                    hotel=manager,
+                    date=today,
+                    defaults={'status': 'ABSENT'}
+                )
+                
+                if not attendance.clock_in and attendance.status != 'ABSENT':
+                    attendance.status = 'ABSENT'
+                    attendance.notes = "Alerte Absence automatique (retard > 30 minutes)."
+                    attendance.save()
+                    
+                if not attendance.clock_in and attendance.status == 'ABSENT' and (not attendance.notes or "Email envoyé" not in attendance.notes):
+                    try:
+                        send_employee_absence_notification(manager, employee, schedule.start_time)
+                        attendance.notes = (attendance.notes or "") + " [Email envoyé]"
+                        attendance.save()
+                        
+                        from management.models import EmployeeActionLog
+                        EmployeeActionLog.objects.create(
+                            hotel=manager,
+                            employee=employee,
+                            action_type="ABSENCE_DETECTED",
+                            description=f"Absence constatée automatiquement : n'a pas pointé à son poste prévu à {schedule.start_time.strftime('%H:%M')}."
+                        )
+                    except Exception:
+                        pass
+
+
 @login_required
 @hotel_required
 def hotel_dashboard(request):
@@ -179,6 +276,28 @@ def hotel_dashboard(request):
         created_at__year=today.year
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
+    # Staff Attendance & Tasks Context
+    my_attendance = None
+    my_tasks = None
+    live_staff = None
+    pending_tasks = None
+    action_logs = None
+    
+    if hasattr(request, 'actual_user'):
+        # Logged in as receptionist / employee
+        my_attendance = EmployeeAttendance.objects.filter(employee=request.actual_user, date=today).first()
+        my_tasks = EmployeeTask.objects.filter(employee=request.actual_user, status='PENDING').order_by('due_date')
+    else:
+        # Logged in as hotel manager / owner
+        # Real-time proactive absence check
+        check_employee_absences(hotel, is_hotel=True)
+        
+        live_staff = EmployeeAttendance.objects.filter(hotel=hotel, date=today).select_related('employee')
+        pending_tasks = EmployeeTask.objects.filter(hotel=hotel, status='PENDING').select_related('employee')[:5]
+        
+        from management.models import EmployeeActionLog
+        action_logs = EmployeeActionLog.objects.filter(hotel=hotel).select_related('employee')[:15]
+
     context = {
         'total_rooms': total_rooms,
         'occupied_rooms': occupied_rooms,
@@ -192,6 +311,11 @@ def hotel_dashboard(request):
         'daily_revenue': daily_revenue,
         'monthly_revenue': monthly_revenue,
         'rooms': rooms[:6],
+        'my_attendance': my_attendance,
+        'my_tasks': my_tasks,
+        'live_staff': live_staff,
+        'pending_tasks': pending_tasks,
+        'action_logs': action_logs,
     }
     return render(request, 'hotel/hotel_dashboard.html', context)
 
@@ -224,6 +348,10 @@ def hotel_room_create(request):
     """
     Add a new room or suite to the hotel.
     """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les gérants de l'établissement peuvent ajouter des chambres.")
+        return redirect('hotel_dashboard')
+        
     if request.method == 'POST':
         number = request.POST.get('room_number')
         rtype = request.POST.get('room_type')
@@ -236,12 +364,13 @@ def hotel_room_create(request):
         tv = request.POST.get('tv') == 'on'
         safe = request.POST.get('safe') == 'on'
         balcony = request.POST.get('balcony') == 'on'
+        visible_on_portal = request.POST.get('visible_on_portal') == 'on'
         
         if HotelRoom.objects.filter(hotel=request.user, room_number=number).exists():
             messages.error(request, f"La chambre {number} existe déjà.")
         else:
             try:
-                HotelRoom.objects.create(
+                room = HotelRoom.objects.create(
                     hotel=request.user,
                     room_number=number,
                     room_type=rtype,
@@ -252,8 +381,20 @@ def hotel_room_create(request):
                     minibar=minibar,
                     tv=tv,
                     safe=safe,
-                    balcony=balcony
+                    balcony=balcony,
+                    visible_on_portal=visible_on_portal
                 )
+                
+                # Gestion des images multiples
+                images = request.FILES.getlist('images')
+                for i, img in enumerate(images):
+                    from management.models import HotelRoomImage
+                    HotelRoomImage.objects.create(
+                        room=room,
+                        image_url=img,
+                        is_primary=(i == 0)
+                    )
+                    
                 messages.success(request, f"La chambre {number} a été créée avec succès !")
                 return redirect('hotel_rooms')
             except Exception as e:
@@ -270,6 +411,10 @@ def hotel_room_edit(request, room_id):
     """
     Edit existing room details.
     """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les gérants de l'établissement peuvent modifier les chambres.")
+        return redirect('hotel_dashboard')
+        
     room = get_object_or_404(HotelRoom, id=room_id, hotel=request.user)
     
     if request.method == 'POST':
@@ -286,9 +431,35 @@ def hotel_room_edit(request, room_id):
         room.tv = request.POST.get('tv') == 'on'
         room.safe = request.POST.get('safe') == 'on'
         room.balcony = request.POST.get('balcony') == 'on'
+        room.visible_on_portal = request.POST.get('visible_on_portal') == 'on'
         
         try:
             room.save()
+            # Gestion de la suppression d'images
+            delete_ids = request.POST.getlist('delete_images')
+            if delete_ids:
+                from management.models import HotelRoomImage
+                HotelRoomImage.objects.filter(id__in=delete_ids, room=room).delete()
+                # Ensure a primary image remains
+                remaining = room.images.all()
+                if remaining.exists() and not remaining.filter(is_primary=True).exists():
+                    first_img = remaining.first()
+                    first_img.is_primary = True
+                    first_img.save()
+            
+            # Gestion des images multiples supplémentaires
+            images = request.FILES.getlist('images')
+            if images:
+                from management.models import HotelRoomImage
+                has_primary = room.images.filter(is_primary=True).exists()
+                for i, img in enumerate(images):
+                    is_primary = not has_primary and (i == 0)
+                    HotelRoomImage.objects.create(
+                        room=room,
+                        image_url=img,
+                        is_primary=is_primary
+                    )
+            
             messages.success(request, f"La chambre {room.room_number} a été modifiée avec succès !")
             return redirect('hotel_rooms')
         except Exception as e:
@@ -448,6 +619,21 @@ def hotel_booking_detail(request, booking_id):
 
 @login_required
 @hotel_required
+def hotel_booking_print_invoice(request, booking_id):
+    """
+    Marque Blanche Print Folio
+    """
+    booking = get_object_or_404(HotelBooking, id=booking_id, room__hotel=request.user)
+    charges = booking.charges.all()
+    
+    context = {
+        'booking': booking,
+        'charges': charges,
+    }
+    return render(request, 'hotel/print_invoice_hotel.html', context)
+
+@login_required
+@hotel_required
 def hotel_booking_checkin(request, booking_id):
     """
     Perform Check-in: Guest arrived. Marks room as OCCUPIED.
@@ -552,6 +738,10 @@ def hotel_profile(request):
     """
     Manage hotel profile information.
     """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les gérants de l'hôtel peuvent modifier le paramétrage de l'établissement.")
+        return redirect('hotel_dashboard')
+        
     hotel = request.user
     if request.method == 'POST':
         hotel.company_name = request.POST.get('company_name')
@@ -566,13 +756,32 @@ def hotel_profile(request):
         hotel.agency_rccm = request.POST.get('rccm')
         hotel.agency_nif = request.POST.get('nif')
         
+        # Coordinates and City
+        hotel.agency_city = request.POST.get('city')
+        hotel.agency_neighborhood = request.POST.get('neighborhood')
+        
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
+        if lat and lng:
+            try:
+                hotel.agency_latitude = float(lat)
+                hotel.agency_longitude = float(lng)
+            except ValueError:
+                pass
+                
         try:
             hotel.save()
             messages.success(request, "Informations de l'établissement mises à jour avec succès !")
         except Exception as e:
             messages.error(request, f"Erreur : {e}")
             
-    return render(request, 'hotel/hotel_profile.html')
+    from logersn.constants import CITY_CHOICES, TOGO_NEIGHBORHOODS
+    context = {
+        'city_choices': CITY_CHOICES,
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS,
+    }
+            
+    return render(request, 'hotel/hotel_profile.html', context)
 
 
 @login_required
@@ -678,6 +887,10 @@ def hotel_planning(request):
 @login_required
 @hotel_required
 def hotel_analytics(request):
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les gérants de l'établissement ont accès aux rapports financiers.")
+        return redirect('hotel_dashboard')
+        
     hotel = request.user
     today = timezone.now().date()
     
@@ -920,9 +1133,119 @@ def hotel_sub_agents(request):
         else:
             messages.error(request, "Veuillez renseigner tous les champs obligatoires.")
             
+    # Enrich staff with today's attendance and schedules
+    today = timezone.now().date()
+    thirty_days_ago = today - datetime.timedelta(days=30)
+    for member in staff:
+        member.today_attendance = EmployeeAttendance.objects.filter(employee=member, date=today).first()
+        member.schedules_list = EmployeeSchedule.objects.filter(employee=member).order_by('day_of_week')
+        # Format weekly planning display
+        sched_map = {s.day_of_week: s for s in member.schedules_list}
+        member.weekly_planning = []
+        for d in range(1, 8):
+            if d in sched_map:
+                member.weekly_planning.append({
+                    'day': d,
+                    'active': True,
+                    'start': sched_map[d].start_time.strftime("%H:%M"),
+                    'end': sched_map[d].end_time.strftime("%H:%M")
+                })
+            else:
+                member.weekly_planning.append({
+                    'day': d,
+                    'active': False
+                })
+                
+        # --- BI Statistics for the last 30 days ---
+        # 1. Total scheduled days in the last 30 days
+        scheduled_days_of_week = list(member.schedules_list.values_list('day_of_week', flat=True))
+        total_scheduled = 0
+        total_scheduled_hours = 0.0
+        if scheduled_days_of_week:
+            curr = thirty_days_ago
+            while curr <= today:
+                if curr.isoweekday() in scheduled_days_of_week:
+                    total_scheduled += 1
+                    s = sched_map.get(curr.isoweekday())
+                    if s:
+                        start_dt = datetime.datetime.combine(today, s.start_time)
+                        end_dt = datetime.datetime.combine(today, s.end_time)
+                        if end_dt < start_dt:
+                            end_dt += datetime.timedelta(days=1)
+                        total_scheduled_hours += (end_dt - start_dt).total_seconds() / 3600.0
+                curr += datetime.timedelta(days=1)
+        
+        # 2. Actual present and late days clocked in
+        attendances_30 = EmployeeAttendance.objects.filter(
+            employee=member,
+            date__range=(thirty_days_ago, today)
+        )
+        present_days = attendances_30.exclude(status='ABSENT').exclude(clock_in__isnull=True).count()
+        late_days = attendances_30.filter(is_late=True).count()
+        late_minutes = attendances_30.aggregate(total=Sum('late_minutes'))['total'] or 0
+        total_worked_hours = sum([att.total_work_hours for att in attendances_30])
+        member.total_worked_hours_30d = round(total_worked_hours, 1)
+        member.total_scheduled_hours_30d = round(total_scheduled_hours, 1)
+        
+        # Calculate Rates
+        if total_scheduled > 0:
+            member.presence_rate = min(100, round((present_days / total_scheduled) * 100))
+            member.absence_days = max(0, total_scheduled - present_days)
+            member.absence_rate = max(0, 100 - member.presence_rate)
+        else:
+            member.presence_rate = 100 if present_days > 0 else 0
+            member.absence_days = 0
+            member.absence_rate = max(0, 100 - member.presence_rate)
+            
+        if total_scheduled_hours > 0:
+            member.productivity_rate = min(100, round((total_worked_hours / total_scheduled_hours) * 100))
+        else:
+            member.productivity_rate = 100 if total_worked_hours > 0 else 0
+            
+        member.present_days = present_days
+        member.total_scheduled_days = total_scheduled
+        member.late_days = late_days
+        member.late_minutes_total = late_minutes
+        
+        # Lateness rate
+        if present_days > 0:
+            member.lateness_rate = round((late_days / present_days) * 100)
+        else:
+            member.lateness_rate = 0
+            
+        # 3. Productivity (Tasks completion rate)
+        tasks_30 = EmployeeTask.objects.filter(
+            employee=member,
+            created_at__date__range=(thirty_days_ago, today)
+        )
+        total_tasks = tasks_30.count()
+        completed_tasks = tasks_30.filter(status='COMPLETED').count()
+        
+        member.total_tasks_count = total_tasks
+        member.completed_tasks_count = completed_tasks
+        if total_tasks > 0:
+            member.productivity_rate = round((completed_tasks / total_tasks) * 100)
+        else:
+            member.productivity_rate = 100  # Default to 100% if no tasks assigned
+                
+    # All tasks list
+    tasks = EmployeeTask.objects.filter(hotel=hotel).order_by('due_date', '-created_at')
+    
+    # Attendances list for history
+    attendance_history = EmployeeAttendance.objects.filter(hotel=hotel).order_by('-date', '-clock_in')[:100]
+    
+    # Today presence summary
+    today_attendances = EmployeeAttendance.objects.filter(hotel=hotel, date=today)
+    present_count = today_attendances.filter(status__in=['PRESENT', 'LATE', 'ON_BREAK']).count()
+    late_count = today_attendances.filter(status='LATE').count()
+            
     context = {
         'staff': staff,
         'staff_count': staff_count,
+        'tasks': tasks,
+        'attendance_history': attendance_history,
+        'present_count': present_count,
+        'late_count': late_count,
     }
     return render(request, 'hotel/hotel_sub_agents.html', context)
 
@@ -939,6 +1262,247 @@ def hotel_sub_agent_delete(request, agent_id):
     agent.delete()
     messages.success(request, f"Collaborateur supprimé avec succès.")
     return redirect('hotel_sub_agents')
+
+
+@login_required
+@hotel_required
+def hotel_clock_action(request):
+    """
+    Pointage d'arrivée, de départ ou de pause pour le réceptionniste connecté.
+    """
+    if not hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les collaborateurs de réception peuvent utiliser le pointage.")
+        return redirect('hotel_dashboard')
+        
+    employee = request.actual_user
+    hotel = request.user
+    today = timezone.now().date()
+    now_dt = timezone.now()
+    
+    # Récupérer ou créer le pointage du jour
+    attendance, created = EmployeeAttendance.objects.get_or_create(
+        employee=employee,
+        hotel=hotel,
+        date=today
+    )
+    
+    action = request.POST.get('action')
+    lat_val = request.POST.get('latitude')
+    lng_val = request.POST.get('longitude')
+    lat = None
+    lng = None
+    if lat_val and lng_val:
+        try:
+            from decimal import Decimal
+            lat = Decimal(lat_val)
+            lng = Decimal(lng_val)
+        except Exception:
+            pass
+    
+    if action == 'in':
+        if attendance.clock_in:
+            messages.warning(request, "Vous avez déjà pointé votre arrivée aujourd'hui.")
+        else:
+            attendance.clock_in = now_dt
+            attendance.status = 'PRESENT'
+            if lat and lng:
+                attendance.latitude_in = lat
+                attendance.longitude_in = lng
+            
+            # Calcul du retard éventuel par rapport au planning
+            day_of_week = today.isoweekday()  # 1 = Lundi, 7 = Dimanche
+            schedule = EmployeeSchedule.objects.filter(employee=employee, day_of_week=day_of_week).first()
+            if schedule:
+                # Créer des datetime de comparaison pour aujourd'hui
+                sched_start = timezone.make_aware(datetime.datetime.combine(today, schedule.start_time))
+                if now_dt > sched_start:
+                    diff = now_dt - sched_start
+                    late_mins = int(diff.total_seconds() // 60)
+                    if late_mins > 5:  # Tolérance de 5 minutes
+                        attendance.is_late = True
+                        attendance.late_minutes = late_mins
+                        attendance.status = 'LATE'
+                        messages.warning(request, f"Pointage d'arrivée enregistré avec {late_mins} minutes de retard.")
+                        # Notification email au gérant de l'hôtel
+                        try:
+                            from logertogo.emails import send_employee_late_notification
+                            send_employee_late_notification(hotel, employee, late_mins, lat, lng)
+                        except Exception as email_err:
+                            import logging
+                            logging.getLogger('django').error(f"❌ [EMAIL ERROR] Erreur envoi retard : {email_err}")
+                    else:
+                        messages.success(request, "Pointage d'arrivée enregistré à l'heure.")
+                else:
+                    messages.success(request, "Pointage d'arrivée enregistré à l'heure.")
+            else:
+                messages.success(request, "Pointage d'arrivée enregistré (aucun planning défini).")
+            attendance.save()
+            log_employee_action(request, 'CLOCK_IN', f"Pointage d'arrivée enregistré à {now_dt.strftime('%H:%M:%S')} (GPS: {lat or 'N/D'}, {lng or 'N/D'} | Retard: {attendance.late_minutes} min)")
+            
+    elif action == 'break_start':
+        if not attendance.clock_in:
+            messages.error(request, "Vous devez d'abord pointer votre arrivée.")
+        elif attendance.clock_out:
+            messages.error(request, "Votre service est déjà terminé.")
+        elif attendance.break_start:
+            messages.warning(request, "Vous êtes déjà en pause.")
+        else:
+            attendance.break_start = now_dt
+            attendance.status = 'ON_BREAK'
+            attendance.save()
+            messages.info(request, "Début de pause enregistré.")
+            log_employee_action(request, 'BREAK_START', f"Début de pause enregistré à {now_dt.strftime('%H:%M:%S')}")
+            
+    elif action == 'break_end':
+        if not attendance.break_start:
+            messages.error(request, "Vous n'êtes pas en pause.")
+        elif attendance.break_end:
+            messages.warning(request, "Vous avez déjà repris votre service.")
+        else:
+            attendance.break_end = now_dt
+            # Restaurer le statut d'origine (LATE ou PRESENT)
+            attendance.status = 'LATE' if attendance.is_late else 'PRESENT'
+            attendance.save()
+            messages.success(request, "Reprise de service enregistrée.")
+            log_employee_action(request, 'BREAK_END', f"Reprise de service enregistrée à {now_dt.strftime('%H:%M:%S')}")
+            
+    elif action == 'out':
+        if not attendance.clock_in:
+            messages.error(request, "Vous devez d'abord pointer votre arrivée.")
+        elif attendance.clock_out:
+            messages.warning(request, "Vous avez déjà pointé votre départ aujourd'hui.")
+        else:
+            # Si l'employé était en pause non clôturée, on la ferme automatiquement
+            if attendance.break_start and not attendance.break_end:
+                attendance.break_end = now_dt
+                
+            attendance.clock_out = now_dt
+            attendance.status = 'CLOCK_OUT'
+            if lat and lng:
+                attendance.latitude_out = lat
+                attendance.longitude_out = lng
+            attendance.save()
+            messages.success(request, f"Service terminé. Durée travaillée : {attendance.total_work_hours} heures.")
+            log_employee_action(request, 'CLOCK_OUT', f"Pointage de départ enregistré à {now_dt.strftime('%H:%M:%S')} (GPS: {lat or 'N/D'}, {lng or 'N/D'} | Durée : {attendance.total_work_hours} heures)")
+            
+    return redirect('hotel_dashboard')
+
+
+@login_required
+@hotel_required
+def hotel_schedule_save(request):
+    """
+    Enregistre ou met à jour le planning hebdomadaire d'un collaborateur.
+    """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les administrateurs de l'hôtel peuvent modifier le planning.")
+        return redirect('hotel_dashboard')
+        
+    hotel = request.user
+    
+    if request.method == 'POST':
+        agent_id = request.POST.get('agent_id')
+        agent = get_object_or_404(User, id=agent_id, parent_hotel=hotel, role='AGENT')
+        
+        # Supprimer le planning existant pour cet agent avant de recréer
+        EmployeeSchedule.objects.filter(employee=agent).delete()
+        
+        days_added = 0
+        for day_val in range(1, 8):
+            enabled = request.POST.get(f'day_{day_val}_enable')
+            if enabled:
+                start_str = request.POST.get(f'day_{day_val}_start')
+                end_str = request.POST.get(f'day_{day_val}_end')
+                
+                if start_str and end_str:
+                    try:
+                        start_time = datetime.datetime.strptime(start_str, "%H:%M").time()
+                        end_time = datetime.datetime.strptime(end_str, "%H:%M").time()
+                        
+                        EmployeeSchedule.objects.create(
+                            hotel=hotel,
+                            employee=agent,
+                            day_of_week=day_val,
+                            start_time=start_time,
+                            end_time=end_time
+                        )
+                        days_added += 1
+                    except Exception as e:
+                        pass
+        
+        messages.success(request, f"Planning mis à jour avec succès ({days_added} jours configurés).")
+        
+    return redirect('hotel_sub_agents')
+
+
+@login_required
+@hotel_required
+def hotel_task_assign(request):
+    """
+    Assigne une tâche exceptionnelle à un réceptionniste/collaborateur.
+    """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les gérants de l'hôtel peuvent assigner des tâches.")
+        return redirect('hotel_dashboard')
+        
+    hotel = request.user
+    
+    if request.method == 'POST':
+        agent_id = request.POST.get('agent_id')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        due_date_str = request.POST.get('due_date')
+        
+        agent = get_object_or_404(User, id=agent_id, parent_hotel=hotel, role='AGENT')
+        
+        if title and due_date_str:
+            try:
+                due_date = datetime.datetime.strptime(due_date_str, "%Y-%m-%d").date()
+                EmployeeTask.objects.create(
+                    hotel=hotel,
+                    employee=agent,
+                    title=title,
+                    description=description or '',
+                    due_date=due_date
+                )
+                messages.success(request, f"Tâche exceptionnelle assignée avec succès à {agent.get_full_name()} !")
+            except Exception as e:
+                messages.error(request, f"Erreur lors de l'enregistrement de la tâche : {e}")
+        else:
+            messages.error(request, "Veuillez renseigner un titre et une date d'échéance.")
+            
+    return redirect('hotel_sub_agents')
+
+
+@login_required
+@hotel_required
+def hotel_task_complete(request, task_id):
+    """
+    Valide l'achèvement d'une tâche exceptionnelle.
+    """
+    hotel = request.user
+    
+    # Si c'est un agent, on valide qu'il en est bien le destinataire
+    if hasattr(request, 'actual_user'):
+        task = get_object_or_404(EmployeeTask, id=task_id, hotel=hotel, employee=request.actual_user)
+    else:
+        task = get_object_or_404(EmployeeTask, id=task_id, hotel=hotel)
+        
+    task.status = 'COMPLETED'
+    task.completed_at = timezone.now()
+    task.save()
+    
+    # Notification email au gérant de l'hôtel
+    try:
+        from logertogo.emails import send_employee_task_completed_notification
+        send_employee_task_completed_notification(task.hotel, task.employee, task)
+    except Exception as email_err:
+        import logging
+        logging.getLogger('django').error(f"❌ [EMAIL ERROR] Erreur envoi completion tâche : {email_err}")
+        
+    log_employee_action(request, 'TASK_COMPLETE', f"Consigne exceptionelle validée : '{task.title}'")
+    messages.success(request, f"Tâche '{task.title}' validée et marquée comme terminée !")
+    return redirect('hotel_dashboard')
 
 
 # --- Dynamic Subdomain Error Handlers ---

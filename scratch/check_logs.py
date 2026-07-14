@@ -1,41 +1,28 @@
 import paramiko
-import sys
 
-host = "157.180.127.70"
-port = 22
-username = "root"
-password = "AkueMax@2022"
+HOST = '157.180.127.70'
+USER = 'root'
+PASSWORD = 'AkueMax@2022'
 
-print(f"Connexion au serveur {host}...")
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+def check_logs():
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        ssh.connect(HOST, username=USER, password=PASSWORD, timeout=30)
+        
+        print("Checking container status...")
+        stdin, stdout, stderr = ssh.exec_command("cd /app && docker compose ps")
+        print(stdout.read().decode('utf-8', 'replace'))
+        
+        print("Checking web container logs...")
+        stdin, stdout, stderr = ssh.exec_command("cd /app && docker compose logs web --tail=50")
+        print(stdout.read().decode('utf-8', 'replace'))
+        print(stderr.read().decode('utf-8', 'replace'))
+        
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        ssh.close()
 
-try:
-    ssh.connect(host, port=port, username=username, password=password, timeout=30)
-    print("Connecte!\n")
-
-    commands = [
-        # Get last 100 lines of Django error logs
-        ("Logs Django (erreurs recentes)", "cd /app && docker compose logs web --tail=150 2>&1 | grep -E 'Error|Exception|Traceback|500|Internal|AttributeError|TypeError|NameError|ValueError' | tail -80"),
-        # Full last 50 log lines (unfiltered)
-        ("Derniers logs complets", "cd /app && docker compose logs web --tail=60 2>&1"),
-    ]
-
-    for label, cmd in commands:
-        print(f"\n{'='*70}")
-        print(f"[{label}]")
-        print(f"{'='*70}")
-        stdin, stdout, stderr = ssh.exec_command(cmd, timeout=60)
-        stdout.channel.recv_exit_status()
-        out = stdout.read().decode('utf-8', errors='replace').strip()
-        err = stderr.read().decode('utf-8', errors='replace').strip()
-        if out:
-            print(out)
-        if err:
-            print(err)
-
-except Exception as e:
-    print(f"Erreur: {e}")
-    sys.exit(1)
-finally:
-    ssh.close()
+if __name__ == "__main__":
+    check_logs()

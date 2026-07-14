@@ -5,6 +5,7 @@
 
 
 {% block extra_head %}
+<link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
 <style>
     .wizard-container {
         max-width: 900px;
@@ -415,6 +416,15 @@
                     </datalist>
                 </div>
 
+                <!-- CARTE INTERACTIVE - GEOLOCALISATION -->
+                <div class="form-group form-group-full">
+                    <label class="form-label">Position sur la carte (Optionnel mais très recommandé) <span class="badge-togo">NOUVEAU</span></label>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Déplacez le marqueur rouge pour indiquer l'emplacement précis. Cela augmentera vos visites !</p>
+                    <div id="mapPicker" style="height: 350px; border-radius: 12px; border: 1px solid var(--border-glass); overflow: hidden; z-index: 1;"></div>
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default:'' }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default:'' }}">
+                </div>
+
                 <div class="form-group">
                     <label class="form-label" for="id_surface">Surface Habitable (m²)</label>
                     <input type="number" name="surface" id="id_surface" class="form-control-input" placeholder="Ex: 85" value="{{ form.surface.value|default:'' }}">
@@ -516,13 +526,42 @@
                     <input type="file" name="images" id="id_images" multiple accept="image/*" style="display: none;" onchange="showFileNames(this)">
                 </div>
                 <div id="file-list" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem; color: var(--primary-light);"></div>
+                
+                {% if is_edit and property.images.all %}
+                <div class="mt-4">
+                    <label class="form-label" style="font-size: 0.9rem;">Images actuelles (cochez pour supprimer)</label>
+                    <div class="d-flex flex-wrap gap-3 mt-2">
+                        {% for img in property.images.all %}
+                        <div class="position-relative" style="width: 100px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-glass);">
+                            <img src="{{ img.image_url.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% if img.is_primary %}
+                            <span class="position-absolute top-0 start-0 badge bg-warning" style="font-size: 0.5rem; padding: 2px 4px;">Principal</span>
+                            {% endif %}
+                            <div class="position-absolute bottom-0 start-0 w-100 text-center" style="background: rgba(0,0,0,0.6); padding: 2px;">
+                                <label class="text-white" style="font-size: 0.75rem; cursor: pointer;">
+                                    <input type="checkbox" name="delete_images" value="{{ img.id }}" style="vertical-align: middle;"> Supprimer
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Publication Toggle & Security checks -->
             <div class="form-group form-group-full" style="border-top: 1px solid var(--border-glass); padding-top: 1.5rem;">
                 <label class="form-label" style="font-size: 0.95rem; color: var(--accent);">Portée de publication & Annonce publique</label>
                 
-                <label class="checkbox-card" style="padding: 1.25rem; margin-top: 0.5rem; background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2);">
+                <label class="checkbox-card" style="padding: 1.25rem; margin-top: 0.5rem; background: rgba(59, 130, 246, 0.03); border-color: rgba(59, 130, 246, 0.2);">
+                    <input type="checkbox" name="visible_on_portal" id="id_visible_on_portal" {% if not is_edit or property.visible_on_portal %}checked{% endif %}>
+                    <div>
+                        <strong style="display: block; font-size: 1.05rem; margin-bottom: 0.15rem; color: var(--text-main);">Visible sur le portail LogerTogo.com</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Si désactivé, le bien ne sera visible et géré que dans votre espace SaaS privé, même s'il est approuvé.</span>
+                    </div>
+                </label>
+                
+                <label class="checkbox-card" style="padding: 1.25rem; margin-top: 1rem; background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2);">
                     <input type="checkbox" name="make_public" id="id_make_public" onchange="toggleWarningPanel()" {% if property.publication_requested or property.is_published %}checked{% endif %}>
                     <div>
                         <strong style="display: block; font-size: 1.05rem; margin-bottom: 0.15rem; color: var(--text-main);">Rendre ce bien disponible publiquement</strong>
@@ -569,6 +608,56 @@
         adjustPricingFields();
         toggleWarningPanel();
     });
+
+    // === MAPLIBRE GL JS - MAP PICKER ===
+    let pickerMap;
+    let pickerMarker;
+
+    function initMapPicker() {
+        if (pickerMap) return; // Already initialized
+
+        const latInput = document.getElementById('id_latitude');
+        const lngInput = document.getElementById('id_longitude');
+        
+        // Default to Lomé center
+        let defaultLng = 1.2228;
+        let defaultLat = 6.1311;
+        let initialZoom = 12;
+
+        if (latInput.value && lngInput.value) {
+            defaultLat = parseFloat(latInput.value);
+            defaultLng = parseFloat(lngInput.value);
+            initialZoom = 15;
+        }
+
+        pickerMap = new maplibregl.Map({
+            container: 'mapPicker',
+            style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', // Premium light style
+            center: [defaultLng, defaultLat],
+            zoom: initialZoom
+        });
+
+        pickerMap.addControl(new maplibregl.NavigationControl());
+
+        // Initial Marker
+        pickerMarker = new maplibregl.Marker({ color: "#e63946", draggable: true })
+            .setLngLat([defaultLng, defaultLat])
+            .addTo(pickerMap);
+
+        // Update inputs on drag end
+        pickerMarker.on('dragend', function() {
+            const lngLat = pickerMarker.getLngLat();
+            lngInput.value = lngLat.lng.toFixed(6);
+            latInput.value = lngLat.lat.toFixed(6);
+        });
+
+        // Click on map to move marker
+        pickerMap.on('click', function(e) {
+            pickerMarker.setLngLat(e.lngLat);
+            lngInput.value = e.lngLat.lng.toFixed(6);
+            latInput.value = e.lngLat.lat.toFixed(6);
+        });
+    }
 
     function showFileNames(input) {
         const fileList = document.getElementById('file-list');
@@ -771,6 +860,23 @@
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
         const btnSubmit = document.getElementById('btn-submit');
+
+        if (step === 3) {
+            // Lazy load the map only when step 3 is active
+            if (typeof maplibregl !== 'undefined') {
+                initMapPicker();
+                setTimeout(() => { if (pickerMap) pickerMap.resize(); }, 200);
+            } else {
+                // If script hasn't loaded yet, load it dynamically then init
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js';
+                script.onload = () => {
+                    initMapPicker();
+                    setTimeout(() => { if (pickerMap) pickerMap.resize(); }, 200);
+                };
+                document.head.appendChild(script);
+            }
+        }
 
         if (currentStep === 1) {
             btnPrev.style.visibility = 'hidden';

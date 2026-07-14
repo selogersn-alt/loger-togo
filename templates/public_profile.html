@@ -15,6 +15,33 @@
         <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
         <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}">
     {% endif %}
+
+    <!-- Données Structurées Schema.org pour Google Search (LocalBusiness) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "{% if viewed_user.role == 'HOTEL' %}Hotel{% else %}RealEstateAgent{% endif %}",
+      "name": "{{ viewed_user.company_name|default:viewed_user.get_full_name|escapejs }}",
+      "image": "{% if viewed_user.profile_picture %}{{ request.scheme }}://{{ request.get_host }}{{ viewed_user.profile_picture.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og_banner.png' %}{% endif %}",
+      "@id": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+      "telephone": "{{ viewed_user.phone_number|default:'' }}",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "{{ viewed_user.agency_address|default:''|escapejs }}",
+        "addressLocality": "{{ viewed_user.agency_city|default:''|escapejs }}",
+        "addressRegion": "{{ viewed_user.coverage_area|default:'Togo'|escapejs }}",
+        "addressCountry": "TG"
+      }
+      {% if viewed_user.agency_latitude and viewed_user.agency_longitude %}
+      ,"geo": {
+        "@type": "GeoCoordinates",
+        "latitude": {{ viewed_user.agency_latitude|stringformat:"f" }},
+        "longitude": {{ viewed_user.agency_longitude|stringformat:"f" }}
+      }
+      {% endif %}
+    }
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -117,6 +144,22 @@
         }
     </script>
 
+    <!-- Carte de localisation de l'établissement -->
+    {% if viewed_user.agency_latitude and viewed_user.agency_longitude %}
+    <div class="row mb-5 mt-4">
+        <div class="col-12">
+            <h4 class="fw-bold mb-3"><i class="fa-solid fa-map-location-dot text-success me-2"></i> {% trans "Emplacement de l'établissement" %}</h4>
+            <p class="text-muted mb-3"><i class="fa-solid fa-location-dot me-2"></i> {{ viewed_user.agency_address|default:"" }} {% if viewed_user.agency_neighborhood %}{{ viewed_user.agency_neighborhood }},{% endif %} {{ viewed_user.agency_city }}</p>
+            <div id="agency-map" style="height: 400px; width: 100%; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.05);"></div>
+            <div class="mt-3 d-flex justify-content-end">
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ viewed_user.agency_latitude|stringformat:'f' }},{{ viewed_user.agency_longitude|stringformat:'f' }}" target="_blank" class="btn btn-success rounded-pill fw-bold px-4 py-2 shadow-sm">
+                    <i class="fa-solid fa-route me-2"></i> {% trans "S'y rendre (Itinéraire GPS)" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Annonces de ce professionnel -->
     <div class="row align-items-end mb-4">
         <div class="col">
@@ -158,4 +201,60 @@
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if viewed_user.agency_latitude and viewed_user.agency_longitude %}
+<!-- MapLibre GL JS -->
+<link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+
+<style>
+.premium-marker {
+    background: #10b981;
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50% 50% 50% 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-45deg);
+    border: 3px solid white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    cursor: pointer;
+}
+.premium-marker i {
+    transform: rotate(45deg);
+    font-size: 16px;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var lat = parseFloat("{{ viewed_user.agency_latitude|stringformat:'f' }}".replace(',', '.'));
+        var lng = parseFloat("{{ viewed_user.agency_longitude|stringformat:'f' }}".replace(',', '.'));
+        
+        if (!isNaN(lat) && !isNaN(lng)) {
+            var map = new maplibregl.Map({
+                container: 'agency-map',
+                style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+                center: [lng, lat],
+                zoom: 15,
+                attributionControl: false
+            });
+
+            map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+            const el = document.createElement('div');
+            el.className = 'premium-marker';
+            el.innerHTML = '<i class="fa-solid fa-building"></i>';
+
+            new maplibregl.Marker({ element: el })
+                .setLngLat([lng, lat])
+                .addTo(map);
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

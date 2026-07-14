@@ -681,32 +681,68 @@ function initImageUpload() {
             });
 
             if (response.ok) {
-                // Si la réponse est une redirection ou un succès JSON
-                if (response.redirected) {
+                // Succès : la réponse est toujours du JSON ici (on a corrigé la vue Django)
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else if (data.id) {
+                        window.location.href = '/paiement/configurer/' + data.id + '/PUBLICATION/';
+                    } else {
+                        window.location.href = '/mon-compte/';
+                    }
+                } else if (response.redirected) {
+                    // Redirection native (non-AJAX fallback)
                     window.location.href = response.url;
                 } else {
-                    const data = await response.json().catch(() => ({}));
-                    if (data.redirect) window.location.href = data.redirect;
-                    else if (data.id) window.location.href = '/annonces/' + data.id + '/';
-                    else window.location.href = '/dashboard/';
+                    window.location.href = '/mon-compte/';
                 }
-            } else {
-                // Gestion des erreurs de validation (400)
-                if (response.status === 400) {
-                    const text = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(text, 'text/html');
-                    const newForm = doc.getElementById('property-form');
-                    if (newForm) {
-                        document.getElementById('property-form').innerHTML = newForm.innerHTML;
-                        initAll(); // Ré-attacher les événements
-                        goStep(1); // Retour à l'étape 1 pour voir les erreurs
-                    } else {
-                        window.location.reload();
+            } else if (response.status === 400) {
+                // Erreurs de validation retournées par Django (HTTP 400 + JSON)
+                isSubmitting = false;
+                if (overlay) overlay.style.display = 'none';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> {% trans "Corriger et republier" %}`;
+                }
+                
+                const data = await response.json().catch(() => null);
+                if (data && data.errors) {
+                    // Construire le message d'erreur lisible
+                    const fieldLabels = {
+                        'title': 'Titre',
+                        'listing_category': 'Catégorie',
+                        'property_type': 'Type de bien',
+                        'city': 'Ville',
+                        'price': 'Prix',
+                        'description': 'Description',
+                        'images': 'Photos',
+                        'document_type': 'Document',
+                        '__all__': 'Formulaire',
+                    };
+                    let errorHtml = '<strong>⚠️ {% trans "Corrigez les erreurs suivantes :" %}</strong><ul class="mb-0 mt-2">';
+                    for (const field in data.errors) {
+                        const label = fieldLabels[field] || field;
+                        data.errors[field].forEach(err => {
+                            errorHtml += `<li><strong>${label}</strong> : ${err.message}</li>`;
+                        });
                     }
-                } else {
-                    throw new Error('Server error: ' + response.status);
+                    errorHtml += '</ul>';
+                    
+                    // Supprimer les anciennes alertes d'erreur
+                    document.querySelectorAll('.ajax-error-alert').forEach(el => el.remove());
+                    
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger rounded-4 mb-4 ajax-error-alert';
+                    alertDiv.innerHTML = errorHtml;
+                    const formEl = document.getElementById('property-form');
+                    if (formEl) formEl.prepend(alertDiv);
                 }
+                goStep(1);
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            } else {
+                throw new Error('Server error: ' + response.status);
             }
         } catch (err) {
             console.error('Upload error:', err);
@@ -716,7 +752,14 @@ function initImageUpload() {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i> {% trans "Réessayer la publication" %}`;
             }
-            alert("{% trans 'Erreur de connexion ou d\'envoi. Veuillez vérifier votre connexion internet.'|escapejs %}");
+            // Afficher l'erreur dans la page plutôt qu'un alert() bloquant
+            document.querySelectorAll('.ajax-error-alert').forEach(el => el.remove());
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger rounded-4 mb-4 ajax-error-alert';
+            alertDiv.innerHTML = `<strong>⚠️ {% trans "Erreur d'envoi" %}</strong><br>{% trans "Une erreur technique est survenue. Vérifiez votre connexion puis réessayez." %} <small class="text-muted">(${err.message})</small>`;
+            const formEl = document.getElementById('property-form');
+            if (formEl) formEl.prepend(alertDiv);
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
     });
 }

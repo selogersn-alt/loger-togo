@@ -76,6 +76,7 @@ class Property(models.Model):
     has_courtyard = models.BooleanField(default=False, blank=True, verbose_name=_("Cour"))
     has_garden = models.BooleanField(default=False, blank=True, verbose_name=_("Jardin"))
     
+    visible_on_portal = models.BooleanField(default=True, verbose_name="Visible sur LogerTogo")
     is_published = models.BooleanField(default=False, db_index=True)
     is_authorized_by_admin = models.BooleanField(default=False, verbose_name="Autorisé par l'administrateur")
     publication_requested = models.BooleanField(default=False, verbose_name="Demande de publication")

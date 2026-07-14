@@ -13,9 +13,11 @@
             <h2 class="font-luxury" style="color: var(--primary-luxury);">Gestion des Chambres</h2>
             <p class="text-muted m-0">Consultez et modifiez les chambres et suites de votre établissement.</p>
         </div>
+        {% if not request.actual_user %}
         <a href="{% url 'hotel_room_create' %}" class="btn btn-luxury">
             <i class="fa-solid fa-plus me-2"></i>Ajouter une Chambre
         </a>
+        {% endif %}
     </div>
 
     <!-- Filters -->
@@ -56,9 +58,11 @@
                             {{ room.get_status_display }}
                         </span>
                         
+                        {% if not request.actual_user %}
                         <a href="{% url 'hotel_room_edit' room.id %}" class="text-secondary" title="Modifier">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </a>
+                        {% endif %}
                     </div>
                     
                     <h3 class="fw-bold mb-1 text-dark">N° {{ room.room_number }}</h3>
@@ -106,7 +110,9 @@
                 <i class="fa-solid fa-bed fs-1 d-block text-danger mb-3 opacity-40"></i>
                 <h4 class="fw-bold mb-1">Aucune chambre trouvée</h4>
                 <p class="small mb-3">Commencez par ajouter des chambres à votre portefeuille pour recevoir des réservations.</p>
+                {% if not request.actual_user %}
                 <a href="{% url 'hotel_room_create' %}" class="btn btn-luxury px-4 py-2 mt-2">Ajouter ma première chambre</a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

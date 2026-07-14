@@ -45,7 +45,7 @@ from logertogo.views import (
     home_view, dashboard_view, about_view, verified_professionals_view,
     start_support_view, kyc_submit_view, 
     initiate_payment_view, checkout_payment_view, payment_callback_view, payment_success_view, 
-    payment_request_sent_view,
+    payment_request_sent_view, fedapay_webhook_view,
     cgu_view, privacy_view, chat_poll_view,
     guide_locataires_view, guide_bailleurs_view, guide_agences_view, guide_courtiers_view,
 )
@@ -157,6 +157,7 @@ urlpatterns = [
     path('payments/callback/', payment_callback_view), # Alias international pour éviter les 404
     path('paiement/succes/<uuid:transaction_id>/', payment_success_view, name='payment_success'),
     path('paiements/demande-envoyee/', payment_request_sent_view, name='payment_request_sent'),
+    path('api/fedapay/webhook/', fedapay_webhook_view, name='fedapay_webhook'),
     
     # Nouvelles Routes UX & Légal
     path('cgu/', cgu_view, name='cgu'),
@@ -177,6 +178,9 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    
+    # Text Editor (CKEditor)
+    path('ckeditor/', include('ckeditor_uploader.urls')),
     
     # Sitemap & SEO
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

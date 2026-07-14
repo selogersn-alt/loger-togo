@@ -92,7 +92,14 @@ def update_profile_view(request):
             return redirect('dashboard')
     else:
         form = UserProfileForm(instance=request.user)
-    return render(request, 'profile_update.html', {'form': form})
+        
+    from logersn.constants import CITY_CHOICES, TOGO_NEIGHBORHOODS
+    context = {
+        'form': form,
+        'city_choices': CITY_CHOICES,
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS,
+    }
+    return render(request, 'profile_update.html', context)
 
 def verify_phone_view(request):
     if request.user.is_authenticated:

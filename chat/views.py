@@ -161,7 +161,16 @@ def messagerie_view(request):
     elif conversations.exists():
         active_conv = conversations.first()
         
+    # Dynamically select the base template depending on the SaaS subdomain
+    host = request.get_host() or ''
+    base_template = 'base.html'
+    if 'hotels' in host:
+        base_template = 'hotel/base_hotel.html'
+    elif 'agence' in host:
+        base_template = 'agency/base_agency.html'
+        
     return render(request, 'chat/messagerie.html', {
         'conversations': conversations,
-        'active_conv': active_conv
+        'active_conv': active_conv,
+        'base_template': base_template
     })

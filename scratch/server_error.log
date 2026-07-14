@@ -1,0 +1,101 @@
+STDOUT:
+web-1  |   Applying management.0018_hotelroom_visible_on_portal_hotelroomimage_and_more...═══════════════════════════════════════════════════
+web-1  |    Loger Togo — Démarrage Production (Hetzner VPS)
+web-1  | ═══════════════════════════════════════════════════
+web-1  | [1/5] Attente de la base de données PostgreSQL...
+web-1  | [2/5] Application des migrations...
+web-1  | Database Engine: django.db.backends.postgresql
+web-1  | Operations to perform:
+web-1  |   Apply all migrations: admin, ads, auth, blog, chat, contenttypes, logersn, management, sessions, sites, users
+web-1  | Running migrations:
+web-1  | Traceback (most recent call last):
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/utils.py", line 103, in _execute
+web-1  |     return self.cursor.execute(sql)
+web-1  |            ~~~~~~~~~~~~~~~~~~~^^^^^
+web-1  | psycopg2.errors.DuplicateColumn: column "visible_on_portal" of relation "management_hotelroom" already exists
+web-1  | 
+web-1  | 
+web-1  | The above exception was the direct cause of the following exception:
+web-1  | 
+web-1  | Traceback (most recent call last):
+web-1  |   File "/app/manage.py", line 22, in <module>
+web-1  |     main()
+web-1  |     ~~~~^^
+web-1  |   File "/app/manage.py", line 18, in main
+web-1  |     execute_from_command_line(sys.argv)
+web-1  |     ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/__init__.py", line 443, in execute_from_command_line
+web-1  |     utility.execute()
+web-1  |     ~~~~~~~~~~~~~~~^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/__init__.py", line 437, in execute
+web-1  |     self.fetch_command(subcommand).run_from_argv(self.argv)
+web-1  |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/base.py", line 420, in run_from_argv
+web-1  |     self.execute(*args, **cmd_options)
+web-1  |     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/base.py", line 464, in execute
+web-1  |     output = self.handle(*args, **options)
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/base.py", line 111, in wrapper
+web-1  |     res = handle_func(*args, **kwargs)
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/core/management/commands/migrate.py", line 354, in handle
+web-1  |     post_migrate_state = executor.migrate(
+web-1  |         targets,
+web-1  |     ...<3 lines>...
+web-1  |         fake_initial=fake_initial,
+web-1  |     )
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/migrations/executor.py", line 137, in migrate
+web-1  |     state = self._migrate_all_forwards(
+web-1  |         state, plan, full_plan, fake=fake, fake_initial=fake_initial
+web-1  |     )
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/migrations/executor.py", line 169, in _migrate_all_forwards
+web-1  |     state = self.apply_migration(
+web-1  |         state, migration, fake=fake, fake_initial=fake_initial
+web-1  |     )
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/migrations/executor.py", line 257, in apply_migration
+web-1  |     state = migration.apply(state, schema_editor)
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/migrations/migration.py", line 132, in apply
+web-1  |     operation.database_forwards(
+web-1  |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+web-1  |         self.app_label, schema_editor, old_state, project_state
+web-1  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |     )
+web-1  |     ^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/migrations/operations/fields.py", line 118, in database_forwards
+web-1  |     schema_editor.add_field(
+web-1  |     ~~~~~~~~~~~~~~~~~~~~~~~^
+web-1  |         from_model,
+web-1  |         ^^^^^^^^^^^
+web-1  |         field,
+web-1  |         ^^^^^^
+web-1  |     )
+web-1  |     ^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/base/schema.py", line 776, in add_field
+web-1  |     self.execute(sql, params or None)
+web-1  |     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/postgresql/schema.py", line 48, in execute
+web-1  |     return super().execute(sql, None)
+web-1  |            ~~~~~~~~~~~~~~~^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/base/schema.py", line 205, in execute
+web-1  |     cursor.execute(sql, params)
+web-1  |     ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/utils.py", line 79, in execute
+web-1  |     return self._execute_with_wrappers(
+web-1  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+web-1  |         sql, params, many=False, executor=self._execute
+web-1  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |     )
+web-1  |     ^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+web-1  |     return executor(sql, params, many, context)
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/utils.py", line 100, in _execute
+web-1  |     with self.db.wrap_database_errors:
+web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/utils.py", line 94, in __exit__
+web-1  |     raise dj_exc_value.with_traceback(traceback) from exc_value
+web-1  |   File "/usr/local/lib/python3.13/site-packages/django/db/backends/utils.py", line 103, in _execute
+web-1  |     return self.cursor.execute(sql)
+web-1  |            ~~~~~~~~~~~~~~~~~~~^^^^^
+web-1  | django.db.utils.ProgrammingError: column "visible_on_portal" of relation "management_hotelroom" already exists
+web-1  | 
+
+STDERR:

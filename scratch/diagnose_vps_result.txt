@@ -1,0 +1,707 @@
+=== VPS DIAGNOSTIC REPORT ===
+
+
+================ Docker containers (docker ps) ================
+Command: docker ps
+--- STDOUT ---
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED          STATUS                  PORTS                                                                                NAMES
+b50e5598db44   app_logersenegal-web                    "gunicorn agenceloge…"   50 minutes ago   Up 50 minutes           8000/tcp                                                                             agenceloger_web
+a1cb47d08fbc   nginx:1.27-alpine                       "/docker-entrypoint.…"   27 hours ago     Up 25 hours             0.0.0.0:8081->80/tcp, [::]:8081->80/tcp, 0.0.0.0:8443->443/tcp, [::]:8443->443/tcp   agenceloger_nginx
+c675375eab45   certbot/certbot:latest                  "/bin/sh -c 'trap ex…"   27 hours ago     Up 27 hours             80/tcp, 443/tcp                                                                      agenceloger_certbot
+b2811d06c362   postgres:16-alpine                      "docker-entrypoint.s…"   27 hours ago     Up 27 hours (healthy)   0.0.0.0:9947->5432/tcp, [::]:9947->5432/tcp                                          agenceloger_db
+6e173bf7ed4f   h-finance-frontend                      "/docker-entrypoint.…"   46 hours ago     Up 46 hours (healthy)   0.0.0.0:8090->80/tcp, [::]:8090->80/tcp                                              h-finance-frontend
+6dcce26f1cba   h-finance-backend                       "docker-entrypoint.s…"   46 hours ago     Up 46 hours (healthy)   127.0.0.1:5001->5000/tcp                                                             h-finance-backend
+aaee39e6c3e8   pari-get-frontend                       "/docker-entrypoint.…"   7 days ago       Up 7 days (healthy)     0.0.0.0:8095->80/tcp, [::]:8095->80/tcp                                              pari-get-frontend
+83ddecbcc5f7   pari-get-backend                        "docker-entrypoint.s…"   7 days ago       Up 7 days (healthy)     127.0.0.1:5006->5005/tcp                                                             pari-get-backend
+2781b1b58442   digitalh-site-image                     "docker-entrypoint.s…"   9 days ago       Up 8 days               0.0.0.0:3015->3000/tcp, [::]:3015->3000/tcp                                          digitalh-site
+68778ad289dd   app-web                                 "/scripts/entrypoint…"   2 weeks ago      Up 8 days               8000/tcp                                                                             app-web-1
+c43782148f9e   dorocaviar-celery                       "celery -A core work…"   2 weeks ago      Up 2 hours              8000/tcp                                                                             dorocaviar_celery
+4080948b3aa9   dorocaviar-web                          "sh -c 'python manag…"   2 weeks ago      Up 2 hours              0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp                                          dorocaviar_web
+efcf33bb5dda   postgres:15-alpine                      "docker-entrypoint.s…"   2 weeks ago      Up 2 hours              0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp                                          dorocaviar_db
+86ca4217e04e   redis:7-alpine                          "docker-entrypoint.s…"   2 weeks ago      Up 2 hours              127.0.0.1:6379->6379/tcp                                                             dorocaviar_redis
+b1c7d12ee279   telechargeur-frontend                   "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:13000->3000/tcp, [::]:13000->3000/tcp                                        telechargeur-frontend
+cd961cbba20d   telechargeur-worker                     "docker-entrypoint.s…"   2 weeks ago      Up 8 days                                                                                                    telechargeur-worker
+3ccee8bdf9da   telechargeur-api                        "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:13001->3001/tcp, [::]:13001->3001/tcp                                        telechargeur-api
+d4a67b2f4efe   postgres:15-alpine                      "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:15432->5432/tcp, [::]:15432->5432/tcp                                        telechargeur-postgres
+422b0695e26c   redis:7-alpine                          "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:16379->6379/tcp, [::]:16379->6379/tcp                                        telechargeur-redis
+e3eea0bce5a7   nihan-backend-maison-nihan-backend      "docker-entrypoint.s…"   2 weeks ago      Up 4 minutes            0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp                                          maison-nihan-backend
+bcf7c73d32cd   postgres:15-alpine                      "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:9946->5432/tcp, [::]:9946->5432/tcp                                          maison-nihan-db
+5a512ba59c0d   nihan-backend-maison-nihan-storefront   "docker-entrypoint.s…"   2 weeks ago      Up 2 hours              0.0.0.0:8080->8000/tcp, [::]:8080->8000/tcp                                          maison-nihan-storefront
+4011572d25f0   redis:7-alpine                          "docker-entrypoint.s…"   2 weeks ago      Up 8 days               6379/tcp                                                                             maison-nihan-redis
+172e71193ecc   influencer-frontend                     "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:3005->3000/tcp, [::]:3005->3000/tcp                                          aistudio_frontend
+4008f44e13df   influencer-backend                      "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:3001->3001/tcp, [::]:3001->3001/tcp                                          aistudio_backend
+1eb6f35e7bf1   postgres:15-alpine                      "docker-entrypoint.s…"   2 weeks ago      Up 8 days               0.0.0.0:5435->5432/tcp, [::]:5435->5432/tcp                                          aistudio_db
+fcd5340f286a   nginx:alpine                            "/docker-entrypoint.…"   4 weeks ago      Up 46 hours             0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp         app-nginx-1
+582c6c12dfe0   postgres:15                             "docker-entrypoint.s…"   4 weeks ago      Up 8 days (healthy)     5432/tcp                                                                             app-db-1
+
+================ Host Nginx service status ================
+Command: systemctl status nginx || echo 'No host Nginx'
+--- STDOUT ---
+× nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; disabled; preset: enabled)
+     Active: failed (Result: exit-code) since Sat 2026-06-13 13:43:54 UTC; 1 day 1h ago
+       Docs: man:nginx(8)
+    Process: 2876087 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+    Process: 2876089 ExecStart=/usr/sbin/nginx -g daemon on; master_process on; (code=exited, status=1/FAILURE)
+        CPU: 7ms
+
+Jun 13 13:43:52 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+Jun 13 13:43:52 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] bind() to [::]:80 failed (98: Address already in use)
+Jun 13 13:43:53 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+Jun 13 13:43:53 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] bind() to [::]:80 failed (98: Address already in use)
+Jun 13 13:43:53 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+Jun 13 13:43:53 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] bind() to [::]:80 failed (98: Address already in use)
+Jun 13 13:43:54 ubuntu-4gb-nbg1-1 nginx[2876089]: nginx: [emerg] still could not bind()
+Jun 13 13:43:54 ubuntu-4gb-nbg1-1 systemd[1]: nginx.service: Control process exited, code=exited, status=1/FAILURE
+Jun 13 13:43:54 ubuntu-4gb-nbg1-1 systemd[1]: nginx.service: Failed with result 'exit-code'.
+Jun 13 13:43:54 ubuntu-4gb-nbg1-1 systemd[1]: Failed to start nginx.service - A high performance web server and a reverse proxy server.
+No host Nginx
+
+================ Host Nginx sites enabled ================
+Command: ls -la /etc/nginx/sites-enabled/ || echo 'No sites-enabled'
+--- STDOUT ---
+total 8
+drwxr-xr-x 2 root root 4096 Jun  6 05:17 .
+drwxr-xr-x 8 root root 4096 Jun 10 06:02 ..
+lrwxrwxrwx 1 root root   36 Jun  6 05:17 h-finance -> /etc/nginx/sites-available/h-finance
+
+================ Host Nginx logertogo.com config ================
+Command: cat /etc/nginx/sites-enabled/logertogo.com || cat /etc/nginx/sites-available/logertogo.com || echo 'No logertogo host config'
+--- STDOUT ---
+No logertogo host config
+--- STDERR ---
+cat: /etc/nginx/sites-enabled/logertogo.com: No such file or directory
+cat: /etc/nginx/sites-available/logertogo.com: No such file or directory
+
+================ Host Nginx default config ================
+Command: cat /etc/nginx/sites-enabled/default || echo 'No default host config'
+--- STDOUT ---
+No default host config
+--- STDERR ---
+cat: /etc/nginx/sites-enabled/default: No such file or directory
+
+================ Docker Nginx config (/app/nginx/default.conf) ================
+Command: cat /app/nginx/default.conf || echo 'No /app/nginx/default.conf'
+--- STDOUT ---
+# =============================================================================
+# Nginx VPS — Reverse Proxy Global (Docker app-nginx-1)
+# =============================================================================
+
+# ── BLOC PAR DÉFAUT (LOGERTOGO) ──────────────────────────────────────────────
+server {
+    listen 80 default_server;
+    server_name _;
+    return 301 http://logertogo.com$request_uri;
+}
+
+# ── LOGERTOGO.COM ──────────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name logertogo.com www.logertogo.com agence.logertogo.com hotels.logertogo.com;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name logertogo.com www.logertogo.com agence.logertogo.com hotels.logertogo.com;
+
+    ssl_certificate     /etc/letsencrypt/live/logertogo.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/logertogo.com/privkey.pem;
+
+    client_max_body_size 500M;
+    client_body_buffer_size 256k;
+    client_body_timeout 300s;
+
+    # Parametres SSL securises
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    location / {
+        proxy_pass http://web:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static/ {
+        alias /app/staticfiles/;
+    }
+
+    location /media/ {
+        alias /app/media/;
+    }
+}
+
+# ── H-FINANCE ────────────────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name finance.digitalh.net;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name finance.digitalh.net;
+    client_max_body_size 2000M;
+
+    ssl_certificate     /etc/letsencrypt/live/finance.digitalh.net/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/finance.digitalh.net/privkey.pem;   
+
+    # Parametres SSL securises
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    location / {
+        proxy_pass http://157.180.127.70:8090;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ── AGENCE LOGER SENEGAL ─────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name agence.logersenegal.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name agence.logersenegal.com;
+    client_max_body_size 100M;
+
+    ssl_certificate     /etc/letsencrypt/live/agence.logersenegal.com/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/agence.logersenegal.com/privkey.pem;   
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;      
+    add_header X-XSS-Protection "1; mode=block" always;      
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location / {
+        proxy_pass http://157.180.127.70:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+
+# ── DIGITALH.NET ─────────────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name digitalh.net www.digitalh.net;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name digitalh.net www.digitalh.net;
+    client_max_body_size 100M;
+
+    ssl_certificate     /etc/letsencrypt/live/digitalh.net/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/digitalh.net/privkey.pem;   
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;      
+    add_header X-XSS-Protection "1; mode=block" always;      
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location / {
+        proxy_pass http://157.180.127.70:3015;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+
+# ── SAVE.DIGITALH.NET ────────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name save.digitalh.net;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name save.digitalh.net;
+    client_max_body_size 2000M;
+
+    ssl_certificate     /etc/letsencrypt/live/save.digitalh.net/fullchain.pem;        
+    ssl_certificate_key /etc/letsencrypt/live/save.digitalh.net/privkey.pem;      
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    location / {
+        proxy_pass http://157.180.127.70:13000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ── DORO.DIGITALH.NET ────────────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name doro.digitalh.net;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name doro.digitalh.net;
+    client_max_body_size 2000M;
+
+    ssl_certificate     /etc/letsencrypt/live/doro.digitalh.net/fullchain.pem;        
+    ssl_certificate_key /etc/letsencrypt/live/doro.digitalh.net/privkey.pem;      
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    location / {
+        proxy_pass http://157.180.127.70:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ── INFLUENCEUR.DIGITALH.NET ─────────────────────────────────────────────────
+server {
+    listen 80;
+    server_name influenceur.digitalh.net;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name influenceur.digitalh.net;
+    client_max_body_size 100M;
+
+    ssl_certificate     /etc/letsencrypt/live/influenceur.digitalh.net/fullchain.pem;        
+    ssl_certificate_key /etc/letsencrypt/live/influenceur.digitalh.net/privkey.pem;      
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    location / {
+        proxy_pass http://157.180.127.70:3005;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ── PARI.DIGITALH.NET / WWW.PARI.DIGITALH.NET ────────────────────────────────
+server {
+    listen 80;
+    server_name pari.digitalh.net www.pari.digitalh.net;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name pari.digitalh.net www.pari.digitalh.net;
+    client_max_body_size 100M;
+
+    ssl_certificate     /etc/letsencrypt/live/www.pari.digitalh.net/fullchain.pem;        
+    ssl_certificate_key /etc/letsencrypt/live/www.pari.digitalh.net/privkey.pem;      
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    location / {
+        proxy_pass http://157.180.127.70:8095;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+================ Docker Nginx SSL config (/app/nginx/default.conf.ssl) ================
+Command: cat /app/nginx/default.conf.ssl || echo 'No /app/nginx/default.conf.ssl'
+--- STDOUT ---
+# Bloc par défaut : capte l'IP brute en HTTP
+server {
+    listen 80 default_server;
+    server_name _;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 80;
+    server_name logertogo.com www.logertogo.com agence.logertogo.com hotels.logertogo.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name logertogo.com www.logertogo.com agence.logertogo.com hotels.logertogo.com;
+
+    ssl_certificate /etc/letsencrypt/live/logertogo.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/logertogo.com/privkey.pem;
+
+    client_max_body_size 100M;
+
+    location / {
+        proxy_pass http://web:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static/ {
+        alias /app/staticfiles/;
+    }
+
+    location /media/ {
+        alias /app/media/;
+    }
+}
+
+================ Local settings on VPS ================
+Command: cat /app/logertogo/local_settings.py || echo 'No local_settings.py'
+--- STDOUT ---
+No local_settings.py
+--- STDERR ---
+cat: /app/logertogo/local_settings.py: No such file or directory
+
+================ Nginx container logs ================
+Command: cd /app && docker compose logs --tail=50 nginx
+--- STDOUT ---
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:32:19 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:32:19 +0000] "GET /api/status HTTP/1.1" 200 171 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:32:22 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 66.249.70.98 - - [14/Jun/2026:15:32:24 +0000] "GET /robots.txt HTTP/1.1" 200 108 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:32:32 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:32:42 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:32:52 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:33:19 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:33:19 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:33:19 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:33:19 +0000] "GET /api/status HTTP/1.1" 200 171 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:35:20 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:35:41 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:35:41 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:35:42 +0000] "GET /api/status HTTP/1.1" 200 171 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 172.71.232.68 - - [14/Jun/2026:15:36:04 +0000] "GET /.well-known/security.txt HTTP/1.1" 301 169 "-" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity" "198.235.24.196"
+nginx-1  | 172.71.123.144 - - [14/Jun/2026:15:36:04 +0000] "GET /.well-known/security.txt HTTP/1.1" 301 169 "-" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity" "198.235.24.196"
+nginx-1  | 172.71.130.123 - - [14/Jun/2026:15:36:05 +0000] "GET /.well-known/security.txt HTTP/1.1" 301 169 "-" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity" "198.235.24.196"
+nginx-1  | 172.71.232.68 - - [14/Jun/2026:15:36:05 +0000] "GET /.well-known/security.txt HTTP/1.1" 301 169 "-" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity" "198.235.24.196"
+nginx-1  | 104.23.229.76 - - [14/Jun/2026:15:36:05 +0000] "GET /.well-known/security.txt HTTP/1.1" 301 169 "-" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity" "198.235.24.196"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:36:28 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:36:39 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:36:41 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:36:41 +0000] "GET /api/status HTTP/1.1" 200 171 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:36:44 +0000] "GET /dashboard/ HTTP/1.1" 200 17227 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:36:53 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:15 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 172.68.26.168 - - [14/Jun/2026:15:37:17 +0000] "GET /robots.txt HTTP/1.1" 301 169 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "66.249.74.134"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:19 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:22 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:23 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:23 +0000] "GET /api/status HTTP/1.1" 200 171 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:23 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:39 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 176.65.139.236 - - [14/Jun/2026:15:37:42 +0000] "GET / HTTP/1.1" 200 965 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:44 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:37:53 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:38:03 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:38:19 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:38:19 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:38:19 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:38:19 +0000] "GET /api/status HTTP/1.1" 200 171 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:39:19 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:39:19 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:39:19 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:39:20 +0000] "GET /api/status HTTP/1.1" 200 170 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:40:19 +0000] "GET /api/watchlist HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:40:19 +0000] "GET /api/alerts HTTP/1.1" 401 36 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:40:19 +0000] "GET /api/notifications/unread/ HTTP/1.1" 200 54 "https://agence.logersenegal.com/dashboard/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+nginx-1  | 196.170.93.222 - - [14/Jun/2026:15:40:19 +0000] "GET /api/status HTTP/1.1" 200 170 "https://finance.digitalh.net/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" "-"
+
+================ Web container logs ================
+Command: cd /app && docker compose logs --tail=50 web
+--- STDOUT ---
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /admin/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; Android 8.0.0; SM-G965U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.89 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /site/.git/config HTTP/1.1" 400 143 "-" "Screaming Frog SEO Spider/8.1"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /laravel/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; Android 9; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.89 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /code/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.19 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /app/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; Android 8.1.0; SM-T580) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.111 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /shop/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /assets/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Droid Build/FRG22D) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /project/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (compatible; alexa site audit/1.0; +http://www.alexa.com/help/webmasters; )"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /symfony/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Windows Phone 10.0; Android 4.2.1; DEVICE INFO) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Mobile Safari/537.36 Edge/12.0"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /portal/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.90 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /dist/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; Android 9; motorola one vision) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.111 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /v1/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (X11; FreeBSD amd64; rv:54.0) Gecko/20100101 Firefox/54.0"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /public/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; U; Android 1.0; en-us; dream) AppleWebKit/525.10  (KHTML, like Gecko) Version/3.0.4 Mobile Safari/523.12.2"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /www/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) coc_coc_browser/80.0.180 Chrome/74.0.3729.180 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.78.1 (KHTML like Gecko) Version/7.0.6 Safari/537.78.1"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /api/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6 GTB5"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /v2/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /html/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /dashboard/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; Android 9; MI 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.111 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:20:40 +0000] "GET /wp-content/.git/config HTTP/1.1" 400 143 "-" "Mozilla/5.0 (Linux; Android 9; ANE-LX1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.111 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /.git/config HTTP/1.1" 404 42065 "-" "Mozilla/5.0 (Linux; Android 9; COL-L29) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.111 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /app/.git/config HTTP/1.1" 404 42077 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /src/.git/config HTTP/1.1" 404 42077 "-" "Mozilla/5.0 (X11; U; Linux; i686; en-US; rv:1.6) Gecko Epiphany/1.2.5"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /backend/.git/config HTTP/1.1" 404 42089 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /frontend/.git/config HTTP/1.1" 404 42092 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3844.0 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /api/.git/config HTTP/1.1" 404 42077 "-" "NetSurf/1.2 (NetBSD; amd64)"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /v1/.git/config HTTP/1.1" 404 42074 "-" "Mozilla/5.0 (X11; Linux) KHTML/4.9.1 (like Gecko) Konqueror/4.9"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /v2/.git/config HTTP/1.1" 404 42074 "-" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /v3/.git/config HTTP/1.1" 404 42074 "-" "Mozilla/5.0 (compatible; Konqueror/4.4; Linux 2.6.32-22-generic; X11; en_US) KHTML/4.4.3 (like Gecko) Kubuntu"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /web/.git/config HTTP/1.1" 404 42077 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /www/.git/config HTTP/1.1" 404 42077 "-" "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.14 (KHTML, like Gecko) Chrome/10.0.601.0 Safari/534.14"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /html/.git/config HTTP/1.1" 404 42080 "-" "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /htdocs/.git/config HTTP/1.1" 404 42086 "-" "Mozilla/5.0 (iPad; CPU OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Mobile/13F69"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /public/.git/config HTTP/1.1" 404 42086 "-" "Mozilla/5.0 (Linux; Android 6.0; Nexus 5X Build/MDB08L) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.124 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /assets/.git/config HTTP/1.1" 404 42086 "-" "BlackBerry8320/4.2.2 Profile/MIDP-2.0 Configuration/CLDC-1.1 VendorID/100"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /dist/.git/config HTTP/1.1" 404 42080 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3881.0 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /admin/.git/config HTTP/1.1" 302 0 "-" "Mozilla/5.0 (Linux; Android 8.1.0; Mi Note 3 Build/OPM1.171019.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044813 Mobile Safari/537.36 MMWEBID/6858 MicroMessenger/7.0.5.1440(0x27000537) Process/tools NetType/4G Language/zh_CN"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /build/.git/config HTTP/1.1" 404 42083 "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1) Gecko/20090624 Firefox/3.5"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /portal/.git/config HTTP/1.1" 404 42086 "-" "Mozilla/5.0 (Linux; Android 9; Pixel 2 XL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.89 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /dashboard/.git/config HTTP/1.1" 404 42095 "-" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.96 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /site/.git/config HTTP/1.1" 404 42080 "-" "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /blog/.git/config HTTP/1.1" 404 42080 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3792.0 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /shop/.git/config HTTP/1.1" 404 42080 "-" "Mozilla/5.0 (Linux; Android 8.1.0; ZB602KL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.89 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /wp-content/.git/config HTTP/1.1" 404 42098 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.35 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /wordpress/.git/config HTTP/1.1" 404 42095 "-" "Mozilla/5.0 (Linux; U; Android 4.0.3; de-ch; HTC Sensation Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /laravel/.git/config HTTP/1.1" 404 42089 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/604.1 (KHTML, like Gecko) Version/11.0 Safari/604.1 Ubuntu/17.04 (3.24.1-0ubuntu1) Epiphany/3.24.1"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /symfony/.git/config HTTP/1.1" 404 42089 "-" "Mozilla/5.0 (Linux; Android 9; G8141) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.111 Mobile Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /project/.git/config HTTP/1.1" 404 42089 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:27:57 +0000] "GET /code/.git/config HTTP/1.1" 404 42080 "-" "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)"
+web-1  | 172.18.0.4 - - [14/Jun/2026:15:32:00 +0000] "GET / HTTP/1.1" 200 175214 "-" "Hello from Palo Alto Networks, find out more about our scans in https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity"
+
+================ Curl test direct to Web (Django) ================
+Command: cd /app && docker compose exec -T web curl -I http://localhost:8000 || curl -I http://localhost:8000
+--- STDOUT ---
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Sun, 14 Jun 2026 15:40:39 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+X-Frame-Options: DENY
+Content-Length: 175209
+Vary: Accept-Language, Cookie, origin
+Content-Language: fr
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+--- STDERR ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0  171k    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+================ Curl test subdomain directly to Web ================
+Command: curl -I -H 'Host: agence.logertogo.com' http://127.0.0.1:8000
+--- STDOUT ---
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Sun, 14 Jun 2026 15:40:40 GMT
+Connection: close
+Content-Type: text/html; charset=utf-8
+X-Frame-Options: DENY
+Vary: Cookie
+Content-Length: 79054
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+Set-Cookie: csrftoken=ALbff9a5hGRL6ofne5Kz52g2LiAfEg3a; expires=Sun, 13 Jun 2027 15:40:40 GMT; Max-Age=31449600; Path=/; SameSite=Lax
+
+--- STDERR ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0 79054    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+================ Curl test HTTP port 80 ================
+Command: curl -I http://127.0.0.1
+--- STDOUT ---
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.29.8
+Date: Sun, 14 Jun 2026 15:40:40 GMT
+Content-Type: text/html
+Content-Length: 169
+Connection: keep-alive
+Location: http://logertogo.com/
+
+--- STDERR ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0   169    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+================ Curl test HTTPS port 443 ================
+Command: curl -k -I https://127.0.0.1
+--- STDOUT ---
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Sun, 14 Jun 2026 15:40:41 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 175185
+Connection: keep-alive
+X-Frame-Options: DENY
+Vary: Accept-Language, Cookie, origin
+Content-Language: fr
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+--- STDERR ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0  171k    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+================ Curl test subdomain HTTP port 80 ================
+Command: curl -I -H 'Host: agence.logertogo.com' http://127.0.0.1
+--- STDOUT ---
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.29.8
+Date: Sun, 14 Jun 2026 15:40:41 GMT
+Content-Type: text/html
+Content-Length: 169
+Connection: keep-alive
+Location: https://agence.logertogo.com/
+
+--- STDERR ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0   169    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+================ Curl test subdomain HTTPS port 443 ================
+Command: curl -k -I -H 'Host: agence.logertogo.com' https://127.0.0.1
+--- STDOUT ---
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Sun, 14 Jun 2026 15:40:42 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 23223
+Connection: keep-alive
+X-Frame-Options: DENY
+Vary: Cookie, Accept-Language, origin
+Content-Language: fr
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+Set-Cookie: csrftoken=Somf1Gk7rFvD7cEsWqFbHHUgNG7mUCRD; Domain=.logertogo.com; expires=Sun, 13 Jun 2027 15:40:42 GMT; Max-Age=31449600; Path=/; SameSite=Lax; Secure
+
+--- STDERR ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0 23223    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0

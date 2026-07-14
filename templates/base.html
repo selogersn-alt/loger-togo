@@ -425,6 +425,10 @@
             border-radius: 50px;
             padding: 8px 16px !important;
             margin: 0 5px !important;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         .nav-link-near-me:hover {
             background: rgba(40, 167, 69, 0.15);
@@ -686,13 +690,22 @@
                         <a class="nav-link" href="{% url 'properties_list' %}">{% trans "Annonces" %}</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link nav-link-near-me text-success fw-bold" href="{% url 'near_me' %}"><i class="fa-solid fa-map-location-dot"></i> {% trans "Hôtels et Auberges" %}</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'professionals_list' %}">{% trans "Agences & Pros" %}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:post_list' %}">{% trans "Blog" %}</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-success fw-semibold" href="http://agence.logertogo.com/" target="_blank"><i class="fa-solid fa-hotel me-1"></i>{% trans "Espace Agence" %}</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-success fw-bold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-laptop-house"></i> {% trans "Accès Pro" %}
+                        </a>
+                        <ul class="dropdown-menu shadow border-0 p-2 mt-2" style="border-radius: 15px;">
+                            <li><a class="dropdown-item rounded py-2 fw-semibold" href="http://agence.logertogo.com/" target="_blank"><i class="fa-solid fa-house-chimney-user me-2 text-success"></i> {% trans "Espace Agences Immo" %}</a></li>
+                            <li><a class="dropdown-item rounded py-2 fw-semibold" href="http://hotels.logertogo.com/" target="_blank"><i class="fa-solid fa-hotel me-2 text-primary"></i> {% trans "Espace Hôtels & Auberges" %}</a></li>
+                        </ul>
                     </li>
 
                     
@@ -747,36 +760,19 @@
                         </button>
                     </li>
 
-                    <!-- Language Switcher -->
-                    <li class="nav-item dropdown ms-lg-2">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {% get_current_language as LANGUAGE_CODE %}
-                            {% if LANGUAGE_CODE == 'fr' %}
-                                <span class="me-1">🇫🇷</span> FR
-                            {% else %}
-                                <span class="me-1">🇺🇸</span> EN
-                            {% endif %}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="langDropdown" style="border-radius: 12px;">
-                            <li>
-                                <form action="{% url 'set_language' %}" method="post">
-                                    {% csrf_token %}
-                                    <input name="next" type="hidden" value="{{ request.path }}">
-                                    <button name="language" value="fr" class="dropdown-item d-flex align-items-center {% if LANGUAGE_CODE == 'fr' %}active{% endif %}">
-                                        <span class="me-2">🇫🇷</span> Français
-                                    </button>
-                                </form>
-                            </li>
-                            <li>
-                                <form action="{% url 'set_language' %}" method="post">
-                                    {% csrf_token %}
-                                    <input name="next" type="hidden" value="{{ request.path }}">
-                                    <button name="language" value="en" class="dropdown-item d-flex align-items-center {% if LANGUAGE_CODE == 'en' %}active{% endif %}">
-                                        <span class="me-2">🇺🇸</span> English
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                    <!-- Language Switcher (Universal GTranslate) -->
+                    <li class="nav-item ms-lg-2 d-flex align-items-center">
+                        <div class="gtranslate_wrapper"></div>
+                        <script>
+                            window.gtranslateSettings = {
+                                "default_language": "fr",
+                                "detect_browser_language": true,
+                                "wrapper_selector": ".gtranslate_wrapper",
+                                "switcher_horizontal_position": "right",
+                                "flag_style": "3d"
+                            }
+                        </script>
+                        <script src="https://cdn.gtranslate.net/widgets/latest/dropdown.js" defer></script>
                     </li>
                 </ul>
             </div>
@@ -882,14 +878,16 @@
                         <li class="mb-2"><a href="{% url 'guide_bailleurs' %}" class="footer-link">{% trans "Guide Bailleurs" %}</a></li>
                         <li class="mb-2"><a href="{% url 'guide_agences' %}" class="footer-link">{% trans "Guide Agences" %}</a></li>
                         <li class="mb-2"><a href="{% url 'guide_courtiers' %}" class="footer-link">{% trans "Guide Démarcheurs" %}</a></li>
+                        <li class="mb-2"><a href="{% url 'blog:post_list' %}" class="footer-link fw-bold text-warning"><i class="fa-solid fa-newspaper me-2"></i>{% trans "Blog & Actualités" %}</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3" style="color: var(--color-yellow);">{% trans "Nos Partenaires" %}</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="https://logersenegal.com" class="footer-link" target="_blank"><i class="fa-solid fa-handshake-angle me-2"></i>Loger Sénégal</a></li>
+                        <li class="mb-2"><a href="https://logerbenin.com" class="footer-link" target="_blank"><i class="fa-solid fa-handshake-angle me-2"></i>Loger Bénin</a></li>
                         <li class="mb-2"><a href="mailto:serviceclient@Logertogo.com" class="footer-link"><i class="fa-solid fa-envelope me-2"></i>serviceclient@Logertogo.com</a></li>
-                        <li class="mb-2"><a href="https://wa.me/22890000000" class="footer-link" target="_blank"><i class="fa-brands fa-whatsapp me-2"></i>90000000</a></li>
+                        <li class="mb-2"><a href="https://wa.me/22879055970" class="footer-link" target="_blank"><i class="fa-brands fa-whatsapp me-2"></i>79055970</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">

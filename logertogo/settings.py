@@ -80,6 +80,10 @@ INSTALLED_APPS = [
     'ads',
     'management',
     'blog',
+    
+    # Text Editor
+    'ckeditor',
+    'ckeditor_uploader',
 ]
 
 SITE_ID = 1
@@ -290,7 +294,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # WhiteNoise settings
 WHITENOISE_INDEX_FILE = False
 WHITENOISE_MANIFEST_STRICT = False
-WHITENOISE_KEEP_ONLY_HASHED_FILES = True
+# CORRECTION BUG #7 : False pour ne pas casser les assets si collectstatic n'a pas tourné
+WHITENOISE_KEEP_ONLY_HASHED_FILES = False
 WHITENOISE_MAX_AGE = 31536000  # 1 an pour le cache navigateur
 
 # Email Configuration (Production: Brevo SMTP)
@@ -302,25 +307,15 @@ else:
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
     EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '9bf277001@smtp-brevo.com')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'xsmtpsib-87c2f6d6363a0980c6566085a676451e22067784347788448888888-fallback') # Fallback added
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
     EMAIL_TIMEOUT = 30
 
 DEFAULT_FROM_EMAIL = 'Loger Togo <contact@logertogo.com>'
 SERVER_EMAIL = 'contact@logertogo.com'
 
-# Configuration FedaPay / DigitalH
-# (Les paramètres MEDIA_URL et MEDIA_ROOT sont définis plus haut)
-
-# Auth Settings
-AUTHENTICATION_BACKENDS = [
-    'users.backends.PhoneOrEmailBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
-
-
 
 # Spectacular Settings (Point 8)
 SPECTACULAR_SETTINGS = {
@@ -449,3 +444,12 @@ else:
 # Ensure session cookie is readable by both main site and agence subdomain
 SESSION_COOKIE_NAME = 'logertogo_sessionid'
 
+# CKEditor Configuration
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 500,
+        'width': '100%',
+    },
+}

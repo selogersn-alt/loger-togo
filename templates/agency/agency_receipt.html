@@ -485,7 +485,7 @@
                 <div>
                     <p style="font-size:0.78rem;color:var(--text-muted);font-style:italic;">
                         <i class="fa-solid fa-robot" style="margin-right:0.3rem;"></i>
-                        Document généré numériquement via Loger Togo CRM Pro.
+                        Document généré numériquement par votre agence immobilière.
                     </p>
                 </div>
                 <div class="signature-box">
@@ -505,7 +505,7 @@
                 {% if agency.agency_nif %}<strong>NIF :</strong> {{ agency.agency_nif }} &nbsp;|&nbsp;{% endif %}
                 <strong>Document N° :</strong> QLT-{{ payment.id|stringformat:".8s"|upper }}
             </span>
-            <span>© {{ today.year }} {{ agency.company_name|default:"Loger Togo Pro" }} — Tous droits réservés</span>
+            <span>© {{ today.year }} {{ agency.company_name|default:"Établissement Agréé" }} — Tous droits réservés</span>
         </div>
 
     </div><!-- end receipt-card -->

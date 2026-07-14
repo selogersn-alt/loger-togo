@@ -24,7 +24,6 @@ import json
 import datetime
 import math
 import uuid
-from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -32,7 +31,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
     """
     ViewSet API pour les annonces (Utilisé par mobile).
     """
-    queryset = Property.objects.filter(is_published=True).order_by('-is_boosted', '-created_at')
+    queryset = Property.objects.filter(is_published=True, visible_on_portal=True).order_by('-is_boosted', '-created_at')
     serializer_class = PropertySerializer
 
     @action(detail=False, methods=['get'])
@@ -93,7 +92,7 @@ def properties_list_view(request):
     wifi = request.GET.get('wifi')
     ac = request.GET.get('ac')
     
-    properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+    properties = Property.objects.filter(is_published=True, visible_on_portal=True).select_related('owner').prefetch_related('images')
     is_fallback = False
     
     # Titre SEO dynamique
@@ -141,7 +140,7 @@ def properties_list_view(request):
     # Si aucun résultat, on propose des annonces similaires (Même ville ou catégorie)
     if properties.count() == 0:
         is_fallback = True
-        properties = Property.objects.filter(is_published=True).select_related('owner').prefetch_related('images')
+        properties = Property.objects.filter(is_published=True, visible_on_portal=True).select_related('owner').prefetch_related('images')
         if city:
             properties = properties.filter(city=city)
         elif listing_category:
@@ -207,7 +206,7 @@ def property_detail_view(request, property_id=None, slug=None):
     is_favorite = request.user.is_authenticated and Favorite.objects.filter(user=request.user, property=property_obj).exists()
     
     # Optimisation des propriétés similaires
-    related_properties = Property.objects.filter(city=property_obj.city, is_published=True).exclude(id=property_obj.id).select_related('owner').prefetch_related('images')[:4]
+    related_properties = Property.objects.filter(city=property_obj.city, is_published=True, visible_on_portal=True).exclude(id=property_obj.id).select_related('owner').prefetch_related('images')[:4]
     
     return render(request, 'property_detail.html', {
         'property': property_obj, 
@@ -249,7 +248,7 @@ def create_property_view(request):
                 
                 # Si c'est une requête AJAX, on répond en JSON
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/annonces/{p.id}/'})
+                    return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/paiement/{p.id}/PUBLICATION/'})
 
                 messages.success(request, _("Votre annonce a été créée avec succès !"))
                 return redirect('initiate_payment', property_id=p.id, payment_type='PUBLICATION')
@@ -259,6 +258,9 @@ def create_property_view(request):
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
                 messages.error(request, _("Erreur lors de la création : %s") % str(e))
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
     else: 
         form = PropertyForm()
     
@@ -273,6 +275,7 @@ def edit_property_view(request, property_id):
     
     if request.method == 'POST':
         form = PropertyForm(request.POST, request.FILES, instance=p)
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
         if form.is_valid():
             p = form.save()
             
@@ -284,11 +287,15 @@ def edit_property_view(request, property_id):
                 for img in new_images:
                     PropertyImage.objects.create(property=p, image_url=img)
             
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if is_ajax:
                 return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/annonces/{p.id}/'})
 
             messages.success(request, _("Annonce mise à jour avec succès !"))
             return redirect('/mon-compte/?section=ads')
+        else:
+            # CORRECTION : Retourner HTTP 400 + erreurs JSON pour les soumissions AJAX
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'errors': form.errors.get_json_data()}, status=400)
     else:
         form = PropertyForm(instance=p)
     
@@ -403,11 +410,49 @@ def request_reservation_view(request, property_id):
             
             # PONT PMS LOGERTOGO HOTELS
             from logertogo.emails import send_reservation_request_email
+            from management.models import Notification
+            
+            # Notification temps réel pour le gérant
+            notif_msg = f"Nouvelle demande de réservation de {request.user.get_full_name() or request.user.email} pour {nights} nuits."
+            Notification.objects.create(
+                user=p.owner,
+                title=f"Nouvelle réservation : {p.title}",
+                message=notif_msg,
+                link=f"/reservations/"
+            )
             
             if p.owner.role in ['HOTEL', 'AUBERGE'] and getattr(p.owner, 'is_saas_active', False):
                 # Si le SaaS est actif pour cet hôtel/auberge, on crée la réservation dans leur espace
                 # Ceci est le pont entre logertogo.com et hotels.logertogo.com
-                messages.success(request, _("Votre réservation a été transmise directement au système de gestion de l'hôtel pour %(nights)s nuits !") % {'nights': nights})
+                try:
+                    from management.models import HotelBooking, HotelRoom
+                    from django.utils.timezone import make_aware, is_naive
+                    
+                    # Rendre les dates timezone-aware
+                    check_in_dt = make_aware(d1) if is_naive(d1) else d1
+                    check_out_dt = make_aware(d2) if is_naive(d2) else d2
+                    
+                    room = HotelRoom.objects.filter(synced_property_id=str(p.id)).first()
+                    if room:
+                        HotelBooking.objects.create(
+                            room=room,
+                            client_name=request.user.get_full_name() or request.user.username or "Client Web",
+                            client_phone=getattr(request.user, 'phone_number', '') or 'Non renseigné',
+                            client_email=request.user.email,
+                            check_in=check_in_dt,
+                            check_out=check_out_dt,
+                            status='PENDING',
+                            amount_due=total,
+                            amount_paid=0,
+                            notes="Réservation provenant de LogerTogo.com",
+                            is_from_portal=True,
+                            portal_client=request.user
+                        )
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Erreur de création HotelBooking via le portail: {e}")
+                    
+                messages.success(request, _("Votre réservation a été transmise directement au système de gestion de l'établissement pour %(nights)s nuits !") % {'nights': nights})
             else:
                 # Notification classique par email
                 messages.success(request, _("Demande de réservation envoyée pour %(nights)s nuits !") % {'nights': nights})
@@ -456,6 +501,14 @@ def request_visit_view(request, property_id):
                         property=p,
                         user=request.user,
                         proposed_date=proposed_date
+                    )
+                    
+                    from management.models import Notification
+                    Notification.objects.create(
+                        user=p.owner,
+                        title=f"Nouvelle demande de visite : {p.title}",
+                        message=f"Demande de visite par {request.user.get_full_name() or request.user.email} prévue le {proposed_date.strftime('%d/%m/%Y à %H:%M')}",
+                        link=f"/biens/{p.id}/"
                     )
                     
                     # Notification email au propriétaire
@@ -519,25 +572,41 @@ def near_me_view(request):
     """
     from logersn.constants import PROPERTY_TYPE_CHOICES
     
-    # Récupérer uniquement les hôtels et auberges géolocalisés avec coordonnées
+    # Récupérer uniquement les hôtels, auberges, meublés (courts séjours) et chambres publiés et visibles
     properties = Property.objects.filter(
-        Q(property_type__in=['HOTEL', 'AUBERGE']) | Q(owner__role__in=['HOTEL', 'AUBERGE']),
-        is_published=True
-    ).select_related('owner').prefetch_related('images').exclude(
-        latitude__isnull=True
-    ).exclude(longitude__isnull=True)
+        Q(property_type__in=['HOTEL', 'AUBERGE', 'CHAMBRE']) | Q(owner__role__in=['HOTEL', 'AUBERGE']) | Q(listing_category='FURNISHED'),
+        is_published=True,
+        visible_on_portal=True
+    ).select_related('owner').prefetch_related('images').order_by('?')
 
     map_markers = []
     for p in properties:
+        # Héritage des coordonnées GPS du propriétaire ou fallback par défaut
+        lat_val = p.latitude
+        lng_val = p.longitude
+        if lat_val is None or lng_val is None:
+            lat_val = getattr(p.owner, 'agency_latitude', None)
+            lng_val = getattr(p.owner, 'agency_longitude', None)
+            
         try:
-            lat_val = float(p.latitude)
-            lng_val = float(p.longitude)
+            lat_val = float(lat_val)
+            lng_val = float(lng_val)
         except (TypeError, ValueError):
-            continue
+            lat_val = None
+            lng_val = None
         
-        # Image principale
-        main_img = p.images.filter(is_primary=True).first() or p.images.first()
-        img_url = main_img.image_url.url if main_img and main_img.image_url else ''
+        # Image principale (en utilisant le prefetch)
+        p_images = list(p.images.all())
+        main_img = next((img for img in p_images if img.is_primary), None) if p_images else None
+        if not main_img and p_images:
+            main_img = p_images[0]
+            
+        if main_img and main_img.image_url:
+            img_url = main_img.image_url.url
+        elif p.owner and getattr(p.owner, 'profile_picture', None) and p.owner.profile_picture:
+            img_url = p.owner.profile_picture.url
+        else:
+            img_url = 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=400&auto=format&fit=crop'
         
         # Téléphone du propriétaire (masqué sur 4 derniers chiffres)
         phone = getattr(p.owner, 'phone', '') or ''
@@ -564,6 +633,11 @@ def near_me_view(request):
             'url': request.build_absolute_uri(p.get_absolute_url()),
             'image': img_url,
             'phone': phone,
+            'owner_id': str(p.owner.id) if p.owner else '',
+            'owner_name': p.owner.company_name or p.owner.get_full_name() if p.owner else '',
+            'owner_role': p.owner.role if p.owner else '',
+            'owner_url': request.build_absolute_uri(reverse('public_profile_slug', args=[p.owner.slug])) if (p.owner and p.owner.slug) else '',
+            'owner_image': p.owner.profile_picture.url if (p.owner and getattr(p.owner, 'profile_picture', None)) else 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=150&auto=format&fit=crop',
             'bedrooms': p.bedrooms or 0,
             'wifi': getattr(p, 'wifi', False),
             'ac': getattr(p, 'air_conditioning', False),
@@ -575,14 +649,14 @@ def near_me_view(request):
     return render(request, 'logersn/near_me.html', {
         'properties_json': json.dumps(map_markers, ensure_ascii=False),
         'total_count': len(map_markers),
-        'title': _("Auberges & Meublés à proximité"),
+        'title': _("Auberges, Meublés & Hôtels à proximité"),
         'focus_id': focus_id
     })
 
 
 def nearby_api_view(request):
     """
-    API REST GeoJSON — compatible Android Kotlin (Retrofit).
+    API REST GeoJSON — compatible Android Kotlin (Retrofit) et rafraîchissement asynchrone web.
     GET /api/geo/nearby/?lat=6.1311&lng=1.2228&radius=10&type=AUBERGE
     """
     import math
@@ -599,42 +673,86 @@ def nearby_api_view(request):
         user_lat = float(request.GET.get('lat', 6.1311))
         user_lng = float(request.GET.get('lng', 1.2228))
         radius_km = float(request.GET.get('radius', 10))
+        
+        sw_lat = float(request.GET.get('sw_lat')) if request.GET.get('sw_lat') else None
+        sw_lng = float(request.GET.get('sw_lng')) if request.GET.get('sw_lng') else None
+        ne_lat = float(request.GET.get('ne_lat')) if request.GET.get('ne_lat') else None
+        ne_lng = float(request.GET.get('ne_lng')) if request.GET.get('ne_lng') else None
     except (TypeError, ValueError):
         return JsonResponse({'status': 'error', 'message': 'Paramètres invalides'}, status=400)
 
     filter_type = request.GET.get('type', None)
 
     qs = Property.objects.filter(
-        is_published=True
-    ).exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+        is_published=True,
+        visible_on_portal=True
+    )
 
     if filter_type:
         qs = qs.filter(Q(property_type=filter_type) | Q(owner__role=filter_type))
     else:
         qs = qs.filter(
-            Q(property_type__in=['AUBERGE', 'HOTEL']) | Q(owner__role__in=['AUBERGE', 'HOTEL']) | Q(listing_category='FURNISHED')
+            Q(property_type__in=['AUBERGE', 'HOTEL', 'CHAMBRE']) | Q(owner__role__in=['AUBERGE', 'HOTEL']) | Q(listing_category='FURNISHED')
         )
+
+    # Application de l'aléatoire pour plus de dynamisme
+    qs = qs.order_by('?')
 
     results = []
     for p in qs.select_related('owner').prefetch_related('images'):
+        # Héritage des coordonnées GPS du propriétaire ou fallback par défaut
+        lat_val = p.latitude
+        lng_val = p.longitude
+        if lat_val is None or lng_val is None:
+            lat_val = getattr(p.owner, 'agency_latitude', None)
+            lng_val = getattr(p.owner, 'agency_longitude', None)
+        if lat_val is None or lng_val is None:
+            lat_val = 6.137
+            lng_val = 1.222
+            
         try:
-            p_lat = float(p.latitude)
-            p_lng = float(p.longitude)
+            p_lat = float(lat_val)
+            p_lng = float(lng_val)
         except (TypeError, ValueError):
-            continue
+            p_lat = 6.137
+            p_lng = 1.222
 
         dist = haversine(user_lat, user_lng, p_lat, p_lng)
-        if dist > radius_km:
-            continue
+        
+        # Bounding box filter
+        if sw_lat is not None and sw_lng is not None and ne_lat is not None and ne_lng is not None:
+            if not (sw_lat <= p_lat <= ne_lat):
+                continue
+            if sw_lng <= ne_lng:
+                if not (sw_lng <= p_lng <= ne_lng):
+                    continue
+            else:
+                if not (sw_lng <= p_lng or p_lng <= ne_lng):
+                    continue
+        else:
+            # Radius filter as fallback
+            if dist > radius_km:
+                continue
 
+        from django.urls import reverse
         main_img = p.images.filter(is_primary=True).first() or p.images.first()
-        img_url = main_img.image_url if main_img else ''
+        img_url = main_img.image_url.url if main_img and main_img.image_url else ''
         phone = getattr(p.owner, 'phone', '') or ''
 
         if dist < 1:
             distance_label = f"{int(dist * 1000)} m"
         else:
             distance_label = f"{dist:.1f} km"
+
+        owner_id = str(p.owner.id) if p.owner else ''
+        owner_name = p.owner.company_name or p.owner.get_full_name() if p.owner else ''
+        owner_role = p.owner.role if p.owner else ''
+        owner_url = request.build_absolute_uri(reverse('public_profile_slug', args=[p.owner.slug])) if (p.owner and p.owner.slug) else ''
+        
+        if p.owner and getattr(p.owner, 'profile_picture', None):
+            owner_image = p.owner.profile_picture.url
+        else:
+            owner_image = 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=150&auto=format&fit=crop'
 
         results.append({
             'id': str(p.id),
@@ -657,6 +775,11 @@ def nearby_api_view(request):
             'bedrooms': p.bedrooms or 0,
             'wifi': getattr(p, 'wifi', False),
             'ac': getattr(p, 'air_conditioning', False),
+            'owner_id': owner_id,
+            'owner_name': owner_name,
+            'owner_role': owner_role,
+            'owner_url': owner_url,
+            'owner_image': owner_image,
         })
 
     # Trier par distance croissante

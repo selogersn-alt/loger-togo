@@ -2,8 +2,10 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from management import views_hotel
+from management.views_notifications import get_unread_notifications, mark_notifications_read
 from django.contrib.sitemaps.views import sitemap
 from logersn.sitemaps_hotel import HotelStaticSitemap
+from chat.views import messagerie_view, send_message_view, sync_messages_view
 
 sitemaps = {
     'hotel_static': HotelStaticSitemap,
@@ -27,6 +29,7 @@ urlpatterns = [
     path('reservations/', views_hotel.hotel_bookings, name='hotel_bookings'),
     path('reservations/nouveau/', views_hotel.hotel_booking_create, name='hotel_booking_create'),
     path('reservations/<uuid:booking_id>/', views_hotel.hotel_booking_detail, name='hotel_booking_detail'),
+    path('reservations/<uuid:booking_id>/facture/imprimer/', views_hotel.hotel_booking_print_invoice, name='hotel_booking_print_invoice'),
     path('reservations/<uuid:booking_id>/checkin/', views_hotel.hotel_booking_checkin, name='hotel_booking_checkin'),
     path('reservations/<uuid:booking_id>/checkout/', views_hotel.hotel_booking_checkout, name='hotel_booking_checkout'),
     path('reservations/<uuid:booking_id>/add-charge/', views_hotel.hotel_booking_add_charge, name='hotel_booking_add_charge'),
@@ -38,6 +41,12 @@ urlpatterns = [
     path('planning/', views_hotel.hotel_planning, name='hotel_planning'),
     path('analyses/', views_hotel.hotel_analytics, name='hotel_analytics'),
     
+    # Messaging
+    path('messagerie/', messagerie_view, name='messagerie'),
+    path('chat/send/<uuid:conversation_id>/', send_message_view, name='send-message'),
+    path('chat/send/', send_message_view, name='send-message-new'),
+    path('chat/api/sync/<uuid:conversation_id>/', sync_messages_view, name='sync-messages'),
+    
     # Shifts & Reception Cash Register
     path('shifts/', views_hotel.hotel_shifts, name='hotel_shifts'),
     path('shifts/ouvrir/', views_hotel.hotel_shift_open, name='hotel_shift_open'),
@@ -46,6 +55,16 @@ urlpatterns = [
     # Collaborators / Sub-agents Management
     path('collaborateurs/', views_hotel.hotel_sub_agents, name='hotel_sub_agents'),
     path('collaborateurs/<uuid:agent_id>/supprimer/', views_hotel.hotel_sub_agent_delete, name='hotel_sub_agent_delete'),
+    
+    # Collaborators Attendance, Schedules & Task Management
+    path('collaborateurs/pointage/', views_hotel.hotel_clock_action, name='hotel_clock_action'),
+    path('collaborateurs/planning/', views_hotel.hotel_schedule_save, name='hotel_schedule_save'),
+    path('collaborateurs/taches/', views_hotel.hotel_task_assign, name='hotel_task_assign'),
+    path('collaborateurs/taches/<uuid:task_id>/completer/', views_hotel.hotel_task_complete, name='hotel_task_complete'),
+    
+    # Notifications API
+    path('api/notifications/unread/', get_unread_notifications, name='hotel_unread_notifications'),
+    path('api/notifications/mark-read/', mark_notifications_read, name='hotel_mark_notifications_read'),
 ]
 
 if settings.DEBUG:

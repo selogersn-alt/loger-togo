@@ -15,7 +15,7 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from .models import Lease, RentPayment, AgencyClient, MaintenanceRequest, ContractTemplate, PropertyInventory
-from logersn.models import Property
+from logersn.models import Property, PropertyApplication, VisitRequest, Reservation
 
 User = get_user_model()
 
@@ -189,11 +189,94 @@ def agency_privacy_view(request):
     return render(request, 'agency/confidentialite.html')
 
 
+def log_employee_action(request, action_type, description):
+    """
+    Log an action made by the currently logged-in negotiator / employee agent of the agency.
+    """
+    if hasattr(request, 'actual_user'):
+        employee = request.actual_user
+        parent = request.user
+        
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+            
+        try:
+            from management.models import EmployeeActionLog
+            EmployeeActionLog.objects.create(
+                hotel=parent,
+                employee=employee,
+                action_type=action_type,
+                description=description,
+                ip_address=ip
+            )
+        except Exception:
+            pass
+
+
+def check_employee_absences(manager, is_hotel=False):
+    """
+    Check today's employee schedules for a manager (hotel or agency).
+    If an employee scheduled to work today has not clocked in and is more than 30 minutes late,
+    we create an EmployeeAttendance record marked ABSENT and send a notification e-mail.
+    """
+    from django.utils import timezone
+    import datetime
+    from management.models import EmployeeSchedule, EmployeeAttendance
+    from users.models import User
+    from logertogo.emails import send_employee_absence_notification
+    
+    today = timezone.now().date()
+    now_dt = timezone.now()
+    day_of_week = today.isoweekday() # 1-7
+    
+    if is_hotel:
+        staff = User.objects.filter(parent_hotel=manager, role='AGENT')
+    else:
+        staff = User.objects.filter(parent_agency=manager, role='AGENT')
+        
+    for employee in staff:
+        schedule = EmployeeSchedule.objects.filter(employee=employee, day_of_week=day_of_week).first()
+        if schedule:
+            sched_start = timezone.make_aware(datetime.datetime.combine(today, schedule.start_time))
+            if now_dt > (sched_start + datetime.timedelta(minutes=30)):
+                attendance, created = EmployeeAttendance.objects.get_or_create(
+                    employee=employee,
+                    hotel=manager,
+                    date=today,
+                    defaults={'status': 'ABSENT'}
+                )
+                
+                if not attendance.clock_in and attendance.status != 'ABSENT':
+                    attendance.status = 'ABSENT'
+                    attendance.notes = "Alerte Absence automatique (retard > 30 minutes)."
+                    attendance.save()
+                    
+                if not attendance.clock_in and attendance.status == 'ABSENT' and (not attendance.notes or "Email envoyé" not in attendance.notes):
+                    try:
+                        send_employee_absence_notification(manager, employee, schedule.start_time)
+                        attendance.notes = (attendance.notes or "") + " [Email envoyé]"
+                        attendance.save()
+                        
+                        from management.models import EmployeeActionLog
+                        EmployeeActionLog.objects.create(
+                            hotel=manager,
+                            employee=employee,
+                            action_type="ABSENCE_DETECTED",
+                            description=f"Absence constatée automatiquement : n'a pas pointé à son poste prévu à {schedule.start_time.strftime('%H:%M')}."
+                        )
+                    except Exception:
+                        pass
+
+
 @agency_saas_required
 def agency_dashboard(request):
     """
     Main SaaS Dashboard for the agency with Advanced Statistics & Charts.
     """
+    from .models import EmployeeSchedule, EmployeeAttendance, EmployeeTask
     from datetime import date
     agency = request.user
     today = timezone.now().date()
@@ -296,6 +379,28 @@ def agency_dashboard(request):
     for p in payments.filter(status=RentPayment.StatusEnum.PAID, date_paid__isnull=False):
         monthly_data[p.date_paid.month - 1] += float(p.amount_paid)
 
+    # Staff Attendance & Tasks Context
+    my_attendance = None
+    my_tasks = None
+    live_staff = None
+    pending_tasks = None
+    action_logs = None
+    
+    if hasattr(request, 'actual_user'):
+        # Logged in as receptionist / agent
+        my_attendance = EmployeeAttendance.objects.filter(employee=request.actual_user, date=today).first()
+        my_tasks = EmployeeTask.objects.filter(employee=request.actual_user, status='PENDING').order_by('due_date')
+    else:
+        # Logged in as agency gérant / owner
+        # Real-time proactive absence check
+        check_employee_absences(agency, is_hotel=False)
+        
+        live_staff = EmployeeAttendance.objects.filter(hotel=agency, date=today).select_related('employee')
+        pending_tasks = EmployeeTask.objects.filter(hotel=agency, status='PENDING').select_related('employee')[:5]
+        
+        from management.models import EmployeeActionLog
+        action_logs = EmployeeActionLog.objects.filter(hotel=agency).select_related('employee')[:15]
+
     context = {
         'total_clients': total_clients,
         'total_properties': total_properties,
@@ -319,6 +424,12 @@ def agency_dashboard(request):
         'partial_count': partial_count,
         'top_tenant_labels': top_tenant_labels,
         'top_tenant_values': top_tenant_values,
+        # Staff
+        'my_attendance': my_attendance,
+        'my_tasks': my_tasks,
+        'live_staff': live_staff,
+        'pending_tasks': pending_tasks,
+        'action_logs': action_logs,
     }
     return render(request, 'agency/agency_dashboard.html', context)
 
@@ -700,12 +811,23 @@ def agency_profile(request):
         agency.agency_tagline = request.POST.get('agency_tagline', '')
         agency.agency_address = request.POST.get('agency_address', '')
         agency.agency_city = request.POST.get('agency_city', '')
+        agency.agency_neighborhood = request.POST.get('agency_neighborhood', '')
         agency.agency_phone_mobile = request.POST.get('agency_phone_mobile', '')
         agency.agency_phone_landline = request.POST.get('agency_phone_landline', '')
         agency.agency_email = request.POST.get('agency_email', '') or None
         agency.agency_website = request.POST.get('agency_website', '') or None
         agency.agency_rccm = request.POST.get('agency_rccm', '')
         agency.agency_nif = request.POST.get('agency_nif', '')
+        
+        # GPS Coordinates
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
+        if lat and lng:
+            try:
+                agency.agency_latitude = float(lat)
+                agency.agency_longitude = float(lng)
+            except ValueError:
+                pass
         
         # File: logo
         if 'profile_picture' in request.FILES:
@@ -715,7 +837,12 @@ def agency_profile(request):
         messages.success(request, "Profil de l'agence mis à jour avec succès. Vos documents reflèteront ces nouvelles informations.")
         return redirect('agency_profile')
     
-    return render(request, 'agency/agency_profile.html')
+    from logersn.constants import CITY_CHOICES, TOGO_NEIGHBORHOODS
+    context = {
+        'city_choices': CITY_CHOICES,
+        'togo_neighborhoods': TOGO_NEIGHBORHOODS,
+    }
+    return render(request, 'agency/agency_profile.html', context)
 
 
 @agency_saas_required
@@ -856,6 +983,10 @@ def agency_property_create(request):
                 p = form.save(commit=False)
                 p.owner = agency
                 
+                # Check portal visibility
+                visible_on_portal = request.POST.get('visible_on_portal') == 'on'
+                p.visible_on_portal = visible_on_portal
+                
                 # Check publication toggle
                 make_public = request.POST.get('make_public') == 'on'
                 if make_public:
@@ -911,6 +1042,9 @@ def agency_property_edit(request, property_id):
             try:
                 p = form.save(commit=False)
                 
+                visible_on_portal = request.POST.get('visible_on_portal') == 'on'
+                p.visible_on_portal = visible_on_portal
+                
                 make_public = request.POST.get('make_public') == 'on'
                 if make_public:
                     if not p.is_authorized_by_admin:
@@ -921,6 +1055,17 @@ def agency_property_edit(request, property_id):
                     p.publication_requested = False
                 
                 p.save()
+                
+                # Image deletion handling
+                delete_ids = request.POST.getlist('delete_images')
+                if delete_ids:
+                    PropertyImage.objects.filter(id__in=delete_ids, property=p).delete()
+                    # Ensure primary image if necessary
+                    remaining = p.images.all()
+                    if remaining.exists() and not remaining.filter(is_primary=True).exists():
+                        first_img = remaining.first()
+                        first_img.is_primary = True
+                        first_img.save()
                 
                 # Multi-image upload in edit
                 images = request.FILES.getlist('images')
@@ -1465,9 +1610,121 @@ def agency_sub_agents(request):
         else:
             messages.error(request, "Veuillez renseigner tous les champs obligatoires.")
             
+    # Enrich staff with today's attendance, schedules, and BI stats
+    import datetime
+    today = timezone.now().date()
+    thirty_days_ago = today - datetime.timedelta(days=30)
+    
+    for member in staff:
+        member.today_attendance = EmployeeAttendance.objects.filter(employee=member, date=today).first()
+        member.schedules_list = EmployeeSchedule.objects.filter(employee=member).order_by('day_of_week')
+        # Format weekly planning display
+        sched_map = {s.day_of_week: s for s in member.schedules_list}
+        member.weekly_planning = []
+        for d in range(1, 8):
+            if d in sched_map:
+                member.weekly_planning.append({
+                    'day': d,
+                    'active': True,
+                    'start': sched_map[d].start_time.strftime("%H:%M"),
+                    'end': sched_map[d].end_time.strftime("%H:%M")
+                })
+            else:
+                member.weekly_planning.append({
+                    'day': d,
+                    'active': False
+                })
+                
+        # --- BI Statistics for the last 30 days ---
+        # 1. Total scheduled days in the last 30 days
+        scheduled_days_of_week = list(member.schedules_list.values_list('day_of_week', flat=True))
+        total_scheduled = 0
+        total_scheduled_hours = 0.0
+        if scheduled_days_of_week:
+            curr = thirty_days_ago
+            while curr <= today:
+                if curr.isoweekday() in scheduled_days_of_week:
+                    total_scheduled += 1
+                    s = sched_map.get(curr.isoweekday())
+                    if s:
+                        start_dt = datetime.datetime.combine(today, s.start_time)
+                        end_dt = datetime.datetime.combine(today, s.end_time)
+                        if end_dt < start_dt:
+                            end_dt += datetime.timedelta(days=1)
+                        total_scheduled_hours += (end_dt - start_dt).total_seconds() / 3600.0
+                curr += datetime.timedelta(days=1)
+        
+        # 2. Actual present and late days clocked in
+        attendances_30 = EmployeeAttendance.objects.filter(
+            employee=member,
+            date__range=(thirty_days_ago, today)
+        )
+        present_days = attendances_30.exclude(status='ABSENT').exclude(clock_in__isnull=True).count()
+        late_days = attendances_30.filter(is_late=True).count()
+        late_minutes = attendances_30.aggregate(total=Sum('late_minutes'))['total'] or 0
+        total_worked_hours = sum([att.total_work_hours for att in attendances_30])
+        member.total_worked_hours_30d = round(total_worked_hours, 1)
+        member.total_scheduled_hours_30d = round(total_scheduled_hours, 1)
+        
+        # Calculate Rates
+        if total_scheduled > 0:
+            member.presence_rate = min(100, round((present_days / total_scheduled) * 100))
+            member.absence_days = max(0, total_scheduled - present_days)
+            member.absence_rate = max(0, 100 - member.presence_rate)
+        else:
+            member.presence_rate = 100 if present_days > 0 else 0
+            member.absence_days = 0
+            member.absence_rate = max(0, 100 - member.presence_rate)
+            
+        if total_scheduled_hours > 0:
+            member.productivity_rate = min(100, round((total_worked_hours / total_scheduled_hours) * 100))
+        else:
+            member.productivity_rate = 100 if total_worked_hours > 0 else 0
+            
+        member.present_days = present_days
+        member.total_scheduled_days = total_scheduled
+        member.late_days = late_days
+        member.late_minutes_total = late_minutes
+        
+        # Lateness rate
+        if present_days > 0:
+            member.lateness_rate = round((late_days / present_days) * 100)
+        else:
+            member.lateness_rate = 0
+            
+        # 3. Productivity (Tasks completion rate)
+        tasks_30 = EmployeeTask.objects.filter(
+            employee=member,
+            created_at__date__range=(thirty_days_ago, today)
+        )
+        total_tasks = tasks_30.count()
+        completed_tasks = tasks_30.filter(status='COMPLETED').count()
+        
+        member.total_tasks_count = total_tasks
+        member.completed_tasks_count = completed_tasks
+        if total_tasks > 0:
+            member.productivity_rate = round((completed_tasks / total_tasks) * 100)
+        else:
+            member.productivity_rate = 100  # Default to 100% if no tasks assigned
+            
+    # All tasks list (generic Foreign Key to User in 'hotel' holds agency)
+    tasks = EmployeeTask.objects.filter(hotel=agency).order_by('due_date', '-created_at')
+    
+    # Attendances list for history
+    attendance_history = EmployeeAttendance.objects.filter(hotel=agency).order_by('-date', '-clock_in')[:100]
+    
+    # Today presence summary
+    today_attendances = EmployeeAttendance.objects.filter(hotel=agency, date=today)
+    present_count = today_attendances.filter(status__in=['PRESENT', 'LATE', 'ON_BREAK']).count()
+    late_count = today_attendances.filter(status='LATE').count()
+            
     context = {
         'staff': staff,
         'staff_count': staff_count,
+        'tasks': tasks,
+        'attendance_history': attendance_history,
+        'present_count': present_count,
+        'late_count': late_count,
     }
     return render(request, 'agency/agency_sub_agents.html', context)
 
@@ -1486,3 +1743,284 @@ def agency_sub_agent_delete(request, agent_id):
     return redirect('agency_sub_agents')
 
 
+@login_required
+@agency_saas_required
+def agency_clock_action(request):
+    """
+    Pointage d'arrivée, de départ ou de pause pour le collaborateur de gérance connecté.
+    """
+    if not hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les collaborateurs peuvent utiliser le pointage.")
+        return redirect('agency_dashboard')
+        
+    employee = request.actual_user
+    agency = request.user
+    today = timezone.now().date()
+    now_dt = timezone.now()
+    
+    attendance, created = EmployeeAttendance.objects.get_or_create(
+        employee=employee,
+        hotel=agency, # using the AUTH_USER_MODEL generic ForeignKey
+        date=today
+    )
+    
+    action = request.POST.get('action')
+    lat_val = request.POST.get('latitude')
+    lng_val = request.POST.get('longitude')
+    lat = None
+    lng = None
+    if lat_val and lng_val:
+        try:
+            from decimal import Decimal
+            lat = Decimal(lat_val)
+            lng = Decimal(lng_val)
+        except Exception:
+            pass
+            
+    if action == 'in':
+        if attendance.clock_in:
+            messages.warning(request, "Vous avez déjà pointé votre arrivée aujourd'hui.")
+        else:
+            attendance.clock_in = now_dt
+            attendance.status = 'PRESENT'
+            if lat and lng:
+                attendance.latitude_in = lat
+                attendance.longitude_in = lng
+            
+            # Calcul du retard éventuel par rapport au planning
+            day_of_week = today.isoweekday()
+            schedule = EmployeeSchedule.objects.filter(employee=employee, day_of_week=day_of_week).first()
+            if schedule:
+                import datetime
+                sched_start = timezone.make_aware(datetime.datetime.combine(today, schedule.start_time))
+                if now_dt > sched_start:
+                    diff = now_dt - sched_start
+                    late_mins = int(diff.total_seconds() // 60)
+                    if late_mins > 5:
+                        attendance.is_late = True
+                        attendance.late_minutes = late_mins
+                        attendance.status = 'LATE'
+                        messages.warning(request, f"Pointage d'arrivée enregistré avec {late_mins} minutes de retard.")
+                        # Notification email au gérant de l'agence
+                        try:
+                            from logertogo.emails import send_employee_late_notification
+                            send_employee_late_notification(agency, employee, late_mins, lat, lng)
+                        except Exception as email_err:
+                            import logging
+                            logging.getLogger('django').error(f"❌ [EMAIL ERROR] Erreur envoi retard agence : {email_err}")
+                    else:
+                        messages.success(request, "Pointage d'arrivée enregistré à l'heure.")
+                else:
+                    messages.success(request, "Pointage d'arrivée enregistré à l'heure.")
+            else:
+                messages.success(request, "Pointage d'arrivée enregistré (aucun planning défini).")
+            attendance.save()
+            log_employee_action(request, 'CLOCK_IN', f"Pointage d'arrivée enregistré à {now_dt.strftime('%H:%M:%S')} (GPS: {lat or 'N/D'}, {lng or 'N/D'} | Retard: {attendance.late_minutes} min)")
+            
+    elif action == 'break_start':
+        if not attendance.clock_in:
+            messages.error(request, "Vous devez d'abord pointer votre arrivée.")
+        elif attendance.clock_out:
+            messages.error(request, "Votre service est déjà terminé.")
+        elif attendance.break_start:
+            messages.warning(request, "Vous êtes déjà en pause.")
+        else:
+            attendance.break_start = now_dt
+            attendance.status = 'ON_BREAK'
+            attendance.save()
+            messages.info(request, "Début de pause enregistré.")
+            log_employee_action(request, 'BREAK_START', f"Début de pause enregistré à {now_dt.strftime('%H:%M:%S')}")
+            
+    elif action == 'break_end':
+        if not attendance.break_start:
+            messages.error(request, "Vous n'êtes pas en pause.")
+        elif attendance.break_end:
+            messages.warning(request, "Vous avez déjà repris votre service.")
+        else:
+            attendance.break_end = now_dt
+            attendance.status = 'LATE' if attendance.is_late else 'PRESENT'
+            attendance.save()
+            messages.success(request, "Reprise de service enregistrée.")
+            log_employee_action(request, 'BREAK_END', f"Reprise de service enregistrée à {now_dt.strftime('%H:%M:%S')}")
+            
+    elif action == 'out':
+        if not attendance.clock_in:
+            messages.error(request, "Vous devez d'abord pointer votre arrivée.")
+        elif attendance.clock_out:
+            messages.warning(request, "Vous avez déjà pointé votre départ aujourd'hui.")
+        else:
+            if attendance.break_start and not attendance.break_end:
+                attendance.break_end = now_dt
+                
+            attendance.clock_out = now_dt
+            attendance.status = 'CLOCK_OUT'
+            if lat and lng:
+                attendance.latitude_out = lat
+                attendance.longitude_out = lng
+            attendance.save()
+            messages.success(request, f"Service terminé. Durée travaillée : {attendance.total_work_hours} heures.")
+            log_employee_action(request, 'CLOCK_OUT', f"Pointage de départ enregistré à {now_dt.strftime('%H:%M:%S')} (GPS: {lat or 'N/D'}, {lng or 'N/D'} | Durée : {attendance.total_work_hours} heures)")
+            
+    return redirect('agency_dashboard')
+
+
+@login_required
+@agency_saas_required
+def agency_schedule_save(request):
+    """
+    Enregistre ou met à jour le planning hebdomadaire d'un collaborateur d'agence.
+    """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les administrateurs de l'agence peuvent modifier le planning.")
+        return redirect('agency_dashboard')
+        
+    agency = request.user
+    
+    if request.method == 'POST':
+        agent_id = request.POST.get('agent_id')
+        agent = get_object_or_404(User, id=agent_id, parent_agency=agency, role='AGENT')
+        
+        EmployeeSchedule.objects.filter(employee=agent).delete()
+        
+        days_added = 0
+        for day_val in range(1, 8):
+            enabled = request.POST.get(f'day_{day_val}_enable')
+            if enabled:
+                start_str = request.POST.get(f'day_{day_val}_start')
+                end_str = request.POST.get(f'day_{day_val}_end')
+                
+                if start_str and end_str:
+                    try:
+                        import datetime
+                        start_time = datetime.datetime.strptime(start_str, "%H:%M").time()
+                        end_time = datetime.datetime.strptime(end_str, "%H:%M").time()
+                        
+                        EmployeeSchedule.objects.create(
+                            hotel=agency, # AUTH_USER_MODEL ForeignKey
+                            employee=agent,
+                            day_of_week=day_val,
+                            start_time=start_time,
+                            end_time=end_time
+                        )
+                        days_added += 1
+                    except Exception as e:
+                        pass
+        
+        messages.success(request, f"Planning mis à jour avec succès ({days_added} jours configurés).")
+        
+    return redirect('agency_sub_agents')
+
+
+@login_required
+@agency_saas_required
+def agency_task_assign(request):
+    """
+    Assigne une consigne exceptionnelle à un agent d'agence.
+    """
+    if hasattr(request, 'actual_user'):
+        messages.error(request, "Accès interdit : seuls les gérants de l'agence peuvent assigner des tâches.")
+        return redirect('agency_dashboard')
+        
+    agency = request.user
+    
+    if request.method == 'POST':
+        agent_id = request.POST.get('agent_id')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        due_date_str = request.POST.get('due_date')
+        
+        agent = get_object_or_404(User, id=agent_id, parent_agency=agency, role='AGENT')
+        
+        if title and due_date_str:
+            try:
+                import datetime
+                due_date = datetime.datetime.strptime(due_date_str, "%Y-%m-%d").date()
+                EmployeeTask.objects.create(
+                    hotel=agency, # AUTH_USER_MODEL generic ForeignKey holds agency
+                    employee=agent,
+                    title=title,
+                    description=description or '',
+                    due_date=due_date
+                )
+                messages.success(request, f"Tâche exceptionnelle assignée avec succès à {agent.get_full_name()} !")
+            except Exception as e:
+                messages.error(request, f"Erreur lors de l'enregistrement de la tâche : {e}")
+        else:
+            messages.error(request, "Veuillez renseigner un titre et une date d'échéance.")
+            
+    return redirect('agency_sub_agents')
+
+
+@login_required
+@agency_saas_required
+def agency_task_complete(request, task_id):
+    """
+    Valide l'achèvement d'une tâche exceptionnelle d'agence.
+    """
+    agency = request.user
+    
+    if hasattr(request, 'actual_user'):
+        task = get_object_or_404(EmployeeTask, id=task_id, hotel=agency, employee=request.actual_user)
+    else:
+        task = get_object_or_404(EmployeeTask, id=task_id, hotel=agency)
+        
+    task.status = 'COMPLETED'
+    task.completed_at = timezone.now()
+    task.save()
+    
+    # Notification email au gérant de l'agence
+    try:
+        from logertogo.emails import send_employee_task_completed_notification
+        send_employee_task_completed_notification(task.hotel, task.employee, task)
+    except Exception as email_err:
+        import logging
+        logging.getLogger('django').error(f"❌ [EMAIL ERROR] Erreur envoi completion tâche agence : {email_err}")
+        
+    log_employee_action(request, 'TASK_COMPLETE', f"Consigne d'agence validée : '{task.title}'")
+    messages.success(request, f"Tâche '{task.title}' validée et marquée comme terminée !")
+    return redirect('agency_dashboard')
+
+
+@agency_saas_required
+def agency_applications(request):
+    """
+    Vue listant les candidatures, demandes de visite, et réservations provenant du site public.
+    """
+    agency = request.user
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        item_id = request.POST.get('item_id')
+        item_type = request.POST.get('item_type') # 'application', 'visit', 'reservation'
+        status = request.POST.get('status')
+        
+        if item_type == 'application':
+            obj = get_object_or_404(PropertyApplication, id=item_id, property__owner=agency)
+            obj.status = status
+            obj.save()
+            messages.success(request, f"Statut de la candidature mis à jour: {obj.get_status_display()}")
+        elif item_type == 'visit':
+            obj = get_object_or_404(VisitRequest, id=item_id, property__owner=agency)
+            obj.status = status
+            obj.save()
+            messages.success(request, f"Statut de la visite mis à jour: {obj.get_status_display()}")
+        elif item_type == 'reservation':
+            obj = get_object_or_404(Reservation, id=item_id, property__owner=agency)
+            obj.status = status
+            obj.save()
+            messages.success(request, f"Statut de la réservation mis à jour: {obj.get_status_display()}")
+            
+        return redirect('agency_applications')
+    
+    applications = PropertyApplication.objects.filter(property__owner=agency).select_related('property', 'tenant').order_by('-created_at')
+    visits = VisitRequest.objects.filter(property__owner=agency).select_related('property', 'user').order_by('-created_at')
+    reservations = Reservation.objects.filter(property__owner=agency).select_related('property', 'user').order_by('-created_at')
+    
+    context = {
+        'applications': applications,
+        'visits': visits,
+        'reservations': reservations,
+        'app_statuses': PropertyApplication.StatusEnum.choices,
+        'res_statuses': Reservation.StatusEnum.choices,
+    }
+    return render(request, 'agency/agency_applications.html', context)

@@ -97,6 +97,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     agency_nif = models.CharField(max_length=100, null=True, blank=True, verbose_name=_("Numéro NIF / Identifiant Fiscal"))
     agency_tagline = models.CharField(max_length=200, null=True, blank=True, verbose_name=_("Slogan ou spécialité de l'agence"))
     
+    # Géolocalisation de l'Agence ou de l'Hôtel
+    agency_neighborhood = models.CharField(max_length=100, null=True, blank=True, verbose_name=_("Quartier de l'établissement"))
+    agency_latitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True, verbose_name=_("Latitude GPS"))
+    agency_longitude = models.DecimalField(max_digits=15, decimal_places=10, null=True, blank=True, verbose_name=_("Longitude GPS"))
+    
     # Lien enfant-parent pour le SaaS Agence
     parent_agency = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='agency_tenants', verbose_name=_("Agence parente"))
 

@@ -3,6 +3,7 @@ import builtins
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
+from django.utils import timezone
 from logersn.models import Property
 
 User = settings.AUTH_USER_MODEL
@@ -311,6 +312,9 @@ class HotelRoom(models.Model):
     safe = models.BooleanField(default=False)
     balcony = models.BooleanField(default=False)
     
+    visible_on_portal = models.BooleanField(default=True, verbose_name="Visible sur LogerTogo")
+    synced_property_id = models.CharField(max_length=100, null=True, blank=True, help_text="ID of the synced logersn.Property")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -321,6 +325,101 @@ class HotelRoom(models.Model):
 
     def __str__(self):
         return f"{self.room_number} - {self.get_room_type_display()}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Synchronisation avec le Portail Public (Autour de Moi)
+        from logersn.models import Property
+        
+        hotel_user = self.hotel
+        if not hotel_user:
+            return
+            
+        if self.visible_on_portal:
+            prop = None
+            if self.synced_property_id:
+                try:
+                    prop = Property.objects.get(id=self.synced_property_id)
+                except Property.DoesNotExist:
+                    prop = None
+            
+            if not prop:
+                prop = Property(owner=hotel_user)
+            
+            # Configuration en tant que logement publié
+            prop.title = f"Chambre {self.room_number} - {hotel_user.company_name or hotel_user.get_full_name()}"
+            prop.property_type = 'CHAMBRE' if self.room_type in ['SINGLE', 'DOUBLE', 'TWIN'] else 'HOTEL'
+            prop.listing_category = 'FURNISHED'
+            prop.price = self.price_per_night
+            prop.price_per_night = self.price_per_night
+            prop.price_unit = 'night'
+            
+            # Héritage des coordonnées GPS de l'hôtel
+            prop.latitude = hotel_user.agency_latitude
+            prop.longitude = hotel_user.agency_longitude
+            prop.city = hotel_user.agency_city or 'LOME'
+            prop.neighborhood = hotel_user.agency_neighborhood or 'Centre Ville'
+            
+            # Equipements
+            prop.wifi = self.wifi
+            prop.air_conditioning = self.air_conditioning
+            prop.tv_cable = self.tv
+            
+            prop.description = f"Superbe {self.get_room_type_display()} disponible à {hotel_user.company_name}. Profitez de nos services hôteliers premium."
+            
+            prop.is_published = True
+            prop.visible_on_portal = True
+            
+            prop.save()
+            
+            # Sauvegarder l'ID pour les prochaines synchros sans déclencher une boucle
+            if str(prop.id) != self.synced_property_id:
+                self.synced_property_id = str(prop.id)
+                HotelRoom.objects.filter(pk=self.pk).update(synced_property_id=self.synced_property_id)
+        else:
+            # Si non visible, on dépublie l'annonce si elle existe
+            if self.synced_property_id:
+                try:
+                    prop = Property.objects.get(id=self.synced_property_id)
+                    prop.is_published = False
+                    prop.visible_on_portal = False
+                    prop.save()
+                except Property.DoesNotExist:
+                    pass
+
+
+class HotelRoomImage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    room = models.ForeignKey(HotelRoom, on_delete=models.CASCADE, related_name='images')
+    image_url = models.FileField(upload_to='hotel_rooms/')
+    is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Image de chambre"
+        verbose_name_plural = "Images de chambre"
+        ordering = ['-is_primary', '-created_at']
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Synchronisation de l'image vers l'annonce
+        if self.room and self.room.synced_property_id:
+            from logersn.models import PropertyImage, Property
+            try:
+                prop = Property.objects.get(id=self.room.synced_property_id)
+                # Vérifier si l'image existe déjà pour éviter les doublons
+                exists = PropertyImage.objects.filter(property=prop, image_url=self.image_url.name).exists()
+                if not exists:
+                    PropertyImage.objects.create(
+                        property=prop,
+                        image_url=self.image_url,
+                        is_primary=self.is_primary
+                    )
+            except Property.DoesNotExist:
+                pass
+
+    def __str__(self):
+        return f"Image pour {self.room.room_number}"
 
 
 class HotelBooking(models.Model):
@@ -336,6 +435,10 @@ class HotelBooking(models.Model):
     client_phone = models.CharField(max_length=50, verbose_name="Téléphone")
     client_email = models.EmailField(blank=True, null=True, verbose_name="Email")
     client_id_card = models.CharField(max_length=100, blank=True, null=True, verbose_name="Pièce d'identité")
+    
+    # Intégration Portail
+    portal_client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_hotel_bookings', verbose_name="Client du Portail (LogerTogo)")
+    is_from_portal = models.BooleanField(default=False, verbose_name="Réservation Web")
     
     check_in = models.DateTimeField(verbose_name="Date/Heure d'arrivée")
     check_out = models.DateTimeField(verbose_name="Date/Heure de départ")
@@ -439,3 +542,158 @@ class HotelPayment(models.Model):
         return f"Pay: {self.amount} F - {self.payment_method} ({self.get_payment_type_display()})"
 
 
+class EmployeeSchedule(models.Model):
+    """
+    Planning horaire de travail attendu pour un collaborateur/réceptionniste d'un hôtel.
+    """
+    class DayOfWeekEnum(models.IntegerChoices):
+        MONDAY = 1, 'Lundi'
+        TUESDAY = 2, 'Mardi'
+        WEDNESDAY = 3, 'Mercredi'
+        THURSDAY = 4, 'Jeudi'
+        FRIDAY = 5, 'Vendredi'
+        SATURDAY = 6, 'Samedi'
+        SUNDAY = 7, 'Dimanche'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hotel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee_schedules')
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='schedules')
+    day_of_week = models.IntegerField(choices=DayOfWeekEnum.choices, verbose_name="Jour de la semaine")
+    start_time = models.TimeField(verbose_name="Heure d'arrivée prévue")
+    end_time = models.TimeField(verbose_name="Heure de départ prévue")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Planning Collaborateur"
+        verbose_name_plural = "Plannings Collaborateurs"
+        unique_together = ('employee', 'day_of_week')
+        ordering = ['day_of_week', 'start_time']
+
+    def __str__(self):
+        return f"{self.employee.get_full_name()} - {self.get_day_of_week_display()} ({self.start_time}-{self.end_time})"
+
+
+class EmployeeAttendance(models.Model):
+    """
+    Suivi réel des présences et pointage (Check-in/Check-out, Pauses) des collaborateurs d'un hôtel.
+    """
+    class StatusEnum(models.TextChoices):
+        PRESENT = 'PRESENT', 'Présent'
+        LATE = 'LATE', 'En Retard'
+        ON_BREAK = 'ON_BREAK', 'En Pause'
+        CLOCK_OUT = 'CLOCK_OUT', 'Parti'
+        ABSENT = 'ABSENT', 'Absent'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hotel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee_attendances')
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField(default=timezone.now, verbose_name="Date du jour")
+    clock_in = models.DateTimeField(null=True, blank=True, verbose_name="Heure d'arrivée")
+    clock_out = models.DateTimeField(null=True, blank=True, verbose_name="Heure de départ")
+    break_start = models.DateTimeField(null=True, blank=True, verbose_name="Début de pause")
+    break_end = models.DateTimeField(null=True, blank=True, verbose_name="Fin de pause")
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PRESENT)
+    is_late = models.BooleanField(default=False, verbose_name="Arrivé en retard")
+    late_minutes = models.PositiveIntegerField(default=0, verbose_name="Minutes de retard")
+    notes = models.TextField(null=True, blank=True, verbose_name="Observations / Justification")
+    latitude_in = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, verbose_name="Latitude Arrivée")
+    longitude_in = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, verbose_name="Longitude Arrivée")
+    latitude_out = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, verbose_name="Latitude Départ")
+    longitude_out = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, verbose_name="Longitude Départ")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Pointage Collaborateur"
+        verbose_name_plural = "Pointages Collaborateurs"
+        unique_together = ('employee', 'date')
+        ordering = ['-date', '-clock_in']
+
+    def __str__(self):
+        return f"{self.employee.get_full_name()} - {self.date} ({self.get_status_display()})"
+
+    @property
+    def total_work_hours(self):
+        """Calcul de la durée de travail effective en heures (hors pauses), supportant le calcul temps réel."""
+        if not self.clock_in:
+            return 0.0
+        
+        # If currently active (not clocked out yet)
+        end_time = self.clock_out if self.clock_out else timezone.now()
+        total_duration = end_time - self.clock_in
+        total_seconds = total_duration.total_seconds()
+        
+        # Deduct break time if any
+        if self.break_start:
+            break_end_time = self.break_end if self.break_end else (timezone.now() if self.status == 'ON_BREAK' else self.break_start)
+            break_duration = break_end_time - self.break_start
+            total_seconds -= break_duration.total_seconds()
+            
+        hours = max(0.0, total_seconds / 3600.0)
+        return round(hours, 2)
+
+
+class EmployeeTask(models.Model):
+    """
+    Consignes et tâches exceptionnelles assignées aux réceptionnistes par le gérant d'hôtel.
+    """
+    class StatusEnum(models.TextChoices):
+        PENDING = 'PENDING', 'En Attente'
+        COMPLETED = 'COMPLETED', 'Terminée'
+        CANCELLED = 'CANCELLED', 'Annulée'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hotel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assigned_tasks')
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee_tasks')
+    title = models.CharField(max_length=255, verbose_name="Titre de la tâche")
+    description = models.TextField(verbose_name="Détails de la consigne")
+    due_date = models.DateField(verbose_name="Date d'échéance")
+    status = models.CharField(max_length=20, choices=StatusEnum.choices, default=StatusEnum.PENDING)
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Date/Heure d'achèvement")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Tâche Collaborateur"
+        verbose_name_plural = "Tâches Collaborateurs"
+        ordering = ['due_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.employee.get_full_name()} ({self.get_status_display()})"
+
+
+class EmployeeActionLog(models.Model):
+    """
+    Journal de traçabilité globale des actions menées par les collaborateurs.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hotel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee_action_logs')
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='action_logs')
+    action_type = models.CharField(max_length=50, verbose_name="Type d'action")
+    description = models.TextField(verbose_name="Détails de l'action")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="Adresse IP")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date/Heure de l'action")
+
+    class Meta:
+        verbose_name = "Trace de Collaborateur"
+        verbose_name_plural = "Traces de Collaborateurs"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.employee.get_full_name()} - {self.action_type} ({self.created_at})"
+
+class Notification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    link = models.CharField(max_length=255, blank=True, null=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notif: {self.title} - {self.user.email}"

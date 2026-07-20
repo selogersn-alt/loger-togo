@@ -375,7 +375,7 @@
     </div>
 
     <!-- Liste des Résultats -->
-    <div class="row g-4">
+    <div class="row g-4" id="properties-grid">
         {% for property in properties %}
         <div class="col-md-4">
             {% include 'partials/property_card.html' %}
@@ -387,6 +387,14 @@
             <p class="text-muted">{% trans "Veuillez élargir vos critères de recherche." %}</p>
         </div>
         {% endfor %}
+    </div>
+
+    <!-- Spinner de chargement pour Infinite Scroll -->
+    <div id="loading-spinner" class="text-center my-5" style="display: none;">
+        <div class="spinner-border text-success" role="status" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;">
+            <span class="visually-hidden">{% trans "Chargement..." %}</span>
+        </div>
+        <p class="text-muted mt-2 small">{% trans "Chargement de plus d'annonces..." %}</p>
     </div>
 </div>
 {% endblock %}
@@ -506,6 +514,77 @@ window.toggleAdvancedFilters = function() {
 window.hideRoute = function() {
     document.getElementById('routeInfo').style.display = 'none';
 };
+
+// --- INFINITE SCROLL ---
+document.addEventListener('DOMContentLoaded', function() {
+    let nextPage = 2;
+    let loading = false;
+    let hasMore = true;
+
+    const sentinel = document.getElementById('loading-spinner');
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !loading && hasMore) {
+            loadMoreProperties();
+        }
+    }, {
+        rootMargin: '200px', // Charger 200px avant le bas réel de l'écran pour un scroll fluide
+        threshold: 0.1
+    });
+
+    observer.observe(sentinel);
+
+    function loadMoreProperties() {
+        loading = true;
+        sentinel.style.display = 'block';
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', nextPage);
+        url.searchParams.set('ajax', '1');
+
+        fetch(url.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.text();
+        })
+        .then(html => {
+            if (html.trim() === '') {
+                hasMore = false;
+                sentinel.style.display = 'none';
+                observer.unobserve(sentinel);
+            } else {
+                const grid = document.getElementById('properties-grid');
+                grid.insertAdjacentHTML('beforeend', html);
+                nextPage++;
+                loading = false;
+                sentinel.style.display = 'none';
+
+                // Initialisation des carrousels Bootstrap pour les cartes nouvellement injectées
+                if (window.bootstrap && window.bootstrap.Carousel) {
+                    const newCarousels = grid.querySelectorAll('.carousel:not(.initialized)');
+                    newCarousels.forEach(c => {
+                        try {
+                            new bootstrap.Carousel(c);
+                            c.classList.add('initialized');
+                        } catch (err) {
+                            console.error("Erreur init carrousel:", err);
+                        }
+                    });
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Erreur chargement infini:', err);
+            loading = false;
+            sentinel.style.display = 'none';
+        });
+    }
+});
 </script>
 {% endblock %}
 

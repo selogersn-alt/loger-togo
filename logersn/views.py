@@ -179,8 +179,27 @@ def properties_list_view(request):
                 'image': img_url or ""
             })
 
+    # Pagination pour Infinite Scroll
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    from django.http import HttpResponse
+
+    paginator = Paginator(properties, 12)  # 12 annonces par page
+    page = request.GET.get('page', 1)
+    
+    try:
+        properties_page = paginator.page(page)
+    except PageNotAnInteger:
+        properties_page = paginator.page(1)
+    except EmptyPage:
+        if request.GET.get('ajax') == '1':
+            return HttpResponse('')
+        properties_page = paginator.page(paginator.num_pages)
+
+    if request.GET.get('ajax') == '1':
+        return render(request, 'partials/property_grid_items.html', {'properties': properties_page})
+
     context = {
-        'properties': properties,
+        'properties': properties_page,
         'is_fallback': is_fallback,
         'search_query': q or neighborhood,
         'cities': [c[0] for c in CITY_CHOICES],

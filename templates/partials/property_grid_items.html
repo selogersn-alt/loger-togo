@@ -1,0 +1,6 @@
+{% load static i18n property_tags %}
+{% for property in properties %}
+<div class="col-md-4">
+    {% include 'partials/property_card.html' %}
+</div>
+{% endfor %}

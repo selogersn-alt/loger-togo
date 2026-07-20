@@ -25,6 +25,26 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Sauvegardes automatisées vers Cloudflare R2 (S3) ───
+  pgbackups:
+    image: prodrigestivill/postgres-backup-s3:15
+    restart: always
+    environment:
+      SCHEDULE: '@daily'
+      POSTGRES_HOST: db
+      POSTGRES_DB: logertogo
+      POSTGRES_USER: logeruser
+      POSTGRES_PASSWORD: logerpassword
+      S3_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET: ${AWS_STORAGE_BUCKET_NAME}
+      S3_PREFIX: backups/database
+      S3_ENDPOINT: ${AWS_S3_ENDPOINT_URL}
+      S3_REGION: ${AWS_S3_REGION_NAME:-auto}
+    depends_on:
+      db:
+        condition: service_healthy
+
   # ── Correcteur de permissions (s'exécute une seule fois) ─
   # Résout le PermissionError sur les volumes Docker montés
   fixer:

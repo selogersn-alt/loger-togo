@@ -549,6 +549,21 @@
                 {% endif %}
             </div>
 
+            <!-- Infos Internes (Privées) -->
+            <div style="border-top: 1px solid var(--border-glass); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                <label class="form-label" style="font-size: 0.95rem; color: var(--primary-light);"><i class="fa-solid fa-user-shield me-2"></i>{% trans "Infos Internes (Privées)" %}</label>
+                <div class="form-grid mt-2">
+                    <div class="form-group">
+                        <label class="form-label" for="id_internal_ref">{% trans "Référence source" %}</label>
+                        <input type="text" name="internal_ref" id="id_internal_ref" class="form-control-input" placeholder="{% trans "Lien de la source ou référence" %}" value="{{ form.internal_ref.value|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="id_private_contact_info">{% trans "Contact agent (Note privée)" %}</label>
+                        <textarea name="private_contact_info" id="id_private_contact_info" class="form-textarea" rows="2" placeholder="{% trans "Nom, téléphone, notes privées..." %}" style="min-height: 48px; height: 48px;">{{ form.private_contact_info.value|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
             <!-- Publication Toggle & Security checks -->
             <div class="form-group form-group-full" style="border-top: 1px solid var(--border-glass); padding-top: 1.5rem;">
                 <label class="form-label" style="font-size: 0.95rem; color: var(--accent);">Portée de publication & Annonce publique</label>

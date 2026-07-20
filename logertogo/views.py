@@ -135,6 +135,12 @@ def dashboard_view(request):
         'tenant_hotel_bookings': tenant_hotel_bookings,
     })
 
+@login_required
+def property_confirmation_view(request, property_id):
+    """Vue de confirmation après soumission d'une annonce (gratuit/pris en charge)."""
+    property_obj = get_object_or_404(Property, id=property_id, owner=request.user)
+    return render(request, 'property_confirmation.html', {'property': property_obj})
+
 # --- PAIEMENTS FEDAPAY ---
 
 @login_required

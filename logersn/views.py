@@ -233,6 +233,7 @@ def create_property_view(request):
                 # Évite les doubles soumissions par clic rapide
                 p = form.save(commit=False)
                 p.owner = request.user
+                p.is_paid = True  # Les frais sont pris en charge par l'entreprise
                 p.save()
                 
                 # Gestion robuste des images (Support AJAX & Multi-part)
@@ -248,10 +249,10 @@ def create_property_view(request):
                 
                 # Si c'est une requête AJAX, on répond en JSON
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/paiement/{p.id}/PUBLICATION/'})
+                    return JsonResponse({'status': 'success', 'id': str(p.id), 'redirect': f'/annonces/confirmation/{p.id}/'})
 
-                messages.success(request, _("Votre annonce a été créée avec succès !"))
-                return redirect('initiate_payment', property_id=p.id, payment_type='PUBLICATION')
+                messages.success(request, _("Votre annonce a été soumise avec succès !"))
+                return redirect('property_confirmation', property_id=p.id)
             except Exception as e:
                 import logging
                 logging.getLogger(__name__).error(f"Erreur création property: {e}")

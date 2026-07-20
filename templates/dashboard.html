@@ -95,6 +95,14 @@
                                     <div>
                                         <h6 class="fw-bold mb-0">{{ property.title }}</h6>
                                         <small class="text-muted"><i class="fas fa-location-dot me-1"></i>{{ property.neighborhood }}</small>
+                                        <div class="d-flex flex-wrap gap-2 mt-1">
+                                            {% if property.internal_ref %}
+                                            <div><small class="text-info bg-light px-2 py-1 rounded" style="font-size: 0.75rem;"><i class="fas fa-link me-1"></i>Ref: {{ property.internal_ref }}</small></div>
+                                            {% endif %}
+                                            {% if property.private_contact_info %}
+                                            <div><small class="text-muted bg-light px-2 py-1 rounded" style="font-size: 0.75rem;"><i class="fas fa-user-shield me-1"></i>Note: {{ property.private_contact_info }}</small></div>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </td>

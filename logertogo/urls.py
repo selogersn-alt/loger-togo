@@ -45,7 +45,8 @@ from logertogo.views import (
     home_view, dashboard_view, about_view, verified_professionals_view,
     start_support_view, kyc_submit_view, 
     initiate_payment_view, checkout_payment_view, payment_callback_view, payment_success_view, 
-    payment_request_sent_view, fedapay_webhook_view,
+    payment_request_sent_view, fedapay_webhook_view, property_confirmation_view,
+    admin_statistics_view, admin_select_email_template, get_campaign_template_view,
     cgu_view, privacy_view, chat_poll_view,
     guide_locataires_view, guide_bailleurs_view, guide_agences_view, guide_courtiers_view,
 )
@@ -96,6 +97,7 @@ urlpatterns = [
     path('api/logersn/', include('logersn.urls')),
 
     path('annonces/nouvelle/', create_property_view, name='create_property'),
+    path('annonces/confirmation/<uuid:property_id>/', property_confirmation_view, name='property_confirmation'),
     path('annonces/', properties_list_view, name='properties_list'),
     path('autour-de-moi/', near_me_view, name='near_me'),
     path('api/geo/nearby/', nearby_api_view, name='nearby_api'),  # API Android Kotlin

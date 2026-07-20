@@ -189,6 +189,17 @@
                     <span><i class="fa-solid fa-bath"></i> {{ prop.toilets }} T.</span>
                     <span><i class="fa-solid fa-maximize"></i> {{ prop.surface }} m²</span>
                 </div>
+
+                {% if prop.internal_ref or prop.private_contact_info %}
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: 0.35rem;">
+                    {% if prop.internal_ref %}
+                        <small style="font-size: 0.75rem; color: var(--primary-light);"><i class="fa-solid fa-link me-1"></i>Ref: {{ prop.internal_ref }}</small>
+                    {% endif %}
+                    {% if prop.private_contact_info %}
+                        <small style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-solid fa-user-shield me-1"></i>Note: {{ prop.private_contact_info }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
             
             <!-- Quick Subdomain Edit and Public Toggle actions -->

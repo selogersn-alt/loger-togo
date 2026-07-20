@@ -299,8 +299,14 @@
         <div class="p-4 rounded-4 mt-4" style="background:#f0f9f4;border:1px solid #c3e6cb;">
           <h6 class="fw-bold mb-3" style="color:#0b4629;"><i class="fa-solid fa-user-shield me-2"></i>{% trans "Infos Internes (Privées)" %}</h6>
           <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">{% trans "Référence source" %}</label><input type="text" name="internal_ref" class="form-control" placeholder="{% trans "Lien source" %}"></div>
-            <div class="col-md-6"><label class="form-label">{% trans "Contact agent" %}</label><textarea name="private_contact_info" class="form-control" rows="2" placeholder="{% trans "Nom / Tel" %}"></textarea></div>
+            <div class="col-md-6">
+              <label class="form-label" for="id_internal_ref">{% trans "Référence source" %}</label>
+              <input type="text" name="internal_ref" id="id_internal_ref" class="form-control" placeholder="{% trans "Lien source" %}" value="{{ form.internal_ref.value|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="id_private_contact_info">{% trans "Contact agent" %}</label>
+              <textarea name="private_contact_info" id="id_private_contact_info" class="form-control" rows="2" placeholder="{% trans "Nom / Tel" %}">{{ form.private_contact_info.value|default:'' }}</textarea>
+            </div>
           </div>
         </div>
         <div class="d-flex justify-content-between mt-4">

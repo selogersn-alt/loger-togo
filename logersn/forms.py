@@ -124,6 +124,7 @@ class PropertyForm(forms.ModelForm):
             'latitude', 'longitude',
             'discount_percentage', 'discount_price',
             'deposit_months', 'advance_months', 'agency_fee_months', 'visit_fee',
+            'internal_ref', 'private_contact_info',
         ]
         widgets = {
             'price_unit': forms.HiddenInput(attrs={'id': 'price-unit-selector'}),
@@ -161,6 +162,8 @@ class PropertyForm(forms.ModelForm):
             'water_tank': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'discount_percentage': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
             'discount_price': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'internal_ref': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Lien de la source ou référence')}),
+            'private_contact_info': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('Nom / Tel / Note privée')}),
         }
         labels = {
             'title': _("Titre de l'annonce"),
@@ -197,4 +200,6 @@ class PropertyForm(forms.ModelForm):
             'visit_fee': _("Frais de visite (FCFA)"),
             'salons': _("Nombre de salons"),
             'kitchens': _("Nombre de cuisines"),
+            'internal_ref': _("Référence source"),
+            'private_contact_info': _("Contact agent / Note privée"),
         }

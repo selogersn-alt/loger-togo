@@ -40,5 +40,5 @@ class PropertySerializer(serializers.ModelSerializer):
             'toilets', 'total_rooms', 'salons', 'kitchens', 'surface',
             'has_garage', 'has_balcony', 'has_terrace', 'has_courtyard', 'has_garden',
             'document_type', 'is_boosted', 'created_at', 
-            'images', 'owner', 'absolute_url'
+            'internal_ref', 'images', 'owner', 'absolute_url'
         ]

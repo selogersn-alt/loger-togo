@@ -101,6 +101,10 @@ class Property(models.Model):
     views_count = models.PositiveIntegerField(default=0, verbose_name=_("Nombre de vues"))
     clicks_count = models.PositiveIntegerField(default=0, verbose_name=_("Nombre de clics d'action"))
 
+    # Référence interne / source (Visible uniquement par l'agent/admin)
+    internal_ref = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("Référence source"))
+    private_contact_info = models.TextField(null=True, blank=True, verbose_name=_("Contact agent / Note privée"))
+
     # Options de Monétisation DigitalH
     is_boosted = models.BooleanField(default=False, verbose_name=_("Annonce Boostée"))
     boost_until = models.DateTimeField(null=True, blank=True, verbose_name=_("Boost valide jusqu'au"))

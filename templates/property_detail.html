@@ -496,6 +496,28 @@
                 </div>
                 {% endif %}
 
+                {% if user.is_authenticated and user == property.owner %}
+                    {% if property.internal_ref or property.private_contact_info %}
+                    <div class="p-4 rounded-4 mb-4" style="background:#f0f9f4; border:1px solid #c3e6cb;">
+                        <h6 class="fw-bold mb-3" style="color:#0b4629; font-size: 1rem;"><i class="fa-solid fa-user-shield me-2"></i>{% trans "Infos Internes (Privées - Visible uniquement par vous)" %}</h6>
+                        <div class="row g-3">
+                            {% if property.internal_ref %}
+                            <div class="col-md-6">
+                                <strong>{% trans "Référence source" %} :</strong>
+                                <p class="mb-0 text-muted">{{ property.internal_ref }}</p>
+                            </div>
+                            {% endif %}
+                            {% if property.private_contact_info %}
+                            <div class="col-md-6">
+                                <strong>{% trans "Contact agent / Note privée" %} :</strong>
+                                <p class="mb-0 text-muted" style="white-space: pre-line;">{{ property.private_contact_info }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
                 <h3 class="fw-bold mb-4" style="color: var(--text-main);">{% trans "Description du bien" %}</h3>
                 <p style="line-height: 1.8; color: var(--text-muted); white-space: pre-line;">
                     {{ property.description }}

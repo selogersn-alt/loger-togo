@@ -642,7 +642,7 @@ function initImageUpload() {
 
         if (overlay) { overlay.style.display = 'flex'; overlay.classList.add('animate__fadeIn'); }
 
-        const options = { maxSizeMB: 0.9, maxWidthOrHeight: 1800, useWebWorker: true, fileType: 'image/webp', initialQuality: 0.8 };
+        const options = { maxSizeMB: 0.9, maxWidthOrHeight: 1800, useWebWorker: true, fileType: 'image/jpeg', initialQuality: 0.85 };
         
         try {
             const formData = new FormData(form);
@@ -658,7 +658,7 @@ function initImageUpload() {
                     const file = selectedFiles[i];
                     try {
                         const compressed = await imageCompression(file, options);
-                        const fileName = (file.name || 'image').split('.')[0] + '.webp';
+                        const fileName = (file.name || 'image').split('.')[0] + '.jpg';
                         formData.append('images', compressed, fileName);
                         console.log("[Upload] Image compresse:", fileName);
                         

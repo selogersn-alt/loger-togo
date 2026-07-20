@@ -203,29 +203,30 @@ class PropertyImage(models.Model):
     is_primary = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # Optimisation WebP en mémoire avant l'upload vers R2/S3
+        # Optimisation JPEG en mémoire avant l'upload vers R2/S3 (pour compatibilité avec les aperçus des réseaux sociaux)
         if not self.pk and self.image_url:
             try:
                 from PIL import Image
                 import io
+                import os
                 from django.core.files.base import ContentFile
                 
                 img = Image.open(self.image_url)
                 
-                if img.format != 'WEBP':
-                    output = io.BytesIO()
-                    if img.mode in ('RGBA', 'P'):
-                        img = img.convert('RGB')
-                    
-                    img.save(output, format='WEBP', quality=80)
-                    output.seek(0)
-                    
-                    # Nouveau nom de fichier
-                    name = self.image_url.name.split('.')[0] + '.webp'
-                    
-                    # Remplacement du fichier original par la version optimisée
-                    # On utilise ContentFile pour que Django l'uploade lors du super().save()
-                    self.image_url = ContentFile(output.read(), name=name)
+                output = io.BytesIO()
+                if img.mode in ('RGBA', 'P', 'LA'):
+                    img = img.convert('RGB')
+                
+                img.save(output, format='JPEG', quality=85, optimize=True)
+                output.seek(0)
+                
+                # Nouveau nom de fichier avec extension .jpg
+                base_name = os.path.splitext(self.image_url.name)[0]
+                name = f"{base_name}.jpg"
+                
+                # Remplacement du fichier original par la version optimisée
+                # On utilise ContentFile pour que Django l'uploade lors du super().save()
+                self.image_url = ContentFile(output.read(), name=name)
             except Exception as e:
                 import logging
                 logger = logging.getLogger(__name__)

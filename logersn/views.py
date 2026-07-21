@@ -224,8 +224,14 @@ def property_detail_view(request, property_id=None, slug=None):
     
     is_favorite = request.user.is_authenticated and Favorite.objects.filter(user=request.user, property=property_obj).exists()
     
-    # Optimisation des propriétés similaires
-    related_properties = Property.objects.filter(city=property_obj.city, is_published=True, visible_on_portal=True).exclude(id=property_obj.id).select_related('owner').prefetch_related('images')[:4]
+    from django.core.cache import cache
+    
+    # Optimisation des propriétés similaires avec Redis
+    cache_key = f"related_props_{property_obj.city}_{property_obj.id}"
+    related_properties = cache.get(cache_key)
+    if related_properties is None:
+        related_properties = list(Property.objects.filter(city=property_obj.city, is_published=True, visible_on_portal=True).exclude(id=property_obj.id).select_related('owner').prefetch_related('images')[:4])
+        cache.set(cache_key, related_properties, timeout=3600) # En cache pour 1 heure
     
     return render(request, 'property_detail.html', {
         'property': property_obj, 

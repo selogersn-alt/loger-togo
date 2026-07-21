@@ -183,6 +183,22 @@ else:
 
 print(f"Database Engine: {DATABASES['default'].get('ENGINE', 'Postgres/Custom')}")
 
+# Cache Configuration (Redis)
+redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/1')
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": redis_url,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "IGNORE_EXCEPTIONS": True, # Si Redis tombe, le site continue de fonctionner (fallback BDD)
+        }
+    }
+}
+# Met en cache les sessions Django dans Redis pour accélérer l'authentification
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
 
 AUTHENTICATION_BACKENDS = [
     'users.backends.PhoneOrEmailBackend',
